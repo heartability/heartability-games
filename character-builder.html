@@ -261,7 +261,7 @@ h1.room-title {
   width: 100%;
 }
 
-/* Layered character display */
+/* Layered character display — all layers same size, stack perfectly */
 .char-layer {
   position: absolute;
   width: 100%;
@@ -273,15 +273,8 @@ h1.room-title {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: bottom center;
+  object-position: center center;
 }
-
-/* Fine-tune each layer's position */
-.layer-body img   { object-position: bottom center; }
-.layer-hair img   { object-position: bottom center; }
-.layer-eyes img   { object-position: bottom center; }
-.layer-mouth img  { object-position: bottom center; }
-.layer-acc img    { object-position: bottom center; }
 
 .mirror-empty {
   position: absolute;
