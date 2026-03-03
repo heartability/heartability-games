@@ -405,6 +405,7 @@ const ASSETS = {
   body_pink:   "assets/characters/08.01 PINK_BODY.png",
 
   eyes_open:       "assets/characters/01.02 OPEN_EYES.png",
+  eyes_closed:     "assets/characters/02.02 EYES_CLOSED.png",
   eyes_cyclops:    "assets/characters/03.02 OPEN_SINGLE_EYE.png",
   eyes_glasses:    "assets/characters/04.02 GLASSES.png",
   eyes_serious:    "assets/characters/05.02 SERIOUS_EYES.png",
@@ -442,62 +443,59 @@ const ASSETS = {
   acc_penpal:       "assets/characters/09 PENPAL_LETTER.png",
   acc_rainstorm:    "assets/characters/10 RAINSTORM.png",
   acc_rainbow:      "assets/characters/11 RAINBOW.png",
-  acc_cloud:        "assets/characters/12 CLOUD_RIDE.png",
-  acc_cloud_sit:    "assets/characters/13 CLOUD_RIDE_SITTING.png",
 };
 
-// Full-canvas exports (777×1155px, same filenames) used for the mirror display.
+// Full-canvas exports (777×1155px) used for the mirror display.
 // Each PNG has transparent padding so all parts align automatically when stacked.
 const FULL_ASSETS = {
-  body_red:    "assets/characters-full/01.01 RED_BODY.png",
-  body_orange: "assets/characters-full/02.01 ORANGE_BODY.png",
-  body_yellow: "assets/characters-full/03.01 YELLOW_BODY.png",
-  body_green:  "assets/characters-full/04.01 GREEN_BODY.png",
-  body_cyan:   "assets/characters-full/05.01 CYAN_BODY.png",
-  body_blue:   "assets/characters-full/06.01 BLUE_BODY.png",
-  body_purple: "assets/characters-full/07.01 PURPLE_BODY.png",
-  body_pink:   "assets/characters-full/08.01 PINK_BODY.png",
+  body_red:    "assets/characters-full/01.01-RED_BODY.png",
+  body_orange: "assets/characters-full/02.01-ORANGE_BODY.png",
+  body_yellow: "assets/characters-full/03.01-YELLOW_BODY.png",
+  body_green:  "assets/characters-full/04.01-GREEN_BODY.png",
+  body_cyan:   "assets/characters-full/05.01-CYAN_BODY.png",
+  body_blue:   "assets/characters-full/06.01-BLUE_BODY.png",
+  body_purple: "assets/characters-full/07.01-PURPLE_BODY.png",
+  body_pink:   "assets/characters-full/08.01-PINK_BODY.png",
 
-  eyes_open:       "assets/characters-full/01.02 OPEN_EYES.png",
-  eyes_cyclops:    "assets/characters-full/03.02 OPEN_SINGLE_EYE.png",
-  eyes_glasses:    "assets/characters-full/04.02 GLASSES.png",
-  eyes_serious:    "assets/characters-full/05.02 SERIOUS_EYES.png",
-  eyes_up:         "assets/characters-full/06.02 UP_EYES.png",
-  eyes_sunglasses: "assets/characters-full/07.02 SUNGLASSES.png",
-  eyes_sideways:   "assets/characters-full/08.02 SIDEWAYS_GLANCE.png",
+  eyes_open:       "assets/characters-full/01.02-OPEN_EYES.png",
+  eyes_closed:     "assets/characters-full/02.02-EYES_CLOSED.png",
+  eyes_cyclops:    "assets/characters-full/03.02-OPEN_SINGLE_EYE.png",
+  eyes_glasses:    "assets/characters-full/04.02-GLASSES.png",
+  eyes_serious:    "assets/characters-full/05.02-SERIOUS_EYES.png",
+  eyes_up:         "assets/characters-full/06.02-UP_EYES.png",
+  eyes_sunglasses: "assets/characters-full/07.02-SUNGLASSES.png",
+  eyes_sideways:   "assets/characters-full/08.02-SIDEWAYS_GLANCE.png",
 
-  mouth_lips:     "assets/characters-full/01.03 RED_LIPS.png",
-  mouth_tongue:   "assets/characters-full/02.03 TONGUE_SMILE.png",
-  mouth_thin:     "assets/characters-full/03.03 THIN_SMILE.png",
-  mouth_flat:     "assets/characters-full/04.03 FLAT_MOUTH.png",
-  mouth_straight: "assets/characters-full/05.03 STRAIGHT_MOUTH.png",
-  mouth_sad:      "assets/characters-full/06.03 SLIGHT_SAD.png",
-  mouth_grin:     "assets/characters-full/07.03 BIG_GRIN.png",
-  mouth_smooch:   "assets/characters-full/08.03 SMOOCH.png",
+  mouth_lips:     "assets/characters-full/01.03-RED_LIPS.png",
+  mouth_tongue:   "assets/characters-full/02.03-TONGUE_SMILE.png",
+  mouth_thin:     "assets/characters-full/03.03-THIN_SMILE.png",
+  mouth_flat:     "assets/characters-full/04.03-FLAT_MOUTH.png",
+  mouth_straight: "assets/characters-full/05.03-STRAIGHT_MOUTH.png",
+  mouth_sad:      "assets/characters-full/06.03-SLIGHT_SAD.png",
+  mouth_grin:     "assets/characters-full/07.03-BIG_GRIN.png",
+  mouth_smooch:   "assets/characters-full/08.03-SMOOCH.png",
 
-  hair_fire:     "assets/characters-full/01.04 FIRE_HAIR.png",
-  hair_flower:   "assets/characters-full/02.04 ORANGE_HAIR.png",
-  hair_rays:     "assets/characters-full/03.04 LINE_RAY_HAIR.png",
-  hair_spikes:   "assets/characters-full/04.04 SPIKE_HAIR.png",
-  hair_squiggle: "assets/characters-full/05.04 SQUIGGLE_HAIR.png",
-  hair_wings:    "assets/characters-full/06.04 BLUE_HAIR.png",
-  hair_pigtails: "assets/characters-full/07.04 PURPLE_HAIR.png",
-  hair_wideray:  "assets/characters-full/08.04 WIDE_RAY.png",
+  hair_fire:     "assets/characters-full/01.04-FIRE_HAIR.png",
+  hair_flower:   "assets/characters-full/02.04-ORANGE_HAIR.png",
+  hair_rays:     "assets/characters-full/03.04-LINE_RAY_HAIR.png",
+  hair_spikes:   "assets/characters-full/04.04-SPIKE_HAIR.png",
+  hair_squiggle: "assets/characters-full/05.04-SQUIGGLE_HAIR.png",
+  hair_wings:    "assets/characters-full/06.04-BLUE_HAIR.png",
+  hair_pigtails: "assets/characters-full/07.04-PURPLE_HAIR.png",
+  hair_wideray:  "assets/characters-full/08.04-WIDE_RAY.png",
 
-  acc_rollerblades: "assets/characters-full/00 ROLLERBLADES.png",
-  acc_sneakers:     "assets/characters-full/01 SNEAKERS.png",
-  acc_heels:        "assets/characters-full/02 HIGH_HEALS.png",
-  acc_sandals:      "assets/characters-full/03 SANDALS.png",
-  acc_devil:        "assets/characters-full/04 DEVIL_HORNS_AND_TAIL.png",
-  acc_angel:        "assets/characters-full/05 ANGEL_WINGS_AND_HALO.png",
-  acc_butterfly:    "assets/characters-full/06 BUTTERFLY_WINGS_AND_ANT.png",
-  acc_birthday:     "assets/characters-full/07 BIRTHDAY_BALLOON_AND_HAT.png",
-  acc_swearword:    "assets/characters-full/08 SWEARWORD_SENSOR.png",
-  acc_penpal:       "assets/characters-full/09 PENPAL_LETTER.png",
-  acc_rainstorm:    "assets/characters-full/10 RAINSTORM.png",
-  acc_rainbow:      "assets/characters-full/11 RAINBOW.png",
-  acc_cloud:        "assets/characters-full/12 CLOUD_RIDE.png",
-  acc_cloud_sit:    "assets/characters-full/13 CLOUD_RIDE_SITTING.png",
+  acc_rollerblades: "assets/characters-full/00-ROLLERBLADES.png",
+  acc_sneakers:     "assets/characters-full/01-SNEAKERS.png",
+  acc_heels:        "assets/characters-full/02-HIGH_HEALS.png",
+  acc_sandals:      "assets/characters-full/03-SANDALS.png",
+  acc_devil:        "assets/characters-full/04-DEVIL_HORNS_AND_TAIL.png",
+  acc_angel:        "assets/characters-full/05-ANGEL_WINGS_AND_HALO.png",
+  acc_butterfly:    "assets/characters-full/06-BUTTERFLY_WINGS_AND_ANT.png",
+  acc_birthday:     "assets/characters-full/07-BIRTHDAY_BALLOON_AND_HAT.png",
+  acc_swearword:    "assets/characters-full/08-SWEARWORD_SENSOR.png",
+  acc_penpal:       "assets/characters-full/09-PENPAL_LETTER.png",
+  acc_rainstorm:    "assets/characters-full/10-RAINSTORM.png",
+  acc_rainbow:      "assets/characters-full/11-RAINBOW.png",
 };
 
 const BODIES = [
@@ -522,6 +520,7 @@ const HAIRS = [
 ];
 const EYES = [
   { id:"eyes_open",       label:"Open" },
+  { id:"eyes_closed",     label:"Closed" },
   { id:"eyes_cyclops",    label:"Cyclops" },
   { id:"eyes_glasses",    label:"Glasses" },
   { id:"eyes_serious",    label:"Serious" },
@@ -552,8 +551,6 @@ const ACCS = [
   { id:"acc_penpal",       label:"Penpal" },
   { id:"acc_rainstorm",    label:"Rainstorm" },
   { id:"acc_rainbow",      label:"Rainbow" },
-  { id:"acc_cloud",        label:"Cloud" },
-  { id:"acc_cloud_sit",    label:"Cloud Sit" },
 ];
 
 let state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
@@ -567,10 +564,7 @@ function load() {
 
 function renderLayer(layerId, partId) {
   const layer = document.getElementById(layerId);
-  if (!partId) { layer.innerHTML = ""; return; }
-  // Encode URI so filenames with spaces (e.g. "01.01 RED_BODY.png") load correctly.
-  const src = FULL_ASSETS[partId].replace(/ /g, "%20");
-  layer.innerHTML = `<img src="${src}" alt="" />`;
+  layer.innerHTML = partId ? `<img src="${FULL_ASSETS[partId]}" alt="" />` : "";
 }
 
 function render() {
