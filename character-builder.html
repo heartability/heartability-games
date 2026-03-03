@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Builder — Heartability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #c8a832;
+  --bg-dark: #a88820;
+  --panel-bg: #fdf6e3;
+  --panel-border-dark: #7a4a10;
+  --panel-border-mid: #c8841a;
+  --panel-border-light: #f0c060;
+  --text-dark: #3a2000;
+  --text-mid: #7a4a10;
+  --accent: #d44020;
+  --font-game: "VT323", monospace;
+  --mirror-bg: #ffffff;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--font-game);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
+  z-index: 0;
+}
+
+.room {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.wall {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 0;
+}
+
+.floor {
+  width: 100%;
+  height: 100px;
+  background-image: repeating-conic-gradient(#c8841a 0% 25%, #a86810 0% 50%);
+  background-size: 36px 36px;
+  border-top: 4px solid #7a4a10;
+  flex-shrink: 0;
+}
+.floor::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 60%);
+}
+
+h1.room-title {
+  font-family: var(--font-game);
+  font-size: clamp(32px, 5.5vw, 58px);
+  color: #fff8e0;
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.35);
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+.room-subtitle {
+  font-family: var(--font-game);
+  font-size: clamp(14px, 2.2vw, 19px);
+  color: #ffd870;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.topbar {
+  width: 100%;
+  max-width: 1050px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.instructions {
+  font-family: var(--font-game);
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: #fff8e0;
+  line-height: 1.8;
+}
+.step { color: #ff9040; }
+
+.btn {
+  background: var(--bg-dark);
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 6px 16px;
+  font-family: var(--font-game);
+  font-size: 16px;
+  color: #fff8e0;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+.main-panel {
+  width: 100%;
+  max-width: 1050px;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.name-row { margin-bottom: 14px; }
+
+.section-label {
+  font-family: var(--font-game);
+  font-size: 15px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.name-input {
+  width: 100%;
+  max-width: 400px;
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  padding: 6px 10px;
+  font-family: var(--font-game);
+  font-size: 20px;
+  color: var(--text-dark);
+  outline: none;
+}
+.name-input::placeholder { color: rgba(90,74,42,0.35); }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+}
+@media(max-width: 700px) {
+  .two-col { grid-template-columns: 1fr; }
+  .mirror-col { order: -1; }
+}
+
+.selector-side { display: flex; flex-direction: column; gap: 10px; }
+
+.category-section {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  padding: 10px 12px;
+}
+
+.category-title {
+  font-family: var(--font-game);
+  font-size: 17px;
+  color: var(--text-dark);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.parts-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.part-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 7px;
+  background: var(--panel-bg);
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  cursor: pointer;
+  transition: filter 0.1s;
+  min-width: 64px;
+}
+.part-btn:hover { filter: brightness(0.94); }
+.part-btn.active {
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: #fff0e0;
+}
+.part-btn img {
+  width: 52px;
+  height: 44px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.part-btn .part-name {
+  font-family: var(--font-game);
+  font-size: 11px;
+  color: var(--text-dark);
+  text-align: center;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+.part-btn.none-btn img { opacity: 0.3; }
+
+/* MIRROR */
+.mirror-col { display: flex; flex-direction: column; gap: 10px; }
+
+.mirror-frame {
+  background: var(--mirror-bg);
+  border: 5px solid #3a2a5a;
+  border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+  box-shadow:
+    0 0 0 6px #6a4a9a,
+    0 0 0 10px #3a2a5a,
+    4px 8px 24px rgba(0,0,0,0.5);
+  aspect-ratio: 0.72;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Layered character display */
+.char-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0; left: 0;
+}
+.char-layer img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+/* Fine-tune each layer's position */
+.layer-body img   { object-position: bottom center; }
+.layer-hair img   { object-position: bottom center; }
+.layer-eyes img   { object-position: bottom center; }
+.layer-mouth img  { object-position: bottom center; }
+.layer-acc img    { object-position: bottom center; }
+
+.mirror-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.mirror-empty-text {
+  font-family: var(--font-game);
+  font-size: 16px;
+  color: rgba(100,80,40,0.3);
+  text-align: center;
+  line-height: 2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.char-name-display {
+  font-family: var(--font-game);
+  font-size: 22px;
+  color: var(--text-dark);
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-height: 28px;
+}
+
+.summary-box {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  padding: 8px 12px;
+  font-family: var(--font-game);
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.8;
+}
+.summary-box span { color: var(--text-dark); }
+</style>
+</head>
+<body>
+<div class="room">
+  <div class="wall">
+    <h1 class="room-title">Character Builder</h1>
+    <p class="room-subtitle">who are you today?</p>
+
+    <div class="topbar">
+      <div class="instructions">
+        <span class="step">1.</span> name your character &nbsp;
+        <span class="step">2.</span> pick a body color &nbsp;
+        <span class="step">3.</span> mix and match parts &nbsp;
+        <span class="step">4.</span> add an accessory
+      </div>
+      <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
+    </div>
+
+    <div class="main-panel">
+      <div class="name-row">
+        <div class="section-label">name your character</div>
+        <input class="name-input" id="charName" maxlength="30" placeholder="they are called..." oninput="onNameChange()" />
+      </div>
+
+      <div class="two-col">
+        <div class="selector-side">
+          <div class="category-section">
+            <div class="category-title">&#x2665; Body Color</div>
+            <div class="parts-grid" id="grid-body"></div>
+          </div>
+          <div class="category-section">
+            <div class="category-title">&#x2728; Hair</div>
+            <div class="parts-grid" id="grid-hair"></div>
+          </div>
+          <div class="category-section">
+            <div class="category-title">&#x25CF; Eyes</div>
+            <div class="parts-grid" id="grid-eyes"></div>
+          </div>
+          <div class="category-section">
+            <div class="category-title">&#x263A; Mouth</div>
+            <div class="parts-grid" id="grid-mouth"></div>
+          </div>
+          <div class="category-section">
+            <div class="category-title">&#x2605; Accessories</div>
+            <div class="parts-grid" id="grid-acc"></div>
+          </div>
+        </div>
+
+        <div class="mirror-col">
+          <div class="mirror-frame">
+            <div class="char-layer layer-body"  id="layerBody"></div>
+            <div class="char-layer layer-acc"   id="layerAcc"></div>
+            <div class="char-layer layer-hair"  id="layerHair"></div>
+            <div class="char-layer layer-eyes"  id="layerEyes"></div>
+            <div class="char-layer layer-mouth" id="layerMouth"></div>
+            <div class="mirror-empty" id="mirrorEmpty">
+              <div class="mirror-empty-text">pick a body<br>to begin</div>
+            </div>
+          </div>
+          <div class="char-name-display" id="charNameDisplay"></div>
+          <div class="summary-box" id="summaryBox">nothing selected yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="floor"></div>
+</div>
+
+<script>
+// All image paths are relative — just drop your PNGs in assets/characters/
+const ASSETS = {
+  body_red:    "assets/characters/01_01_RED_BODY.png",
+  body_orange: "assets/characters/02_01_ORANGE_BODY.png",
+  body_yellow: "assets/characters/03_01_YELLOW_BODY.png",
+  body_green:  "assets/characters/04_01_GREEN_BODY.png",
+  body_cyan:   "assets/characters/05_01_CYAN_BODY.png",
+  body_blue:   "assets/characters/06_01_BLUE_BODY.png",
+  body_purple: "assets/characters/07_01_PURPLE_BODY.png",
+  body_pink:   "assets/characters/08_01_PINK_BODY.png",
+
+  eyes_open:       "assets/characters/01_02_OPEN_EYES.png",
+  eyes_cyclops:    "assets/characters/03_02_OPEN_SINGLE_EYE.png",
+  eyes_glasses:    "assets/characters/04_02_GLASSES.png",
+  eyes_serious:    "assets/characters/05_02_SERIOUS_EYES.png",
+  eyes_up:         "assets/characters/06_02_UP_EYES.png",
+  eyes_sunglasses: "assets/characters/07_02_SUNGLASSES.png",
+  eyes_sideways:   "assets/characters/08_02_SIDEWAYS_GLANCE.png",
+
+  mouth_lips:     "assets/characters/01_03_RED_LIPS.png",
+  mouth_tongue:   "assets/characters/02_03_TONGUE_SMILE.png",
+  mouth_thin:     "assets/characters/03_03_THIN_SMILE.png",
+  mouth_flat:     "assets/characters/04_03_FLAT_MOUTH.png",
+  mouth_straight: "assets/characters/05_03_STRAIGHT_MOUTH.png",
+  mouth_sad:      "assets/characters/06_03_SLIGHT_SAD.png",
+  mouth_grin:     "assets/characters/07_03_BIG_GRIN.png",
+  mouth_smooch:   "assets/characters/08_03_SMOOCH.png",
+
+  hair_fire:     "assets/characters/01_04_FIRE_HAIR.png",
+  hair_flower:   "assets/characters/02_04_ORANGE_HAIR.png",
+  hair_rays:     "assets/characters/03_04_LINE_RAY_HAIR.png",
+  hair_spikes:   "assets/characters/04_04_SPIKE_HAIR.png",
+  hair_squiggle: "assets/characters/05_04_SQUIGGLE_HAIR.png",
+  hair_wings:    "assets/characters/06_04_BLUE_HAIR.png",
+  hair_pigtails: "assets/characters/07_04_PURPLE_HAIR.png",
+  hair_wideray:  "assets/characters/08_04_WIDE_RAY.png",
+
+  acc_rollerblades: "assets/characters/00_ROLLERBLADES.png",
+  acc_sneakers:     "assets/characters/01_SNEAKERS.png",
+  acc_heels:        "assets/characters/02_HIGH_HEALS.png",
+  acc_sandals:      "assets/characters/03_SANDALS.png",
+  acc_devil:        "assets/characters/04_DEVIL_HORNS_AND_TAIL.png",
+  acc_angel:        "assets/characters/05_ANGEL_WINGS_AND_HALO.png",
+  acc_butterfly:    "assets/characters/06_BUTTERFLY_WINGS_AND_ANT.png",
+  acc_birthday:     "assets/characters/07_BIRTHDAY_BALLOON_AND_HAT.png",
+  acc_swearword:    "assets/characters/08_SWEARWORD_SENSOR.png",
+  acc_penpal:       "assets/characters/09_PENPAL_LETTER.png",
+  acc_rainstorm:    "assets/characters/10_RAINSTORM.png",
+  acc_rainbow:      "assets/characters/11_RAINBOW.png",
+  acc_cloud:        "assets/characters/12_CLOUD_RIDE.png",
+  acc_cloud_sit:    "assets/characters/13_CLOUD_RIDE_SITTING.png",
+};
+
+const BODIES = [
+  { id:"body_red",    label:"Red" },
+  { id:"body_orange", label:"Orange" },
+  { id:"body_yellow", label:"Yellow" },
+  { id:"body_green",  label:"Green" },
+  { id:"body_cyan",   label:"Cyan" },
+  { id:"body_blue",   label:"Blue" },
+  { id:"body_purple", label:"Purple" },
+  { id:"body_pink",   label:"Pink" },
+];
+const HAIRS = [
+  { id:"hair_fire",     label:"Fire" },
+  { id:"hair_flower",   label:"Flower" },
+  { id:"hair_rays",     label:"Rays" },
+  { id:"hair_spikes",   label:"Spikes" },
+  { id:"hair_squiggle", label:"Squiggle" },
+  { id:"hair_wings",    label:"Wings" },
+  { id:"hair_pigtails", label:"Pigtails" },
+  { id:"hair_wideray",  label:"Wide Ray" },
+];
+const EYES = [
+  { id:"eyes_open",       label:"Open" },
+  { id:"eyes_cyclops",    label:"Cyclops" },
+  { id:"eyes_glasses",    label:"Glasses" },
+  { id:"eyes_serious",    label:"Serious" },
+  { id:"eyes_up",         label:"Upward" },
+  { id:"eyes_sunglasses", label:"Shades" },
+  { id:"eyes_sideways",   label:"Sideways" },
+];
+const MOUTHS = [
+  { id:"mouth_lips",     label:"Lips" },
+  { id:"mouth_tongue",   label:"Tongue" },
+  { id:"mouth_thin",     label:"Smile" },
+  { id:"mouth_flat",     label:"Flat" },
+  { id:"mouth_straight", label:"Teeth" },
+  { id:"mouth_sad",      label:"Sad" },
+  { id:"mouth_grin",     label:"Grin" },
+  { id:"mouth_smooch",   label:"Smooch" },
+];
+const ACCS = [
+  { id:"acc_rollerblades", label:"Rollerblades" },
+  { id:"acc_sneakers",     label:"Sneakers" },
+  { id:"acc_heels",        label:"Heels" },
+  { id:"acc_sandals",      label:"Sandals" },
+  { id:"acc_devil",        label:"Devil" },
+  { id:"acc_angel",        label:"Angel" },
+  { id:"acc_butterfly",    label:"Butterfly" },
+  { id:"acc_birthday",     label:"Birthday" },
+  { id:"acc_swearword",    label:"Sensor" },
+  { id:"acc_penpal",       label:"Penpal" },
+  { id:"acc_rainstorm",    label:"Rainstorm" },
+  { id:"acc_rainbow",      label:"Rainbow" },
+  { id:"acc_cloud",        label:"Cloud" },
+  { id:"acc_cloud_sit",    label:"Cloud Sit" },
+];
+
+let state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
+
+function save() {
+  try { localStorage.setItem("hb-char", JSON.stringify(state)); } catch(e){}
+}
+function load() {
+  try { const s = localStorage.getItem("hb-char"); if(s) state = JSON.parse(s); } catch(e){}
+}
+
+function renderLayer(layerId, partId) {
+  const layer = document.getElementById(layerId);
+  layer.innerHTML = partId ? `<img src="${ASSETS[partId]}" alt="" />` : "";
+}
+
+function render() {
+  document.getElementById("mirrorEmpty").style.display = state.body ? "none" : "flex";
+  renderLayer("layerBody",  state.body);
+  renderLayer("layerHair",  state.hair);
+  renderLayer("layerEyes",  state.eyes);
+  renderLayer("layerMouth", state.mouth);
+  renderLayer("layerAcc",   state.acc);
+
+  // summary
+  const find = (arr, id) => arr.find(x => x.id === id);
+  const parts = [
+    state.body  ? `body: <span>${find(BODIES,state.body)?.label}</span>` : null,
+    state.hair  ? `hair: <span>${find(HAIRS,state.hair)?.label}</span>` : null,
+    state.eyes  ? `eyes: <span>${find(EYES,state.eyes)?.label}</span>` : null,
+    state.mouth ? `mouth: <span>${find(MOUTHS,state.mouth)?.label}</span>` : null,
+    state.acc   ? `accessory: <span>${find(ACCS,state.acc)?.label}</span>` : null,
+  ].filter(Boolean);
+  document.getElementById("summaryBox").innerHTML = parts.length ? parts.join(" · ") : "nothing selected yet";
+  document.getElementById("charNameDisplay").textContent = state.name ? state.name.toUpperCase() : "";
+
+  // active states
+  document.querySelectorAll(".part-btn").forEach(b => b.classList.remove("active"));
+  ["body","hair","eyes","mouth","acc"].forEach(key => {
+    if(state[key]) document.querySelector(`[data-id="${state[key]}"]`)?.classList.add("active");
+  });
+}
+
+function makeGrid(containerId, items, stateKey, allowNone) {
+  const container = document.getElementById(containerId);
+  if(allowNone) {
+    const btn = document.createElement("div");
+    btn.className = "part-btn none-btn";
+    btn.innerHTML = `<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 44'%3E%3Cline x1='4' y1='4' x2='48' y2='40' stroke='%23aaa' stroke-width='3'/%3E%3Cline x1='48' y1='4' x2='4' y2='40' stroke='%23aaa' stroke-width='3'/%3E%3C/svg%3E" alt="none"/><div class="part-name">none</div>`;
+    btn.addEventListener("click", () => { state[stateKey] = null; save(); render(); });
+    container.appendChild(btn);
+  }
+  items.forEach(item => {
+    const btn = document.createElement("div");
+    btn.className = "part-btn";
+    btn.dataset.id = item.id;
+    btn.innerHTML = `<img src="${ASSETS[item.id]}" alt="${item.label}" /><div class="part-name">${item.label}</div>`;
+    btn.addEventListener("click", () => {
+      state[stateKey] = state[stateKey] === item.id ? null : item.id;
+      save(); render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function onNameChange() {
+  state.name = document.getElementById("charName").value;
+  save(); render();
+}
+
+function resetCharacter() {
+  state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
+  document.getElementById("charName").value = "";
+  save(); render();
+}
+
+load();
+makeGrid("grid-body",  BODIES, "body",  false);
+makeGrid("grid-hair",  HAIRS,  "hair",  true);
+makeGrid("grid-eyes",  EYES,   "eyes",  true);
+makeGrid("grid-mouth", MOUTHS, "mouth", true);
+makeGrid("grid-acc",   ACCS,   "acc",   true);
+document.getElementById("charName").value = state.name || "";
+render();
+</script>
+</body>
+</html>
