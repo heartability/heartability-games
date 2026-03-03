@@ -270,42 +270,16 @@ h1.room-title {
   pointer-events: none;
 }
 
-/* Each part positioned as % of mirror height/width */
-/* Mirror is ~0.72 aspect ratio (taller than wide) */
+/* Full-canvas exports: all layers are 777×1155px with parts in correct position.
+   Stack them at 100% width/height — pixel-perfect, no manual offsets needed. */
 
-.layer-body img {
+.char-layer img {
   position: absolute;
-  width: 87%;
-  left: 6.5%;
-  bottom: 0;
-}
-
-.layer-hair img {
-  position: absolute;
-  width: 77%;
-  left: 11.5%;
-  top: 3%;
-}
-
-.layer-eyes img {
-  position: absolute;
-  width: 41%;
-  left: 29.5%;
-  top: 38%;
-}
-
-.layer-mouth img {
-  position: absolute;
-  width: 21%;
-  left: 39.5%;
-  top: 51%;
-}
-
-.layer-acc img {
-  position: absolute;
-  width: 92%;
-  left: 4%;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  object-fit: fill;
 }
 
 .mirror-empty {
@@ -472,6 +446,60 @@ const ASSETS = {
   acc_cloud_sit:    "assets/characters/13 CLOUD_RIDE_SITTING.png",
 };
 
+// Full-canvas exports (777×1155px, same filenames) used for the mirror display.
+// Each PNG has transparent padding so all parts align automatically when stacked.
+const FULL_ASSETS = {
+  body_red:    "assets/characters-full/01.01 RED_BODY.png",
+  body_orange: "assets/characters-full/02.01 ORANGE_BODY.png",
+  body_yellow: "assets/characters-full/03.01 YELLOW_BODY.png",
+  body_green:  "assets/characters-full/04.01 GREEN_BODY.png",
+  body_cyan:   "assets/characters-full/05.01 CYAN_BODY.png",
+  body_blue:   "assets/characters-full/06.01 BLUE_BODY.png",
+  body_purple: "assets/characters-full/07.01 PURPLE_BODY.png",
+  body_pink:   "assets/characters-full/08.01 PINK_BODY.png",
+
+  eyes_open:       "assets/characters-full/01.02 OPEN_EYES.png",
+  eyes_cyclops:    "assets/characters-full/03.02 OPEN_SINGLE_EYE.png",
+  eyes_glasses:    "assets/characters-full/04.02 GLASSES.png",
+  eyes_serious:    "assets/characters-full/05.02 SERIOUS_EYES.png",
+  eyes_up:         "assets/characters-full/06.02 UP_EYES.png",
+  eyes_sunglasses: "assets/characters-full/07.02 SUNGLASSES.png",
+  eyes_sideways:   "assets/characters-full/08.02 SIDEWAYS_GLANCE.png",
+
+  mouth_lips:     "assets/characters-full/01.03 RED_LIPS.png",
+  mouth_tongue:   "assets/characters-full/02.03 TONGUE_SMILE.png",
+  mouth_thin:     "assets/characters-full/03.03 THIN_SMILE.png",
+  mouth_flat:     "assets/characters-full/04.03 FLAT_MOUTH.png",
+  mouth_straight: "assets/characters-full/05.03 STRAIGHT_MOUTH.png",
+  mouth_sad:      "assets/characters-full/06.03 SLIGHT_SAD.png",
+  mouth_grin:     "assets/characters-full/07.03 BIG_GRIN.png",
+  mouth_smooch:   "assets/characters-full/08.03 SMOOCH.png",
+
+  hair_fire:     "assets/characters-full/01.04 FIRE_HAIR.png",
+  hair_flower:   "assets/characters-full/02.04 ORANGE_HAIR.png",
+  hair_rays:     "assets/characters-full/03.04 LINE_RAY_HAIR.png",
+  hair_spikes:   "assets/characters-full/04.04 SPIKE_HAIR.png",
+  hair_squiggle: "assets/characters-full/05.04 SQUIGGLE_HAIR.png",
+  hair_wings:    "assets/characters-full/06.04 BLUE_HAIR.png",
+  hair_pigtails: "assets/characters-full/07.04 PURPLE_HAIR.png",
+  hair_wideray:  "assets/characters-full/08.04 WIDE_RAY.png",
+
+  acc_rollerblades: "assets/characters-full/00 ROLLERBLADES.png",
+  acc_sneakers:     "assets/characters-full/01 SNEAKERS.png",
+  acc_heels:        "assets/characters-full/02 HIGH_HEALS.png",
+  acc_sandals:      "assets/characters-full/03 SANDALS.png",
+  acc_devil:        "assets/characters-full/04 DEVIL_HORNS_AND_TAIL.png",
+  acc_angel:        "assets/characters-full/05 ANGEL_WINGS_AND_HALO.png",
+  acc_butterfly:    "assets/characters-full/06 BUTTERFLY_WINGS_AND_ANT.png",
+  acc_birthday:     "assets/characters-full/07 BIRTHDAY_BALLOON_AND_HAT.png",
+  acc_swearword:    "assets/characters-full/08 SWEARWORD_SENSOR.png",
+  acc_penpal:       "assets/characters-full/09 PENPAL_LETTER.png",
+  acc_rainstorm:    "assets/characters-full/10 RAINSTORM.png",
+  acc_rainbow:      "assets/characters-full/11 RAINBOW.png",
+  acc_cloud:        "assets/characters-full/12 CLOUD_RIDE.png",
+  acc_cloud_sit:    "assets/characters-full/13 CLOUD_RIDE_SITTING.png",
+};
+
 const BODIES = [
   { id:"body_red",    label:"Red" },
   { id:"body_orange", label:"Orange" },
@@ -539,7 +567,9 @@ function load() {
 
 function renderLayer(layerId, partId) {
   const layer = document.getElementById(layerId);
-  layer.innerHTML = partId ? `<img src="${ASSETS[partId]}" alt="" />` : "";
+  // Use full-canvas exports for mirror display so all parts share the same
+  // 777×1155px coordinate space and stack perfectly.
+  layer.innerHTML = partId ? `<img src="${FULL_ASSETS[partId]}" alt="" />` : "";
 }
 
 function render() {
