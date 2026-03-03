@@ -261,19 +261,51 @@ h1.room-title {
   width: 100%;
 }
 
-/* Layered character display — all layers same size, stack perfectly */
+/* Layered character display */
 .char-layer {
   position: absolute;
   width: 100%;
   height: 100%;
   top: 0; left: 0;
+  pointer-events: none;
 }
-.char-layer img {
+
+/* Each part positioned as % of mirror height/width */
+/* Mirror is ~0.72 aspect ratio (taller than wide) */
+
+.layer-body img {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center center;
+  width: 80%;
+  left: 10%;
+  bottom: 0;
+}
+
+.layer-hair img {
+  position: absolute;
+  width: 70%;
+  left: 15%;
+  top: 2%;
+}
+
+.layer-eyes img {
+  position: absolute;
+  width: 50%;
+  left: 25%;
+  top: 38%;
+}
+
+.layer-mouth img {
+  position: absolute;
+  width: 35%;
+  left: 32.5%;
+  top: 52%;
+}
+
+.layer-acc img {
+  position: absolute;
+  width: 90%;
+  left: 5%;
+  bottom: 0;
 }
 
 .mirror-empty {
