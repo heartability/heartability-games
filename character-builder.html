@@ -567,9 +567,10 @@ function load() {
 
 function renderLayer(layerId, partId) {
   const layer = document.getElementById(layerId);
-  // Use full-canvas exports for mirror display so all parts share the same
-  // 777×1155px coordinate space and stack perfectly.
-  layer.innerHTML = partId ? `<img src="${FULL_ASSETS[partId]}" alt="" />` : "";
+  if (!partId) { layer.innerHTML = ""; return; }
+  // Encode URI so filenames with spaces (e.g. "01.01 RED_BODY.png") load correctly.
+  const src = FULL_ASSETS[partId].replace(/ /g, "%20");
+  layer.innerHTML = `<img src="${src}" alt="" />`;
 }
 
 function render() {
