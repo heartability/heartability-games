@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Care Inventory — Heartability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:                 #b82810;
+  --bg-dark:            #8a1800;
+  --panel-bg:           #fdf6e3;
+  --panel-border-dark:  #6a0e00;
+  --panel-border-mid:   #b82810;
+  --panel-border-light: #f08060;
+  --text-dark:          #3a0800;
+  --text-mid:           #8a3010;
+  --accent:             #d43020;
+  --font-game:          "VT323", monospace;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--font-game);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
+  z-index: 0;
+}
+
+.room {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.wall {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 0;
+}
+
+.floor {
+  width: 100%;
+  height: 100px;
+  background-image: repeating-conic-gradient(#a82010 0% 25%, #8a1800 0% 50%);
+  background-size: 36px 36px;
+  border-top: 4px solid #6a0e00;
+  flex-shrink: 0;
+}
+.floor::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 60%);
+}
+
+/* ── CAPTURE AREA (what gets screenshotted) ─────────────── */
+#capture-area {
+  width: 100%;
+  max-width: 700px;
+  background: var(--bg);
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+h1.room-title {
+  font-family: var(--font-game);
+  font-size: clamp(32px, 5.5vw, 56px);
+  color: #fff8e0;
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.38);
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+
+.room-subtitle {
+  font-family: var(--font-game);
+  font-size: clamp(13px, 2vw, 18px);
+  color: #ffd870;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+/* ── ACTION BAR (not in screenshot) ────────────────────── */
+.action-bar {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.instructions {
+  font-family: var(--font-game);
+  font-size: clamp(12px, 1.8vw, 15px);
+  color: #fff8e0;
+  line-height: 1.7;
+}
+
+.progress-tag {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: #ffd870;
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border: 1px solid rgba(255,216,112,0.3);
+}
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  background: var(--bg-dark);
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 5px 14px;
+  font-family: var(--font-game);
+  font-size: 16px;
+  color: #fff8e0;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.08s, box-shadow 0.08s;
+  white-space: nowrap;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn:active { transform: translate(2px, 3px); box-shadow: none; }
+
+/* ── MAIN PANEL ─────────────────────────────────────────── */
+.main-panel {
+  width: 100%;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 16px;
+}
+
+/* ── INVENTORY GRID ─────────────────────────────────────── */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .inventory-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 340px) {
+  .inventory-grid { grid-template-columns: 1fr; }
+}
+
+/* ── SLOT ───────────────────────────────────────────────── */
+.inv-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #e8dfc8;
+  border: 2px solid #8a6050;
+  border-right-color:   #5a2010;
+  border-bottom-color:  #5a2010;
+  border-left-color:    #c89078;
+  border-top-color:     #c89078;
+  padding: 8px 8px 6px;
+  cursor: pointer;
+  min-height: 170px;
+  position: relative;
+  transition: filter 0.1s;
+  user-select: none;
+}
+.inv-slot:hover        { filter: brightness(0.95); }
+.inv-slot.filled       { background: #f0e8d4; }
+.inv-slot.slot-active  { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.slot-category {
+  font-family: var(--font-game);
+  font-size: 12px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.slot-image-area {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #d4ccb4;
+  border: 2px solid #8a6050;
+  border-right-color:  #5a2010;
+  border-bottom-color: #5a2010;
+  border-left-color:   #c89078;
+  border-top-color:    #c89078;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+}
+
+.slot-image-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.slot-color-block {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.slot-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.45;
+}
+.slot-empty-hint .hint-icon { font-size: 30px; }
+.slot-empty-hint .hint-text {
+  font-family: var(--font-game);
+  font-size: 11px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* Inline label edit */
+.slot-label-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.slot-label {
+  width: 100%;
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--text-dark);
+  text-align: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 1px 4px;
+  cursor: text;
+}
+.slot-label:focus { background: rgba(255,255,255,0.55); border-bottom: 2px solid var(--accent); }
+.slot-label::placeholder { color: rgba(90,32,16,0.3); }
+.slot-label:disabled { cursor: default; opacity: 0.4; }
+
+/* Clear (×) button */
+.slot-clear {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  border: none;
+  color: #fff8e0;
+  font-family: var(--font-game);
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+}
+.inv-slot.filled .slot-clear { display: block; }
+.slot-clear:hover { filter: brightness(1.2); }
+
+/* ── LIBRARY OVERLAY ────────────────────────────────────── */
+.library-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.library-overlay.hidden { display: none; }
+
+.library-panel {
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.45);
+  padding: 18px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.library-title {
+  font-family: var(--font-game);
+  font-size: 22px;
+  color: var(--text-dark);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.library-close {
+  background: var(--bg-dark);
+  border: 2px solid var(--panel-border-dark);
+  outline: 1px solid var(--panel-border-light);
+  outline-offset: -3px;
+  color: #fff8e0;
+  font-family: var(--font-game);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 10px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.library-close:hover { filter: brightness(1.2); }
+
+.section-rule {
+  font-family: var(--font-game);
+  font-size: 12px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #c8a890;
+  padding-bottom: 4px;
+}
+
+/* Library items grid */
+.library-items-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+@media (max-width: 440px) {
+  .library-items-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.library-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: #e8dfc8;
+  border: 2px solid #8a6050;
+  border-right-color:  #5a2010;
+  border-bottom-color: #5a2010;
+  border-left-color:   #c89078;
+  border-top-color:    #c89078;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+.library-item:hover {
+  filter: brightness(0.94);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.library-item.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: #fff0e0;
+}
+
+.lib-item-visual {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  image-rendering: pixelated;
+  display: block;
+}
+
+.lib-item-label {
+  font-family: var(--font-game);
+  font-size: 11px;
+  color: var(--text-dark);
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+/* Upload section */
+.upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: #e8dfc8;
+  border: 2px dashed #8a6050;
+  cursor: pointer;
+  font-family: var(--font-game);
+  font-size: 15px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  transition: filter 0.1s, border-color 0.1s, color 0.1s;
+  width: 100%;
+}
+.upload-label:hover { border-color: var(--accent); color: var(--accent); filter: brightness(0.97); }
+
+#file-input { display: none; }
+
+.library-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 2px solid #c8a890;
+  padding-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="room">
+  <div class="wall">
+
+    <!-- Action bar (excluded from screenshot) -->
+    <div class="action-bar">
+      <div>
+        <div class="instructions">Click a slot to add a self-care item.</div>
+        <span class="progress-tag" id="progress-tag">0 / 6 slots filled</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="saveScreenshot()">Save Image</button>
+        <button class="btn" onclick="exportJSON()">Export Data</button>
+        <button class="btn" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+
+    <!-- Capture area (title + grid panel) -->
+    <div id="capture-area">
+      <h1 class="room-title">Self-Care Inventory</h1>
+      <p class="room-subtitle">My self-care snapshot</p>
+
+      <div class="main-panel">
+        <div class="inventory-grid" id="inventory-grid">
+          <!-- slots injected by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="floor"></div>
+</div>
+
+<!-- Library overlay -->
+<div class="library-overlay hidden" id="library-overlay">
+  <div class="library-panel" id="library-panel">
+    <div class="library-header">
+      <div class="library-title" id="library-title">Choose Item</div>
+      <button class="library-close" onclick="closeLibrary()">✕</button>
+    </div>
+
+    <div class="section-rule">From the library</div>
+    <div class="library-items-grid" id="library-items-grid"></div>
+
+    <div class="section-rule">Or upload your own</div>
+    <label class="upload-label" for="file-input">+ Upload image</label>
+    <input type="file" id="file-input" accept="image/*" onchange="handleUpload(event)">
+
+    <div class="library-footer">
+      <button class="btn" onclick="closeLibrary()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  { id: 'rest',         label: 'Rest',         icon: '🌙', color: '#b0a0d0' },
+  { id: 'nourish',      label: 'Nourish',      icon: '🌿', color: '#88c088' },
+  { id: 'hygiene',      label: 'Hygiene',      icon: '✨', color: '#88b0d8' },
+  { id: 'environment',  label: 'Environment',  icon: '🏡', color: '#c8c080' },
+  { id: 'connection',   label: 'Connection',   icon: '💛', color: '#e098b0' },
+  { id: 'rejuvenation', label: 'Rejuvenation', icon: '🌟', color: '#e8b860' },
+];
+
+// When real PNGs are provided, add a `src` field to each item:
+//   src: 'assets/inventory/rest/sleep-mask.png'
+// The render code already handles this — if `src` is present it uses <img>,
+// otherwise falls back to the `color` placeholder block.
+const LIBRARY = {
+  rest: [
+    { id: 'rest-1', label: 'Sleep Mask',    color: '#b0a0d0' },
+    { id: 'rest-2', label: 'Cozy Blanket',  color: '#c0b0e0' },
+    { id: 'rest-3', label: 'Sleep Tea',     color: '#9888c0' },
+    { id: 'rest-4', label: 'White Noise',   color: '#d0c8e8' },
+    { id: 'rest-5', label: 'Eye Pillow',    color: '#a898c8' },
+    { id: 'rest-6', label: 'Nap Time',      color: '#8870b8' },
+  ],
+  nourish: [
+    { id: 'nourish-1', label: 'Smoothie',    color: '#88c088' },
+    { id: 'nourish-2', label: 'Warm Soup',   color: '#a8d888' },
+    { id: 'nourish-3', label: 'Herbal Tea',  color: '#78b078' },
+    { id: 'nourish-4', label: 'Fresh Fruit', color: '#b0e098' },
+    { id: 'nourish-5', label: 'Water',       color: '#90d0b0' },
+    { id: 'nourish-6', label: 'Warm Meal',   color: '#c8e0a0' },
+  ],
+  hygiene: [
+    { id: 'hygiene-1', label: 'Shower',      color: '#88b0d8' },
+    { id: 'hygiene-2', label: 'Skincare',    color: '#98c0e0' },
+    { id: 'hygiene-3', label: 'Dental Care', color: '#78a0c8' },
+    { id: 'hygiene-4', label: 'Hair Care',   color: '#a8c8e0' },
+    { id: 'hygiene-5', label: 'Bubble Bath', color: '#b0d0e8' },
+    { id: 'hygiene-6', label: 'Lotion',      color: '#c0d8e8' },
+  ],
+  environment: [
+    { id: 'env-1', label: 'Clean Space',  color: '#c8c080' },
+    { id: 'env-2', label: 'Fresh Air',    color: '#b8d080' },
+    { id: 'env-3', label: 'Candle',       color: '#d8c888' },
+    { id: 'env-4', label: 'Plants',       color: '#a0c060' },
+    { id: 'env-5', label: 'Cozy Corner',  color: '#d0b878' },
+    { id: 'env-6', label: 'Tidy Bed',     color: '#c0c890' },
+  ],
+  connection: [
+    { id: 'conn-1', label: 'Friend Call', color: '#e098b0' },
+    { id: 'conn-2', label: 'Family Time', color: '#e8a8c0' },
+    { id: 'conn-3', label: 'Pet Cuddles', color: '#d890b0' },
+    { id: 'conn-4', label: 'Community',   color: '#d098c8' },
+    { id: 'conn-5', label: 'Journaling',  color: '#c888b0' },
+    { id: 'conn-6', label: 'Kind Text',   color: '#e8b0c8' },
+  ],
+  rejuvenation: [
+    { id: 'rejuv-1', label: 'Walk Outside', color: '#e8b860' },
+    { id: 'rejuv-2', label: 'Meditation',   color: '#e0a850' },
+    { id: 'rejuv-3', label: 'Creative Time',color: '#e8c878' },
+    { id: 'rejuv-4', label: 'Reading',      color: '#d8b858' },
+    { id: 'rejuv-5', label: 'Stretching',   color: '#f0d080' },
+    { id: 'rejuv-6', label: 'Music',        color: '#e0c060' },
+  ],
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'heartability-inventory-v1';
+
+const EMPTY_SLOTS = () => ({
+  rest: null, nourish: null, hygiene: null,
+  environment: null, connection: null, rejuvenation: null,
+});
+
+let state = { slots: EMPTY_SLOTS() };
+let activeCategory = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+function init() {
+  loadState();
+  renderGrid();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+function renderGrid() {
+  const grid = document.getElementById('inventory-grid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach(cat => grid.appendChild(makeSlot(cat)));
+  updateProgress();
+}
+
+function makeSlot(cat) {
+  const slot = state.slots[cat.id];
+  const filled = !!slot;
+
+  const el = document.createElement('div');
+  el.className = 'inv-slot' + (filled ? ' filled' : '');
+  el.dataset.category = cat.id;
+  el.addEventListener('click', (e) => {
+    if (e.target.classList.contains('slot-label') ||
+        e.target.classList.contains('slot-clear')) return;
+    openLibrary(cat.id);
+  });
+
+  // Category label
+  const catLabel = document.createElement('div');
+  catLabel.className = 'slot-category';
+  catLabel.textContent = cat.label;
+  el.appendChild(catLabel);
+
+  // Image area
+  const imageArea = document.createElement('div');
+  imageArea.className = 'slot-image-area';
+
+  if (filled) {
+    if (slot.image) {
+      const img = document.createElement('img');
+      img.src = slot.image;
+      img.alt = slot.label;
+      img.className = 'lib-item-visual';
+      imageArea.appendChild(img);
+    } else if (slot.src) {
+      // Real asset path (library item with PNG provided)
+      const img = document.createElement('img');
+      img.src = slot.src;
+      img.alt = slot.label;
+      img.className = 'lib-item-visual';
+      imageArea.appendChild(img);
+    } else {
+      // Color placeholder
+      const block = document.createElement('div');
+      block.className = 'slot-color-block';
+      block.style.background = slot.color || '#ccc';
+      imageArea.appendChild(block);
+    }
+  } else {
+    const hint = document.createElement('div');
+    hint.className = 'slot-empty-hint';
+    hint.innerHTML = `<span class="hint-icon">${cat.icon}</span><span class="hint-text">click to add</span>`;
+    imageArea.appendChild(hint);
+  }
+  el.appendChild(imageArea);
+
+  // Editable label
+  const labelWrap = document.createElement('div');
+  labelWrap.className = 'slot-label-wrap';
+  const labelEl = document.createElement('input');
+  labelEl.type = 'text';
+  labelEl.className = 'slot-label';
+  labelEl.maxLength = 30;
+  if (filled) {
+    labelEl.value = slot.label || '';
+    labelEl.placeholder = 'label…';
+    labelEl.disabled = false;
+  } else {
+    labelEl.value = '';
+    labelEl.placeholder = cat.label;
+    labelEl.disabled = true;
+  }
+  labelEl.addEventListener('input', () => {
+    if (state.slots[cat.id]) {
+      state.slots[cat.id].label = labelEl.value;
+      saveState();
+    }
+  });
+  labelEl.addEventListener('click', e => e.stopPropagation());
+  labelWrap.appendChild(labelEl);
+  el.appendChild(labelWrap);
+
+  // Clear button
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'slot-clear';
+  clearBtn.textContent = '✕';
+  clearBtn.title = 'Remove item';
+  clearBtn.addEventListener('click', e => { e.stopPropagation(); clearSlot(cat.id); });
+  el.appendChild(clearBtn);
+
+  return el;
+}
+
+function updateProgress() {
+  const filled = CATEGORIES.filter(c => state.slots[c.id]).length;
+  document.getElementById('progress-tag').textContent = `${filled} / 6 slots filled`;
+}
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+
+function openLibrary(categoryId) {
+  activeCategory = categoryId;
+  const cat = CATEGORIES.find(c => c.id === categoryId);
+  document.getElementById('library-title').textContent = cat.label;
+
+  const grid = document.getElementById('library-items-grid');
+  grid.innerHTML = '';
+
+  const currentSlot = state.slots[categoryId];
+  LIBRARY[categoryId].forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'library-item' + (currentSlot && currentSlot.id === item.id ? ' selected' : '');
+    el.addEventListener('click', () => selectLibraryItem(item));
+
+    // Visual: real image if `src` exists, else color block
+    if (item.src) {
+      const img = document.createElement('img');
+      img.src = item.src;
+      img.alt = item.label;
+      img.className = 'lib-item-visual';
+      el.appendChild(img);
+    } else {
+      const block = document.createElement('div');
+      block.className = 'lib-item-visual';
+      block.style.background = item.color;
+      el.appendChild(block);
+    }
+
+    const lbl = document.createElement('div');
+    lbl.className = 'lib-item-label';
+    lbl.textContent = item.label;
+    el.appendChild(lbl);
+
+    grid.appendChild(el);
+  });
+
+  document.getElementById('file-input').value = '';
+  document.getElementById('library-overlay').classList.remove('hidden');
+}
+
+function closeLibrary() {
+  document.getElementById('library-overlay').classList.add('hidden');
+  activeCategory = null;
+  document.getElementById('file-input').value = '';
+}
+
+function selectLibraryItem(item) {
+  if (!activeCategory) return;
+  state.slots[activeCategory] = {
+    id:     item.id,
+    label:  item.label,
+    image:  null,           // null = use color/src from item
+    src:    item.src || null,
+    color:  item.color,
+    source: 'library',
+  };
+  saveState();
+  renderGrid();
+  closeLibrary();
+}
+
+// ── UPLOAD ────────────────────────────────────────────────────────────────────
+
+function handleUpload(e) {
+  const file = e.target.files[0];
+  if (!file || !activeCategory) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    // Derive a readable label from the filename
+    const rawName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+    const label   = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
+    state.slots[activeCategory] = {
+      id:     'upload-' + Date.now(),
+      label:  label,
+      image:  ev.target.result,  // base64 data URL stored in localStorage
+      src:    null,
+      color:  null,
+      source: 'upload',
+    };
+    saveState();
+    renderGrid();
+    closeLibrary();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── SLOT MANAGEMENT ───────────────────────────────────────────────────────────
+
+function clearSlot(categoryId) {
+  state.slots[categoryId] = null;
+  saveState();
+  renderGrid();
+}
+
+function clearAll() {
+  state.slots = EMPTY_SLOTS();
+  saveState();
+  renderGrid();
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // localStorage may be full if many images uploaded; warn but continue
+    console.warn('Could not save state:', e);
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.slots) {
+      state.slots = { ...EMPTY_SLOTS(), ...parsed.slots };
+    }
+  } catch (e) {
+    console.warn('Could not load saved state:', e);
+  }
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+
+function exportJSON() {
+  const out = {
+    version:  1,
+    exported: new Date().toISOString(),
+    slots:    {},
+  };
+
+  CATEGORIES.forEach(cat => {
+    const slot = state.slots[cat.id];
+    if (!slot) {
+      out.slots[cat.id] = null;
+      return;
+    }
+    out.slots[cat.id] = {
+      category: cat.id,
+      id:       slot.id,
+      label:    slot.label || '',
+      source:   slot.source,
+      // Include base64 data for uploaded images so the file is self-contained
+      image:    slot.image  || null,
+      // Include asset path for library items (null until PNGs are provided)
+      assetSrc: slot.src    || null,
+    };
+  });
+
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'heartability-inventory.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── SCREENSHOT ────────────────────────────────────────────────────────────────
+
+async function saveScreenshot() {
+  const target = document.getElementById('capture-area');
+  try {
+    const canvas = await html2canvas(target, {
+      backgroundColor: null,
+      scale:           2,
+      useCORS:         true,
+      logging:         false,
+    });
+    const link    = document.createElement('a');
+    link.download = 'heartability-inventory.png';
+    link.href     = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    console.error(err);
+    alert('Screenshot failed — try "Export Data" instead.');
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+
+// Close library when clicking the backdrop
+document.getElementById('library-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLibrary();
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLibrary();
+});
+
+// ── START ─────────────────────────────────────────────────────────────────────
+
+init();
+</script>
+</body>
+</html>
