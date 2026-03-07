@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Heartability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:                 #6578e2;
+  --panel-bg:           #fdf6e3;
+  --panel-border-dark:  #3a2000;
+  --panel-border-mid:   #c8841a;
+  --panel-border-light: #f0c060;
+  --text-dark:          #3a2000;
+  --text-mid:           #7a4a10;
+  --gold:               #f5c842;
+  --gold-dark:          #c8841a;
+  --pink:               #f07ab8;
+  --font-hand: "ZoesHandwriting", cursive;
+  --font-game: "VT323", monospace;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--font-game);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── STARFIELD ───────────────────────────────────── */
+
+#stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: twinkle var(--d, 2s) ease-in-out infinite var(--del, 0s);
+}
+
+@keyframes twinkle {
+  0%,  100% { opacity: 0.8; transform: scale(1); }
+  50%        { opacity: 0.06; transform: scale(0.3); }
+}
+
+/* ── PAGE LAYOUT ─────────────────────────────────── */
+
+.page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 800px;
+  padding: 24px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── TOPBAR ──────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.back-btn {
+  display: inline-block;
+  padding: 7px 18px;
+  text-decoration: none;
+  font-family: var(--font-game);
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--panel-bg);
+  background: rgba(0,0,0,0.35);
+  border: 3px solid var(--gold);
+  outline: 2px solid var(--gold-dark);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.4); }
+.back-btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+.page-heading {
+  font-family: var(--font-hand);
+  font-size: clamp(36px, 7vw, 72px);
+  color: var(--gold);
+  text-shadow: 2px 3px 0 var(--gold-dark), 5px 6px 0 rgba(0,0,0,0.45);
+}
+
+/* ── NARRATOR BUBBLE ─────────────────────────────── */
+/*
+  REUSABLE CHARACTER DIALOGUE BUBBLE COMPONENT
+  ════════════════════════════════════════════════════
+  Drop this HTML + CSS into any game page to add the
+  character narrator bubble. Dismiss via the ✕ button
+  or call closeBubble() in JS.
+
+  HTML:
+    <div class="char-bubble" id="charBubble">
+      <button class="bubble-close" onclick="closeBubble()">✕</button>
+      <img class="bubble-char" src="assets/characters/XX.png" alt="">
+      <p class="bubble-text">Dialogue line here.</p>
+    </div>
+
+  CSS: copy the section below marked REUSABLE COMPONENT.
+  JS:  copy the closeBubble() function from script tag.
+  ════════════════════════════════════════════════════ */
+
+/* ── REUSABLE COMPONENT: char-bubble ─────────────── */
+
+.char-bubble {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 16px 44px 16px 16px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  animation: bubblePop 0.3s cubic-bezier(.2,.8,.4,1) both;
+}
+
+.char-bubble.dismissed {
+  display: none;
+}
+
+@keyframes bubblePop {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.bubble-char {
+  width: clamp(60px, 10vw, 88px);
+  height: clamp(60px, 10vw, 88px);
+  object-fit: contain;
+  flex-shrink: 0;
+  animation: charBob 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+
+@keyframes charBob {
+  0%,  100% { transform: translateY(0); }
+  50%        { transform: translateY(-5px); }
+}
+
+.bubble-text {
+  font-family: var(--font-game);
+  font-size: clamp(16px, 2.2vw, 20px);
+  color: var(--text-dark);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.bubble-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-family: var(--font-game);
+  font-size: 20px;
+  color: var(--text-mid);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.12s;
+}
+
+.bubble-close:hover { color: #d44020; }
+
+/* Tail pointing left-down (narrator bubble variant) */
+.char-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  left: 48px;
+  border: 12px solid transparent;
+  border-top-color: var(--panel-border-dark);
+  border-bottom: none;
+}
+
+/* ── END REUSABLE COMPONENT ──────────────────────── */
+
+/* ── RPG CONTENT PANEL ───────────────────────────── */
+
+.rpg-panel {
+  position: relative;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 28px 24px;
+}
+
+/* Inner accent border */
+.rpg-panel::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--panel-border-light);
+  pointer-events: none;
+}
+
+/* ── TAGLINE ─────────────────────────────────────── */
+
+.tagline-block {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--panel-border-light);
+}
+
+.tagline-text {
+  font-family: var(--font-hand);
+  font-size: clamp(18px, 3.5vw, 32px);
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+/* ── PILLARS ─────────────────────────────────────── */
+
+.pillars-heading {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--text-mid);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+@media (max-width: 540px) {
+  .pillars { grid-template-columns: 1fr; }
+}
+
+.pillar {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.pillar-icon {
+  font-size: 26px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.pillar-name {
+  font-family: var(--font-game);
+  font-size: clamp(15px, 2.2vw, 19px);
+  color: var(--text-dark);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* ── MISSION COPY ────────────────────────────────── */
+
+.mission-divider {
+  border: none;
+  border-top: 2px solid var(--panel-border-light);
+  margin-bottom: 20px;
+}
+
+.mission-copy {
+  font-family: var(--font-game);
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text-dark);
+  line-height: 1.7;
+}
+
+/* ── PLAY NOW BUTTON ─────────────────────────────── */
+
+.play-now-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.play-now-btn {
+  display: inline-block;
+  padding: 14px 52px;
+  text-decoration: none;
+  font-family: var(--font-game);
+  font-size: clamp(22px, 3.5vw, 32px);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--panel-bg);
+  background: rgba(0,0,0,0.48);
+  border: 3px solid var(--gold);
+  outline: 2px solid var(--gold-dark);
+  outline-offset: -5px;
+  box-shadow: 3px 5px 0 0 rgba(0,0,0,0.55);
+  transition: background 0.12s, transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+}
+
+.play-now-btn:hover {
+  background: rgba(245,200,66,0.2);
+  transform: translate(-1px,-2px);
+  box-shadow: 5px 7px 0 0 rgba(0,0,0,0.55);
+}
+
+.play-now-btn:active {
+  transform: translate(2px,4px);
+  box-shadow: none;
+}
+
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<div class="page">
+
+  <!-- TOP NAV -->
+  <div class="topbar">
+    <a class="back-btn" href="index.html">← TITLE</a>
+    <h1 class="page-heading">About</h1>
+    <div style="width:100px"></div>
+  </div>
+
+  <!-- NARRATOR BUBBLE — Purple Cloud -->
+  <div class="char-bubble" id="charBubble">
+    <button class="bubble-close" onclick="closeBubble()" aria-label="Dismiss">✕</button>
+    <img class="bubble-char"
+         src="assets/characters/06_TG_PURPLE_CLOUD.png"
+         alt="Purple Cloud narrator">
+    <p class="bubble-text">
+      "You're building something real here. Take your time."
+    </p>
+  </div>
+
+  <!-- CONTENT PANEL -->
+  <div class="rpg-panel">
+
+    <!-- TAGLINE -->
+    <div class="tagline-block">
+      <p class="tagline-text">
+        welcome to Heartability, a world building rehearsal space
+        designed to locate the path leading to your dreams
+      </p>
+    </div>
+
+    <!-- MISSION PILLARS -->
+    <p class="pillars-heading">Mission Pillars</p>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="pillar-icon">✦</span>
+        <span class="pillar-name">Foster<br>Creativity</span>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">◈</span>
+        <span class="pillar-name">Build Self<br>Awareness</span>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">♡</span>
+        <span class="pillar-name">Discover<br>Resources</span>
+      </div>
+    </div>
+
+    <hr class="mission-divider">
+
+    <!-- MISSION COPY -->
+    <p class="mission-copy">
+      Revitalize the creative process in a world overrun with recommendations
+      and routines. Discover a world that feels like it was made for you,
+      because it was born of your own personal experience. We want to help
+      rebuild spaces that support the pursuit of creative visions and resist
+      the gatekeeping that fuels the wellness industry —
+      wellness is for the people!!!!!!!
+    </p>
+
+  </div><!-- /rpg-panel -->
+
+  <!-- CTA -->
+  <div class="play-now-wrap">
+    <a class="play-now-btn" href="game-select.html">PLAY NOW →</a>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+(function () {
+
+  /* ── Starfield ────────────────────────────────── */
+  const field = document.getElementById('stars');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = (Math.random() * 2.6 + 0.6).toFixed(1);
+    s.style.cssText = [
+      `width:${sz}px`, `height:${sz}px`,
+      `left:${(Math.random() * 100).toFixed(1)}%`,
+      `top:${(Math.random() * 100).toFixed(1)}%`,
+      `--d:${(1.5 + Math.random() * 3).toFixed(2)}s`,
+      `--del:${(-Math.random() * 4).toFixed(2)}s`
+    ].join(';');
+    field.appendChild(s);
+  }
+
+  /* ── REUSABLE COMPONENT: closeBubble ─────────── */
+  window.closeBubble = function () {
+    const b = document.getElementById('charBubble');
+    if (b) b.classList.add('dismissed');
+  };
+  /* ──────────────────────────────────────────────── */
+
+})();
+</script>
+</body>
+</html>

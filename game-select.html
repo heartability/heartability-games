@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Room — Heartability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --panel-bg:           #fdf6e3;
+  --panel-border-dark:  #3a2000;
+  --panel-border-mid:   #c8841a;
+  --panel-border-light: #f0c060;
+  --font-hand: "ZoesHandwriting", cursive;
+  --font-game: "VT323", monospace;
+}
+
+body {
+  min-height: 100vh;
+  background: #f5f0ea;
+  font-family: var(--font-game);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── ROOM LAYOUT ─────────────────────────────────── */
+
+.room {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── MARBLE WALL ─────────────────────────────────── */
+
+.wall {
+  flex: 1;
+  position: relative;
+  background: #f5f0ea;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 0;
+  overflow: visible;
+  /* marble glow from top */
+  box-shadow: inset 0 60px 100px rgba(255,255,255,0.7);
+}
+
+/* Marble veining */
+.wall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(128deg, transparent 30%, rgba(180,175,165,0.07) 45%, transparent 60%),
+    linear-gradient(52deg,  transparent 20%, rgba(160,155,148,0.05) 38%, transparent 58%),
+    linear-gradient(170deg, transparent 40%, rgba(200,196,188,0.06) 55%, transparent 70%);
+}
+
+/* Top radial glow */
+.wall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,255,255,0.65) 0%, transparent 70%);
+}
+
+/* Baseboard at wall/floor join */
+.baseboard {
+  width: 100%;
+  height: 14px;
+  background: linear-gradient(180deg, #d8d3c8 0%, #b8b3a8 100%);
+  border-top: 2px solid #c8c3b8;
+  border-bottom: 3px solid #9a9590;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── B&W CHECKERBOARD FLOOR ──────────────────────── */
+
+.floor {
+  width: 100%;
+  height: clamp(100px, 18vh, 180px);
+  background-image: repeating-conic-gradient(#1a1a22 0% 25%, #ebe7de 0% 50%);
+  background-size: 48px 48px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Floor depth shadow */
+.floor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.32) 0%, transparent 55%);
+}
+
+/* ── TOPBAR ──────────────────────────────────────── */
+
+.topbar {
+  width: 100%;
+  max-width: 1060px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 3;
+  gap: 12px;
+}
+
+.back-btn {
+  display: inline-block;
+  padding: 7px 18px;
+  text-decoration: none;
+  font-family: var(--font-game);
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: #3a2000;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+.room-sign {
+  font-family: var(--font-hand);
+  font-size: clamp(28px, 5vw, 52px);
+  color: #5a5060;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.18);
+  text-align: center;
+}
+
+/* ── PORTALS ROW ─────────────────────────────────── */
+
+.portals-container {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(16px, 3vw, 44px);
+  padding: 0 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1060px;
+  padding-bottom: 0;
+}
+
+/* ── SINGLE PORTAL ───────────────────────────────── */
+
+.portal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+/* Door frame (decorative marble border around the arch) */
+.portal-frame {
+  position: relative;
+  width: clamp(130px, 14vw, 178px);
+}
+
+/* The arch-shaped doorway */
+.portal-arch {
+  width: 100%;
+  aspect-ratio: 0.72;
+  background: linear-gradient(170deg, #251c52 0%, #170e38 60%, #0e0828 100%);
+  border-radius: 50% 50% 0 0 / 35% 35% 0 0;
+  border: 5px solid #8a8278;
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 40px rgba(100, 80, 200, 0.25),
+    inset 0 -20px 30px rgba(0,0,0,0.5),
+    3px 0 0 0 #c8c3b8,
+    -3px 0 0 0 #c8c3b8;
+  transition: box-shadow 0.2s;
+}
+
+/* Inner arch glow on hover */
+.portal:hover .portal-arch {
+  box-shadow:
+    inset 0 0 60px rgba(140, 110, 255, 0.4),
+    inset 0 -20px 30px rgba(0,0,0,0.4),
+    3px 0 0 0 #c8c3b8,
+    -3px 0 0 0 #c8c3b8;
+}
+
+/* Arch inner accent ring */
+.portal-arch::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  inset-bottom: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(180,150,255,0.2);
+  border-bottom: none;
+  pointer-events: none;
+}
+
+/* Character image inside the arch */
+.portal-char {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%) translateY(6px) scale(0.85);
+  height: 68%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
+  transition: transform 0.28s cubic-bezier(.2,.8,.4,1), filter 0.28s;
+  z-index: 1;
+}
+
+.portal:hover .portal-char {
+  transform: translateX(-50%) translateY(-8px) scale(1.06);
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.75)) drop-shadow(0 0 12px rgba(200,180,255,0.5));
+}
+
+/* ── SPEECH BUBBLE ───────────────────────────────── */
+/*
+  REUSABLE CHARACTER DIALOGUE BUBBLE
+  ────────────────────────────────────────────────────
+  This pattern can be dropped into any page.
+  For a fixed/dismissable version, see about.html.
+
+  CSS classes needed:
+    .portal-speech      – absolute-positioned hover bubble
+    .portal-speech::after – tail arrow
+
+  Trigger: CSS :hover on .portal parent
+  ──────────────────────────────────────────────────── */
+
+.portal-speech {
+  position: absolute;
+  bottom: calc(100% + 20px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  /* Panel styling — matches RPG panel in existing games */
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -5px;
+  box-shadow: 0 0 0 5px var(--panel-border-mid), 3px 4px 0 5px rgba(0,0,0,0.4);
+  border-radius: 10px;
+  padding: 12px 14px;
+  width: 220px;
+  font-family: var(--font-game);
+  font-size: 16px;
+  color: var(--panel-border-dark);
+  line-height: 1.5;
+  text-align: left;
+  z-index: 20;
+}
+
+/* Bubble tail */
+.portal-speech::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -10px;
+  border: 10px solid transparent;
+  border-top-color: var(--panel-border-dark);
+}
+
+.portal:hover .portal-speech {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── PORTAL PLAQUE ───────────────────────────────── */
+
+.portal-plaque {
+  background: #f0ead8;
+  border: 5px solid #8a8278;
+  border-top: none;
+  padding: 10px 14px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 0 0 rgba(0,0,0,0.28);
+  transition: background 0.15s;
+}
+
+.portal:hover .portal-plaque {
+  background: #fdf6e3;
+}
+
+.portal-name {
+  display: block;
+  font-family: var(--font-game);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #3a2000;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.portal-enter {
+  display: block;
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: #c8841a;
+  letter-spacing: 1px;
+  margin-top: 3px;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.portal:hover .portal-enter { opacity: 1; }
+
+/* ── FAR DOOR (decorative — future development) ──── */
+
+.far-door-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+  padding-bottom: 0;
+}
+
+.far-door-label {
+  font-family: var(--font-game);
+  font-size: 13px;
+  color: #a09898;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.far-door {
+  width: 64px;
+  height: 90px;
+  background: linear-gradient(180deg, #4a4060 0%, #2a2040 100%);
+  border-radius: 32px 32px 0 0;
+  border: 4px solid #8a8278;
+  border-bottom: none;
+  opacity: 0.48;
+  box-shadow: inset 0 0 16px rgba(80,60,180,0.3);
+  position: relative;
+}
+
+.far-door::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  inset-bottom: 0;
+  border: 1px solid rgba(180,160,255,0.15);
+  border-radius: inherit;
+  border-bottom: none;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .portals-container {
+    gap: 20px;
+  }
+
+  .portal-speech {
+    width: 180px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 500px) {
+  .portals-container {
+    gap: 14px;
+  }
+
+  .room-sign {
+    font-size: 26px;
+  }
+
+  .far-door-wrap {
+    margin-top: 16px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="room">
+
+  <!-- MARBLE WALL -->
+  <div class="wall">
+
+    <div class="topbar">
+      <a class="back-btn" href="index.html">← TITLE</a>
+      <h1 class="room-sign">The Game Room</h1>
+      <div style="width:90px"></div><!-- spacer for centering -->
+    </div>
+
+    <!-- PORTALS -->
+    <div class="portals-container">
+
+      <!-- CHARACTER BUILDER -->
+      <a class="portal" href="character-builder.html">
+        <div class="portal-frame">
+          <div class="portal-speech">
+            "You contain multitudes, but you don't have to cut bangs to access a new version of yourself. Use the mirror to consider what aspects of yourself will resource you best in the adventure ahead."
+          </div>
+          <div class="portal-arch">
+            <img class="portal-char"
+                 src="assets/characters/02_TG_STAR_POWER.png"
+                 alt="Star character">
+          </div>
+        </div>
+        <div class="portal-plaque">
+          <span class="portal-name">Character<br>Builder</span>
+          <span class="portal-enter">▶ ENTER</span>
+        </div>
+      </a>
+
+      <!-- TREASURE MAP -->
+      <a class="portal" href="heartability-treasure-map.html">
+        <div class="portal-frame">
+          <div class="portal-speech">
+            "As you move through a creative venture, you'll inevitably encounter ups and downs. These emotional landscapes are full of resources that will support you in surprising ways. Build a map that helps you see the bigger picture."
+          </div>
+          <div class="portal-arch">
+            <img class="portal-char"
+                 src="assets/characters/04_TG_CIRCLE_SUN.png"
+                 alt="Circle Sun character">
+          </div>
+        </div>
+        <div class="portal-plaque">
+          <span class="portal-name">Treasure<br>Map</span>
+          <span class="portal-enter">▶ ENTER</span>
+        </div>
+      </a>
+
+      <!-- INVENTORY BUILDER -->
+      <a class="portal" href="inventory-builder.html">
+        <div class="portal-frame">
+          <div class="portal-speech">
+            "Your self-care routine is already full of things that sustain you. Use the inventory to take stock of what you've got — you might be more resourced than you think."
+          </div>
+          <div class="portal-arch">
+            <img class="portal-char"
+                 src="assets/characters/03_TG_SQUARE_TOOTH.png"
+                 alt="Square Tooth character">
+          </div>
+        </div>
+        <div class="portal-plaque">
+          <span class="portal-name">Inventory<br>Builder</span>
+          <span class="portal-enter">▶ ENTER</span>
+        </div>
+      </a>
+
+      <!-- BINGO -->
+      <a class="portal" href="heartability-bingo-v2.html">
+        <div class="portal-frame">
+          <div class="portal-speech">
+            "How are you really feeling? Let's find it."
+          </div>
+          <div class="portal-arch">
+            <img class="portal-char"
+                 src="assets/characters/05_TG_LIGHTNING_BOLT.png"
+                 alt="Lightning Bolt character">
+          </div>
+        </div>
+        <div class="portal-plaque">
+          <span class="portal-name">Heart Meter<br>Bingo</span>
+          <span class="portal-enter">▶ ENTER</span>
+        </div>
+      </a>
+
+    </div><!-- /portals-container -->
+
+    <!-- FAR DOOR — decorative, leads outside (future dev) -->
+    <div class="far-door-wrap">
+      <span class="far-door-label">coming soon</span>
+      <div class="far-door" aria-hidden="true"></div>
+    </div>
+
+  </div><!-- /wall -->
+
+  <div class="baseboard"></div>
+
+  <!-- B&W CHECKERBOARD FLOOR -->
+  <div class="floor"></div>
+
+</div><!-- /room -->
+
+</body>
+</html>
