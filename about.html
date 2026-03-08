@@ -52,14 +52,14 @@ body {
 
 .star {
   position: absolute;
-  border-radius: 50%;
   background: #fff;
+  clip-path: polygon(50% 0%, 54% 43%, 100% 50%, 54% 57%, 50% 100%, 46% 57%, 0% 50%, 46% 43%);
   animation: twinkle var(--d, 2s) ease-in-out infinite var(--del, 0s);
 }
 
 @keyframes twinkle {
-  0%,  100% { opacity: 0.8; transform: scale(1); }
-  50%        { opacity: 0.06; transform: scale(0.3); }
+  0%,  100% { opacity: 0.9;  transform: scale(1)   rotate(0deg); }
+  50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
 /* ── PAGE LAYOUT ─────────────────────────────────── */
@@ -365,7 +365,7 @@ body {
   <div class="char-bubble" id="charBubble">
     <button class="bubble-close" onclick="closeBubble()" aria-label="Dismiss">✕</button>
     <img class="bubble-char"
-         src="assets/characters/06_TG_PURPLE_CLOUD.png"
+         src="assets/guides/06%20TG%20PURPLE%20CLOUD.png"
          alt="Purple Cloud narrator">
     <p class="bubble-text">
       "You're building something real here. Take your time."
@@ -429,7 +429,7 @@ body {
   for (let i = 0; i < 70; i++) {
     const s = document.createElement('div');
     s.className = 'star';
-    const sz = (Math.random() * 2.6 + 0.6).toFixed(1);
+    const sz = (Math.random() * 5 + 2).toFixed(1);
     s.style.cssText = [
       `width:${sz}px`, `height:${sz}px`,
       `left:${(Math.random() * 100).toFixed(1)}%`,

@@ -159,13 +159,16 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: flex-end;
-  gap: clamp(16px, 3vw, 44px);
+  /* frames hang from the wall — align tops */
+  align-items: flex-start;
+  gap: clamp(20px, 3.5vw, 52px);
   padding: 0 12px;
   flex-wrap: wrap;
   width: 100%;
   max-width: 1060px;
   padding-bottom: 0;
+  /* leave room above each frame for the speech bubble on hover */
+  padding-top: 180px;
 }
 
 /* ── SINGLE PORTAL ───────────────────────────────── */
@@ -178,60 +181,138 @@ body {
   cursor: pointer;
   position: relative;
   flex: 0 0 auto;
+  /* extra top space for speech bubble */
+  margin-top: 8px;
 }
 
-/* Door frame (decorative marble border around the arch) */
-.portal-frame {
-  position: relative;
-  width: clamp(130px, 14vw, 178px);
-}
+/* ── HANGING HOOK ────────────────────────────────── */
 
-/* The arch-shaped doorway */
-.portal-arch {
-  width: 100%;
-  aspect-ratio: 0.72;
-  background: linear-gradient(170deg, #251c52 0%, #170e38 60%, #0e0828 100%);
-  border-radius: 50% 50% 0 0 / 35% 35% 0 0;
-  border: 5px solid #8a8278;
+.portal-hook {
+  width: 18px;
+  height: 14px;
+  border: 3px solid #7a7268;
   border-bottom: none;
+  border-radius: 9px 9px 0 0;
   position: relative;
-  overflow: hidden;
-  box-shadow:
-    inset 0 0 40px rgba(100, 80, 200, 0.25),
-    inset 0 -20px 30px rgba(0,0,0,0.5),
-    3px 0 0 0 #c8c3b8,
-    -3px 0 0 0 #c8c3b8;
-  transition: box-shadow 0.2s;
+  z-index: 2;
+  margin-bottom: -1px;
+  background: transparent;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.15);
 }
 
-/* Inner arch glow on hover */
-.portal:hover .portal-arch {
-  box-shadow:
-    inset 0 0 60px rgba(140, 110, 255, 0.4),
-    inset 0 -20px 30px rgba(0,0,0,0.4),
-    3px 0 0 0 #c8c3b8,
-    -3px 0 0 0 #c8c3b8;
-}
-
-/* Arch inner accent ring */
-.portal-arch::before {
+/* Nail / screw head above the hook */
+.portal-hook::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  inset-bottom: 0;
-  border-radius: inherit;
-  border: 2px solid rgba(180,150,255,0.2);
-  border-bottom: none;
-  pointer-events: none;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle at 35% 35%, #aaa, #555);
+  border-radius: 50%;
+  border: 1px solid #3a3830;
 }
 
-/* Character image inside the arch */
+/* Short wire drop from hook to frame */
+.portal-hook::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 6px;
+  background: #7a7268;
+}
+
+/* ── PICTURE FRAME ───────────────────────────────── */
+
+.portal-picture {
+  position: relative;
+  /* Gold frame face — 3 layers: background gradient, then border stack */
+  padding: 9px;
+  background: linear-gradient(
+    145deg,
+    #e8c860 0%, #c8941a 25%,
+    #f0d870 50%, #a87018 75%,
+    #d4a830 100%
+  );
+  /* Chunky pixel border — dark outer, light inner, thick mid shadow */
+  border: 4px solid #3a2000;
+  outline: 3px solid #f5d860;
+  outline-offset: -9px;
+  box-shadow:
+    /* inner bevel highlight */
+    inset 3px 3px 0 rgba(255,255,255,0.3),
+    inset -3px -3px 0 rgba(0,0,0,0.25),
+    /* outer frame ring */
+    0 0 0 8px #9a6810,
+    0 0 0 11px #3a2000,
+    /* pixel drop shadow */
+    8px 12px 0 11px rgba(0,0,0,0.55);
+  transition: box-shadow 0.2s, outline-color 0.2s;
+}
+
+.portal:hover .portal-picture {
+  outline-color: #fff8a0;
+  box-shadow:
+    inset 3px 3px 0 rgba(255,255,255,0.3),
+    inset -3px -3px 0 rgba(0,0,0,0.25),
+    0 0 0 8px #c8a020,
+    0 0 0 11px #3a2000,
+    8px 12px 0 11px rgba(0,0,0,0.55),
+    /* warm glow */
+    0 0 28px rgba(245,200,66,0.35);
+}
+
+/* ── CANVAS (art surface inside the frame) ───────── */
+
+.portal-canvas {
+  width: clamp(118px, 12.5vw, 156px);
+  height: clamp(148px, 15.5vw, 194px);
+  background: linear-gradient(160deg, #251c52 0%, #170e38 55%, #0e0828 100%);
+  /* Dark inset border — inner frame liner */
+  border: 3px solid #1a0e30;
+  outline: 2px solid #3d2c70;
+  outline-offset: -5px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Subtle scanline texture on canvas */
+.portal-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.07) 3px,
+    rgba(0,0,0,0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Canvas inner glow on hover */
+.portal:hover .portal-canvas {
+  outline-color: #6a4ac0;
+  box-shadow: inset 0 0 30px rgba(120,90,220,0.3);
+}
+
+/* ── CHARACTER IMAGE ─────────────────────────────── */
+
 .portal-char {
   position: absolute;
-  bottom: -2px;
+  bottom: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(6px) scale(0.85);
-  height: 68%;
+  transform: translateX(-50%) translateY(8px) scale(0.84);
+  height: 80%;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
@@ -240,8 +321,8 @@ body {
 }
 
 .portal:hover .portal-char {
-  transform: translateX(-50%) translateY(-8px) scale(1.06);
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.75)) drop-shadow(0 0 12px rgba(200,180,255,0.5));
+  transform: translateX(-50%) translateY(-10px) scale(1.07);
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,0.8)) drop-shadow(0 0 14px rgba(200,180,255,0.55));
 }
 
 /* ── SPEECH BUBBLE ───────────────────────────────── */
@@ -259,10 +340,11 @@ body {
   ──────────────────────────────────────────────────── */
 
 .portal-speech {
+  /* Sits above the hook in normal flow, hidden until hover */
   position: absolute;
-  bottom: calc(100% + 20px);
+  bottom: calc(100% + 14px);
   left: 50%;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateX(-50%) translateY(10px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease, transform 0.22s ease;
@@ -274,7 +356,7 @@ body {
   box-shadow: 0 0 0 5px var(--panel-border-mid), 3px 4px 0 5px rgba(0,0,0,0.4);
   border-radius: 10px;
   padding: 12px 14px;
-  width: 220px;
+  width: 230px;
   font-family: var(--font-game);
   font-size: 16px;
   color: var(--panel-border-dark);
@@ -283,7 +365,7 @@ body {
   z-index: 20;
 }
 
-/* Bubble tail */
+/* Bubble tail arrow pointing down toward the frame */
 .portal-speech::after {
   content: "";
   position: absolute;
@@ -299,16 +381,18 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── PORTAL PLAQUE ───────────────────────────────── */
+/* ── PORTAL PLAQUE (museum label below the frame) ── */
 
 .portal-plaque {
-  background: #f0ead8;
-  border: 5px solid #8a8278;
-  border-top: none;
-  padding: 10px 14px;
+  background: #ede0b0;
+  border: 3px solid #3a2000;
+  outline: 2px solid #c8a840;
+  outline-offset: -4px;
+  box-shadow: 0 0 0 5px #9a6810, 3px 5px 0 5px rgba(0,0,0,0.38);
+  padding: 8px 16px;
   text-align: center;
-  width: 100%;
-  box-shadow: 0 4px 0 0 rgba(0,0,0,0.28);
+  margin-top: 12px;
+  min-width: clamp(118px, 12.5vw, 156px);
   transition: background 0.15s;
 }
 
@@ -429,13 +513,14 @@ body {
 
       <!-- CHARACTER BUILDER -->
       <a class="portal" href="character-builder.html">
-        <div class="portal-frame">
-          <div class="portal-speech">
-            "You contain multitudes, but you don't have to cut bangs to access a new version of yourself. Use the mirror to consider what aspects of yourself will resource you best in the adventure ahead."
-          </div>
-          <div class="portal-arch">
+        <div class="portal-speech">
+          "You contain multitudes, but you don't have to cut bangs to access a new version of yourself. Use the mirror to consider what aspects of yourself will resource you best in the adventure ahead."
+        </div>
+        <div class="portal-hook" aria-hidden="true"></div>
+        <div class="portal-picture">
+          <div class="portal-canvas">
             <img class="portal-char"
-                 src="assets/characters/02_TG_STAR_POWER.png"
+                 src="assets/guides/02%20TG%20STAR%20POWER.png"
                  alt="Star character">
           </div>
         </div>
@@ -447,13 +532,14 @@ body {
 
       <!-- TREASURE MAP -->
       <a class="portal" href="heartability-treasure-map.html">
-        <div class="portal-frame">
-          <div class="portal-speech">
-            "As you move through a creative venture, you'll inevitably encounter ups and downs. These emotional landscapes are full of resources that will support you in surprising ways. Build a map that helps you see the bigger picture."
-          </div>
-          <div class="portal-arch">
+        <div class="portal-speech">
+          "As you move through a creative venture, you'll inevitably encounter ups and downs. These emotional landscapes are full of resources that will support you in surprising ways. Build a map that helps you see the bigger picture."
+        </div>
+        <div class="portal-hook" aria-hidden="true"></div>
+        <div class="portal-picture">
+          <div class="portal-canvas">
             <img class="portal-char"
-                 src="assets/characters/04_TG_CIRCLE_SUN.png"
+                 src="assets/guides/04%20TG%20CIRCLE%20SUN.png"
                  alt="Circle Sun character">
           </div>
         </div>
@@ -465,13 +551,14 @@ body {
 
       <!-- INVENTORY BUILDER -->
       <a class="portal" href="inventory-builder.html">
-        <div class="portal-frame">
-          <div class="portal-speech">
-            "Your self-care routine is already full of things that sustain you. Use the inventory to take stock of what you've got — you might be more resourced than you think."
-          </div>
-          <div class="portal-arch">
+        <div class="portal-speech">
+          "Your self-care routine is already full of things that sustain you. Use the inventory to take stock of what you've got — you might be more resourced than you think."
+        </div>
+        <div class="portal-hook" aria-hidden="true"></div>
+        <div class="portal-picture">
+          <div class="portal-canvas">
             <img class="portal-char"
-                 src="assets/characters/03_TG_SQUARE_TOOTH.png"
+                 src="assets/guides/03%20TG%20SQUARE%20TOOTH.png"
                  alt="Square Tooth character">
           </div>
         </div>
@@ -483,13 +570,14 @@ body {
 
       <!-- BINGO -->
       <a class="portal" href="heartability-bingo-v2.html">
-        <div class="portal-frame">
-          <div class="portal-speech">
-            "How are you really feeling? Let's find it."
-          </div>
-          <div class="portal-arch">
+        <div class="portal-speech">
+          "How are you really feeling? Let's find it."
+        </div>
+        <div class="portal-hook" aria-hidden="true"></div>
+        <div class="portal-picture">
+          <div class="portal-canvas">
             <img class="portal-char"
-                 src="assets/characters/05_TG_LIGHTNING_BOLT.png"
+                 src="assets/guides/05%20TG%20LIGHTNING%20BOLT.png"
                  alt="Lightning Bolt character">
           </div>
         </div>
