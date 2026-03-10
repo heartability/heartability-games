@@ -22,30 +22,10 @@
   --font-hand:  "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
   --floor-h:    30vh;
+  --base-h:     16px;
   --wall-bg:    #f5f0ea;
   --base-color: #cdc8bd;
   --base-shade: #c7c2b7;
-  --base-h:     16px;
-
-  /*
-    Layout logic — all derived from these two anchors:
-    Door right edge = 200px from viewport right.
-    Door width      = 22vw (scales with viewport).
-    Door left edge  = calc(100vw - 200px - 22vw)
-
-    Wall container:
-    Left edge  = 200px
-    Right edge = door left edge - 20px
-    Width      = calc(100vw - 200px - 22vw - 200px - 20px)
-              = calc(100vw - 22vw - 300px)
-  */
-  --door-w:         22vw;
-  --door-right:     200px;
-  --door-left:      calc(100vw - var(--door-right) - var(--door-w));
-
-  --wall-left:      200px;
-  --wall-gap:       20px;
-  --wall-w:         calc(var(--door-left) - var(--wall-left) - var(--wall-gap));
 }
 
 body {
@@ -54,12 +34,6 @@ body {
   overflow: hidden;
   background: var(--wall-bg);
   user-select: none;
-}
-
-.room {
-  position: relative;
-  width: 100%;
-  height: 100%;
 }
 
 /* ─────────────────────────────────────────────────
@@ -86,7 +60,6 @@ body {
 
 /* ─────────────────────────────────────────────────
    BASEBOARD  z:3
-   Sits on top of the floor line.
 ───────────────────────────────────────────────── */
 
 .baseboard {
@@ -154,30 +127,16 @@ body {
 }
 
 /* ─────────────────────────────────────────────────
-   WALL CONTAINER  z:2
-   50px from left edge, ends 50px before door.
-   Height = wall area above baseboard, below topbar.
-───────────────────────────────────────────────── */
-
-.wall-container {
-  position: fixed;
-  left: var(--wall-left);
-  top: clamp(60px, 9vh, 90px);
-  width: var(--wall-w);
-  height: calc(100vh - var(--floor-h) - var(--base-h) - clamp(60px, 9vh, 90px));
-  overflow: hidden;
-  z-index: 2;
-}
-
-/* ─────────────────────────────────────────────────
    WALL ART
-   Positions are % of wall-container so they scale
-   together as the container resizes.
+   All positioned directly with fixed + vw/vh.
+   No container — no phantom gaps.
+   Adjust left/top/width to taste.
 ───────────────────────────────────────────────── */
 
 .wall-art {
-  position: absolute;
+  position: fixed;
   cursor: pointer;
+  z-index: 2;
 }
 
 .wall-art a { display: block; text-decoration: none; }
@@ -205,29 +164,29 @@ body {
 
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
-/* Row 1 — map left, bingo centre */
-.art-map   { left: 3%;  top: 15%; width: 22%; }
-.art-bingo { left: 32%; top: 15%; width: 26%; }
-
-/* Row 2 — bag and mirror lower, shifted right to fill wall */
-.art-bag    { left: 38%; top: 54%; width: 13%; }
-.art-mirror { left: 55%; top: 46%; width: 22%; }
+/*
+  Row 1: map and bingo hang upper-left area of wall
+  Row 2: bag and mirror hang lower, spreading toward door
+  All left/top/width values are vw/vh so they scale with viewport
+*/
+.art-map    { left: 5vw;  top: 15vh; width: 14vw; }
+.art-bingo  { left: 22vw; top: 13vh; width: 18vw; }
+.art-bag    { left: 24vw; top: 42vh; width:  8vw; }
+.art-mirror { left: 35vw; top: 36vh; width: 14vw; }
 
 /* ─────────────────────────────────────────────────
    DOOR  z:4
-   Left edge = door-left (derived from door-right + door-w).
+   Right edge = 80px from viewport right.
    Bottom sits on top of baseboard.
-   Scales with viewport via vw units.
 ───────────────────────────────────────────────── */
 
 .door-img {
   position: fixed;
-  left: var(--door-left);
+  right: 80px;
   bottom: calc(var(--floor-h) + var(--base-h));
-  width: var(--door-w);
+  width: 22vw;
   height: auto;
   z-index: 4;
-  pointer-events: auto;
   cursor: pointer;
   filter: drop-shadow(-4px 0 8px rgba(0,0,0,0.1));
   transition: filter 0.2s;
@@ -262,8 +221,6 @@ body {
 
 /* ─────────────────────────────────────────────────
    HEART GUIDE  z:5
-   Fixed bottom-left, ~50% bigger than before.
-   Bottom dips 15px below baseboard to stand on floor.
 ───────────────────────────────────────────────── */
 
 .char-heart {
@@ -293,8 +250,6 @@ body {
 
 /* ─────────────────────────────────────────────────
    THOUGHT BUBBLE  z:6
-   Appears to the right of the heart.
-   Bigger font and padding for legibility.
 ───────────────────────────────────────────────── */
 
 .thought-bubble {
@@ -317,7 +272,6 @@ body {
   bottom: 30%;
 }
 
-/* dots pointing left toward heart */
 .thought-bubble::after {
   content: '';
   position: absolute;
@@ -338,69 +292,61 @@ body {
 </head>
 <body>
 
-<div class="room">
+<!-- FLOOR  z:1 -->
+<div class="floor">
+  <img src="assets/elements/floor.png" alt="" aria-hidden="true">
+</div>
 
-  <!-- FLOOR  z:1 -->
-  <div class="floor">
-    <img src="assets/elements/floor.png" alt="" aria-hidden="true">
-  </div>
+<!-- BASEBOARD  z:3 -->
+<div class="baseboard" aria-hidden="true"></div>
 
-  <!-- BASEBOARD  z:3 -->
-  <div class="baseboard" aria-hidden="true"></div>
+<!-- TOPBAR  z:10 -->
+<div class="topbar">
+  <a class="back-btn" href="index.html">← home</a>
+  <h1 class="room-sign">choose a game</h1>
+</div>
 
-  <!-- TOPBAR  z:10 -->
-  <div class="topbar">
-    <a class="back-btn" href="index.html">← home</a>
-    <h1 class="room-sign">choose a game</h1>
-  </div>
+<!-- WALL ART  z:2 — all fixed, no container -->
+<div class="wall-art art-map" id="art-map">
+  <a href="heartability-treasure-map.html">
+    <img src="assets/elements/map.png" alt="Treasure Map">
+  </a>
+</div>
 
-  <!-- WALL CONTAINER  z:2 -->
-  <div class="wall-container">
+<div class="wall-art art-bingo" id="art-bingo">
+  <a href="heartability-bingo-v2.html">
+    <img src="assets/elements/bingo.png" alt="Bingo">
+  </a>
+</div>
 
-    <div class="wall-art art-map" id="art-map">
-      <a href="heartability-treasure-map.html">
-        <img src="assets/elements/map.png" alt="Treasure Map">
-      </a>
-    </div>
+<div class="wall-art art-bag" id="art-bag">
+  <a href="inventory-builder.html">
+    <img src="assets/elements/bag.png" alt="What's in my bag">
+  </a>
+</div>
 
-    <div class="wall-art art-bingo" id="art-bingo">
-      <a href="heartability-bingo-v2.html">
-        <img src="assets/elements/bingo.png" alt="Bingo">
-      </a>
-    </div>
+<div class="wall-art art-mirror" id="art-mirror">
+  <a href="character-builder.html">
+    <img src="assets/elements/mirror.png" alt="Infinity Mirror">
+  </a>
+</div>
 
-    <div class="wall-art art-bag" id="art-bag">
-      <a href="inventory-builder.html">
-        <img src="assets/elements/bag.png" alt="What's in my bag">
-      </a>
-    </div>
+<!-- DOOR  z:4 -->
+<img class="door-img"
+     src="assets/elements/door.png"
+     alt="Door to the library"
+     id="door-img"
+     tabindex="0"
+     role="button"
+     aria-label="Library — coming soon">
 
-    <div class="wall-art art-mirror" id="art-mirror">
-      <a href="character-builder.html">
-        <img src="assets/elements/mirror.png" alt="Infinity Mirror">
-      </a>
-    </div>
-
-  </div><!-- /wall-container -->
-
-  <!-- DOOR  z:4 -->
-  <img class="door-img"
-       src="assets/elements/door.png"
-       alt="Door to the library"
-       id="door-img"
-       tabindex="0"
-       role="button"
-       aria-label="Library — coming soon">
-
-  <!-- HEART GUIDE  z:5 -->
-  <div class="char-heart" id="char-heart">
-    <div class="thought-bubble" id="heart-bubble"></div>
-    <img class="char-img"
-         src="assets/elements/guides/heart.png"
-         alt="Heart guide character">
-  </div>
-
-</div><!-- /room -->
+<!-- HEART GUIDE  z:5 -->
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="heart-bubble"></div>
+  <img class="char-img"
+       src="assets/elements/guides/heart.png"
+       alt="Heart guide character">
+</div>
 
 <script>
 (function () {
@@ -428,9 +374,7 @@ body {
     heart.classList.add('active');
   }
 
-  function deactivate() {
-    heart.classList.remove('active');
-  }
+  function deactivate() { heart.classList.remove('active'); }
 
   Object.keys(messages).forEach(function (artId) {
     const art = document.getElementById(artId);
