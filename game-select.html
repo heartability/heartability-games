@@ -130,21 +130,14 @@ body {
 }
 
 /* ── DOOR IMAGE ────────────────────────────────── */
-/*
-  The door is a fixed PNG asset sitting on the right half of the page.
-  z-index 4: above wall(bg) and floor(1), below baseboard(6).
-  Bottom of image aligns with top of floor so it sits naturally on the ground.
-  Width ~25vw so it's always larger than the mirror in the wall container.
-*/
 
 .door-img {
   position: fixed;
-  right: auto;
-  left: calc(2vw + min(58vw, 100vh) + 150px);
-  bottom: calc(var(--floor-h) + 16px); /* sit on top of baseboard */
+  right: 4vw;
+  bottom: calc(var(--floor-h) + 16px);
   width: clamp(160px, 25vw, 360px);
   height: auto;
-  z-index: 7; /* above baseboard(6) */
+  z-index: 9; /* above floor(1), wall art(3), baseboard(6), heart(8) */
   pointer-events: auto;
   cursor: pointer;
   transform-origin: bottom center;
