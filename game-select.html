@@ -4,493 +4,384 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Game Room — Heartability</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --panel-bg:           #fdf6e3;
-  --panel-border-dark:  #3a2000;
-  --panel-border-mid:   #c8841a;
-  --panel-border-light: #f0c060;
-  --font-hand: "ZoesHandwriting", cursive;
-  --font-game: "VT323", monospace;
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --floor-h:    30vh;
+  --wall-bg:    #f5f0ea;
 }
 
 body {
-  min-height: 100vh;
-  background: #f5f0ea;
-  font-family: var(--font-game);
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--wall-bg);
+  user-select: none;
 }
 
-/* ── ROOM LAYOUT ─────────────────────────────────── */
+/* ── ROOM ──────────────────────────────────────── */
 
 .room {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* ── MARBLE WALL ─────────────────────────────────── */
-
-.wall {
-  flex: 1;
   position: relative;
-  background: #f5f0ea;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 16px 0;
-  overflow: visible;
-  /* marble glow from top */
-  box-shadow: inset 0 60px 100px rgba(255,255,255,0.7);
-}
-
-/* Marble veining */
-.wall::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(128deg, transparent 30%, rgba(180,175,165,0.07) 45%, transparent 60%),
-    linear-gradient(52deg,  transparent 20%, rgba(160,155,148,0.05) 38%, transparent 58%),
-    linear-gradient(170deg, transparent 40%, rgba(200,196,188,0.06) 55%, transparent 70%);
-}
-
-/* Top radial glow */
-.wall::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,255,255,0.65) 0%, transparent 70%);
-}
-
-/* Baseboard at wall/floor join */
-.baseboard {
   width: 100%;
-  height: 14px;
-  background: linear-gradient(180deg, #d8d3c8 0%, #b8b3a8 100%);
-  border-top: 2px solid #c8c3b8;
-  border-bottom: 3px solid #9a9590;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
+  height: 100%;
 }
 
-/* ── B&W CHECKERBOARD FLOOR ──────────────────────── */
+/* ── FLOOR ─────────────────────────────────────── */
 
 .floor {
-  width: 100%;
-  height: clamp(100px, 18vh, 180px);
-  background-image: repeating-conic-gradient(#1a1a22 0% 25%, #ebe7de 0% 50%);
-  background-size: 48px 48px;
-  flex-shrink: 0;
-  position: relative;
-}
-
-/* Floor depth shadow */
-.floor::after {
-  content: "";
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--floor-h);
+  z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,0.32) 0%, transparent 55%);
 }
 
-/* ── TOPBAR ──────────────────────────────────────── */
+.floor img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* ── TOPBAR ────────────────────────────────────── */
 
 .topbar {
-  width: 100%;
-  max-width: 1060px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  position: relative;
-  z-index: 3;
-  gap: 12px;
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
   display: inline-block;
-  padding: 7px 18px;
+  padding: 6px 18px;
   text-decoration: none;
-  font-family: var(--font-game);
-  font-size: 18px;
-  letter-spacing: 2px;
+  font-family: var(--font-pixel);
+  font-size: 20px;
   color: #3a2000;
-  background: var(--panel-bg);
-  border: 3px solid var(--panel-border-dark);
-  outline: 2px solid var(--panel-border-light);
+  background: #fdf6e3;
+  border: 3px solid #3a2000;
+  outline: 2px solid #f0c060;
   outline-offset: -4px;
   box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
   transition: transform 0.08s, box-shadow 0.08s;
   cursor: pointer;
+  pointer-events: all;
 }
 
 .back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
 .back-btn:active { transform: translate(2px,3px); box-shadow: none; }
 
 .room-sign {
-  font-family: var(--font-hand);
-  font-size: clamp(28px, 5vw, 52px);
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: clamp(32px, 5.5vw, 68px);
   color: #5a5060;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.18);
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  white-space: nowrap;
   text-align: center;
+  pointer-events: none;
 }
 
-/* ── PORTALS ROW ─────────────────────────────────── */
+/* ── WALL ART ──────────────────────────────────── */
 
-.portals-container {
-  position: relative;
+.wall-art {
+  position: absolute;
   z-index: 3;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  /* frames hang from the wall — align tops */
-  align-items: flex-start;
-  gap: clamp(20px, 3.5vw, 52px);
-  padding: 0 12px;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 1060px;
-  padding-bottom: 0;
-  /* leave room above each frame for the speech bubble on hover */
-  padding-top: 180px;
-}
-
-/* ── SINGLE PORTAL ───────────────────────────────── */
-
-.portal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
   cursor: pointer;
-  position: relative;
-  flex: 0 0 auto;
-  /* extra top space for speech bubble */
-  margin-top: 8px;
 }
 
-/* ── HANGING HOOK ────────────────────────────────── */
-
-.portal-hook {
-  width: 18px;
-  height: 14px;
-  border: 3px solid #7a7268;
-  border-bottom: none;
-  border-radius: 9px 9px 0 0;
-  position: relative;
-  z-index: 2;
-  margin-bottom: -1px;
-  background: transparent;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.15);
-}
-
-/* Nail / screw head above the hook */
-.portal-hook::before {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
-  background: radial-gradient(circle at 35% 35%, #aaa, #555);
-  border-radius: 50%;
-  border: 1px solid #3a3830;
-}
-
-/* Short wire drop from hook to frame */
-.portal-hook::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 6px;
-  background: #7a7268;
-}
-
-/* ── PICTURE FRAME ───────────────────────────────── */
-
-.portal-picture {
-  position: relative;
-  /* Gold frame face — 3 layers: background gradient, then border stack */
-  padding: 9px;
-  background: linear-gradient(
-    145deg,
-    #e8c860 0%, #c8941a 25%,
-    #f0d870 50%, #a87018 75%,
-    #d4a830 100%
-  );
-  /* Chunky pixel border — dark outer, light inner, thick mid shadow */
-  border: 4px solid #3a2000;
-  outline: 3px solid #f5d860;
-  outline-offset: -9px;
-  box-shadow:
-    /* inner bevel highlight */
-    inset 3px 3px 0 rgba(255,255,255,0.3),
-    inset -3px -3px 0 rgba(0,0,0,0.25),
-    /* outer frame ring */
-    0 0 0 8px #9a6810,
-    0 0 0 11px #3a2000,
-    /* pixel drop shadow */
-    8px 12px 0 11px rgba(0,0,0,0.55);
-  transition: box-shadow 0.2s, outline-color 0.2s;
-}
-
-.portal:hover .portal-picture {
-  outline-color: #fff8a0;
-  box-shadow:
-    inset 3px 3px 0 rgba(255,255,255,0.3),
-    inset -3px -3px 0 rgba(0,0,0,0.25),
-    0 0 0 8px #c8a020,
-    0 0 0 11px #3a2000,
-    8px 12px 0 11px rgba(0,0,0,0.55),
-    /* warm glow */
-    0 0 28px rgba(245,200,66,0.35);
-}
-
-/* ── CANVAS (art surface inside the frame) ───────── */
-
-.portal-canvas {
-  width: clamp(118px, 12.5vw, 156px);
-  height: clamp(148px, 15.5vw, 194px);
-  background: linear-gradient(160deg, #251c52 0%, #170e38 55%, #0e0828 100%);
-  /* Dark inset border — inner frame liner */
-  border: 3px solid #1a0e30;
-  outline: 2px solid #3d2c70;
-  outline-offset: -5px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-/* Subtle scanline texture on canvas */
-.portal-canvas::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0,0,0,0.07) 3px,
-    rgba(0,0,0,0.07) 4px
-  );
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Canvas inner glow on hover */
-.portal:hover .portal-canvas {
-  outline-color: #6a4ac0;
-  box-shadow: inset 0 0 30px rgba(120,90,220,0.3);
-}
-
-/* ── CHARACTER IMAGE ─────────────────────────────── */
-
-.portal-char {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(8px) scale(0.84);
-  height: 80%;
-  width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
-  transition: transform 0.28s cubic-bezier(.2,.8,.4,1), filter 0.28s;
-  z-index: 1;
-}
-
-.portal:hover .portal-char {
-  transform: translateX(-50%) translateY(-10px) scale(1.07);
-  filter: drop-shadow(0 10px 22px rgba(0,0,0,0.8)) drop-shadow(0 0 14px rgba(200,180,255,0.55));
-}
-
-/* ── SPEECH BUBBLE ───────────────────────────────── */
-/*
-  REUSABLE CHARACTER DIALOGUE BUBBLE
-  ────────────────────────────────────────────────────
-  This pattern can be dropped into any page.
-  For a fixed/dismissable version, see about.html.
-
-  CSS classes needed:
-    .portal-speech      – absolute-positioned hover bubble
-    .portal-speech::after – tail arrow
-
-  Trigger: CSS :hover on .portal parent
-  ──────────────────────────────────────────────────── */
-
-.portal-speech {
-  /* Sits above the hook in normal flow, hidden until hover */
-  position: absolute;
-  bottom: calc(100% + 14px);
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s ease;
-  /* Panel styling — matches RPG panel in existing games */
-  background: var(--panel-bg);
-  border: 3px solid var(--panel-border-dark);
-  outline: 2px solid var(--panel-border-light);
-  outline-offset: -5px;
-  box-shadow: 0 0 0 5px var(--panel-border-mid), 3px 4px 0 5px rgba(0,0,0,0.4);
-  border-radius: 10px;
-  padding: 12px 14px;
-  width: 230px;
-  font-family: var(--font-game);
-  font-size: 16px;
-  color: var(--panel-border-dark);
-  line-height: 1.5;
-  text-align: left;
-  z-index: 20;
-}
-
-/* Bubble tail arrow pointing down toward the frame */
-.portal-speech::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -10px;
-  border: 10px solid transparent;
-  border-top-color: var(--panel-border-dark);
-}
-
-.portal:hover .portal-speech {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ── PORTAL PLAQUE (museum label below the frame) ── */
-
-.portal-plaque {
-  background: #ede0b0;
-  border: 3px solid #3a2000;
-  outline: 2px solid #c8a840;
-  outline-offset: -4px;
-  box-shadow: 0 0 0 5px #9a6810, 3px 5px 0 5px rgba(0,0,0,0.38);
-  padding: 8px 16px;
-  text-align: center;
-  margin-top: 12px;
-  min-width: clamp(118px, 12.5vw, 156px);
-  transition: background 0.15s;
-}
-
-.portal:hover .portal-plaque {
-  background: #fdf6e3;
-}
-
-.portal-name {
+.wall-art a {
   display: block;
-  font-family: var(--font-game);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #3a2000;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  line-height: 1.2;
+  text-decoration: none;
 }
 
-.portal-enter {
+.wall-art img {
   display: block;
-  font-family: var(--font-game);
-  font-size: 14px;
-  color: #c8841a;
-  letter-spacing: 1px;
-  margin-top: 3px;
-  opacity: 0;
-  transition: opacity 0.18s;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
 }
 
-.portal:hover .portal-enter { opacity: 1; }
-
-/* ── FAR DOOR (decorative — future development) ──── */
-
-.far-door-wrap {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 24px;
-  padding-bottom: 0;
+.wall-art:hover img,
+.wall-art.active img {
+  filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35));
 }
 
-.far-door-label {
-  font-family: var(--font-game);
-  font-size: 13px;
-  color: #a09898;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
+@keyframes art-wiggle {
+  0%,  100% { transform: rotate(0deg); }
+  20%        { transform: rotate(-3deg); }
+  40%        { transform: rotate(3deg); }
+  60%        { transform: rotate(-2deg); }
+  80%        { transform: rotate(2deg); }
 }
 
-.far-door {
-  width: 64px;
-  height: 90px;
-  background: linear-gradient(180deg, #4a4060 0%, #2a2040 100%);
-  border-radius: 32px 32px 0 0;
+.wall-art.wiggling {
+  animation: art-wiggle 0.48s ease;
+}
+
+/* Wall art positions */
+.art-map {
+  left: 3%;
+  top: 28%;
+  width: clamp(130px, 17vw, 240px);
+}
+
+.art-bingo {
+  left: 38%;
+  top: 14%;
+  width: clamp(150px, 19vw, 270px);
+}
+
+.art-bag {
+  left: 29%;
+  top: 48%;
+  width: clamp(70px, 9vw, 125px);
+}
+
+.art-mirror {
+  left: 49%;
+  top: 37%;
+  width: clamp(130px, 17vw, 230px);
+}
+
+/* ── DOORWAY ───────────────────────────────────── */
+
+.doorway {
+  position: absolute;
+  right: 7%;
+  bottom: calc(var(--floor-h) - 4px);
+  width: clamp(80px, 10vw, 135px);
+  height: clamp(140px, 18vw, 220px);
+  background: linear-gradient(180deg, #a09aaa 0%, #7a7888 100%);
+  border-radius: 50% 50% 0 0 / 55% 55% 0 0;
   border: 4px solid #8a8278;
   border-bottom: none;
-  opacity: 0.48;
-  box-shadow: inset 0 0 16px rgba(80,60,180,0.3);
-  position: relative;
+  z-index: 4;
+  cursor: default;
+  box-shadow:
+    inset 0 0 22px rgba(80,60,130,0.3),
+    4px 0 14px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.far-door::before {
+.doorway::before {
   content: "";
   position: absolute;
-  inset: 6px;
-  inset-bottom: 0;
-  border: 1px solid rgba(180,160,255,0.15);
-  border-radius: inherit;
+  inset: 9px;
+  bottom: 0;
+  border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+  border: 2px solid rgba(220,200,255,0.18);
   border-bottom: none;
+  pointer-events: none;
 }
 
-/* ── RESPONSIVE ──────────────────────────────────── */
-
-@media (max-width: 700px) {
-  .portals-container {
-    gap: 20px;
-  }
-
-  .portal-speech {
-    width: 180px;
-    font-size: 14px;
-  }
+.door-lock {
+  font-size: clamp(22px, 3vw, 38px);
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-@media (max-width: 500px) {
-  .portals-container {
-    gap: 14px;
-  }
+.doorway:hover .door-lock,
+.doorway:focus .door-lock,
+.doorway.locked .door-lock {
+  opacity: 1;
+}
 
-  .room-sign {
-    font-size: 26px;
-  }
+/* ── CHARACTER ANIMATIONS ──────────────────────── */
 
-  .far-door-wrap {
-    margin-top: 16px;
-  }
+@keyframes intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  18%  { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); }
+  58%  { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes idle-pulse {
+  0%,  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
+  50%        { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
+}
+
+@keyframes hover-bounce {
+  0%,  100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
+  50%        { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
+}
+
+/* ── CHARACTER GROUPS ──────────────────────────── */
+
+.char-group {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  cursor: pointer;
+}
+
+.char-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
+  animation:
+    intro-wiggle 0.85s ease-out 0.35s 1 backwards,
+    idle-pulse   3.6s ease-in-out 1.5s infinite;
+}
+
+.char-group.active .char-img {
+  animation: hover-bounce 0.55s ease-in-out infinite;
+}
+
+/* ── THOUGHT BUBBLES ───────────────────────────── */
+
+.thought-bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.93);
+  border-radius: 18px;
+  padding: 11px 16px;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #5a3a7a;
+  text-align: center;
+  line-height: 1.35;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.22));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 20;
+  max-width: 200px;
+  width: max-content;
+}
+
+/* Default: bubble appears above, dots pointing down */
+.thought-bubble {
+  bottom: calc(100% + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.thought-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow:
+    0 13px 0 -2px rgba(255, 255, 255, 0.93),
+    0 23px 0 -4px rgba(255, 255, 255, 0.93);
+}
+
+.char-group.active .thought-bubble {
+  opacity: 1;
+}
+
+/* ── CHARACTER POSITIONS & BUBBLE OVERRIDES ─────── */
+
+/* Cloud — upper-left; bubble appears to the RIGHT */
+.char-cloud {
+  left: 7%;
+  top: 14%;
+  width: clamp(75px, 10vw, 140px);
+}
+
+.char-cloud .thought-bubble {
+  bottom: 50%;
+  left: calc(100% + 18px);
+  transform: translateY(50%);
+}
+
+.char-cloud .thought-bubble::after {
+  top: 50%;
+  left: -8px;
+  transform: translateY(-50%);
+  box-shadow:
+    -14px 0 0 -2px rgba(255, 255, 255, 0.93),
+    -24px 0 0 -4px rgba(255, 255, 255, 0.93);
+}
+
+/* Sun — upper-right; bubble appears BELOW */
+.char-sun {
+  right: 7%;
+  top: 8%;
+  width: clamp(75px, 10vw, 140px);
+}
+
+.char-sun .thought-bubble {
+  bottom: auto;
+  top: calc(100% + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.char-sun .thought-bubble::after {
+  top: auto;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow:
+    0 -13px 0 -2px rgba(255, 255, 255, 0.93),
+    0 -23px 0 -4px rgba(255, 255, 255, 0.93);
+}
+
+/* Square — floor level, left */
+.char-square {
+  left: 16%;
+  bottom: var(--floor-h);
+  width: clamp(60px, 8vw, 105px);
+}
+
+/* Star — floor level, center */
+.char-star {
+  left: 44%;
+  bottom: var(--floor-h);
+  transform: translateX(-50%);
+  width: clamp(70px, 9vw, 115px);
+}
+
+/* Lightning — floor level, right */
+.char-lightning {
+  right: 20%;
+  bottom: var(--floor-h);
+  width: clamp(60px, 8vw, 105px);
 }
 
 </style>
@@ -499,110 +390,144 @@ body {
 
 <div class="room">
 
-  <!-- MARBLE WALL -->
-  <div class="wall">
+  <!-- FLOOR IMAGE -->
+  <div class="floor">
+    <img src="assets/elements/floor.png" alt="" aria-hidden="true">
+  </div>
 
-    <div class="topbar">
-      <a class="back-btn" href="index.html">← TITLE</a>
-      <h1 class="room-sign">The Game Room</h1>
-      <div style="width:90px"></div><!-- spacer for centering -->
-    </div>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a class="back-btn" href="index.html">← home</a>
+    <h1 class="room-sign">choose a game</h1>
+  </div>
 
-    <!-- PORTALS -->
-    <div class="portals-container">
+  <!-- ── WALL ART ─────────────────────────────── -->
 
-      <!-- CHARACTER BUILDER -->
-      <a class="portal" href="character-builder.html">
-        <div class="portal-speech">
-          "You contain multitudes, but you don't have to cut bangs to access a new version of yourself. Use the mirror to consider what aspects of yourself will resource you best in the adventure ahead."
-        </div>
-        <div class="portal-hook" aria-hidden="true"></div>
-        <div class="portal-picture">
-          <div class="portal-canvas">
-            <img class="portal-char"
-                 src="assets/guides/02%20TG%20STAR%20POWER.png"
-                 alt="Star character">
-          </div>
-        </div>
-        <div class="portal-plaque">
-          <span class="portal-name">Character<br>Builder</span>
-          <span class="portal-enter">▶ ENTER</span>
-        </div>
-      </a>
+  <div class="wall-art art-map" id="art-map">
+    <a href="heartability-treasure-map.html">
+      <img src="assets/elements/map.png" alt="Treasure Map game">
+    </a>
+  </div>
 
-      <!-- TREASURE MAP -->
-      <a class="portal" href="heartability-treasure-map.html">
-        <div class="portal-speech">
-          "As you move through a creative venture, you'll inevitably encounter ups and downs. These emotional landscapes are full of resources that will support you in surprising ways. Build a map that helps you see the bigger picture."
-        </div>
-        <div class="portal-hook" aria-hidden="true"></div>
-        <div class="portal-picture">
-          <div class="portal-canvas">
-            <img class="portal-char"
-                 src="assets/guides/04%20TG%20CIRCLE%20SUN.png"
-                 alt="Circle Sun character">
-          </div>
-        </div>
-        <div class="portal-plaque">
-          <span class="portal-name">Treasure<br>Map</span>
-          <span class="portal-enter">▶ ENTER</span>
-        </div>
-      </a>
+  <div class="wall-art art-bingo" id="art-bingo">
+    <a href="heartability-bingo-v2.html">
+      <img src="assets/elements/bingo.png" alt="Bingo game">
+    </a>
+  </div>
 
-      <!-- INVENTORY BUILDER -->
-      <a class="portal" href="inventory-builder.html">
-        <div class="portal-speech">
-          "Your self-care routine is already full of things that sustain you. Use the inventory to take stock of what you've got — you might be more resourced than you think."
-        </div>
-        <div class="portal-hook" aria-hidden="true"></div>
-        <div class="portal-picture">
-          <div class="portal-canvas">
-            <img class="portal-char"
-                 src="assets/guides/03%20TG%20SQUARE%20TOOTH.png"
-                 alt="Square Tooth character">
-          </div>
-        </div>
-        <div class="portal-plaque">
-          <span class="portal-name">Inventory<br>Builder</span>
-          <span class="portal-enter">▶ ENTER</span>
-        </div>
-      </a>
+  <div class="wall-art art-bag" id="art-bag">
+    <a href="inventory-builder.html">
+      <img src="assets/elements/bag.png" alt="What's in my bag game">
+    </a>
+  </div>
 
-      <!-- BINGO -->
-      <a class="portal" href="heartability-bingo-v2.html">
-        <div class="portal-speech">
-          "How are you really feeling? Let's find it."
-        </div>
-        <div class="portal-hook" aria-hidden="true"></div>
-        <div class="portal-picture">
-          <div class="portal-canvas">
-            <img class="portal-char"
-                 src="assets/guides/05%20TG%20LIGHTNING%20BOLT.png"
-                 alt="Lightning Bolt character">
-          </div>
-        </div>
-        <div class="portal-plaque">
-          <span class="portal-name">Heart Meter<br>Bingo</span>
-          <span class="portal-enter">▶ ENTER</span>
-        </div>
-      </a>
+  <div class="wall-art art-mirror" id="art-mirror">
+    <a href="character-builder.html">
+      <img src="assets/elements/mirror.png" alt="Infinity Mirror game">
+    </a>
+  </div>
 
-    </div><!-- /portals-container -->
+  <!-- ── DOORWAY ──────────────────────────────── -->
 
-    <!-- FAR DOOR — decorative, leads outside (future dev) -->
-    <div class="far-door-wrap">
-      <span class="far-door-label">coming soon</span>
-      <div class="far-door" aria-hidden="true"></div>
-    </div>
+  <div class="doorway" tabindex="0" role="button" aria-label="Locked door — coming soon">
+    <span class="door-lock" aria-hidden="true">🔒</span>
+  </div>
 
-  </div><!-- /wall -->
+  <!-- ── CHARACTERS ───────────────────────────── -->
 
-  <div class="baseboard"></div>
+  <!-- Cloud → Treasure Map -->
+  <div class="char-group char-cloud" id="char-cloud">
+    <div class="thought-bubble">sometimes following your<br>dreams requires a map</div>
+    <img class="char-img" src="assets/elements/guides/cloud.png" alt="Cloud character">
+  </div>
 
-  <!-- B&W CHECKERBOARD FLOOR -->
-  <div class="floor"></div>
+  <!-- Sun → Room guide (no game) -->
+  <div class="char-group char-sun" id="char-sun">
+    <div class="thought-bubble">welcome!<br>pick a game to begin</div>
+    <img class="char-img" src="assets/elements/guides/sun.png" alt="Sun character">
+  </div>
+
+  <!-- Square → Inventory / What's in my bag -->
+  <div class="char-group char-square" id="char-square">
+    <div class="thought-bubble">what's in your bag? let's<br>make sure you are prepared!</div>
+    <img class="char-img" src="assets/elements/guides/square.png" alt="Square character">
+  </div>
+
+  <!-- Star → Infinity Mirror / Character Builder -->
+  <div class="char-group char-star" id="char-star">
+    <div class="thought-bubble">you can be anybody you want<br>(without cutting bangs)</div>
+    <img class="char-img" src="assets/elements/guides/star.png" alt="Star character">
+  </div>
+
+  <!-- Lightning → Bingo -->
+  <div class="char-group char-lightning" id="char-lightning">
+    <div class="thought-bubble">how are you really feeling?<br>let's check in</div>
+    <img class="char-img" src="assets/elements/guides/lightning.png" alt="Lightning bolt character">
+  </div>
 
 </div><!-- /room -->
+
+<script>
+(function () {
+
+  /* ── Character ↔ wall art pairs ─────────────── */
+
+  const pairs = [
+    { charId: 'char-cloud',     artId: 'art-map'    },
+    { charId: 'char-square',    artId: 'art-bag'    },
+    { charId: 'char-star',      artId: 'art-mirror' },
+    { charId: 'char-lightning', artId: 'art-bingo'  },
+  ];
+
+  function triggerWiggle(artEl) {
+    artEl.classList.remove('wiggling');
+    void artEl.offsetWidth; /* force reflow to restart animation */
+    artEl.classList.add('wiggling');
+    artEl.addEventListener('animationend', () => {
+      artEl.classList.remove('wiggling');
+    }, { once: true });
+  }
+
+  pairs.forEach(function ({ charId, artId }) {
+    const char = document.getElementById(charId);
+    const art  = document.getElementById(artId);
+    if (!char || !art) return;
+
+    function activate() {
+      char.classList.add('active');
+      triggerWiggle(art);
+    }
+
+    function deactivate() {
+      char.classList.remove('active');
+    }
+
+    char.addEventListener('mouseenter', activate);
+    char.addEventListener('mouseleave', deactivate);
+    art.addEventListener('mouseenter',  activate);
+    art.addEventListener('mouseleave',  deactivate);
+  });
+
+  /* ── Sun — standalone (no paired wall art) ─── */
+
+  const sun = document.getElementById('char-sun');
+  if (sun) {
+    sun.addEventListener('mouseenter', () => sun.classList.add('active'));
+    sun.addEventListener('mouseleave', () => sun.classList.remove('active'));
+  }
+
+  /* ── Doorway — lock on click ────────────────── */
+
+  const door = document.querySelector('.doorway');
+  if (door) {
+    door.addEventListener('click', function () {
+      door.classList.add('locked');
+      setTimeout(() => door.classList.remove('locked'), 1000);
+    });
+  }
+
+})();
+</script>
 
 </body>
 </html>
