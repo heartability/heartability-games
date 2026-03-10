@@ -109,11 +109,29 @@ body {
   pointer-events: none;
 }
 
+/* ── WALL CONTAINER ────────────────────────────── */
+/*
+  Everything — wall art, characters, doorway — lives
+  inside this one container. All child positions are
+  percentages of the container, so the whole scene
+  scales as a single unit when the viewport resizes.
+*/
+
+.wall-container {
+  position: absolute;
+  /* sit in the wall area above the floor */
+  left: 50%;
+  top: 10vh;
+  transform: translateX(-50%);
+  width: min(92vw, 160vh); /* maintains rough aspect ratio */
+  height: calc(100vh - var(--floor-h) - 10vh);
+  z-index: 2;
+}
+
 /* ── WALL ART ──────────────────────────────────── */
 
 .wall-art {
   position: absolute;
-  z-index: 3;
   cursor: pointer;
 }
 
@@ -147,51 +165,50 @@ body {
   animation: art-wiggle 0.48s ease;
 }
 
-/* Wall art positions */
+/* Row 1: map (left) + bingo (centre) — same top */
 .art-map {
-  left: 3%;
-  top: 28%;
-  width: clamp(130px, 17vw, 240px);
+  left: 2%;
+  top: 5%;
+  width: 20%;
 }
 
 .art-bingo {
-  left: 38%;
-  top: 14%;
-  width: clamp(150px, 19vw, 270px);
+  left: 35%;
+  top: 5%;
+  width: 22%;
 }
 
+/* Row 2: bag (centre-left) + mirror (centre-right) — same top */
 .art-bag {
-  left: 29%;
-  top: 48%;
-  width: clamp(70px, 9vw, 125px);
+  left: 28%;
+  top: 46%;
+  width: 10%;
 }
 
 .art-mirror {
-  left: 49%;
-  top: 37%;
-  width: clamp(130px, 17vw, 230px);
+  left: 42%;
+  top: 40%;
+  width: 20%;
 }
 
 /* ── DOORWAY ───────────────────────────────────── */
 
 .doorway {
   position: absolute;
-  right: 7%;
-  bottom: calc(var(--floor-h) - 4px);
-  width: clamp(80px, 10vw, 135px);
-  height: clamp(140px, 18vw, 220px);
+  right: 4%;
+  bottom: 0;
+  width: 12%;
+  /* height driven by aspect ratio via padding trick */
+  padding-bottom: 20%;
+  height: 0;
   background: linear-gradient(180deg, #a09aaa 0%, #7a7888 100%);
-  border-radius: 50% 50% 0 0 / 55% 55% 0 0;
-  border: 4px solid #8a8278;
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
+  border: 3px solid #8a8278;
   border-bottom: none;
-  z-index: 4;
   cursor: default;
   box-shadow:
     inset 0 0 22px rgba(80,60,130,0.3),
     4px 0 14px rgba(0,0,0,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .doorway::before {
@@ -199,27 +216,24 @@ body {
   position: absolute;
   inset: 9px;
   bottom: 0;
-  border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
   border: 2px solid rgba(220,200,255,0.18);
   border-bottom: none;
   pointer-events: none;
 }
 
 .door-lock {
-  font-size: clamp(22px, 3vw, 38px);
   position: absolute;
-  top: 42%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
+  font-size: 1.8vw;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
 .doorway:hover .door-lock,
-.doorway:focus .door-lock,
-.doorway.locked .door-lock {
-  opacity: 1;
-}
+.doorway.locked .door-lock { opacity: 1; }
 
 /* ── CHARACTER ANIMATIONS ──────────────────────── */
 
@@ -234,12 +248,12 @@ body {
 
 @keyframes idle-pulse {
   0%,  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
-  50%        { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
+  50%        { transform: translateY(-4%) rotate(2deg)  scale(1.03); }
 }
 
 @keyframes hover-bounce {
-  0%,  100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
-  50%        { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
+  0%,  100% { transform: translateY(0)    rotate(-3deg) scale(1.07); }
+  50%        { transform: translateY(-6%) rotate(3deg)  scale(1.11); }
 }
 
 /* ── CHARACTER GROUPS ──────────────────────────── */
@@ -249,8 +263,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 5;
   cursor: pointer;
+  z-index: 5;
 }
 
 .char-img {
@@ -275,7 +289,7 @@ body {
   border-radius: 18px;
   padding: 11px 16px;
   font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
+  font-size: clamp(11px, 1.2vw, 15px);
   color: #5a3a7a;
   text-align: center;
   line-height: 1.35;
@@ -284,13 +298,9 @@ body {
   pointer-events: none;
   transition: opacity 0.22s ease;
   z-index: 20;
-  max-width: 200px;
-  width: max-content;
-}
-
-/* Default: bubble appears above, dots pointing down */
-.thought-bubble {
-  bottom: calc(100% + 20px);
+  white-space: nowrap;
+  /* default: above the character */
+  bottom: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
 }
@@ -301,87 +311,82 @@ body {
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  width: 7px; height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.93);
+  background: rgba(255,255,255,0.93);
   box-shadow:
-    0 13px 0 -2px rgba(255, 255, 255, 0.93),
-    0 23px 0 -4px rgba(255, 255, 255, 0.93);
+    0 12px 0 -2px rgba(255,255,255,0.93),
+    0 22px 0 -4px rgba(255,255,255,0.93);
 }
 
-.char-group.active .thought-bubble {
-  opacity: 1;
-}
+.char-group.active .thought-bubble { opacity: 1; }
 
-/* ── CHARACTER POSITIONS & BUBBLE OVERRIDES ─────── */
+/* ── CHARACTER POSITIONS ───────────────────────── */
 
-/* Cloud — upper-left; bubble appears to the RIGHT */
+/* Cloud — below the map, left side, floats on wall */
 .char-cloud {
-  left: 7%;
-  top: 14%;
-  width: clamp(75px, 10vw, 140px);
+  left: 2%;
+  top: 38%;
+  width: 9%;
 }
 
+/* bubble to the right */
 .char-cloud .thought-bubble {
   bottom: 50%;
-  left: calc(100% + 18px);
+  left: calc(100% + 14px);
   transform: translateY(50%);
 }
-
 .char-cloud .thought-bubble::after {
-  top: 50%;
-  left: -8px;
+  top: 50%; left: -7px;
   transform: translateY(-50%);
   box-shadow:
-    -14px 0 0 -2px rgba(255, 255, 255, 0.93),
-    -24px 0 0 -4px rgba(255, 255, 255, 0.93);
+    -13px 0 0 -2px rgba(255,255,255,0.93),
+    -22px 0 0 -4px rgba(255,255,255,0.93);
 }
 
-/* Sun — upper-right; bubble appears BELOW */
+/* Sun — upper right, room guide */
 .char-sun {
-  right: 7%;
-  top: 8%;
-  width: clamp(75px, 10vw, 140px);
+  right: 4%;
+  top: 4%;
+  width: 9%;
 }
 
+/* bubble below */
 .char-sun .thought-bubble {
   bottom: auto;
-  top: calc(100% + 20px);
+  top: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
 }
-
 .char-sun .thought-bubble::after {
   top: auto;
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   box-shadow:
-    0 -13px 0 -2px rgba(255, 255, 255, 0.93),
-    0 -23px 0 -4px rgba(255, 255, 255, 0.93);
+    0 -12px 0 -2px rgba(255,255,255,0.93),
+    0 -22px 0 -4px rgba(255,255,255,0.93);
 }
 
-/* Square — floor level, left */
+/* Square — floor left */
 .char-square {
-  left: 16%;
-  bottom: var(--floor-h);
-  width: clamp(60px, 8vw, 105px);
+  left: 8%;
+  bottom: 2%;
+  width: 8%;
 }
 
-/* Star — floor level, center */
+/* Star — floor centre */
 .char-star {
-  left: 44%;
-  bottom: var(--floor-h);
-  transform: translateX(-50%);
-  width: clamp(70px, 9vw, 115px);
+  left: 38%;
+  bottom: 2%;
+  width: 9%;
 }
 
-/* Lightning — floor level, right */
+/* Lightning — floor right, near door */
 .char-lightning {
-  right: 20%;
-  bottom: var(--floor-h);
-  width: clamp(60px, 8vw, 105px);
+  right: 18%;
+  bottom: 2%;
+  width: 8%;
 }
 
 </style>
@@ -401,76 +406,77 @@ body {
     <h1 class="room-sign">choose a game</h1>
   </div>
 
-  <!-- ── WALL ART ─────────────────────────────── -->
+  <!-- ── WALL CONTAINER — everything inside scales together ── -->
+  <div class="wall-container">
 
-  <div class="wall-art art-map" id="art-map">
-    <a href="heartability-treasure-map.html">
-      <img src="assets/elements/map.png" alt="Treasure Map game">
-    </a>
-  </div>
+    <!-- WALL ART -->
+    <div class="wall-art art-map" id="art-map">
+      <a href="heartability-treasure-map.html">
+        <img src="assets/elements/map.png" alt="Treasure Map game">
+      </a>
+    </div>
 
-  <div class="wall-art art-bingo" id="art-bingo">
-    <a href="heartability-bingo-v2.html">
-      <img src="assets/elements/bingo.png" alt="Bingo game">
-    </a>
-  </div>
+    <div class="wall-art art-bingo" id="art-bingo">
+      <a href="heartability-bingo-v2.html">
+        <img src="assets/elements/bingo.png" alt="Bingo game">
+      </a>
+    </div>
 
-  <div class="wall-art art-bag" id="art-bag">
-    <a href="inventory-builder.html">
-      <img src="assets/elements/bag.png" alt="What's in my bag game">
-    </a>
-  </div>
+    <div class="wall-art art-bag" id="art-bag">
+      <a href="inventory-builder.html">
+        <img src="assets/elements/bag.png" alt="What's in my bag game">
+      </a>
+    </div>
 
-  <div class="wall-art art-mirror" id="art-mirror">
-    <a href="character-builder.html">
-      <img src="assets/elements/mirror.png" alt="Infinity Mirror game">
-    </a>
-  </div>
+    <div class="wall-art art-mirror" id="art-mirror">
+      <a href="character-builder.html">
+        <img src="assets/elements/mirror.png" alt="Infinity Mirror game">
+      </a>
+    </div>
 
-  <!-- ── DOORWAY ──────────────────────────────── -->
+    <!-- DOORWAY -->
+    <div class="doorway" tabindex="0" role="button" aria-label="Library — coming soon">
+      <span class="door-lock" aria-hidden="true">🔒</span>
+    </div>
 
-  <div class="doorway" tabindex="0" role="button" aria-label="Locked door — coming soon">
-    <span class="door-lock" aria-hidden="true">🔒</span>
-  </div>
+    <!-- CHARACTERS -->
 
-  <!-- ── CHARACTERS ───────────────────────────── -->
+    <!-- Cloud → Treasure Map -->
+    <div class="char-group char-cloud" id="char-cloud">
+      <div class="thought-bubble">sometimes following your dreams requires a map</div>
+      <img class="char-img" src="assets/elements/guides/cloud.png" alt="Cloud character">
+    </div>
 
-  <!-- Cloud → Treasure Map -->
-  <div class="char-group char-cloud" id="char-cloud">
-    <div class="thought-bubble">sometimes following your<br>dreams requires a map</div>
-    <img class="char-img" src="assets/elements/guides/cloud.png" alt="Cloud character">
-  </div>
+    <!-- Sun → Room guide -->
+    <div class="char-group char-sun" id="char-sun">
+      <div class="thought-bubble">welcome! pick a game to begin</div>
+      <img class="char-img" src="assets/elements/guides/sun.png" alt="Sun character">
+    </div>
 
-  <!-- Sun → Room guide (no game) -->
-  <div class="char-group char-sun" id="char-sun">
-    <div class="thought-bubble">welcome!<br>pick a game to begin</div>
-    <img class="char-img" src="assets/elements/guides/sun.png" alt="Sun character">
-  </div>
+    <!-- Square → Inventory -->
+    <div class="char-group char-square" id="char-square">
+      <div class="thought-bubble">what's in your bag? let's make sure you are prepared!</div>
+      <img class="char-img" src="assets/elements/guides/square.png" alt="Square character">
+    </div>
 
-  <!-- Square → Inventory / What's in my bag -->
-  <div class="char-group char-square" id="char-square">
-    <div class="thought-bubble">what's in your bag? let's<br>make sure you are prepared!</div>
-    <img class="char-img" src="assets/elements/guides/square.png" alt="Square character">
-  </div>
+    <!-- Star → Infinity Mirror -->
+    <div class="char-group char-star" id="char-star">
+      <div class="thought-bubble">you can be anybody you want (without cutting bangs)</div>
+      <img class="char-img" src="assets/elements/guides/star.png" alt="Star character">
+    </div>
 
-  <!-- Star → Infinity Mirror / Character Builder -->
-  <div class="char-group char-star" id="char-star">
-    <div class="thought-bubble">you can be anybody you want<br>(without cutting bangs)</div>
-    <img class="char-img" src="assets/elements/guides/star.png" alt="Star character">
-  </div>
+    <!-- Lightning → Bingo -->
+    <div class="char-group char-lightning" id="char-lightning">
+      <div class="thought-bubble">how are you really feeling? let's check in</div>
+      <img class="char-img" src="assets/elements/guides/lightning.png" alt="Lightning bolt character">
+    </div>
 
-  <!-- Lightning → Bingo -->
-  <div class="char-group char-lightning" id="char-lightning">
-    <div class="thought-bubble">how are you really feeling?<br>let's check in</div>
-    <img class="char-img" src="assets/elements/guides/lightning.png" alt="Lightning bolt character">
-  </div>
+  </div><!-- /wall-container -->
 
 </div><!-- /room -->
 
 <script>
 (function () {
-
-  /* ── Character ↔ wall art pairs ─────────────── */
 
   const pairs = [
     { charId: 'char-cloud',     artId: 'art-map'    },
@@ -481,11 +487,9 @@ body {
 
   function triggerWiggle(artEl) {
     artEl.classList.remove('wiggling');
-    void artEl.offsetWidth; /* force reflow to restart animation */
+    void artEl.offsetWidth;
     artEl.classList.add('wiggling');
-    artEl.addEventListener('animationend', () => {
-      artEl.classList.remove('wiggling');
-    }, { once: true });
+    artEl.addEventListener('animationend', () => artEl.classList.remove('wiggling'), { once: true });
   }
 
   pairs.forEach(function ({ charId, artId }) {
@@ -493,14 +497,8 @@ body {
     const art  = document.getElementById(artId);
     if (!char || !art) return;
 
-    function activate() {
-      char.classList.add('active');
-      triggerWiggle(art);
-    }
-
-    function deactivate() {
-      char.classList.remove('active');
-    }
+    function activate() { char.classList.add('active'); triggerWiggle(art); }
+    function deactivate() { char.classList.remove('active'); }
 
     char.addEventListener('mouseenter', activate);
     char.addEventListener('mouseleave', deactivate);
@@ -508,15 +506,11 @@ body {
     art.addEventListener('mouseleave',  deactivate);
   });
 
-  /* ── Sun — standalone (no paired wall art) ─── */
-
   const sun = document.getElementById('char-sun');
   if (sun) {
     sun.addEventListener('mouseenter', () => sun.classList.add('active'));
     sun.addEventListener('mouseleave', () => sun.classList.remove('active'));
   }
-
-  /* ── Doorway — lock on click ────────────────── */
 
   const door = document.querySelector('.doorway');
   if (door) {
