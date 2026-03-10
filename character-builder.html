@@ -68,21 +68,6 @@ body::before {
   padding: 24px 16px 0;
 }
 
-.floor {
-  width: 100%;
-  height: 100px;
-  background-image: repeating-conic-gradient(#c8841a 0% 25%, #a86810 0% 50%);
-  background-size: 36px 36px;
-  border-top: 4px solid #7a4a10;
-  flex-shrink: 0;
-}
-.floor::after {
-  content: "";
-  display: block;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 60%);
-}
-
 h1.room-title {
   font-family: var(--font-game);
   font-size: clamp(32px, 5.5vw, 58px);
@@ -343,7 +328,7 @@ body, .wall { background: #f5f0ea; }
 
 .gr-floor {
   position: fixed; bottom: 0; left: 0;
-  width: 100%; height: 30vh;
+  width: 100%; height: 18vh;
   z-index: 1; pointer-events: none;
 }
 .gr-floor img {
