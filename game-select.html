@@ -23,6 +23,8 @@
   --font-pixel: "PFPixelscript", cursive;
   --floor-h:    30vh;
   --wall-bg:    #f5f0ea;
+  --base-color: #cdc8bd;
+  --base-shade: #c7c2b7;
 }
 
 body {
@@ -59,6 +61,23 @@ body {
   object-fit: cover;
   object-position: top center;
   display: block;
+}
+
+/* ── BASEBOARD ─────────────────────────────────── */
+
+.baseboard {
+  position: fixed;
+  bottom: var(--floor-h);
+  left: 0;
+  width: 100%;
+  height: 16px;
+  z-index: 6;
+  pointer-events: none;
+  background: var(--base-color);
+  box-shadow:
+    0 -3px 0 0 var(--base-shade),
+    0  4px 0 0 #b8b3a8,
+    0  7px 5px rgba(0,0,0,0.15);
 }
 
 /* ── TOPBAR ────────────────────────────────────── */
@@ -110,22 +129,14 @@ body {
 }
 
 /* ── WALL CONTAINER ────────────────────────────── */
-/*
-  Everything — wall art, characters, doorway — lives
-  inside this one container. All child positions are
-  percentages of the container, so the whole scene
-  scales as a single unit when the viewport resizes.
-*/
 
 .wall-container {
   position: absolute;
   left: 50%;
-  /* start below the topbar */
   top: clamp(60px, 9vh, 90px);
   transform: translateX(-50%);
   width: min(94vw, 170vh);
-  /* hard stop at the baseboard — nothing can spill onto floor */
-  height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 18px);
+  height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 16px);
   overflow: hidden;
   z-index: 2;
 }
@@ -167,50 +178,44 @@ body {
   animation: art-wiggle 0.48s ease;
 }
 
-/* Row 1: map (left) + bingo (centre) — same top */
-.art-map {
-  left: 2%;
-  top: 12%;
-  width: 20%;
-}
+.art-map    { left: 2%;  top: 12%; width: 20%; }
+.art-bingo  { left: 35%; top: 12%; width: 22%; }
+.art-bag    { left: 28%; top: 52%; width: 10%; }
+.art-mirror { left: 42%; top: 46%; width: 20%; }
 
-.art-bingo {
-  left: 35%;
-  top: 12%;
-  width: 22%;
-}
+/* ── DOORWAY TRIM (outer molding) ──────────────── */
 
-/* Row 2: bag (centre-left) + mirror (centre-right) — same top */
-.art-bag {
-  left: 28%;
-  top: 52%;
-  width: 10%;
-}
-
-.art-mirror {
-  left: 42%;
-  top: 46%;
-  width: 20%;
-}
-
-/* ── DOORWAY ───────────────────────────────────── */
-
-.doorway {
+.doorway-trim {
   position: absolute;
   right: 4%;
   bottom: 0;
-  width: 12%;
-  /* height driven by aspect ratio via padding trick */
+  width: 13%;
+  padding-bottom: 22%;
+  height: 0;
+  background: var(--base-color);
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
+  z-index: 7;
+  pointer-events: none;
+  box-shadow:
+    0 -3px 0 0 var(--base-shade),
+    3px  0 5px rgba(0,0,0,0.1),
+    -3px 0 5px rgba(0,0,0,0.1);
+}
+
+/* ── DOORWAY (inner arch) ──────────────────────── */
+
+.doorway {
+  position: absolute;
+  right: calc(4% + 0.65%);
+  bottom: 0;
+  width: 11.7%;
   padding-bottom: 20%;
   height: 0;
   background: linear-gradient(180deg, #a09aaa 0%, #7a7888 100%);
   border-radius: 50% 50% 0 0 / 40% 40% 0 0;
-  border: 3px solid #8a8278;
-  border-bottom: none;
-  cursor: default;
-  box-shadow:
-    inset 0 0 22px rgba(80,60,130,0.3),
-    4px 0 14px rgba(0,0,0,0.18);
+  z-index: 8;
+  cursor: pointer;
+  box-shadow: inset 0 0 22px rgba(80,60,130,0.3);
 }
 
 .doorway::before {
@@ -237,42 +242,7 @@ body {
 .doorway:hover .door-lock,
 .doorway.locked .door-lock { opacity: 1; }
 
-/* ── BASEBOARD ─────────────────────────────────── */
-
-.baseboard {
-  position: fixed;
-  bottom: var(--floor-h);
-  left: 0;
-  width: 100%;
-  height: 18px;
-  z-index: 6;
-  pointer-events: none;
-  /* raised ledge: light face, dark underside */
-  background: #ddd8ce;
-  box-shadow:
-    0 -2px 0 0 #ece8e0,        /* top highlight */
-    0  3px 0 0 #b0a898,        /* bottom shadow face */
-    0  6px 0 0 #8a8278,        /* deeper shadow */
-    0  8px 6px rgba(0,0,0,0.18); /* soft drop shadow onto floor */
-}
-
-/* cutout arch that mirrors the doorway shape */
-.baseboard::after {
-  content: '';
-  position: absolute;
-  /* align with doorway: right 4% of wall-container ≈ right 3vw of viewport */
-  right: calc(4% - 1px);
-  bottom: 0;
-  width: 12vw;
-  max-width: 160px;
-  min-width: 80px;
-  height: 36px;
-  background: var(--wall-bg);
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  box-shadow: none;
-}
-
-
+/* ── CHARACTER ANIMATIONS ──────────────────────── */
 
 @keyframes intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }
@@ -285,26 +255,28 @@ body {
 
 @keyframes idle-pulse {
   0%,  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
-  50%        { transform: translateY(-4%) rotate(2deg)  scale(1.03); }
+  50%        { transform: translateY(-5%) rotate(2deg)  scale(1.03); }
 }
 
 @keyframes hover-bounce {
   0%,  100% { transform: translateY(0)    rotate(-3deg) scale(1.07); }
-  50%        { transform: translateY(-6%) rotate(3deg)  scale(1.11); }
+  50%        { transform: translateY(-7%) rotate(3deg)  scale(1.11); }
 }
 
-/* ── CHARACTER GROUPS ──────────────────────────── */
+/* ── HEART GUIDE ───────────────────────────────── */
 
-.char-group {
+.char-heart {
   position: absolute;
+  left: 2%;
+  bottom: 0;
+  width: 10%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   cursor: pointer;
   z-index: 5;
 }
 
-.char-img {
+.char-heart .char-img {
   display: block;
   width: 100%;
   height: auto;
@@ -314,117 +286,49 @@ body {
     idle-pulse   3.6s ease-in-out 1.5s infinite;
 }
 
-.char-group.active .char-img {
+.char-heart.active .char-img {
   animation: hover-bounce 0.55s ease-in-out infinite;
 }
 
-/* ── THOUGHT BUBBLES ───────────────────────────── */
+/* ── THOUGHT BUBBLE ────────────────────────────── */
 
 .thought-bubble {
   position: absolute;
-  background: rgba(255, 255, 255, 0.93);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 18px;
-  padding: 11px 16px;
+  padding: 12px 18px;
   font-family: var(--font-hand);
-  font-size: clamp(11px, 1.2vw, 15px);
+  font-size: clamp(12px, 1.3vw, 16px);
   color: #5a3a7a;
   text-align: center;
-  line-height: 1.35;
-  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.22));
+  line-height: 1.4;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.2));
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
   z-index: 20;
   white-space: nowrap;
-  /* default: above the character */
-  bottom: calc(100% + 16px);
-  left: 50%;
-  transform: translateX(-50%);
+  /* to the right of the heart, vertically centred */
+  left: calc(100% + 18px);
+  bottom: 30%;
 }
 
+/* dots pointing left toward heart */
 .thought-bubble::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: -7px;
+  transform: translateY(-50%);
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.93);
+  background: rgba(255,255,255,0.95);
   box-shadow:
-    0 12px 0 -2px rgba(255,255,255,0.93),
-    0 22px 0 -4px rgba(255,255,255,0.93);
+    -13px 0 0 -2px rgba(255,255,255,0.95),
+    -22px 0 0 -4px rgba(255,255,255,0.95);
 }
 
-.char-group.active .thought-bubble { opacity: 1; }
-
-/* ── CHARACTER POSITIONS ───────────────────────── */
-
-/* Cloud — below the map, left side, floats on wall */
-.char-cloud {
-  left: 2%;
-  top: 38%;
-  width: 9%;
-}
-
-/* bubble to the right */
-.char-cloud .thought-bubble {
-  bottom: 50%;
-  left: calc(100% + 14px);
-  transform: translateY(50%);
-}
-.char-cloud .thought-bubble::after {
-  top: 50%; left: -7px;
-  transform: translateY(-50%);
-  box-shadow:
-    -13px 0 0 -2px rgba(255,255,255,0.93),
-    -22px 0 0 -4px rgba(255,255,255,0.93);
-}
-
-/* Sun — upper right, room guide */
-.char-sun {
-  right: 4%;
-  top: 4%;
-  width: 9%;
-}
-
-/* bubble below */
-.char-sun .thought-bubble {
-  bottom: auto;
-  top: calc(100% + 16px);
-  left: 50%;
-  transform: translateX(-50%);
-}
-.char-sun .thought-bubble::after {
-  top: auto;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow:
-    0 -12px 0 -2px rgba(255,255,255,0.93),
-    0 -22px 0 -4px rgba(255,255,255,0.93);
-}
-
-/* Square — floor left */
-.char-square {
-  left: 8%;
-  bottom: 2%;
-  width: 8%;
-}
-
-/* Star — floor centre */
-.char-star {
-  left: 38%;
-  bottom: 2%;
-  width: 9%;
-}
-
-/* Lightning — floor right, near door */
-.char-lightning {
-  right: 18%;
-  bottom: 2%;
-  width: 8%;
-}
+.char-heart.active .thought-bubble { opacity: 1; }
 
 </style>
 </head>
@@ -432,13 +336,13 @@ body {
 
 <div class="room">
 
-  <!-- BASEBOARD -->
-  <div class="baseboard" aria-hidden="true"></div>
-
-  <!-- FLOOR IMAGE -->
+  <!-- FLOOR -->
   <div class="floor">
     <img src="assets/elements/floor.png" alt="" aria-hidden="true">
   </div>
+
+  <!-- BASEBOARD -->
+  <div class="baseboard" aria-hidden="true"></div>
 
   <!-- TOPBAR -->
   <div class="topbar">
@@ -446,7 +350,7 @@ body {
     <h1 class="room-sign">choose a game</h1>
   </div>
 
-  <!-- ── WALL CONTAINER — everything inside scales together ── -->
+  <!-- WALL CONTAINER -->
   <div class="wall-container">
 
     <!-- WALL ART -->
@@ -474,41 +378,18 @@ body {
       </a>
     </div>
 
-    <!-- DOORWAY -->
+    <!-- DOORWAY TRIM then DOORWAY (trim renders behind arch) -->
+    <div class="doorway-trim" aria-hidden="true"></div>
     <div class="doorway" tabindex="0" role="button" aria-label="Library — coming soon">
       <span class="door-lock" aria-hidden="true">🔒</span>
     </div>
 
-    <!-- CHARACTERS -->
-
-    <!-- Cloud → Treasure Map -->
-    <div class="char-group char-cloud" id="char-cloud">
-      <div class="thought-bubble">sometimes following your dreams requires a map</div>
-      <img class="char-img" src="assets/elements/guides/cloud.png" alt="Cloud character">
-    </div>
-
-    <!-- Sun → Room guide -->
-    <div class="char-group char-sun" id="char-sun">
-      <div class="thought-bubble">welcome! pick a game to begin</div>
-      <img class="char-img" src="assets/elements/guides/sun.png" alt="Sun character">
-    </div>
-
-    <!-- Square → Inventory -->
-    <div class="char-group char-square" id="char-square">
-      <div class="thought-bubble">what's in your bag? let's make sure you are prepared!</div>
-      <img class="char-img" src="assets/elements/guides/square.png" alt="Square character">
-    </div>
-
-    <!-- Star → Infinity Mirror -->
-    <div class="char-group char-star" id="char-star">
-      <div class="thought-bubble">you can be anybody you want (without cutting bangs)</div>
-      <img class="char-img" src="assets/elements/guides/star.png" alt="Star character">
-    </div>
-
-    <!-- Lightning → Bingo -->
-    <div class="char-group char-lightning" id="char-lightning">
-      <div class="thought-bubble">how are you really feeling? let's check in</div>
-      <img class="char-img" src="assets/elements/guides/lightning.png" alt="Lightning bolt character">
+    <!-- HEART GUIDE -->
+    <div class="char-heart" id="char-heart">
+      <div class="thought-bubble" id="heart-bubble"></div>
+      <img class="char-img"
+           src="assets/elements/guides/heart.png"
+           alt="Heart guide character">
     </div>
 
   </div><!-- /wall-container -->
@@ -518,12 +399,15 @@ body {
 <script>
 (function () {
 
-  const pairs = [
-    { charId: 'char-cloud',     artId: 'art-map'    },
-    { charId: 'char-square',    artId: 'art-bag'    },
-    { charId: 'char-star',      artId: 'art-mirror' },
-    { charId: 'char-lightning', artId: 'art-bingo'  },
-  ];
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  const messages = {
+    'art-map':    'sometimes following your dreams requires a map',
+    'art-bingo':  "how are you really feeling? let's check in",
+    'art-mirror': 'you can be anybody you want (without cutting bangs)',
+    'art-bag':    "what's in your bag? let's make sure you are prepared!",
+  };
 
   function triggerWiggle(artEl) {
     artEl.classList.remove('wiggling');
@@ -532,26 +416,30 @@ body {
     artEl.addEventListener('animationend', () => artEl.classList.remove('wiggling'), { once: true });
   }
 
-  pairs.forEach(function ({ charId, artId }) {
-    const char = document.getElementById(charId);
-    const art  = document.getElementById(artId);
-    if (!char || !art) return;
-
-    function activate() { char.classList.add('active'); triggerWiggle(art); }
-    function deactivate() { char.classList.remove('active'); }
-
-    char.addEventListener('mouseenter', activate);
-    char.addEventListener('mouseleave', deactivate);
-    art.addEventListener('mouseenter',  activate);
-    art.addEventListener('mouseleave',  deactivate);
-  });
-
-  const sun = document.getElementById('char-sun');
-  if (sun) {
-    sun.addEventListener('mouseenter', () => sun.classList.add('active'));
-    sun.addEventListener('mouseleave', () => sun.classList.remove('active'));
+  function activate(artId) {
+    bubble.textContent = messages[artId] || '';
+    heart.classList.add('active');
   }
 
+  function deactivate() {
+    heart.classList.remove('active');
+  }
+
+  Object.keys(messages).forEach(function (artId) {
+    const art = document.getElementById(artId);
+    if (!art) return;
+    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
+    art.addEventListener('mouseleave', deactivate);
+  });
+
+  /* Hovering the heart itself shows a welcome message */
+  heart.addEventListener('mouseenter', () => {
+    bubble.textContent = 'welcome! pick a game to begin';
+    heart.classList.add('active');
+  });
+  heart.addEventListener('mouseleave', deactivate);
+
+  /* Doorway lock flash */
   const door = document.querySelector('.doorway');
   if (door) {
     door.addEventListener('click', function () {
