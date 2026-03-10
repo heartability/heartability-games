@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Room — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --floor-h:    30vh;
+  --wall-bg:    #f5f0ea;
+  --base-color: #cdc8bd;
+  --base-shade: #c7c2b7;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--wall-bg);
+  user-select: none;
+}
+
+/* ── ROOM ──────────────────────────────────────── */
+
+.room {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── FLOOR ─────────────────────────────────────── */
+
+.floor {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--floor-h);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.floor img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* ── BASEBOARD ─────────────────────────────────── */
+/* z-index 6: above floor(1), wall art(3), door image(4), below heart(8) */
+
+.baseboard {
+  position: fixed;
+  bottom: var(--floor-h);
+  left: 0;
+  width: 100%;
+  height: 16px;
+  z-index: 6;
+  pointer-events: none;
+  background: var(--base-color);
+  box-shadow:
+    0 -3px 0 0 var(--base-shade),
+    0  4px 0 0 #b8b3a8,
+    0  7px 5px rgba(0,0,0,0.15);
+}
+
+/* ── TOPBAR ────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  display: inline-block;
+  padding: 6px 18px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  color: #3a2000;
+  background: #fdf6e3;
+  border: 3px solid #3a2000;
+  outline: 2px solid #f0c060;
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+.room-sign {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: clamp(20px, 3.8vw, 52px);
+  color: #5a5060;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ── DOOR IMAGE ────────────────────────────────── */
+
+.door-img {
+  position: fixed;
+  left: calc(2vw + min(68vw, 100vh) + 20px);
+  right: auto;
+  bottom: calc(var(--floor-h) + 16px);
+  width: clamp(160px, 25vw, 360px);
+  height: auto;
+  z-index: 9; /* above floor(1), wall art(3), baseboard(6), heart(8) */
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: bottom center;
+  filter: drop-shadow(-4px 0 8px rgba(0,0,0,0.12));
+  transition: filter 0.2s;
+}
+
+.door-img:hover {
+  filter: drop-shadow(-4px 0 12px rgba(0,0,0,0.22));
+}
+
+/* ── WALL CONTAINER ────────────────────────────── */
+/*
+  Holds all wall art. Sits left of centre to leave open
+  space on the right where the door lives.
+  Width capped so it never overlaps the door area.
+*/
+
+.wall-container {
+  position: fixed;
+  left: 2vw;
+  top: clamp(60px, 9vh, 90px);
+  width: min(68vw, 100vh);
+  height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 16px);
+  overflow: hidden;
+  z-index: 3;
+}
+
+/* ── WALL ART ──────────────────────────────────── */
+
+.wall-art {
+  position: absolute;
+  cursor: pointer;
+}
+
+.wall-art a {
+  display: block;
+  text-decoration: none;
+}
+
+.wall-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
+}
+
+.wall-art:hover img,
+.wall-art.active img {
+  filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35));
+}
+
+@keyframes art-wiggle {
+  0%,  100% { transform: rotate(0deg); }
+  20%        { transform: rotate(-3deg); }
+  40%        { transform: rotate(3deg); }
+  60%        { transform: rotate(-2deg); }
+  80%        { transform: rotate(2deg); }
+}
+
+.wall-art.wiggling {
+  animation: art-wiggle 0.48s ease;
+}
+
+/*
+  Bingo is the reference size.
+  Mirror = 2/3 bingo width, but same proportional height relationship.
+  Map ~ similar width to bingo.
+  Bag is small.
+*/
+.art-map    { left: 2%;  top: 12%; width: 24%; }
+.art-bingo  { left: 32%; top: 12%; width: 26%; }
+.art-bag    { left: 30%; top: 54%; width: 11%; }
+.art-mirror { left: 44%; top: 44%; width: 17%; } /* ~2/3 of bingo width */
+
+/* ── CHARACTER ANIMATIONS ──────────────────────── */
+
+@keyframes intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  18%  { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); }
+  58%  { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes idle-pulse {
+  0%,  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
+  50%        { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
+}
+
+@keyframes hover-bounce {
+  0%,  100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
+  50%        { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
+}
+
+/* ── HEART GUIDE ───────────────────────────────── */
+/*
+  Fixed position, outside wall-container.
+  Bottom sits ~15px below baseboard so she stands on the floor visually.
+  z-index 8: above everything including baseboard(6).
+*/
+
+.char-heart {
+  position: fixed;
+  left: 3vw;
+  bottom: calc(var(--floor-h) - 15px);
+  width: clamp(70px, 9vw, 130px);
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  z-index: 8;
+}
+
+.char-heart .char-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
+  animation:
+    intro-wiggle 0.85s ease-out 0.35s 1 backwards,
+    idle-pulse   3.6s ease-in-out 1.5s infinite;
+}
+
+.char-heart.active .char-img {
+  animation: hover-bounce 0.55s ease-in-out infinite;
+}
+
+/* ── THOUGHT BUBBLE ────────────────────────────── */
+
+.thought-bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 16px);
+  color: #5a3a7a;
+  text-align: center;
+  line-height: 1.4;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.2));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 20;
+  white-space: nowrap;
+  /* to the right of the heart */
+  left: calc(100% + 18px);
+  bottom: 30%;
+}
+
+/* dots pointing left toward heart */
+.thought-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -7px;
+  transform: translateY(-50%);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  box-shadow:
+    -13px 0 0 -2px rgba(255,255,255,0.95),
+    -22px 0 0 -4px rgba(255,255,255,0.95);
+}
+
+.char-heart.active .thought-bubble { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<div class="room">
+
+  <!-- FLOOR (z:1) -->
+  <div class="floor">
+    <img src="assets/elements/floor.png" alt="" aria-hidden="true">
+  </div>
+
+  <!-- BASEBOARD (z:6) — sits on top of floor line -->
+  <div class="baseboard" aria-hidden="true"></div>
+
+  <!-- TOPBAR (z:10) -->
+  <div class="topbar">
+    <a class="back-btn" href="index.html">← home</a>
+    <h1 class="room-sign">choose a game</h1>
+  </div>
+
+  <!-- DOOR IMAGE (z:4) — right side, bottom on floor -->
+  <img class="door-img"
+       src="assets/elements/door.png"
+       alt="Door to the library"
+       tabindex="0"
+       role="button"
+       aria-label="Library — coming soon"
+       id="door-img">
+
+  <!-- WALL CONTAINER (z:3) — left side -->
+  <div class="wall-container">
+
+    <div class="wall-art art-map" id="art-map">
+      <a href="heartability-treasure-map.html">
+        <img src="assets/elements/map.png" alt="Treasure Map game">
+      </a>
+    </div>
+
+    <div class="wall-art art-bingo" id="art-bingo">
+      <a href="heartability-bingo-v2.html">
+        <img src="assets/elements/bingo.png" alt="Bingo game">
+      </a>
+    </div>
+
+    <div class="wall-art art-bag" id="art-bag">
+      <a href="inventory-builder.html">
+        <img src="assets/elements/bag.png" alt="What's in my bag game">
+      </a>
+    </div>
+
+    <div class="wall-art art-mirror" id="art-mirror">
+      <a href="character-builder.html">
+        <img src="assets/elements/mirror.png" alt="Infinity Mirror game">
+      </a>
+    </div>
+
+  </div><!-- /wall-container -->
+
+  <!-- HEART GUIDE (z:8) — fixed on floor, outside wall-container -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble"></div>
+    <img class="char-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide character">
+  </div>
+
+</div><!-- /room -->
+
+<script>
+(function () {
+
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  const messages = {
+    'art-map':    'sometimes following your dreams requires a map',
+    'art-bingo':  "how are you really feeling? let's check in",
+    'art-mirror': 'you can be anybody you want (without cutting bangs)',
+    'art-bag':    "what's in your bag? let's make sure you are prepared!",
+  };
+
+  function triggerWiggle(artEl) {
+    artEl.classList.remove('wiggling');
+    void artEl.offsetWidth;
+    artEl.classList.add('wiggling');
+    artEl.addEventListener('animationend', () => artEl.classList.remove('wiggling'), { once: true });
+  }
+
+  function activate(artId) {
+    bubble.textContent = messages[artId] || '';
+    heart.classList.add('active');
+  }
+
+  function deactivate() {
+    heart.classList.remove('active');
+  }
+
+  Object.keys(messages).forEach(function (artId) {
+    const art = document.getElementById(artId);
+    if (!art) return;
+    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
+    art.addEventListener('mouseleave', deactivate);
+  });
+
+  heart.addEventListener('mouseenter', () => {
+    bubble.textContent = 'welcome! pick a game to begin';
+    heart.classList.add('active');
+  });
+  heart.addEventListener('mouseleave', deactivate);
+
+  /* Door — lock flash on click */
+  const door = document.getElementById('door-img');
+  if (door) {
+    door.addEventListener('click', function () {
+      door.style.filter = 'drop-shadow(-4px 0 12px rgba(80,60,130,0.5))';
+      setTimeout(() => door.style.filter = '', 800);
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
