@@ -146,7 +146,7 @@ body {
   top: 4px;
   transform: translateX(-50%);
   font-family: var(--font-pixel);
-  font-size: clamp(20px, 3.8vw, 52px);
+  font-size: clamp(16px, 2.6vw, 36px);
   color: #5a5060;
   text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
   white-space: nowrap;
@@ -206,12 +206,12 @@ body {
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
 /* Row 1 — map left, bingo centre */
-.art-map   { left: 3%;  top: 10%; width: 26%; }
-.art-bingo { left: 36%; top: 10%; width: 30%; }
+.art-map   { left: 3%;  top: 15%; width: 22%; }
+.art-bingo { left: 32%; top: 15%; width: 26%; }
 
-/* Row 2 — bag and mirror lower */
-.art-bag    { left: 32%; top: 54%; width: 13%; }
-.art-mirror { left: 48%; top: 46%; width: 22%; }
+/* Row 2 — bag and mirror lower, shifted right to fill wall */
+.art-bag    { left: 38%; top: 54%; width: 13%; }
+.art-mirror { left: 55%; top: 46%; width: 22%; }
 
 /* ─────────────────────────────────────────────────
    DOOR  z:4
@@ -269,7 +269,7 @@ body {
 .char-heart {
   position: fixed;
   left: 30px;
-  bottom: calc(var(--floor-h) - 15px);
+  bottom: calc(var(--floor-h) - 35px);
   width: clamp(100px, 13vw, 190px);
   display: flex;
   align-items: flex-end;
