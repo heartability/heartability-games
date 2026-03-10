@@ -46,7 +46,7 @@ body {
 /* ── FLOOR ─────────────────────────────────────── */
 
 .floor {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
@@ -64,6 +64,7 @@ body {
 }
 
 /* ── BASEBOARD ─────────────────────────────────── */
+/* z-index 6: above floor(1), wall art(3), door image(4), below heart(8) */
 
 .baseboard {
   position: fixed;
@@ -83,7 +84,7 @@ body {
 /* ── TOPBAR ────────────────────────────────────── */
 
 .topbar {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 0;
   right: 0;
@@ -128,17 +129,48 @@ body {
   pointer-events: none;
 }
 
+/* ── DOOR IMAGE ────────────────────────────────── */
+/*
+  The door is a fixed PNG asset sitting on the right half of the page.
+  z-index 4: above wall(bg) and floor(1), below baseboard(6).
+  Bottom of image aligns with top of floor so it sits naturally on the ground.
+  Width ~25vw so it's always larger than the mirror in the wall container.
+*/
+
+.door-img {
+  position: fixed;
+  right: 4vw;
+  bottom: var(--floor-h);
+  width: clamp(160px, 25vw, 360px);
+  height: auto;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: pointer;
+  /* anchor to floor — image grows upward */
+  transform-origin: bottom center;
+  filter: drop-shadow(-4px 0 8px rgba(0,0,0,0.12));
+  transition: filter 0.2s;
+}
+
+.door-img:hover {
+  filter: drop-shadow(-4px 0 12px rgba(0,0,0,0.22));
+}
+
 /* ── WALL CONTAINER ────────────────────────────── */
+/*
+  Holds all wall art. Sits left of centre to leave open
+  space on the right where the door lives.
+  Width capped so it never overlaps the door area.
+*/
 
 .wall-container {
-  position: absolute;
-  left: 50%;
+  position: fixed;
+  left: 2vw;
   top: clamp(60px, 9vh, 90px);
-  transform: translateX(-50%);
-  width: min(94vw, 170vh);
+  width: min(68vw, 110vh);
   height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 16px);
   overflow: hidden;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* ── WALL ART ──────────────────────────────────── */
@@ -178,69 +210,16 @@ body {
   animation: art-wiggle 0.48s ease;
 }
 
-.art-map    { left: 2%;  top: 12%; width: 20%; }
-.art-bingo  { left: 35%; top: 12%; width: 22%; }
-.art-bag    { left: 28%; top: 52%; width: 10%; }
-.art-mirror { left: 42%; top: 46%; width: 20%; }
-
-/* ── DOORWAY TRIM (outer molding) ──────────────── */
-
-.doorway-trim {
-  position: absolute;
-  right: 4%;
-  bottom: 0;
-  width: 13%;
-  padding-bottom: 22%;
-  height: 0;
-  background: var(--base-color);
-  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
-  z-index: 7;
-  pointer-events: none;
-  box-shadow:
-    0 -3px 0 0 var(--base-shade),
-    3px  0 5px rgba(0,0,0,0.1),
-    -3px 0 5px rgba(0,0,0,0.1);
-}
-
-/* ── DOORWAY (inner arch) ──────────────────────── */
-
-.doorway {
-  position: absolute;
-  right: calc(4% + 0.65%);
-  bottom: 0;
-  width: 11.7%;
-  padding-bottom: 20%;
-  height: 0;
-  background: linear-gradient(180deg, #a09aaa 0%, #7a7888 100%);
-  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
-  z-index: 8;
-  cursor: pointer;
-  box-shadow: inset 0 0 22px rgba(80,60,130,0.3);
-}
-
-.doorway::before {
-  content: "";
-  position: absolute;
-  inset: 9px;
-  bottom: 0;
-  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
-  border: 2px solid rgba(220,200,255,0.18);
-  border-bottom: none;
-  pointer-events: none;
-}
-
-.door-lock {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.8vw;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.doorway:hover .door-lock,
-.doorway.locked .door-lock { opacity: 1; }
+/*
+  Bingo is the reference size.
+  Mirror = 2/3 bingo width, but same proportional height relationship.
+  Map ~ similar width to bingo.
+  Bag is small.
+*/
+.art-map    { left: 2%;  top: 12%; width: 24%; }
+.art-bingo  { left: 32%; top: 12%; width: 26%; }
+.art-bag    { left: 30%; top: 54%; width: 11%; }
+.art-mirror { left: 44%; top: 44%; width: 17%; } /* ~2/3 of bingo width */
 
 /* ── CHARACTER ANIMATIONS ──────────────────────── */
 
@@ -255,25 +234,30 @@ body {
 
 @keyframes idle-pulse {
   0%,  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
-  50%        { transform: translateY(-5%) rotate(2deg)  scale(1.03); }
+  50%        { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
 }
 
 @keyframes hover-bounce {
-  0%,  100% { transform: translateY(0)    rotate(-3deg) scale(1.07); }
-  50%        { transform: translateY(-7%) rotate(3deg)  scale(1.11); }
+  0%,  100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
+  50%        { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
 }
 
 /* ── HEART GUIDE ───────────────────────────────── */
+/*
+  Fixed position, outside wall-container.
+  Bottom sits ~15px below baseboard so she stands on the floor visually.
+  z-index 8: above everything including baseboard(6).
+*/
 
 .char-heart {
-  position: absolute;
-  left: 2%;
-  bottom: 0;
-  width: 10%;
+  position: fixed;
+  left: 3vw;
+  bottom: calc(var(--floor-h) - 15px);
+  width: clamp(70px, 9vw, 130px);
   display: flex;
   align-items: flex-end;
   cursor: pointer;
-  z-index: 5;
+  z-index: 8;
 }
 
 .char-heart .char-img {
@@ -308,7 +292,7 @@ body {
   transition: opacity 0.22s ease;
   z-index: 20;
   white-space: nowrap;
-  /* to the right of the heart, vertically centred */
+  /* to the right of the heart */
   left: calc(100% + 18px);
   bottom: 30%;
 }
@@ -336,24 +320,32 @@ body {
 
 <div class="room">
 
-  <!-- FLOOR -->
+  <!-- FLOOR (z:1) -->
   <div class="floor">
     <img src="assets/elements/floor.png" alt="" aria-hidden="true">
   </div>
 
-  <!-- BASEBOARD -->
+  <!-- BASEBOARD (z:6) — sits on top of floor line -->
   <div class="baseboard" aria-hidden="true"></div>
 
-  <!-- TOPBAR -->
+  <!-- TOPBAR (z:10) -->
   <div class="topbar">
     <a class="back-btn" href="index.html">← home</a>
     <h1 class="room-sign">choose a game</h1>
   </div>
 
-  <!-- WALL CONTAINER -->
+  <!-- DOOR IMAGE (z:4) — right side, bottom on floor -->
+  <img class="door-img"
+       src="assets/elements/door.png"
+       alt="Door to the library"
+       tabindex="0"
+       role="button"
+       aria-label="Library — coming soon"
+       id="door-img">
+
+  <!-- WALL CONTAINER (z:3) — left side -->
   <div class="wall-container">
 
-    <!-- WALL ART -->
     <div class="wall-art art-map" id="art-map">
       <a href="heartability-treasure-map.html">
         <img src="assets/elements/map.png" alt="Treasure Map game">
@@ -378,21 +370,15 @@ body {
       </a>
     </div>
 
-    <!-- DOORWAY TRIM then DOORWAY (trim renders behind arch) -->
-    <div class="doorway-trim" aria-hidden="true"></div>
-    <div class="doorway" tabindex="0" role="button" aria-label="Library — coming soon">
-      <span class="door-lock" aria-hidden="true">🔒</span>
-    </div>
-
-    <!-- HEART GUIDE -->
-    <div class="char-heart" id="char-heart">
-      <div class="thought-bubble" id="heart-bubble"></div>
-      <img class="char-img"
-           src="assets/elements/guides/heart.png"
-           alt="Heart guide character">
-    </div>
-
   </div><!-- /wall-container -->
+
+  <!-- HEART GUIDE (z:8) — fixed on floor, outside wall-container -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble"></div>
+    <img class="char-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide character">
+  </div>
 
 </div><!-- /room -->
 
@@ -432,19 +418,18 @@ body {
     art.addEventListener('mouseleave', deactivate);
   });
 
-  /* Hovering the heart itself shows a welcome message */
   heart.addEventListener('mouseenter', () => {
     bubble.textContent = 'welcome! pick a game to begin';
     heart.classList.add('active');
   });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* Doorway lock flash */
-  const door = document.querySelector('.doorway');
+  /* Door — lock flash on click */
+  const door = document.getElementById('door-img');
   if (door) {
     door.addEventListener('click', function () {
-      door.classList.add('locked');
-      setTimeout(() => door.classList.remove('locked'), 1000);
+      door.style.filter = 'drop-shadow(-4px 0 12px rgba(80,60,130,0.5))';
+      setTimeout(() => door.style.filter = '', 800);
     });
   }
 
