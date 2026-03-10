@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Room — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --floor-h:    30vh;
+  --wall-bg:    #f5f0ea;
+  --base-color: #cdc8bd;
+  --base-shade: #c7c2b7;
+  --base-h:     16px;
+
+  /*
+    Layout logic — all derived from these two anchors:
+    Door right edge = 200px from viewport right.
+    Door width      = 22vw (scales with viewport).
+    Door left edge  = calc(100vw - 200px - 22vw)
+
+    Wall container:
+    Left edge  = 50px
+    Right edge = door left edge - 50px
+    Width      = calc(100vw - 200px - 22vw - 50px - 50px)
+              = calc(100vw - 22vw - 300px)
+  */
+  --door-w:         22vw;
+  --door-right:     200px;
+  --door-left:      calc(100vw - var(--door-right) - var(--door-w));
+
+  --wall-left:      50px;
+  --wall-gap:       50px;
+  --wall-w:         calc(var(--door-left) - var(--wall-left) - var(--wall-gap));
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--wall-bg);
+  user-select: none;
+}
+
+.room {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─────────────────────────────────────────────────
+   FLOOR  z:1
+───────────────────────────────────────────────── */
+
+.floor {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--floor-h);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.floor img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────────
+   BASEBOARD  z:3
+   Sits on top of the floor line.
+───────────────────────────────────────────────── */
+
+.baseboard {
+  position: fixed;
+  bottom: var(--floor-h);
+  left: 0;
+  width: 100%;
+  height: var(--base-h);
+  z-index: 3;
+  pointer-events: none;
+  background: var(--base-color);
+  box-shadow:
+    0 -3px 0 0 var(--base-shade),
+    0  4px 0 0 #b8b3a8,
+    0  7px 5px rgba(0,0,0,0.15);
+}
+
+/* ─────────────────────────────────────────────────
+   TOPBAR  z:10
+───────────────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  display: inline-block;
+  padding: 6px 18px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  color: #3a2000;
+  background: #fdf6e3;
+  border: 3px solid #3a2000;
+  outline: 2px solid #f0c060;
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
+
+.room-sign {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: clamp(16px, 2.6vw, 36px);
+  color: #5a5060;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────
+   WALL CONTAINER  z:2
+   50px from left edge, ends 50px before door.
+   Height = wall area above baseboard, below topbar.
+───────────────────────────────────────────────── */
+
+.wall-container {
+  position: fixed;
+  left: var(--wall-left);
+  top: clamp(60px, 9vh, 90px);
+  width: var(--wall-w);
+  height: calc(100vh - var(--floor-h) - var(--base-h) - clamp(60px, 9vh, 90px));
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* ─────────────────────────────────────────────────
+   WALL ART
+   Positions are % of wall-container so they scale
+   together as the container resizes.
+───────────────────────────────────────────────── */
+
+.wall-art {
+  position: absolute;
+  cursor: pointer;
+}
+
+.wall-art a { display: block; text-decoration: none; }
+
+.wall-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
+}
+
+.wall-art:hover img,
+.wall-art.active img {
+  filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35));
+}
+
+@keyframes art-wiggle {
+  0%,100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-3deg); }
+  40%      { transform: rotate(3deg); }
+  60%      { transform: rotate(-2deg); }
+  80%      { transform: rotate(2deg); }
+}
+
+.wall-art.wiggling { animation: art-wiggle 0.48s ease; }
+
+/* Row 1 — map left, bingo centre */
+.art-map   { left: 3%;  top: 15%; width: 22%; }
+.art-bingo { left: 32%; top: 15%; width: 26%; }
+
+/* Row 2 — bag and mirror lower, shifted right to fill wall */
+.art-bag    { left: 38%; top: 54%; width: 13%; }
+.art-mirror { left: 55%; top: 46%; width: 22%; }
+
+/* ─────────────────────────────────────────────────
+   DOOR  z:4
+   Left edge = door-left (derived from door-right + door-w).
+   Bottom sits on top of baseboard.
+   Scales with viewport via vw units.
+───────────────────────────────────────────────── */
+
+.door-img {
+  position: fixed;
+  left: var(--door-left);
+  bottom: calc(var(--floor-h) + var(--base-h));
+  width: var(--door-w);
+  height: auto;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: pointer;
+  filter: drop-shadow(-4px 0 8px rgba(0,0,0,0.1));
+  transition: filter 0.2s;
+}
+
+.door-img:hover {
+  filter: drop-shadow(-4px 0 14px rgba(80,60,130,0.35));
+}
+
+/* ─────────────────────────────────────────────────
+   CHARACTER ANIMATIONS
+───────────────────────────────────────────────── */
+
+@keyframes intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  18%  { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); }
+  58%  { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes idle-pulse {
+  0%,100% { transform: translateY(0)     rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px)  rotate(2deg)  scale(1.03); }
+}
+
+@keyframes hover-bounce {
+  0%,100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
+  50%      { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
+}
+
+/* ─────────────────────────────────────────────────
+   HEART GUIDE  z:5
+   Fixed bottom-left, ~50% bigger than before.
+   Bottom dips 15px below baseboard to stand on floor.
+───────────────────────────────────────────────── */
+
+.char-heart {
+  position: fixed;
+  left: 30px;
+  bottom: calc(var(--floor-h) - 35px);
+  width: clamp(100px, 13vw, 190px);
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.char-heart .char-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
+  animation:
+    intro-wiggle 0.85s ease-out 0.35s 1 backwards,
+    idle-pulse   3.6s ease-in-out 1.5s infinite;
+}
+
+.char-heart.active .char-img {
+  animation: hover-bounce 0.55s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────
+   THOUGHT BUBBLE  z:6
+   Appears to the right of the heart.
+   Bigger font and padding for legibility.
+───────────────────────────────────────────────── */
+
+.thought-bubble {
+  position: absolute;
+  background: rgba(255,255,255,0.96);
+  border-radius: 20px;
+  padding: 14px 22px;
+  font-family: var(--font-hand);
+  font-size: clamp(16px, 1.8vw, 22px);
+  color: #5a3a7a;
+  text-align: center;
+  line-height: 1.4;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 6;
+  white-space: nowrap;
+  left: calc(100% + 20px);
+  bottom: 30%;
+}
+
+/* dots pointing left toward heart */
+.thought-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.96);
+  box-shadow:
+    -14px 0 0 -2px rgba(255,255,255,0.96),
+    -24px 0 0 -4px rgba(255,255,255,0.96);
+}
+
+.char-heart.active .thought-bubble { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<div class="room">
+
+  <!-- FLOOR  z:1 -->
+  <div class="floor">
+    <img src="assets/elements/floor.png" alt="" aria-hidden="true">
+  </div>
+
+  <!-- BASEBOARD  z:3 -->
+  <div class="baseboard" aria-hidden="true"></div>
+
+  <!-- TOPBAR  z:10 -->
+  <div class="topbar">
+    <a class="back-btn" href="index.html">← home</a>
+    <h1 class="room-sign">choose a game</h1>
+  </div>
+
+  <!-- WALL CONTAINER  z:2 -->
+  <div class="wall-container">
+
+    <div class="wall-art art-map" id="art-map">
+      <a href="heartability-treasure-map.html">
+        <img src="assets/elements/map.png" alt="Treasure Map">
+      </a>
+    </div>
+
+    <div class="wall-art art-bingo" id="art-bingo">
+      <a href="heartability-bingo-v2.html">
+        <img src="assets/elements/bingo.png" alt="Bingo">
+      </a>
+    </div>
+
+    <div class="wall-art art-bag" id="art-bag">
+      <a href="inventory-builder.html">
+        <img src="assets/elements/bag.png" alt="What's in my bag">
+      </a>
+    </div>
+
+    <div class="wall-art art-mirror" id="art-mirror">
+      <a href="character-builder.html">
+        <img src="assets/elements/mirror.png" alt="Infinity Mirror">
+      </a>
+    </div>
+
+  </div><!-- /wall-container -->
+
+  <!-- DOOR  z:4 -->
+  <img class="door-img"
+       src="assets/elements/door.png"
+       alt="Door to the library"
+       id="door-img"
+       tabindex="0"
+       role="button"
+       aria-label="Library — coming soon">
+
+  <!-- HEART GUIDE  z:5 -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble"></div>
+    <img class="char-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide character">
+  </div>
+
+</div><!-- /room -->
+
+<script>
+(function () {
+
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  const messages = {
+    'art-map':    'sometimes following your dreams requires a map',
+    'art-bingo':  "how are you really feeling? let's check in",
+    'art-mirror': 'you can be anybody you want (without cutting bangs)',
+    'art-bag':    "what's in your bag? let's make sure you are prepared!",
+  };
+
+  function triggerWiggle(artEl) {
+    artEl.classList.remove('wiggling');
+    void artEl.offsetWidth;
+    artEl.classList.add('wiggling');
+    artEl.addEventListener('animationend',
+      () => artEl.classList.remove('wiggling'), { once: true });
+  }
+
+  function activate(artId) {
+    bubble.textContent = messages[artId] || '';
+    heart.classList.add('active');
+  }
+
+  function deactivate() {
+    heart.classList.remove('active');
+  }
+
+  Object.keys(messages).forEach(function (artId) {
+    const art = document.getElementById(artId);
+    if (!art) return;
+    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
+    art.addEventListener('mouseleave', deactivate);
+  });
+
+  heart.addEventListener('mouseenter', () => {
+    bubble.textContent = 'welcome! pick a game to begin';
+    heart.classList.add('active');
+  });
+  heart.addEventListener('mouseleave', deactivate);
+
+  const door = document.getElementById('door-img');
+  if (door) {
+    door.addEventListener('click', () => {
+      door.style.filter = 'drop-shadow(-4px 0 16px rgba(80,60,130,0.5))';
+      setTimeout(() => door.style.filter = '', 800);
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
