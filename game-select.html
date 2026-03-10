@@ -139,14 +139,14 @@ body {
 
 .door-img {
   position: fixed;
-  right: 4vw;
-  bottom: var(--floor-h);
+  right: auto;
+  left: calc(2vw + min(58vw, 100vh) + 150px);
+  bottom: calc(var(--floor-h) + 16px); /* sit on top of baseboard */
   width: clamp(160px, 25vw, 360px);
   height: auto;
-  z-index: 4;
+  z-index: 7; /* above baseboard(6) */
   pointer-events: auto;
   cursor: pointer;
-  /* anchor to floor — image grows upward */
   transform-origin: bottom center;
   filter: drop-shadow(-4px 0 8px rgba(0,0,0,0.12));
   transition: filter 0.2s;
@@ -167,7 +167,7 @@ body {
   position: fixed;
   left: 2vw;
   top: clamp(60px, 9vh, 90px);
-  width: min(68vw, 110vh);
+  width: min(58vw, 100vh); /* narrower so door can sit closer */
   height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 16px);
   overflow: hidden;
   z-index: 3;
