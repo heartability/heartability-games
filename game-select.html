@@ -101,7 +101,7 @@ body {
   top: 4px;
   transform: translateX(-50%);
   font-family: var(--font-pixel);
-  font-size: clamp(32px, 5.5vw, 68px);
+  font-size: clamp(20px, 3.8vw, 52px);
   color: #5a5060;
   text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
   white-space: nowrap;
@@ -119,12 +119,14 @@ body {
 
 .wall-container {
   position: absolute;
-  /* sit in the wall area above the floor */
   left: 50%;
-  top: 10vh;
+  /* start below the topbar */
+  top: clamp(60px, 9vh, 90px);
   transform: translateX(-50%);
-  width: min(92vw, 160vh); /* maintains rough aspect ratio */
-  height: calc(100vh - var(--floor-h) - 10vh);
+  width: min(94vw, 170vh);
+  /* hard stop at the baseboard — nothing can spill onto floor */
+  height: calc(100vh - var(--floor-h) - clamp(60px, 9vh, 90px) - 18px);
+  overflow: hidden;
   z-index: 2;
 }
 
@@ -168,26 +170,26 @@ body {
 /* Row 1: map (left) + bingo (centre) — same top */
 .art-map {
   left: 2%;
-  top: 5%;
+  top: 12%;
   width: 20%;
 }
 
 .art-bingo {
   left: 35%;
-  top: 5%;
+  top: 12%;
   width: 22%;
 }
 
 /* Row 2: bag (centre-left) + mirror (centre-right) — same top */
 .art-bag {
   left: 28%;
-  top: 46%;
+  top: 52%;
   width: 10%;
 }
 
 .art-mirror {
   left: 42%;
-  top: 40%;
+  top: 46%;
   width: 20%;
 }
 
@@ -235,7 +237,42 @@ body {
 .doorway:hover .door-lock,
 .doorway.locked .door-lock { opacity: 1; }
 
-/* ── CHARACTER ANIMATIONS ──────────────────────── */
+/* ── BASEBOARD ─────────────────────────────────── */
+
+.baseboard {
+  position: fixed;
+  bottom: var(--floor-h);
+  left: 0;
+  width: 100%;
+  height: 18px;
+  z-index: 6;
+  pointer-events: none;
+  /* raised ledge: light face, dark underside */
+  background: #ddd8ce;
+  box-shadow:
+    0 -2px 0 0 #ece8e0,        /* top highlight */
+    0  3px 0 0 #b0a898,        /* bottom shadow face */
+    0  6px 0 0 #8a8278,        /* deeper shadow */
+    0  8px 6px rgba(0,0,0,0.18); /* soft drop shadow onto floor */
+}
+
+/* cutout arch that mirrors the doorway shape */
+.baseboard::after {
+  content: '';
+  position: absolute;
+  /* align with doorway: right 4% of wall-container ≈ right 3vw of viewport */
+  right: calc(4% - 1px);
+  bottom: 0;
+  width: 12vw;
+  max-width: 160px;
+  min-width: 80px;
+  height: 36px;
+  background: var(--wall-bg);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  box-shadow: none;
+}
+
+
 
 @keyframes intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }
@@ -394,6 +431,9 @@ body {
 <body>
 
 <div class="room">
+
+  <!-- BASEBOARD -->
+  <div class="baseboard" aria-hidden="true"></div>
 
   <!-- FLOOR IMAGE -->
   <div class="floor">
