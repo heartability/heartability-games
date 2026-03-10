@@ -34,17 +34,17 @@
     Door left edge  = calc(100vw - 200px - 22vw)
 
     Wall container:
-    Left edge  = 50px
-    Right edge = door left edge - 50px
-    Width      = calc(100vw - 200px - 22vw - 50px - 50px)
+    Left edge  = 200px
+    Right edge = door left edge - 20px
+    Width      = calc(100vw - 200px - 22vw - 200px - 20px)
               = calc(100vw - 22vw - 300px)
   */
   --door-w:         22vw;
   --door-right:     200px;
   --door-left:      calc(100vw - var(--door-right) - var(--door-w));
 
-  --wall-left:      50px;
-  --wall-gap:       50px;
+  --wall-left:      200px;
+  --wall-gap:       20px;
   --wall-w:         calc(var(--door-left) - var(--wall-left) - var(--wall-gap));
 }
 
