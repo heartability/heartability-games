@@ -18,8 +18,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --wall-dark: #1a3d1a;
-  --wall-mid: #2a5a2a;
+  --wall-dark: #f5f0ea;
+  --wall-mid: #f5f0ea;
   --panel-bg: #f0ead6;
   --panel-border: #2a5a2a;
   --panel-border-dark: #1a3d1a;
@@ -62,27 +62,17 @@ body {
   min-height: 0;
 }
 
-/* Wall texture — subtle vertical lines */
+/* Wall texture removed */
 .wall::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 39px,
-    rgba(0,0,0,0.15) 39px,
-    rgba(0,0,0,0.15) 40px
-  );
-  pointer-events: none;
+  display: none;
 }
 
 /* Room title */
 .room-title {
-  font-family: var(--font-hand);
+  font-family: "PFPixelscript", cursive;
   font-size: clamp(36px, 6vw, 64px);
-  color: #a8d8a8;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.4);
+  color: #5a5060;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
   text-align: center;
   margin-bottom: 6px;
   letter-spacing: 1px;
@@ -107,16 +97,15 @@ body {
   background: var(--panel-bg);
   width: 100%;
   max-width: 760px;
-
-  /* Chunky RPG border — layered box shadows */
   border: 3px solid var(--panel-border-dark);
   outline: 3px solid var(--panel-border-light);
   outline-offset: -6px;
   box-shadow:
     0 0 0 6px var(--panel-border),
     4px 6px 0 6px rgba(0,0,0,0.4);
-
   padding: 20px;
+  overflow-y: auto;
+  margin-bottom: 22vh;
 }
 
 /* Panel inner border decoration */
@@ -508,13 +497,9 @@ body, .wall { background: #f5f0ea; }
   <div class="wall">
 
     <h1 class="room-title">Heart Meter Bingo</h1>
-    <p class="room-subtitle">how full is your heart right now?</p>
 
     <div class="instruction-bar">
-      <div class="instruction-text">
-        <span class="step">1.</span> click any square that feels true right now &nbsp;
-        <span class="step">2.</span> get five in a row for bingo
-      </div>
+      <div class="instruction-text"></div>
       <div class="score-display">
         <div class="score-box">
           <div class="label">hearts</div>
