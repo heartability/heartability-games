@@ -288,6 +288,31 @@ body {
 
 .char-heart.active .thought-bubble { opacity: 1; }
 
+  @media (max-width: 768px) {
+  /* art pieces — bigger on mobile */
+  .art-map    { left: 2vw;  top: 20vh; width: 38vw; }
+  .art-bingo  { left: 34vw; top: 20vh;  width: 36vw; }
+  .art-bag    { left: 16vw; top: 38vh; width: 25vw; }
+  .art-mirror { left: 52vw; top: 30vh; width: 28vw; }
+
+  /* door — smaller on mobile */
+  .door-img {
+    width: 35vw;
+    right: 5px;
+  }
+
+  /* heart — smaller on mobile */
+  .char-heart {
+    width: clamp(30px, 12vw, 50px);
+    left: 2px;
+  }
+
+  /* title — smaller */
+  .room-sign {
+    font-size: clamp(14px, 4vw, 24px);
+  }
+}
+  
 </style>
 </head>
 <body>
@@ -396,31 +421,6 @@ body {
       setTimeout(() => door.style.filter = '', 800);
     });
   }
-
-@media (max-width: 768px) {
-  /* art pieces — bigger on mobile */
-  .art-map    { left: 2vw;  top: 20vh; width: 38vw; }
-  .art-bingo  { left: 34vw; top: 20vh;  width: 36vw; }
-  .art-bag    { left: 16vw; top: 38vh; width: 25vw; }
-  .art-mirror { left: 52vw; top: 30vh; width: 28vw; }
-
-  /* door — smaller on mobile */
-  .door-img {
-    width: 35vw;
-    right: 5px;
-  }
-
-  /* heart — smaller on mobile */
-  .char-heart {
-    width: clamp(30px, 12vw, 50px);
-    left: 2px;
-  }
-
-  /* title — smaller */
-  .room-sign {
-    font-size: clamp(14px, 4vw, 24px);
-  }
-}
   
 })();
 </script>
