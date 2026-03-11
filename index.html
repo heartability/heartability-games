@@ -218,6 +218,43 @@ body {
   50%        { transform: translateY(-16px) rotate(3deg)  scale(1.11); }
 }
 
+@media (max-width: 768px) {
+
+  .rainbow-bg {
+    left: auto;
+    right: -20px;
+    top: auto;
+    bottom: 15vh;
+    transform: rotate(-15deg);
+    width: 90vw;
+  }
+
+  .game-title {
+    font-size: clamp(42px, 14vw, 72px);
+    text-shadow:
+      2px 2px 0 #2a8098,
+      3px 4px 0 rgba(0,0,0,0.45);
+    margin-bottom: 28px;
+  }
+
+  .character-area {
+    bottom: 18vh;
+    right: 16px;
+    left: auto;
+    flex-direction: row-reverse;
+  }
+
+  .heart-float {
+    width: clamp(90px, 22vw, 140px);
+  }
+
+  .thought-bubble {
+    font-size: clamp(14px, 3.5vw, 18px);
+    max-width: 150px;
+  }
+
+}
+
 /* ── COPYRIGHT ───────────────────────────────────── */
 
 .copyright {
