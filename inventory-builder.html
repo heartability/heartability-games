@@ -52,21 +52,22 @@ body::before {
 }
 
 .wall {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 24px 16px 0;
+  overflow-y: auto;
+  padding-bottom: 22vh;
 }
+
+.floor-old { display: none; }
+
 
 /* ── CAPTURE AREA (what gets screenshotted) ─────────────── */
 #capture-area {
   width: 100%;
   max-width: 700px;
   background: var(--bg);
-  background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
-    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
   padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -75,10 +76,10 @@ body::before {
 }
 
 h1.room-title {
-  font-family: "PFPixelscript", cursive;
-  font-size: clamp(25px, 5.5vw, 35px);
+  font-family: var(--font-game);
+  font-size: clamp(32px, 5.5vw, 56px);
   color: #fff8e0;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.38);
   text-align: center;
   letter-spacing: 2px;
   margin-bottom: 2px;
@@ -149,7 +150,6 @@ h1.room-title {
   outline-offset: -6px;
   box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
   padding: 16px;
-  margin-bottom: 22vh;
 }
 
 /* ── INVENTORY GRID ─────────────────────────────────────── */
@@ -446,11 +446,6 @@ h1.room-title {
   font-family: "ZoesHandwriting";
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
-
-@font-face {
-  font-family: "PFPixelscript";
-  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
-}
 body, .wall { background: #f5f0ea; }
 
 .gr-floor {
@@ -526,7 +521,7 @@ body, .wall { background: #f5f0ea; }
     <!-- Action bar (excluded from screenshot) -->
     <div class="action-bar">
       <div>
-        <div class="instructions">.</div>
+        <div class="instructions">Click a slot to add a self-care item.</div>
         <span class="progress-tag" id="progress-tag">0 / 6 slots filled</span>
       </div>
       <div class="btn-group">
@@ -538,7 +533,8 @@ body, .wall { background: #f5f0ea; }
 
     <!-- Capture area (title + grid panel) -->
     <div id="capture-area">
-      <h1 class="room-title">Inventory</h1>
+      <h1 class="room-title">Self-Care Inventory</h1>
+      <p class="room-subtitle">My self-care snapshot</p>
 
       <div class="main-panel">
         <div class="inventory-grid" id="inventory-grid">
@@ -714,7 +710,7 @@ function makeSlot(cat) {
   } else {
     const hint = document.createElement('div');
     hint.className = 'slot-empty-hint';
-    hint.innerHTML = `<span class="hint-text">click to add</span>`;
+    hint.innerHTML = `<span class="hint-icon">${cat.icon}</span><span class="hint-text">click to add</span>`;
     imageArea.appendChild(hint);
   }
   el.appendChild(imageArea);
