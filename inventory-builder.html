@@ -90,10 +90,10 @@ body::before {
 }
 
 h1.room-title {
-  font-family: var(--font-game);
+  font-family: "PFPixelscript", cursive;
   font-size: clamp(32px, 5.5vw, 56px);
-  color: #fff8e0;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.38);
+  color: #5a5060;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
   text-align: center;
   letter-spacing: 2px;
   margin-bottom: 2px;
@@ -460,6 +460,11 @@ h1.room-title {
   font-family: "ZoesHandwriting";
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
+}
 body, .wall { background: #f5f0ea; }
 
 .gr-floor {
@@ -548,7 +553,6 @@ body, .wall { background: #f5f0ea; }
     <!-- Capture area (title + grid panel) -->
     <div id="capture-area">
       <h1 class="room-title">Self-Care Inventory</h1>
-      <p class="room-subtitle">My self-care snapshot</p>
 
       <div class="main-panel">
         <div class="inventory-grid" id="inventory-grid">
@@ -724,7 +728,7 @@ function makeSlot(cat) {
   } else {
     const hint = document.createElement('div');
     hint.className = 'slot-empty-hint';
-    hint.innerHTML = `<span class="hint-icon">${cat.icon}</span><span class="hint-text">click to add</span>`;
+    hint.innerHTML = `<span class="hint-text">click to add</span>`;
     imageArea.appendChild(hint);
   }
   el.appendChild(imageArea);
