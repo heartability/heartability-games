@@ -45,12 +45,12 @@ body {
   50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
-/* ── RAINBOW ────────────────────────────────────── */
+/* ── RAINBOW ─────────────────────────────────────── */
 
 .rainbow-bg {
   position: fixed;
-  left: 4vw;
-  top: 10vh;
+  left: 8vw;
+  top: 20vh;
   transform: rotate(-33deg);
   width: clamp(480px, 65vw, 760px);
   pointer-events: none;
@@ -221,12 +221,12 @@ body {
 @media (max-width: 768px) {
 
   .rainbow-bg {
-    left: auto;
-    right: -20px;
+    left: -10vw;
+    right: auto;
     top: auto;
-    bottom: 15vh;
-    transform: rotate(-15deg);
-    width: 90vw;
+    bottom: 5vh;
+    transform: rotate(-25deg);
+    width: 85vw;
   }
 
   .game-title {
@@ -238,10 +238,16 @@ body {
   }
 
   .character-area {
-    bottom: 18vh;
+    bottom: 12vh;
     right: 16px;
     left: auto;
-    flex-direction: row-reverse;
+    flex-direction: row;
+  }
+
+  /* bubble tail points right toward character on mobile */
+  .thought-bubble::after {
+    right: -14px;
+    left: auto;
   }
 
   .heart-float {
