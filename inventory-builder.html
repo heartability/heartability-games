@@ -52,22 +52,36 @@ body::before {
 }
 
 .wall {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 24px 16px 0;
-  overflow-y: auto;
-  padding-bottom: 22vh;
 }
 
-.floor-old { display: none; }
-
+.floor {
+  width: 100%;
+  height: 100px;
+  background-image: repeating-conic-gradient(#a82010 0% 25%, #8a1800 0% 50%);
+  background-size: 36px 36px;
+  border-top: 4px solid #6a0e00;
+  flex-shrink: 0;
+}
+.floor::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 60%);
+}
 
 /* ── CAPTURE AREA (what gets screenshotted) ─────────────── */
 #capture-area {
   width: 100%;
   max-width: 700px;
   background: var(--bg);
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
   padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -76,10 +90,10 @@ body::before {
 }
 
 h1.room-title {
-  font-family: var(--font-game);
+  font-family: "PFPixelscript", cursive;
   font-size: clamp(32px, 5.5vw, 56px);
   color: #fff8e0;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.38);
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.2);
   text-align: center;
   letter-spacing: 2px;
   margin-bottom: 2px;
@@ -246,11 +260,7 @@ h1.room-title {
 
 /* Inline label edit */
 .slot-label-wrap {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 20px;
+  display: none;
 }
 
 .slot-label {
@@ -446,6 +456,10 @@ h1.room-title {
   font-family: "ZoesHandwriting";
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
+}
 body, .wall { background: #f5f0ea; }
 
 .gr-floor {
@@ -533,8 +547,7 @@ body, .wall { background: #f5f0ea; }
 
     <!-- Capture area (title + grid panel) -->
     <div id="capture-area">
-      <h1 class="room-title">Self-Care Inventory</h1>
-      <p class="room-subtitle">My self-care snapshot</p>
+      <h1 class="room-title">Inventory</h1>
 
       <div class="main-panel">
         <div class="inventory-grid" id="inventory-grid">
@@ -710,7 +723,7 @@ function makeSlot(cat) {
   } else {
     const hint = document.createElement('div');
     hint.className = 'slot-empty-hint';
-    hint.innerHTML = `<span class="hint-icon">${cat.icon}</span><span class="hint-text">click to add</span>`;
+    hint.innerHTML = `<span class="hint-text">click to add</span>`;
     imageArea.appendChild(hint);
   }
   el.appendChild(imageArea);
