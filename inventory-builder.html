@@ -59,21 +59,6 @@ body::before {
   padding: 24px 16px 0;
 }
 
-.floor {
-  width: 100%;
-  height: 100px;
-  background-image: repeating-conic-gradient(#a82010 0% 25%, #8a1800 0% 50%);
-  background-size: 36px 36px;
-  border-top: 4px solid #6a0e00;
-  flex-shrink: 0;
-}
-.floor::after {
-  content: "";
-  display: block;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 60%);
-}
-
 /* ── CAPTURE AREA (what gets screenshotted) ─────────────── */
 #capture-area {
   width: 100%;
@@ -164,6 +149,7 @@ h1.room-title {
   outline-offset: -6px;
   box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
   padding: 16px;
+  margin-bottom: 22vh;
 }
 
 /* ── INVENTORY GRID ─────────────────────────────────────── */
