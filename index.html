@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Heartability</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
 
 @font-face {
@@ -14,8 +12,8 @@
 }
 
 @font-face {
-  font-family: "PixelScript";
-  src: url("assets/fonts/PixelScript.ttf") format("truetype");
+  font-family: "PFPixelScript";
+  src: url("assets/fonts/pfpixelscriptprogregular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -51,7 +49,7 @@ body {
   50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
-/* ── LAYOUT ──────────────────────────────────────── */
+/* ── SCENE ───────────────────────────────────────── */
 
 .scene {
   position: relative;
@@ -60,80 +58,86 @@ body {
   z-index: 1;
 }
 
-/* ── RAINBOW (desktop oval) ──────────────────────── */
+/* ── TITLE TEXT IMAGES ───────────────────────────── */
+
+.title-heart {
+  position: absolute;
+  top: clamp(4px, 3vh, 40px);
+  left: clamp(10px, 2vw, 40px);
+  width: clamp(200px, 28vw, 400px);
+  height: auto;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.title-ability {
+  position: absolute;
+  bottom: clamp(20px, 5vh, 60px);
+  right: clamp(10px, 2vw, 40px);
+  width: clamp(200px, 28vw, 400px);
+  height: auto;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* ── PORTAL ANCHOR ───────────────────────────────────
+   Single centered container. All portal elements are
+   positioned absolutely within it, sharing one center.
+   z-order (back→front): castle(2) → rainbow(3) → cloud(4) → enter(5)
+─────────────────────────────────────────────────── */
+
+.portal-anchor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(520px, 72vw, 900px);
+  /* height:0 so the anchor doesn't affect flow; children self-size */
+  height: 0;
+  z-index: 2;
+}
+
+/* ── RAINBOW — z3, covers castle bottom edge ──────── */
 
 .rainbow-portal {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(520px, 72vw, 900px);
+  width: 100%;
   height: auto;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
+  display: block;
 }
 
-/* ── TITLE TEXT IMAGES ───────────────────────────── */
+/* ── CASTLE — z2, behind rainbow ─────────────────── */
 
-/* "heart" — top left, outside rainbow */
-.title-heart {
-  position: absolute;
-  top: clamp(4px, 4vh, 48px);
-  left: clamp(10px, 3vw, 60px);
-  width: clamp(180px, 26vw, 380px);
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* "ability" — bottom right, outside rainbow */
-.title-ability {
-  position: absolute;
-  bottom: clamp(20px, 5vh, 70px);
-  right: clamp(10px, 2vw, 50px);
-  width: clamp(180px, 26vw, 380px);
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* ── PORTAL INTERIOR ─────────────────────────────── */
-
-/* Wrapper sits centered over the rainbow hole */
-.portal-interior {
+.castle-link {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -48%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  z-index: 3;
-}
-
-/* ── CASTLE ──────────────────────────────────────── */
-
-.castle-link {
+  /* nudge down slightly so base sits on portal floor */
+  transform: translate(-50%, -40%);
   display: block;
   cursor: pointer;
   text-decoration: none;
-  position: relative;
+  z-index: 2;
 }
 
 .castle-img {
-  width: clamp(160px, 22vw, 300px);
+  width: clamp(150px, 20vw, 280px);
   height: auto;
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
   animation: castlePulse 3s ease-in-out infinite;
-  transition: filter 0.2s, transform 0.2s;
+  transition: filter 0.2s;
+  transform-origin: center bottom;
 }
 
 .castle-link:hover .castle-img {
   filter: drop-shadow(0 8px 24px rgba(255,255,255,0.5)) drop-shadow(0 4px 12px rgba(0,0,0,0.4));
   animation: none;
-  transform: scale(1.04);
 }
 
 @keyframes castlePulse {
@@ -141,20 +145,47 @@ body {
   50%        { transform: scale(1.03); }
 }
 
-/* ── ENTER BUTTON ────────────────────────────────── */
+/* ── CLOUD — z4, above rainbow ────────────────────── */
+
+.cloud-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(2vw, -18vh);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.cloud-img {
+  width: clamp(60px, 7vw, 100px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  animation: cloudFloat 4s ease-in-out infinite;
+}
+
+@keyframes cloudFloat {
+  0%,  100% { transform: translateY(0px) rotate(-2deg); }
+  50%        { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* ── ENTER — z5, left of castle on desktop ─────────── */
 
 .enter-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* left of castle, vertically aligned with its mid-point */
+  transform: translate(-155%, -80%);
   font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(28px, 3.5vw, 52px);
+  font-size: clamp(24px, 3vw, 46px);
   color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   text-shadow: 2px 3px 0 rgba(0,0,0,0.28);
   cursor: pointer;
-  display: block;
-  margin-top: 6px;
+  z-index: 5;
   animation: softBlink 1.6s ease-in-out infinite;
-  transition: color 0.15s, text-shadow 0.15s;
-  text-align: center;
+  white-space: nowrap;
 }
 
 .enter-btn:hover {
@@ -169,49 +200,17 @@ body {
   100%      { opacity: 1; }
 }
 
-/* ── CLOUD CHARACTER ─────────────────────────────── */
-
-.cloud-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* offset right of castle spire — adjust to taste */
-  transform: translate(4vw, -14vh);
-  z-index: 4;
-  pointer-events: none;
-}
-
-.cloud-img {
-  width: clamp(60px, 8vw, 110px);
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-  animation:
-    cloudFloat 4s ease-in-out infinite,
-    cloudDrift 9s ease-in-out infinite;
-}
-
-@keyframes cloudFloat {
-  0%,  100% { transform: translateY(0px) rotate(-2deg); }
-  50%        { transform: translateY(-12px) rotate(2deg); }
-}
-
-@keyframes cloudDrift {
-  0%,  100% { transform: translateX(0px); }
-  50%        { transform: translateX(8px); }
-}
-
 /* ── COPYRIGHT ───────────────────────────────────── */
 
 .copyright {
   position: fixed;
   bottom: 14px;
   left: 20px;
-  font-family: "VT323", "PixelScript", monospace;
+  font-family: "PFPixelScript", monospace;
   font-size: 15px;
   color: rgba(255,255,255,0.32);
   letter-spacing: 1px;
-  z-index: 5;
+  z-index: 10;
 }
 
 .copyright a {
@@ -233,51 +232,44 @@ body {
 }
 
 /* ══════════════════════════════════════════════════
-   MOBILE  (portrait, circle rainbow)
+   MOBILE
 ══════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
 
-  .rainbow-portal {
-    width: clamp(280px, 88vw, 480px);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* On mobile swap to circle rainbow via CSS background swap trick —
-     the src is switched via JS below */
-
   .title-heart {
-    top: clamp(6px, 3vh, 30px);
-    left: clamp(6px, 3vw, 24px);
-    width: clamp(130px, 38vw, 220px);
+    top: clamp(6px, 2vh, 24px);
+    left: clamp(6px, 3vw, 20px);
+    width: clamp(140px, 42vw, 240px);
   }
 
   .title-ability {
-    bottom: clamp(30px, 7vh, 60px);
-    right: clamp(6px, 3vw, 24px);
-    width: clamp(130px, 38vw, 220px);
+    bottom: clamp(30px, 6vh, 60px);
+    right: clamp(6px, 3vw, 20px);
+    width: clamp(140px, 42vw, 240px);
   }
 
-  .portal-interior {
-    transform: translate(-50%, -50%);
+  .portal-anchor {
+    width: clamp(280px, 90vw, 460px);
   }
 
   .castle-img {
-    width: clamp(100px, 34vw, 180px);
+    width: clamp(90px, 28vw, 160px);
   }
 
+  /* Mobile: enter centered below castle */
   .enter-btn {
-    font-size: clamp(22px, 5.5vw, 36px);
+    transform: translate(-50%, 30%);
+    font-size: clamp(20px, 5vw, 32px);
   }
 
+  /* Mobile: cloud higher, tighter to spire */
   .cloud-wrap {
-    transform: translate(6vw, -16vw);
+    transform: translate(5vw, -20vw);
   }
 
   .cloud-img {
-    width: clamp(44px, 12vw, 72px);
+    width: clamp(40px, 11vw, 68px);
   }
 
 }
@@ -286,47 +278,50 @@ body {
 </head>
 <body>
 
-<!-- Screen reader title for accessibility + SEO -->
 <h1 class="sr-only">Heartability</h1>
 
 <div id="stars"></div>
 
 <div class="scene">
 
-  <!-- Rainbow portal image (swapped desktop/mobile via JS) -->
-  <img class="rainbow-portal"
-       id="rainbowPortal"
-       src="assets/elements/circle-rainbow.png"
-       alt=""
-       aria-hidden="true">
-
-  <!-- "heart" text asset — top left -->
+  <!-- "heart" text — top left -->
   <img class="title-heart"
        src="assets/elements/heart-text.png"
        alt=""
        aria-hidden="true">
 
-  <!-- "ability" text asset — bottom right -->
+  <!-- "ability" text — bottom right -->
   <img class="title-ability"
        src="assets/elements/ability-text.png"
        alt=""
        aria-hidden="true">
 
-  <!-- Cloud character — floats near castle spire -->
-  <div class="cloud-wrap">
-    <img class="cloud-img"
-         src="assets/elements/guides/cloud.png"
-         alt="">
-  </div>
+  <div class="portal-anchor">
 
-  <!-- Castle + enter — centered inside portal -->
-  <div class="portal-interior">
+    <!-- Castle — z2, BEHIND rainbow -->
     <a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
       <img class="castle-img"
            src="assets/elements/castle.png"
            alt="Castle — click to enter">
     </a>
+
+    <!-- Rainbow — z3, IN FRONT of castle -->
+    <img class="rainbow-portal"
+         id="rainbowPortal"
+         src="assets/elements/circle-rainbow.png"
+         alt=""
+         aria-hidden="true">
+
+    <!-- Cloud — z4, above rainbow -->
+    <div class="cloud-wrap">
+      <img class="cloud-img"
+           src="assets/elements/guides/cloud.png"
+           alt="">
+    </div>
+
+    <!-- Enter — z5, left of castle (desktop) / below (mobile) -->
     <a class="enter-btn" href="game-select.html">enter</a>
+
   </div>
 
 </div>
@@ -356,11 +351,9 @@ body {
   function swapRainbow() {
     const img = document.getElementById('rainbowPortal');
     if (!img) return;
-    if (window.innerWidth <= 768) {
-      img.src = 'assets/elements/circle-rainbow-m.png';
-    } else {
-      img.src = 'assets/elements/circle-rainbow.png';
-    }
+    img.src = window.innerWidth <= 768
+      ? 'assets/elements/circle-rainbow-m.png'
+      : 'assets/elements/circle-rainbow.png';
   }
 
   swapRainbow();
