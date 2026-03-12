@@ -5,51 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Self-Care Inventory — Heartability</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:                 #b82810;
-  --bg-dark:            #8a1800;
+  --bg:                 #c8a832;
+  --bg-dark:            #a88820;
   --panel-bg:           #fdf6e3;
-  --panel-border-dark:  #6a0e00;
-  --panel-border-mid:   #b82810;
-  --panel-border-light: #f08060;
-  --text-dark:          #3a0800;
-  --text-mid:           #8a3010;
-  --accent:             #d43020;
+  --panel-border-dark:  #7a4a10;
+  --panel-border-mid:   #c8841a;
+  --panel-border-light: #f0c060;
+  --text-dark:          #3a2000;
+  --text-mid:           #7a4a10;
+  --accent:             #d44020;
   --font-game:          "VT323", monospace;
+  --wall-bg:            #f5f0ea;
+  --floor-h:            30dvh;
+  --base-h:             16px;
 }
 
 body {
-  min-height: 100vh;
-  background: var(--bg);
+  min-height: 100dvh;
+  background: var(--wall-bg);
   font-family: var(--font-game);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
-    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
-  z-index: 0;
-}
+/* ── ROOM / WALL ─────────────────────────────────────────── */
 
 .room {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .wall {
@@ -58,57 +61,24 @@ body::before {
   flex-direction: column;
   align-items: center;
   padding: 24px 16px 0;
+  /* bottom padding clears floor + baseboard so content scrolls behind them */
+  padding-bottom: calc(var(--floor-h) + var(--base-h) + 24px);
 }
 
-.floor {
-  width: 100%;
-  height: 100px;
-  background-image: repeating-conic-gradient(#a82010 0% 25%, #8a1800 0% 50%);
-  background-size: 36px 36px;
-  border-top: 4px solid #6a0e00;
-  flex-shrink: 0;
-}
-.floor::after {
-  content: "";
-  display: block;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 60%);
-}
-
-/* ── CAPTURE AREA (what gets screenshotted) ─────────────── */
-#capture-area {
-  width: 100%;
-  max-width: 700px;
-  background: var(--bg);
-  background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
-    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
-  padding: 20px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
+/* ── TITLE ───────────────────────────────────────────────── */
 
 h1.room-title {
   font-family: "PFPixelscript", cursive;
-  font-size: clamp(32px, 5.5vw, 56px);
-  color: #fff8e0;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.2);
+  font-size: clamp(32px, 5.5vw, 58px);
+  color: #5a5060;
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.12);
   text-align: center;
+  margin-bottom: 10px;
   letter-spacing: 2px;
-  margin-bottom: 2px;
 }
 
-.room-subtitle {
-  font-family: var(--font-game);
-  font-size: clamp(13px, 2vw, 18px);
-  color: #ffd870;
-  text-align: center;
-  margin-bottom: 14px;
-}
+/* ── ACTION BAR ──────────────────────────────────────────── */
 
-/* ── ACTION BAR (not in screenshot) ────────────────────── */
 .action-bar {
   width: 100%;
   max-width: 700px;
@@ -123,17 +93,17 @@ h1.room-title {
 .instructions {
   font-family: var(--font-game);
   font-size: clamp(12px, 1.8vw, 15px);
-  color: #fff8e0;
+  color: #5a5060;
   line-height: 1.7;
 }
 
 .progress-tag {
   font-family: var(--font-game);
   font-size: 14px;
-  color: #ffd870;
-  background: rgba(0,0,0,0.2);
+  color: var(--text-mid);
+  background: rgba(0,0,0,0.07);
   padding: 2px 8px;
-  border: 1px solid rgba(255,216,112,0.3);
+  border: 1px solid rgba(122,74,16,0.2);
 }
 
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -153,10 +123,22 @@ h1.room-title {
   transition: transform 0.08s, box-shadow 0.08s;
   white-space: nowrap;
 }
-.btn:hover { filter: brightness(1.15); }
+.btn:hover  { filter: brightness(1.15); }
 .btn:active { transform: translate(2px, 3px); box-shadow: none; }
 
-/* ── MAIN PANEL ─────────────────────────────────────────── */
+/* ── CAPTURE AREA ────────────────────────────────────────── */
+
+#capture-area {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+/* ── MAIN PANEL — matches character builder ──────────────── */
+
 .main-panel {
   width: 100%;
   background: var(--panel-bg);
@@ -167,7 +149,8 @@ h1.room-title {
   padding: 16px;
 }
 
-/* ── INVENTORY GRID ─────────────────────────────────────── */
+/* ── INVENTORY GRID ──────────────────────────────────────── */
+
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -181,17 +164,18 @@ h1.room-title {
   .inventory-grid { grid-template-columns: 1fr; }
 }
 
-/* ── SLOT ───────────────────────────────────────────────── */
+/* ── SLOT ────────────────────────────────────────────────── */
+
 .inv-slot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #e8dfc8;
-  border: 2px solid #8a6050;
-  border-right-color:   #5a2010;
-  border-bottom-color:  #5a2010;
-  border-left-color:    #c89078;
-  border-top-color:     #c89078;
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color:  #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color:   #c8b88a;
+  border-top-color:    #c8b88a;
   padding: 8px 8px 6px;
   cursor: pointer;
   min-height: 170px;
@@ -199,9 +183,9 @@ h1.room-title {
   transition: filter 0.1s;
   user-select: none;
 }
-.inv-slot:hover        { filter: brightness(0.95); }
-.inv-slot.filled       { background: #f0e8d4; }
-.inv-slot.slot-active  { outline: 2px solid var(--accent); outline-offset: -2px; }
+.inv-slot:hover       { filter: brightness(0.95); }
+.inv-slot.filled      { background: #f0e8d4; }
+.inv-slot.slot-active { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 .slot-category {
   font-family: var(--font-game);
@@ -217,11 +201,11 @@ h1.room-title {
   width: 100%;
   aspect-ratio: 1;
   background: #d4ccb4;
-  border: 2px solid #8a6050;
-  border-right-color:  #5a2010;
-  border-bottom-color: #5a2010;
-  border-left-color:   #c89078;
-  border-top-color:    #c89078;
+  border: 2px solid #8a7a5a;
+  border-right-color:  #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color:   #c8b88a;
+  border-top-color:    #c8b88a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,7 +234,6 @@ h1.room-title {
   gap: 3px;
   opacity: 0.45;
 }
-.slot-empty-hint .hint-icon { font-size: 30px; }
 .slot-empty-hint .hint-text {
   font-family: var(--font-game);
   font-size: 11px;
@@ -259,10 +242,7 @@ h1.room-title {
   text-align: center;
 }
 
-/* Inline label edit */
-.slot-label-wrap {
-  display: none;
-}
+.slot-label-wrap { display: none; }
 
 .slot-label {
   width: 100%;
@@ -277,16 +257,13 @@ h1.room-title {
   cursor: text;
 }
 .slot-label:focus { background: rgba(255,255,255,0.55); border-bottom: 2px solid var(--accent); }
-.slot-label::placeholder { color: rgba(90,32,16,0.3); }
+.slot-label::placeholder { color: rgba(90,74,42,0.3); }
 .slot-label:disabled { cursor: default; opacity: 0.4; }
 
-/* Clear (×) button */
 .slot-clear {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 18px;
-  height: 18px;
+  top: 3px; right: 3px;
+  width: 18px; height: 18px;
   background: var(--accent);
   border: none;
   color: #fff8e0;
@@ -301,7 +278,8 @@ h1.room-title {
 .inv-slot.filled .slot-clear { display: block; }
 .slot-clear:hover { filter: brightness(1.2); }
 
-/* ── LIBRARY OVERLAY ────────────────────────────────────── */
+/* ── LIBRARY OVERLAY ─────────────────────────────────────── */
+
 .library-overlay {
   position: fixed;
   inset: 0;
@@ -323,7 +301,7 @@ h1.room-title {
   padding: 18px;
   width: 100%;
   max-width: 500px;
-  max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -370,7 +348,6 @@ h1.room-title {
   padding-bottom: 4px;
 }
 
-/* Library items grid */
 .library-items-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -386,12 +363,12 @@ h1.room-title {
   align-items: center;
   gap: 4px;
   padding: 6px;
-  background: #e8dfc8;
-  border: 2px solid #8a6050;
-  border-right-color:  #5a2010;
-  border-bottom-color: #5a2010;
-  border-left-color:   #c89078;
-  border-top-color:    #c89078;
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color:  #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color:   #c8b88a;
+  border-top-color:    #c8b88a;
   cursor: pointer;
   transition: filter 0.1s;
 }
@@ -423,15 +400,14 @@ h1.room-title {
   line-height: 1.2;
 }
 
-/* Upload section */
 .upload-label {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  background: #e8dfc8;
-  border: 2px dashed #8a6050;
+  background: #e8e0c8;
+  border: 2px dashed #8a7a5a;
   cursor: pointer;
   font-family: var(--font-game);
   font-size: 15px;
@@ -452,21 +428,12 @@ h1.room-title {
   padding-top: 10px;
 }
 
-/* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
-@font-face {
-  font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
-}
-@font-face {
-  font-family: "PFPixelscript";
-  src: url("assets/fonts/PF Pixelscript Pro Regular.ttf") format("truetype");
-}
-body, .wall { background: #f5f0ea; }
+/* ── GAME ROOM OVERLAY (floor / baseboard / heart) ───────── */
 
 .gr-floor {
   position: fixed; bottom: 0; left: 0;
-  width: 100%; height: 30vh;
-  z-index: 1; pointer-events: none;
+  width: 100%; height: var(--floor-h);
+  z-index: 10; pointer-events: none;
 }
 .gr-floor img {
   width: 100%; height: 100%;
@@ -474,17 +441,18 @@ body, .wall { background: #f5f0ea; }
   display: block;
 }
 .gr-baseboard {
-  position: fixed; bottom: 30vh; left: 0;
-  width: 100%; height: 16px;
-  z-index: 3; pointer-events: none;
+  position: fixed; bottom: var(--floor-h); left: 0;
+  width: 100%; height: var(--base-h);
+  z-index: 11; pointer-events: none;
   background: #cdc8bd;
   box-shadow: 0 -3px 0 0 #c7c2b7, 0 4px 0 0 #b8b3a8, 0 7px 5px rgba(0,0,0,0.15);
 }
 .gr-heart {
-  position: fixed; left: 30px; bottom: calc(30vh - 35px);
+  position: fixed; left: 30px;
+  bottom: calc(var(--floor-h) - 35px);
   width: clamp(100px, 13vw, 190px);
   display: flex; align-items: flex-end;
-  cursor: default; z-index: 5;
+  cursor: default; z-index: 12;
 }
 .gr-heart img {
   display: block; width: 100%; height: auto;
@@ -546,10 +514,11 @@ body, .wall { background: #f5f0ea; }
       </div>
     </div>
 
-    <!-- Capture area (title + grid panel) -->
-    <div id="capture-area">
-      <h1 class="room-title">Inventory</h1>
+    <!-- Title sits above the panel, outside capture area -->
+    <h1 class="room-title">Inventory</h1>
 
+    <!-- Capture area (grid panel only) -->
+    <div id="capture-area">
       <div class="main-panel">
         <div class="inventory-grid" id="inventory-grid">
           <!-- slots injected by JS -->
@@ -558,7 +527,6 @@ body, .wall { background: #f5f0ea; }
     </div>
 
   </div>
-  <div class="floor"></div>
 </div>
 
 <!-- Library overlay -->
