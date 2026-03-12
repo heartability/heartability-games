@@ -13,10 +13,16 @@
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: "PixelScript";
+  src: url("assets/fonts/PixelScript.ttf") format("truetype");
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   min-height: 100vh;
+  height: 100vh;
   background: #6578e2;
   font-family: "ZoesHandwriting", cursive;
   overflow: hidden;
@@ -45,220 +51,154 @@ body {
   50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
-/* ── RAINBOW ─────────────────────────────────────── */
+/* ── LAYOUT ──────────────────────────────────────── */
 
-.rainbow-bg {
-  position: fixed;
-  left: 6vw;
-  top: 20vh;
-  transform: rotate(-33deg);
-  width: clamp(480px, 65vw, 650px);
-  pointer-events: none;
-  z-index: 0;
-  animation: rainbowShimmer 4s ease-in-out infinite;
-}
-
-@keyframes rainbowShimmer {
-  0%,  100% { opacity: 0.8; }
-  50%        { opacity: 1; }
-}
-
-/* ── TITLE SCREEN ────────────────────────────────── */
-
-.title-screen {
+.scene {
   position: relative;
+  width: 100vw;
+  height: 100vh;
   z-index: 1;
-  min-height: 100vh;
+}
+
+/* ── RAINBOW (desktop oval) ──────────────────────── */
+
+.rainbow-portal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(520px, 72vw, 900px);
+  height: auto;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── TITLE TEXT IMAGES ───────────────────────────── */
+
+/* "heart" — top left, outside rainbow */
+.title-heart {
+  position: absolute;
+  top: clamp(4px, 4vh, 48px);
+  left: clamp(10px, 3vw, 60px);
+  width: clamp(180px, 26vw, 380px);
+  height: auto;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* "ability" — bottom right, outside rainbow */
+.title-ability {
+  position: absolute;
+  bottom: clamp(20px, 5vh, 70px);
+  right: clamp(10px, 2vw, 50px);
+  width: clamp(180px, 26vw, 380px);
+  height: auto;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── PORTAL INTERIOR ─────────────────────────────── */
+
+/* Wrapper sits centered over the rainbow hole */
+.portal-interior {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -48%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px 16px 120px;
   gap: 0;
-  /* Shift content slightly upward so rainbow feels connected */
-  margin-top: -6vh;
+  z-index: 3;
 }
 
-/* ── GAME TITLE ──────────────────────────────────── */
+/* ── CASTLE ──────────────────────────────────────── */
 
-.game-title {
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(50px, 10vw, 120px);
-  color: #83d2e6;
-  text-shadow:
-    3px 3px 0 #2a8098,
-    6px 7px 0 rgba(0,0,0,0.55);
-  line-height: 0.92;
-  letter-spacing: -1px;
-  text-align: center;
-  margin-bottom: 44px;
+.castle-link {
+  display: block;
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+}
+
+.castle-img {
+  width: clamp(160px, 22vw, 300px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
+  animation: castlePulse 3s ease-in-out infinite;
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.castle-link:hover .castle-img {
+  filter: drop-shadow(0 8px 24px rgba(255,255,255,0.5)) drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  animation: none;
+  transform: scale(1.04);
+}
+
+@keyframes castlePulse {
+  0%,  100% { transform: scale(1); }
+  50%        { transform: scale(1.03); }
 }
 
 /* ── ENTER BUTTON ────────────────────────────────── */
 
 .enter-btn {
-  display: inline-block;
   font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(42px, 6vw, 68px);
-  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(28px, 3.5vw, 52px);
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.3);
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.28);
   cursor: pointer;
-  animation: softBlink 1.4s ease-in-out infinite;
+  display: block;
+  margin-top: 6px;
+  animation: softBlink 1.6s ease-in-out infinite;
   transition: color 0.15s, text-shadow 0.15s;
+  text-align: center;
 }
 
 .enter-btn:hover {
   color: #fff;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,255,255,0.55);
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.6);
   animation: none;
 }
 
 @keyframes softBlink {
   0%,  42% { opacity: 1; }
-  50%, 92%  { opacity: 0.45; }
+  50%, 92%  { opacity: 0.4; }
   100%      { opacity: 1; }
 }
 
-/* ── CHARACTER AREA ──────────────────────────────── */
+/* ── CLOUD CHARACTER ─────────────────────────────── */
 
-.character-area {
-  position: fixed;
-  bottom: 8vh;
-  right: 6vw;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 2;
-}
-
-/* ── THOUGHT BUBBLE ──────────────────────────────── */
-
-.thought-bubble-link {
-  display: block;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.thought-bubble {
-  background: rgba(255, 255, 255, 0.93);
-  border-radius: 22px;
-  padding: 13px 20px;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(16px, 1.9vw, 22px);
-  color: #5a3a7a;
-  text-align: center;
-  line-height: 1.35;
-  position: relative;
-  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.22));
-  transition: filter 0.15s, transform 0.15s;
-  max-width: 180px;
-}
-
-/* Three bubble-dot tail pointing right toward the character */
-.thought-bubble::after {
-  content: '';
+.cloud-wrap {
   position: absolute;
   top: 50%;
-  right: -14px;
-  transform: translateY(-50%);
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.93);
-  box-shadow:
-    16px 4px 0 -2px rgba(255, 255, 255, 0.93),
-    28px 10px 0 -4px rgba(255, 255, 255, 0.93);
+  left: 50%;
+  /* offset right of castle spire — adjust to taste */
+  transform: translate(4vw, -14vh);
+  z-index: 4;
+  pointer-events: none;
 }
 
-.thought-bubble-link:hover .thought-bubble {
-  filter: drop-shadow(2px 6px 14px rgba(0,0,0,0.32));
-  transform: scale(1.04);
-}
-
-/* ── HEART CHARACTER ─────────────────────────────── */
-
-.heart-link {
-  display: block;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.heart-float {
-  width: clamp(110px, 15vw, 180px);
+.cloud-img {
+  width: clamp(60px, 8vw, 110px);
   height: auto;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5));
   display: block;
-  /* intro wiggle plays once on load, then smooth idle pulse begins */
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
   animation:
-    intro-wiggle 0.85s ease-out 0.35s 1 backwards,
-    idle-pulse 3.6s ease-in-out 1.5s infinite;
+    cloudFloat 4s ease-in-out infinite,
+    cloudDrift 9s ease-in-out infinite;
 }
 
-.heart-link:hover .heart-float {
-  animation: hover-bounce 0.55s ease-in-out infinite;
+@keyframes cloudFloat {
+  0%,  100% { transform: translateY(0px) rotate(-2deg); }
+  50%        { transform: translateY(-12px) rotate(2deg); }
 }
 
-@keyframes intro-wiggle {
-  0%   { transform: rotate(0deg) scale(1); }
-  18%  { transform: rotate(-11deg) scale(1.06); }
-  38%  { transform: rotate(11deg) scale(1.06); }
-  58%  { transform: rotate(-6deg) scale(1.02); }
-  78%  { transform: rotate(6deg) scale(1.02); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-
-@keyframes idle-pulse {
-  0%,  100% { transform: translateY(0)     rotate(-2deg) scale(1); }
-  50%        { transform: translateY(-10px) rotate(2deg)  scale(1.03); }
-}
-
-@keyframes hover-bounce {
-  0%,  100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
-  50%        { transform: translateY(-16px) rotate(3deg)  scale(1.11); }
-}
-
-@media (max-width: 768px) {
-
-  .rainbow-bg {
-    left: -6vw;
-    right: auto;
-    top: 5vh;
-    bottom: auto;
-    transform: rotate(-25deg);
-    width: 60vw;
-  }
-
-  .game-title {
-    font-size: clamp(42px, 14vw, 72px);
-    text-shadow:
-      2px 2px 0 #2a8098,
-      3px 4px 0 rgba(0,0,0,0.45);
-    margin-bottom: 28px;
-  }
-
-  .character-area {
-    bottom: 12vh;
-    right: 16px;
-    left: auto;
-    flex-direction: row;
-  }
-
-  /* bubble tail points right toward character on mobile */
-  .thought-bubble::after {
-    right: -14px;
-    left: auto;
-  }
-
-  .heart-float {
-    width: clamp(90px, 22vw, 140px);
-  }
-
-  .thought-bubble {
-    font-size: clamp(14px, 3.5vw, 18px);
-    max-width: 150px;
-  }
-
+@keyframes cloudDrift {
+  0%,  100% { transform: translateX(0px); }
+  50%        { transform: translateX(8px); }
 }
 
 /* ── COPYRIGHT ───────────────────────────────────── */
@@ -267,11 +207,11 @@ body {
   position: fixed;
   bottom: 14px;
   left: 20px;
+  font-family: "VT323", "PixelScript", monospace;
   font-size: 15px;
   color: rgba(255,255,255,0.32);
   letter-spacing: 1px;
   z-index: 5;
-  font-family: "ZoesHandwriting", cursive;
 }
 
 .copyright a {
@@ -281,30 +221,114 @@ body {
 
 .copyright a:hover { color: rgba(255,255,255,0.72); }
 
+/* ── SCREEN READER ONLY ──────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════
+   MOBILE  (portrait, circle rainbow)
+══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  .rainbow-portal {
+    width: clamp(280px, 88vw, 480px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* On mobile swap to circle rainbow via CSS background swap trick —
+     the src is switched via JS below */
+
+  .title-heart {
+    top: clamp(6px, 3vh, 30px);
+    left: clamp(6px, 3vw, 24px);
+    width: clamp(130px, 38vw, 220px);
+  }
+
+  .title-ability {
+    bottom: clamp(30px, 7vh, 60px);
+    right: clamp(6px, 3vw, 24px);
+    width: clamp(130px, 38vw, 220px);
+  }
+
+  .portal-interior {
+    transform: translate(-50%, -50%);
+  }
+
+  .castle-img {
+    width: clamp(100px, 34vw, 180px);
+  }
+
+  .enter-btn {
+    font-size: clamp(22px, 5.5vw, 36px);
+  }
+
+  .cloud-wrap {
+    transform: translate(6vw, -16vw);
+  }
+
+  .cloud-img {
+    width: clamp(44px, 12vw, 72px);
+  }
+
+}
+
 </style>
 </head>
 <body>
 
+<!-- Screen reader title for accessibility + SEO -->
+<h1 class="sr-only">Heartability</h1>
+
 <div id="stars"></div>
 
-<img class="rainbow-bg" src="assets/elements/rainbow.png" alt="" aria-hidden="true">
+<div class="scene">
 
-<div class="title-screen">
-  <h1 class="game-title">HEARTABILITY</h1>
-  <a class="enter-btn" href="game-select.html">enter</a>
-</div>
+  <!-- Rainbow portal image (swapped desktop/mobile via JS) -->
+  <img class="rainbow-portal"
+       id="rainbowPortal"
+       src="assets/elements/circle-rainbow.png"
+       alt=""
+       aria-hidden="true">
 
-<div class="character-area">
-  <a class="thought-bubble-link" href="about.html" aria-label="Learn how to play">
-    <div class="thought-bubble">
-      I can teach you<br>how to play!
-    </div>
-  </a>
-  <a class="heart-link" href="about.html" aria-label="Heart character — learn how to play">
-    <img class="heart-float"
-         src="assets/elements/guides/heart.png"
-         alt="Heart mascot character">
-  </a>
+  <!-- "heart" text asset — top left -->
+  <img class="title-heart"
+       src="assets/elements/heart-text.png"
+       alt=""
+       aria-hidden="true">
+
+  <!-- "ability" text asset — bottom right -->
+  <img class="title-ability"
+       src="assets/elements/ability-text.png"
+       alt=""
+       aria-hidden="true">
+
+  <!-- Cloud character — floats near castle spire -->
+  <div class="cloud-wrap">
+    <img class="cloud-img"
+         src="assets/elements/guides/cloud.png"
+         alt="">
+  </div>
+
+  <!-- Castle + enter — centered inside portal -->
+  <div class="portal-interior">
+    <a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
+      <img class="castle-img"
+           src="assets/elements/castle.png"
+           alt="Castle — click to enter">
+    </a>
+    <a class="enter-btn" href="game-select.html">enter</a>
+  </div>
+
 </div>
 
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
@@ -327,6 +351,20 @@ body {
     ].join(';');
     field.appendChild(s);
   }
+
+  /* ── Swap rainbow asset for mobile ───────────── */
+  function swapRainbow() {
+    const img = document.getElementById('rainbowPortal');
+    if (!img) return;
+    if (window.innerWidth <= 768) {
+      img.src = 'assets/elements/circle-rainbow-m.png';
+    } else {
+      img.src = 'assets/elements/circle-rainbow.png';
+    }
+  }
+
+  swapRainbow();
+  window.addEventListener('resize', swapRainbow);
 
 })();
 </script>
