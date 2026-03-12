@@ -494,6 +494,22 @@ h1.room-title {
   0%,100% { transform: translateY(0)    rotate(-2deg) scale(1); }
   50%      { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
 }
+
+@media (max-width: 600px) {
+  .action-bar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .instructions {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .btn {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -507,7 +523,7 @@ h1.room-title {
     <!-- Action bar (excluded from screenshot) -->
     <div class="action-bar">
       <div>
-        <div class="instructions">Click a slot to add a self-care item.</div>
+        <div class="instructions">Click to add an item.</div>
         <span class="progress-tag" id="progress-tag">0 / 6 slots filled</span>
       </div>
       <div class="btn-group">
