@@ -22,9 +22,9 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --wall-dark: #f5f0ea;
-  --wall-mid: #f5f0ea;
-  --panel-bg: #f0ead6;
+  --wall-dark: #ffb3d1;
+  --wall-mid: #ffb3d1;
+  --panel-bg: #ffb3d1;
   --panel-border: #6578e2;
   --panel-border-dark: #6578e2;
   --panel-border-light: #83d2e6;
@@ -66,11 +66,6 @@ body {
   min-height: 0;
 }
 
-/* Wall texture removed */
-.wall::before {
-  display: none;
-}
-
 /* Room title */
 .room-title {
   font-family: "PFPixelscript", cursive;
@@ -84,15 +79,6 @@ body {
   z-index: 1;
 }
 
-.room-subtitle {
-  font-family: var(--font-hand);
-  font-size: clamp(14px, 2.5vw, 20px);
-  color: #6ab86a;
-  text-align: center;
-  margin-bottom: 18px;
-  position: relative;
-  z-index: 1;
-}
 
 /* RPG PANEL */
 .rpg-panel {
@@ -202,29 +188,6 @@ body {
   transform: translate(2px, 3px);
   box-shadow: none;
 }
-
-/* BINGO LETTERS */
-.bingo-header {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  margin-bottom: 5px;
-}
-
-.bingo-letter {
-  text-align: center;
-  font-family: var(--font-hand);
-  font-size: clamp(24px, 4vw, 42px);
-  font-weight: bold;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.2);
-  padding: 2px 0;
-}
-
-.bingo-letter:nth-child(1) { color: #cc4444; }
-.bingo-letter:nth-child(2) { color: #c8882a; }
-.bingo-letter:nth-child(3) { color: #b8a820; }
-.bingo-letter:nth-child(4) { color: #2a8a4a; }
-.bingo-letter:nth-child(5) { color: #3a6aaa; }
 
 /* GRID */
 .bingo-grid {
@@ -375,7 +338,7 @@ body {
 .bingo-alert {
   display: none;
   font-family: var(--font-hand);
-  font-size: 22px;
+  font-size: 18px;
   color: #fff0a0;
   text-shadow: 1px 2px 0 rgba(0,0,0,0.5);
   text-align: center;
