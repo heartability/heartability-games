@@ -570,7 +570,7 @@ function buildGrid() {
 
     const txt = document.createElement("div");
     txt.className = "cell-text";
-    txt.textContent = i===12 ? "take a free deep breath" : SQUARES[i<12?i:i-1];
+    txt.textContent = i===12 ? "take a deep breath" : SQUARES[i<12?i:i-1];
     cell.appendChild(txt);
 
     const heart = document.createElement("div");
