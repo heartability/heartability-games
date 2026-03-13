@@ -296,7 +296,7 @@ body {
 
 .cell.free-space .cell-text {
   font-family: var(--font-hand);
-  font-size: clamp(10px, 1.6vw, 15px);
+  font-size: clamp(8px, 1.2vw, 12px);
   color: var(--text-dark);
 }
 
@@ -322,7 +322,7 @@ body {
 
 .meter-label {
   font-family: var(--font-game);
-  font-size: 14px;
+  font-size: 8px;
   color: var(--text-mid);
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -426,6 +426,7 @@ body {
   .wall { padding: 16px 10px 0; }
   .rpg-panel { padding: 12px; }
   .floor { height: 10px; background-size: 24px 24px; }
+  .room-title { font-size: 33px; }
 }
 
 /* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
@@ -572,11 +573,11 @@ const SQUARES = [
 ];
 
 const READINGS = [
-  { min:0, max:4, title:"tender ground", text:"Your heart has space to grow. This is the beginning of something, not a lack of something. What is one small thing you could do today just for yourself?" },
-  { min:5, max:9, title:"finding your footing", text:"Some things are landing, others still in the air. That is honest. You are more resourced than you might feel right now." },
-  { min:10, max:14, title:"in the flow", text:"You are meeting your needs in real ways. Notice that. This is what care looks like, not perfect, but present." },
-  { min:15, max:19, title:"thriving, actually", text:"Your foundations are solid right now. From here you can reach further. What dream feels possible from this place?" },
-  { min:20, max:24, title:"full heart", text:"You are deeply resourced right now. Celebrate this and remember what it took to get here. This is the map others need." }
+  { min:0, max:4, title:"tender ground", text:"Your heart has space to grow." },
+  { min:5, max:9, title:"finding your footing", text:"You are more resourced than you might feel right now." },
+  { min:10, max:14, title:"in the flow", text:"You are meeting your needs in real ways. Celebrate yourself." },
+  { min:15, max:19, title:"thriving, actually", text:"Your foundations are solid right now." },
+  { min:20, max:24, title:"full heart", text:"You are deeply resourced right now. What dream feels possible from this place?" }
 ];
 
 const LINES = [
@@ -683,7 +684,7 @@ update();
 </div>
 <div class="gr-baseboard" aria-hidden="true"></div>
 <div class="gr-heart" aria-hidden="true">
-  <div class="gr-bubble">how are you feeling right now?</div>
+  <div class="gr-bubble">how are you feeling?</div>
   <img src="assets/elements/guides/heart.png" alt="">
 </div>
 </body>
