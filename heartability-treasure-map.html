@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: "PFPixelscript";
-  src: url(assets/fonts/PFPixelscriptProRegular.ttf)("truetype");
+  src: url(assets/fonts/PFPixelscriptProRegular.ttf) format("truetype");
 }
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
@@ -46,6 +46,8 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   flex: 1; background: var(--wall); position: relative;
   display: flex; flex-direction: column; align-items: center;
   padding: 24px 16px 0;
+  padding-bottom: calc(10dvh + 16px + 24px);
+  overflow-y: auto;
 }
 .wall::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -63,7 +65,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 55%);
 }
 
-.room-title { font-family: var(--font-hand); font-size: clamp(32px,5.5vw,58px); color: #a8cce8; text-shadow: 2px 3px 0 rgba(0,0,0,0.4); text-align: center; margin-bottom: 4px; position: relative; z-index: 1; }
+.room-title { font-family: "PFPixelscript", cursive; font-size: clamp(32px,5.5vw,58px); color: #6578e2; text-shadow: 2px 3px 0 rgba(0,0,0,0.14); text-align: center; margin-bottom: 4px; position: relative; z-index: 1; }
 .room-subtitle { font-family: var(--font-hand); font-size: clamp(13px,2vw,17px); color: #5a9acc; text-align: center; margin-bottom: 14px; position: relative; z-index: 1; }
 
 .topbar { width: 100%; max-width: 960px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; position: relative; z-index: 1; gap: 10px; flex-wrap: wrap; }
@@ -262,7 +264,7 @@ body, .wall { background: #f5f0ea; }
 
 .gr-floor {
   position: fixed; bottom: 0; left: 0;
-  width: 100%; height: 30vh;
+  width: 100%; height: 10dvh;
   z-index: 1; pointer-events: none;
 }
 .gr-floor img {
@@ -271,14 +273,14 @@ body, .wall { background: #f5f0ea; }
   display: block;
 }
 .gr-baseboard {
-  position: fixed; bottom: 30vh; left: 0;
+  position: fixed; bottom: 10dvh; left: 0;
   width: 100%; height: 16px;
   z-index: 3; pointer-events: none;
   background: #cdc8bd;
   box-shadow: 0 -3px 0 0 #c7c2b7, 0 4px 0 0 #b8b3a8, 0 7px 5px rgba(0,0,0,0.15);
 }
 .gr-heart {
-  position: fixed; left: 30px; bottom: calc(30vh - 35px);
+  position: fixed; left: 30px; bottom: calc(10dvh - 35px);
   width: clamp(100px, 13vw, 190px);
   display: flex; align-items: flex-end;
   cursor: default; z-index: 5;
@@ -329,15 +331,8 @@ body, .wall { background: #f5f0ea; }
 <div class="room">
   <div class="wall">
     <h1 class="room-title">Treasure Map</h1>
-    <p class="room-subtitle">where are you, and where are you going?</p>
 
     <div class="topbar">
-      <div class="instructions">
-        <span class="step">1.</span> name your map &nbsp;
-        <span class="step">2.</span> tap terrain to select, then tap the map to place it &nbsp;
-        <span class="step">3.</span> tap a feeling, then tap a terrain piece to apply it &nbsp;
-        <span class="step">4.</span> hit read map
-      </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="rpg-btn" onclick="clearMap()">&#x25BA; CLEAR</button>
         <button class="rpg-btn primary" onclick="readMap()">&#x2605; READ MAP</button>
@@ -402,7 +397,7 @@ const TERRAIN_IMGS = {
   mountains: "assets/elements/maps/mountains.png",
   ocean: "assets/elements/maps/ocean.png",
   orchard: "assets/elements/maps/orchard.png",
-  plateu: "assets/elements/maps/plateau.png",
+  plateu: "assets/elements/maps/plateu.png",
   pond: "assets/elements/maps/pond.png",
   river: "assets/elements/maps/river.png",
   spring: "assets/elements/maps/spring.png",
