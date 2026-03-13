@@ -426,7 +426,7 @@ body {
   .wall { padding: 16px 10px 0; }
   .rpg-panel { padding: 12px; }
   .floor { height: 10px; background-size: 24px 24px; }
-  .room-title { font-size: 33px; }
+  .room-title { font-size: 30px; }
 }
 
 /* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
@@ -526,8 +526,8 @@ body, .wall { background: #f5f0ea; }
           <div class="meter-fill" id="meterFill" style="width:0%"></div>
         </div>
         <div class="meter-stages">
-          <div class="meter-stage" id="stage0">just waking up</div>
-          <div class="meter-stage" id="stage1">finding footing</div>
+          <div class="meter-stage" id="stage0">waking up</div>
+          <div class="meter-stage" id="stage1">gaining strength</div>
           <div class="meter-stage" id="stage2">in the flow</div>
           <div class="meter-stage" id="stage3">thriving</div>
           <div class="meter-stage" id="stage4">full heart</div>
@@ -546,37 +546,37 @@ body, .wall { background: #f5f0ea; }
 
 <script>
 const SQUARES = [
-  "your body feels clean right now",
-  "you are not hungry or thirsty right now",
-  "you currently feel comfy in your body",
+  "your body feels clean",
+  "you are not hungry or thirsty",
+  "you feel comfy in your body",
   "you feel loved by your community",
-  "you feel well rested currently",
-  "your space feels clean right now",
-  "you have taken all of your meds and vitamins",
+  "you feel well rested today",
+  "your space feels clean",
+  "you have drank a glass of water today",
   "you have done something fun this week",
   "you have talked to a friend this week",
-  "you find it easy to fall asleep and stay asleep",
+  "you find it easy to fall asleep lately",
   "you recently cleaned your room/house",
-  "you have food in your fridge that you like to eat",
+  "you have eaten food that you enjoyed today",
   "you dont try to do everything alone",
   "you do something relaxing to end your day",
-  "without moving, look at a meaningful item",
+  "without moving, look at an item with a story",
   "you have options for your next meal",
   "you have moved your body mindfully today",
   "without moving, look at something you love",
   "you dont feel guilty for taking naps",
   "you feel in control of your environment",
-  "you know how to make things that are good for you",
+  "somebody cooked for you this week",
   "you know why you get sore and how to feel better",
   "you have people to call in an emergency",
-  "you are not afraid to prioritize rest over FOMO"
+  "you are not afraid to prioritize rest"
 ];
 
 const READINGS = [
-  { min:0, max:4, title:"tender ground", text:"Your heart has space to grow." },
-  { min:5, max:9, title:"finding your footing", text:"You are more resourced than you might feel right now." },
-  { min:10, max:14, title:"in the flow", text:"You are meeting your needs in real ways. Celebrate yourself." },
-  { min:15, max:19, title:"thriving, actually", text:"Your foundations are solid right now." },
+  { min:0, max:4, title:"its a new day", text:"Your heart has space to grow." },
+  { min:5, max:9, title:"keep going", text:"You are more resourced than you might feel right now." },
+  { min:10, max:14, title:"you got this", text:"You are meeting your needs in real ways. Celebrate yourself." },
+  { min:15, max:19, title:"almost there", text:"Your foundations are solid right now." },
   { min:20, max:24, title:"full heart", text:"You are deeply resourced right now. What dream feels possible from this place?" }
 ];
 
