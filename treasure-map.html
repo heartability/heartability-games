@@ -651,7 +651,7 @@ function readMap() {
   if(!catId) catId = state.activeCat;
   const panel = document.getElementById("readingPanel");
   if(!catId) {
-    document.getElementById("readingTitle").textContent = "apply some feelings first";
+    document.getElementById("readingTitle").textContent = "add a location and feeling first";
     document.getElementById("readingText").textContent = "Select a feeling and tap your terrain pieces to give them color. Then come back here.";
   } else {
     const r = READINGS[catId];
