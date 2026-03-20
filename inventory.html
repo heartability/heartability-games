@@ -90,6 +90,29 @@ h1.room-title {
   flex-wrap: nowrap;
 }
 
+.back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  display: inline-block;
+  padding: 6px 18px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: clamp(6px, 2vw, 12px);
+  color: #6579e2;
+  background: #fdf6e3;
+  border: 3px solid #6579e2;
+  outline: 2px solid #83d2e6;
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
+
 .instructions {
   font-family: var(--font-game);
   font-size: clamp(8px, 1.8vw, 12px);
@@ -519,6 +542,7 @@ h1.room-title {
 
      <!-- Title sits above the panel, outside capture area -->
      <h1 class="room-title">Inventory</h1>
+     <a class="back-btn" href="index.html">← BACK</a>
 
     <!-- Action bar (excluded from screenshot) -->
     <div class="action-bar">
