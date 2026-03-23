@@ -37,11 +37,10 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 /* Content sits absolutely over the image, inside the cloud body (above the tail) */
 .cloud-content {
   position:absolute;
-  top:0; left:0; right:0;
-  /* leave ~18% bottom for the tail */
-  bottom:22%;
+  top:8%; left:5%; right:5%;
+  bottom:28%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:8px; padding:20px 16px 0;
+  gap:6px; padding:0 8px;
 }
 
 .cloud-text { font-family:"ZoesHandwriting",cursive; font-size:clamp(12px,1.3vw,15px); color:#3a2560; text-align:center; line-height:1.45; }
@@ -99,9 +98,9 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 }
 .castle-bg-link {
   position: fixed;
-  right: clamp(20px, 5vw, 80px);
-  bottom: 0;
-  width: clamp(200px, 32vw, 460px);
+  right: clamp(0px, 2vw, 40px);
+  bottom: clamp(60px, 15vh, 180px);
+  width: clamp(340px, 48vw, 680px);
   z-index: 1;
   display: block;
 }
