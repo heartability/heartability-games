@@ -4,346 +4,262 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About — Heartability</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelScript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --bg:                 #6578e2;
-  --panel-bg:           #fdf6e3;
-  --panel-border-dark:  #3a2000;
-  --panel-border-mid:   #c8841a;
-  --panel-border-light: #f0c060;
-  --text-dark:          #3a2000;
-  --text-mid:           #7a4a10;
-  --gold:               #f5c842;
-  --gold-dark:          #c8841a;
-  --pink:               #f07ab8;
-  --font-hand: "ZoesHandwriting", cursive;
-  --font-game: "VT323", monospace;
-}
-
 body {
   min-height: 100vh;
-  background: var(--bg);
-  font-family: var(--font-game);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: #6578e2;
+  font-family: "ZoesHandwriting", cursive;
   overflow-x: hidden;
   position: relative;
+  user-select: none;
 }
 
-/* ── STARFIELD ───────────────────────────────────── */
-
+/* ── STARFIELD ── */
 #stars {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
 }
-
 .star {
   position: absolute;
   background: #fff;
-  clip-path: polygon(50% 0%, 54% 43%, 100% 50%, 54% 57%, 50% 100%, 46% 57%, 0% 50%, 46% 43%);
-  animation: twinkle var(--d, 2s) ease-in-out infinite var(--del, 0s);
+  clip-path: polygon(50% 0%,54% 43%,100% 50%,54% 57%,50% 100%,46% 57%,0% 50%,46% 43%);
+  animation: twinkle var(--d,2s) ease-in-out infinite var(--del,0s);
 }
-
 @keyframes twinkle {
-  0%,  100% { opacity: 0.9;  transform: scale(1)   rotate(0deg); }
-  50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
+  0%,100% { opacity:0.9; transform:scale(1) rotate(0deg); }
+  50%      { opacity:0.05; transform:scale(0.2) rotate(45deg); }
 }
 
-/* ── PAGE LAYOUT ─────────────────────────────────── */
-
-.page {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 800px;
-  padding: 24px 16px 60px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* ── TOPBAR ──────────────────────────────────────── */
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-}
-
+/* ── BACK BTN ── */
 .back-btn {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  z-index: 20;
   display: inline-block;
-  padding: 7px 18px;
+  padding: 6px 18px;
   text-decoration: none;
-  font-family: var(--font-game);
-  font-size: 18px;
-  letter-spacing: 2px;
-  color: var(--panel-bg);
-  background: rgba(0,0,0,0.35);
-  border: 3px solid var(--gold);
-  outline: 2px solid var(--gold-dark);
+  font-family: "PFPixelScript", cursive;
+  font-size: clamp(8px, 1.4vw, 13px);
+  color: #6578e2;
+  background: #fdf6e3;
+  border: 3px solid #6578e2;
+  outline: 2px solid #83d2e6;
   outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
   transition: transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
 }
-
-.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.4); }
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
 .back-btn:active { transform: translate(2px,3px); box-shadow: none; }
 
-.page-heading {
-  font-family: var(--font-hand);
-  font-size: clamp(36px, 7vw, 72px);
-  color: var(--gold);
-  text-shadow: 2px 3px 0 var(--gold-dark), 5px 6px 0 rgba(0,0,0,0.45);
+/* ── PAGE TITLE ── */
+.page-title {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding-top: clamp(60px, 10vh, 100px);
+  padding-bottom: 20px;
+}
+.page-title img {
+  width: clamp(280px, 50vw, 580px);
+  height: auto;
 }
 
-/* ── NARRATOR BUBBLE ─────────────────────────────── */
-/*
-  REUSABLE CHARACTER DIALOGUE BUBBLE COMPONENT
-  ════════════════════════════════════════════════════
-  Drop this HTML + CSS into any game page to add the
-  character narrator bubble. Dismiss via the ✕ button
-  or call closeBubble() in JS.
-
-  HTML:
-    <div class="char-bubble" id="charBubble">
-      <button class="bubble-close" onclick="closeBubble()">✕</button>
-      <img class="bubble-char" src="assets/characters/XX.png" alt="">
-      <p class="bubble-text">Dialogue line here.</p>
-    </div>
-
-  CSS: copy the section below marked REUSABLE COMPONENT.
-  JS:  copy the closeBubble() function from script tag.
-  ════════════════════════════════════════════════════ */
-
-/* ── REUSABLE COMPONENT: char-bubble ─────────────── */
-
-.char-bubble {
+/* ── MAIN LAYOUT ── */
+.scene {
+  position: relative;
+  z-index: 2;
   display: flex;
-  align-items: center;
-  gap: 16px;
-  position: relative;
-  background: var(--panel-bg);
-  border: 3px solid var(--panel-border-dark);
-  outline: 3px solid var(--panel-border-light);
-  outline-offset: -6px;
-  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
-  padding: 16px 44px 16px 16px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  animation: bubblePop 0.3s cubic-bezier(.2,.8,.4,1) both;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 40px);
+  padding: 0 clamp(16px, 5vw, 80px) 160px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.char-bubble.dismissed {
-  display: none;
-}
-
-@keyframes bubblePop {
-  from { opacity: 0; transform: scale(0.92) translateY(8px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
-}
-
-.bubble-char {
-  width: clamp(60px, 10vw, 88px);
-  height: clamp(60px, 10vw, 88px);
-  object-fit: contain;
+/* ── CHARACTER ── */
+.char-wrap {
   flex-shrink: 0;
-  animation: charBob 3.5s ease-in-out infinite;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-}
-
-@keyframes charBob {
-  0%,  100% { transform: translateY(0); }
-  50%        { transform: translateY(-5px); }
-}
-
-.bubble-text {
-  font-family: var(--font-game);
-  font-size: clamp(16px, 2.2vw, 20px);
-  color: var(--text-dark);
-  line-height: 1.5;
-  flex: 1;
-}
-
-.bubble-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-family: var(--font-game);
-  font-size: 20px;
-  color: var(--text-mid);
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-  transition: color 0.12s;
-}
-
-.bubble-close:hover { color: #d44020; }
-
-/* Tail pointing left-down (narrator bubble variant) */
-.char-bubble::before {
-  content: "";
-  position: absolute;
-  bottom: -13px;
-  left: 48px;
-  border: 12px solid transparent;
-  border-top-color: var(--panel-border-dark);
-  border-bottom: none;
-}
-
-/* ── END REUSABLE COMPONENT ──────────────────────── */
-
-/* ── RPG CONTENT PANEL ───────────────────────────── */
-
-.rpg-panel {
+  width: clamp(140px, 22vw, 280px);
   position: relative;
-  background: var(--panel-bg);
-  border: 3px solid var(--panel-border-dark);
-  outline: 3px solid var(--panel-border-light);
-  outline-offset: -6px;
-  box-shadow: 0 0 0 6px var(--panel-border-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
-  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Inner accent border */
-.rpg-panel::before {
-  content: "";
+.char-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.25));
+  animation: charFloat 4s ease-in-out infinite;
+}
+
+@keyframes charFloat {
+  0%,100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1deg); }
+}
+
+/* ── SPEECH BUBBLE ── */
+.speech-bubble {
+  background: rgba(255,255,255,0.96);
+  border-radius: 20px;
+  padding: 12px 18px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: #5a3a7a;
+  text-align: center;
+  line-height: 1.4;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
+  position: relative;
+  max-width: 220px;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-bottom-color: rgba(255,255,255,0.96);
+}
+
+/* ── YES/NO BUTTONS ── */
+.bubble-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.bubble-btn {
+  padding: 4px 16px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #6578e2;
+  background: #fdf6e3;
+  border: 2px solid #6578e2;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
+}
+.bubble-btn:hover { background: #6578e2; color: white; transform: scale(1.05); }
+
+/* ── LETTER PANEL ── */
+.letter-wrap {
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.4s ease;
+}
+
+.letter-panel {
+  background: #f5f0ea;
+  border: 3px solid #c9a84c;
+  border-radius: 6px;
+  padding: clamp(20px, 4vw, 48px);
+  box-shadow: 4px 6px 0 2px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+/* inner decorative border like the game panels */
+.letter-panel::before {
+  content: '';
   position: absolute;
   inset: 6px;
-  border: 1px solid var(--panel-border-light);
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 3px;
   pointer-events: none;
 }
 
-/* ── TAGLINE ─────────────────────────────────────── */
+.letter-text {
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(15px, 1.8vw, 20px);
+  color: #2a2030;
+  line-height: 1.75;
+}
 
-.tagline-block {
+.letter-text p { margin-bottom: 1.2em; }
+.letter-text p:last-child { margin-bottom: 0; }
+
+.letter-sig {
+  margin-top: 1.6em;
+  font-size: clamp(13px, 1.5vw, 17px);
+  color: #5a3a7a;
+  font-style: italic;
+}
+
+.letter-hidden {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── NO RESPONSE ── */
+.no-response {
+  display: none;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
   text-align: center;
-  margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid var(--panel-border-light);
+  padding: 20px;
+  max-width: 320px;
 }
 
-.tagline-text {
-  font-family: var(--font-hand);
-  font-size: clamp(18px, 3.5vw, 32px);
-  color: var(--text-dark);
-  line-height: 1.4;
-}
-
-/* ── PILLARS ─────────────────────────────────────── */
-
-.pillars-heading {
-  font-family: var(--font-game);
-  font-size: 14px;
-  color: var(--text-mid);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
-
-.pillars {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 26px;
-}
-
-@media (max-width: 540px) {
-  .pillars { grid-template-columns: 1fr; }
-}
-
-.pillar {
-  background: #e8e0c8;
-  border: 2px solid #8a7a5a;
-  border-right-color: #5a4a2a;
-  border-bottom-color: #5a4a2a;
-  border-left-color: #c8b88a;
-  border-top-color: #c8b88a;
-  padding: 14px 12px;
-  text-align: center;
-}
-
-.pillar-icon {
-  font-size: 26px;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.pillar-name {
-  font-family: var(--font-game);
-  font-size: clamp(15px, 2.2vw, 19px);
-  color: var(--text-dark);
+/* ── COPYRIGHT ── */
+.copyright {
+  position: fixed;
+  bottom: 14px;
+  left: 20px;
+  font-family: "PFPixelScript", monospace;
+  font-size: 8px;
+  color: rgba(255,255,255,0.32);
   letter-spacing: 1px;
-  text-transform: uppercase;
-  line-height: 1.2;
+  z-index: 10;
 }
+.copyright a { color: inherit; text-decoration: none; }
+.copyright a:hover { color: rgba(255,255,255,0.72); }
 
-/* ── MISSION COPY ────────────────────────────────── */
-
-.mission-divider {
-  border: none;
-  border-top: 2px solid var(--panel-border-light);
-  margin-bottom: 20px;
-}
-
-.mission-copy {
-  font-family: var(--font-game);
-  font-size: clamp(16px, 2vw, 20px);
-  color: var(--text-dark);
-  line-height: 1.7;
-}
-
-/* ── PLAY NOW BUTTON ─────────────────────────────── */
-
-.play-now-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
-}
-
-.play-now-btn {
-  display: inline-block;
-  padding: 14px 52px;
-  text-decoration: none;
-  font-family: var(--font-game);
-  font-size: clamp(22px, 3.5vw, 32px);
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  color: var(--panel-bg);
-  background: rgba(0,0,0,0.48);
-  border: 3px solid var(--gold);
-  outline: 2px solid var(--gold-dark);
-  outline-offset: -5px;
-  box-shadow: 3px 5px 0 0 rgba(0,0,0,0.55);
-  transition: background 0.12s, transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
-}
-
-.play-now-btn:hover {
-  background: rgba(245,200,66,0.2);
-  transform: translate(-1px,-2px);
-  box-shadow: 5px 7px 0 0 rgba(0,0,0,0.55);
-}
-
-.play-now-btn:active {
-  transform: translate(2px,4px);
-  box-shadow: none;
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .scene {
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 80px;
+  }
+  .char-wrap {
+    width: clamp(120px, 40vw, 200px);
+    flex-direction: row;
+    align-items: flex-end;
+    width: 100%;
+    gap: 16px;
+  }
+  .char-img { width: clamp(100px, 35vw, 160px); }
+  .speech-bubble {
+    font-size: clamp(13px, 3.5vw, 17px);
+  }
+  .speech-bubble::after {
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+    border-bottom-color: transparent;
+    border-right-color: rgba(255,255,255,0.96);
+  }
 }
 
 </style>
@@ -352,100 +268,105 @@ body {
 
 <div id="stars"></div>
 
-<div class="page">
+<a class="back-btn" href="index.html">← home</a>
 
-  <!-- TOP NAV -->
-  <div class="topbar">
-    <a class="back-btn" href="index.html">← TITLE</a>
-    <h1 class="page-heading">About</h1>
-    <div style="width:100px"></div>
-  </div>
+<div class="page-title">
+  <img src="assets/elements/circle-rainbow.png" alt="about us" id="titleRainbow">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-20%);font-family:'PFPixelScript',cursive;font-size:clamp(28px,5vw,60px);color:white;text-shadow:2px 3px 0 rgba(0,0,0,0.2);white-space:nowrap;pointer-events:none;">about us</div>
+</div>
 
-  <!-- NARRATOR BUBBLE — Purple Cloud -->
-  <div class="char-bubble" id="charBubble">
-    <button class="bubble-close" onclick="closeBubble()" aria-label="Dismiss">✕</button>
-    <img class="bubble-char"
-         src="assets/guides/06%20TG%20PURPLE%20CLOUD.png"
-         alt="Purple Cloud narrator">
-    <p class="bubble-text">
-      "You're building something real here. Take your time."
-    </p>
-  </div>
+<div class="scene">
 
-  <!-- CONTENT PANEL -->
-  <div class="rpg-panel">
-
-    <!-- TAGLINE -->
-    <div class="tagline-block">
-      <p class="tagline-text">
-        welcome to Heartability, a world building rehearsal space
-        designed to locate the path leading to your dreams
-      </p>
-    </div>
-
-    <!-- MISSION PILLARS -->
-    <p class="pillars-heading">Mission Pillars</p>
-    <div class="pillars">
-      <div class="pillar">
-        <span class="pillar-icon">✦</span>
-        <span class="pillar-name">Foster<br>Creativity</span>
+  <!-- CHARACTER + BUBBLE -->
+  <div class="char-wrap">
+    <div id="bubbleWrap">
+      <div class="speech-bubble" id="speechBubble">
+        I wrote you a letter.<br>do you want to read it?
       </div>
-      <div class="pillar">
-        <span class="pillar-icon">◈</span>
-        <span class="pillar-name">Build Self<br>Awareness</span>
-      </div>
-      <div class="pillar">
-        <span class="pillar-icon">♡</span>
-        <span class="pillar-name">Discover<br>Resources</span>
+      <div class="bubble-btns" id="bubbleBtns">
+        <button class="bubble-btn" id="btnYes">yes!</button>
+        <button class="bubble-btn" id="btnNo">no thanks</button>
       </div>
     </div>
-
-    <hr class="mission-divider">
-
-    <!-- MISSION COPY -->
-    <p class="mission-copy">
-      Revitalize the creative process in a world overrun with recommendations
-      and routines. Discover a world that feels like it was made for you,
-      because it was born of your own personal experience. We want to help
-      rebuild spaces that support the pursuit of creative visions and resist
-      the gatekeeping that fuels the wellness industry —
-      wellness is for the people!!!!!!!
-    </p>
-
-  </div><!-- /rpg-panel -->
-
-  <!-- CTA -->
-  <div class="play-now-wrap">
-    <a class="play-now-btn" href="game-select.html">PLAY NOW →</a>
+    <img class="char-img"
+         src="assets/elements/guides/letter"
+         alt="Letter Character">
   </div>
 
-</div><!-- /page -->
+  <!-- LETTER (hidden until yes) -->
+  <div class="letter-wrap letter-hidden" id="letterWrap">
+    <div class="letter-panel">
+      <div class="letter-text">
+        <p>hey, you found us.</p>
+        <p>Heartability is a self care game designed to help you gain perspective over your life trajectory — not what an algorithm thinks you want, not what a wellness influencer is selling. Just you, your imagination, and the magic of showing up for yourself.</p>
+        <p>The four core games — Treasure Map, What's in your Bag, Self Care Bingo, and Infinity Mirror — take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There's no wrong way to play, and nothing to optimize. Just endless possibilities.</p>
+        <p>We built this because the creative process deserves better tools. The world is full of recommendations and routines that were made for someone else. Heartability was made from the lived experience of forging a new path and having to figure it out alone. Now you can figure it out with Heartability.</p>
+        <p>Enter the castle, the door is open.</p>
+        <div class="letter-sig">— with love, Zoe Tinnes, founder of Heartability</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NO RESPONSE -->
+  <div class="no-response" id="noResponse">
+    No problem, there are no rules here.<br>Enter and do as you please :)
+  </div>
+
+</div>
+
+<p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
 (function () {
 
-  /* ── Starfield ────────────────────────────────── */
+  /* ── Starfield ── */
   const field = document.getElementById('stars');
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 90; i++) {
     const s = document.createElement('div');
     s.className = 'star';
     const sz = (Math.random() * 5 + 2).toFixed(1);
     s.style.cssText = [
       `width:${sz}px`, `height:${sz}px`,
-      `left:${(Math.random() * 100).toFixed(1)}%`,
-      `top:${(Math.random() * 100).toFixed(1)}%`,
-      `--d:${(1.5 + Math.random() * 3).toFixed(2)}s`,
-      `--del:${(-Math.random() * 4).toFixed(2)}s`
+      `left:${(Math.random()*100).toFixed(1)}%`,
+      `top:${(Math.random()*100).toFixed(1)}%`,
+      `--d:${(1.4+Math.random()*3.2).toFixed(2)}s`,
+      `--del:${(-Math.random()*4).toFixed(2)}s`
     ].join(';');
     field.appendChild(s);
   }
 
-  /* ── REUSABLE COMPONENT: closeBubble ─────────── */
-  window.closeBubble = function () {
-    const b = document.getElementById('charBubble');
-    if (b) b.classList.add('dismissed');
-  };
-  /* ──────────────────────────────────────────────── */
+  /* ── Rainbow title swap mobile ── */
+  function swapRainbow() {
+    const img = document.getElementById('titleRainbow');
+    if (!img) return;
+    img.src = window.innerWidth <= 768
+      ? 'assets/elements/circle-rainbow-m.png'
+      : 'assets/elements/circle-rainbow.png';
+  }
+  swapRainbow();
+  window.addEventListener('resize', swapRainbow);
+
+  /* ── Letter interaction ── */
+  const btnYes     = document.getElementById('btnYes');
+  const btnNo      = document.getElementById('btnNo');
+  const bubbleBtns = document.getElementById('bubbleBtns');
+  const bubble     = document.getElementById('speechBubble');
+  const letterWrap = document.getElementById('letterWrap');
+  const noResponse = document.getElementById('noResponse');
+
+  btnYes.addEventListener('click', function () {
+    bubbleBtns.style.display = 'none';
+    bubble.textContent = 'enjoy :)';
+    letterWrap.classList.remove('letter-hidden');
+    letterWrap.style.opacity = '0';
+    setTimeout(() => { letterWrap.style.transition='opacity 0.5s'; letterWrap.style.opacity='1'; }, 20);
+  });
+
+  btnNo.addEventListener('click', function () {
+    bubbleBtns.style.display = 'none';
+    bubble.style.display = 'none';
+    noResponse.style.display = 'block';
+  });
 
 })();
 </script>
