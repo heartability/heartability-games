@@ -3,371 +3,177 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About — Heartability</title>
+<title>About &#8212; Heartability</title>
 <style>
+@font-face { font-family:"ZoesHandwriting"; src:url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelScript"; src:url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursive; overflow-x:hidden; position:relative; user-select:none; }
+#stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
+.star { position:absolute; background:#fff; clip-path:polygon(50% 0%,54% 43%,100% 50%,54% 57%,50% 100%,46% 57%,0% 50%,46% 43%); animation:twinkle var(--d,2s) ease-in-out infinite var(--del,0s); }
+@keyframes twinkle { 0%,100%{opacity:.9;transform:scale(1) rotate(0deg);} 50%{opacity:.05;transform:scale(.2) rotate(45deg);} }
 
-@font-face {
-  font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
-}
-@font-face {
-  font-family: "PFPixelScript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
-}
+.back-btn { position:fixed; top:20px; left:24px; z-index:30; display:inline-block; padding:6px 18px; text-decoration:none; font-family:"PFPixelScript",cursive; font-size:clamp(8px,1.4vw,13px); color:#6578e2; background:#fdf6e3; border:3px solid #6578e2; outline:2px solid #83d2e6; outline-offset:-4px; box-shadow:2px 3px 0 2px rgba(0,0,0,.3); transition:transform .08s,box-shadow .08s; }
+.back-btn:hover { transform:translate(-1px,-1px); box-shadow:3px 4px 0 2px rgba(0,0,0,.3); }
+.back-btn:active { transform:translate(2px,3px); box-shadow:none; }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+.page-title { position:relative; z-index:2; text-align:center; padding-top:clamp(60px,10vh,100px); padding-bottom:30px; }
+.page-title-wrap { position:relative; display:inline-block; }
+.page-title-wrap img { width:clamp(260px,46vw,540px); height:auto; }
+.page-title-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-20%); font-family:"PFPixelScript",cursive; font-size:clamp(24px,4.5vw,56px); color:white; text-shadow:2px 3px 0 rgba(0,0,0,.2); white-space:nowrap; pointer-events:none; }
 
-body {
-  min-height: 100vh;
-  background: #6578e2;
-  font-family: "ZoesHandwriting", cursive;
-  overflow-x: hidden;
-  position: relative;
-  user-select: none;
-}
+.scene { position:relative; z-index:2; display:flex; align-items:flex-start; justify-content:center; gap:clamp(10px,2vw,30px); padding:0 clamp(20px,5vw,80px) 120px; max-width:1100px; margin:0 auto; min-height:520px; }
 
-/* ── STARFIELD ── */
-#stars {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.star {
-  position: absolute;
-  background: #fff;
-  clip-path: polygon(50% 0%,54% 43%,100% 50%,54% 57%,50% 100%,46% 57%,0% 50%,46% 43%);
-  animation: twinkle var(--d,2s) ease-in-out infinite var(--del,0s);
-}
-@keyframes twinkle {
-  0%,100% { opacity:0.9; transform:scale(1) rotate(0deg); }
-  50%      { opacity:0.05; transform:scale(0.2) rotate(45deg); }
-}
+/* ── CHARACTER COLUMN ── */
+.char-col { flex-shrink:0; width:clamp(160px,22vw,280px); display:flex; flex-direction:column; align-items:center; padding-top:10px; }
 
-/* ── BACK BTN ── */
-.back-btn {
-  position: fixed;
-  top: 20px;
-  left: 24px;
-  z-index: 20;
-  display: inline-block;
-  padding: 6px 18px;
-  text-decoration: none;
-  font-family: "PFPixelScript", cursive;
-  font-size: clamp(8px, 1.4vw, 13px);
-  color: #6578e2;
-  background: #fdf6e3;
-  border: 3px solid #6578e2;
-  outline: 2px solid #83d2e6;
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
-  transition: transform 0.08s, box-shadow 0.08s;
-}
-.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
-.back-btn:active { transform: translate(2px,3px); box-shadow: none; }
+/* ── CLOUD BUBBLE ── */
+.cloud-wrap { position:relative; width:100%; margin-bottom:8px; transition:opacity .25s ease,transform .25s ease; }
+.cloud-wrap.hidden { opacity:0; pointer-events:none; transform:translateY(-6px); }
 
-/* ── PAGE TITLE ── */
-.page-title {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding-top: clamp(60px, 10vh, 100px);
-  padding-bottom: 20px;
-}
-.page-title img {
-  width: clamp(280px, 50vw, 580px);
-  height: auto;
+/* The bubble image fills the wrapper */
+.cloud-bg { width:100%; height:auto; display:block; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2)); }
+
+/* Content sits absolutely over the image, inside the cloud body (above the tail) */
+.cloud-content {
+  position:absolute;
+  top:0; left:0; right:0;
+  /* leave ~18% bottom for the tail */
+  bottom:18%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; padding:8px 16px 0;
 }
 
-/* ── MAIN LAYOUT ── */
-.scene {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: clamp(16px, 3vw, 40px);
-  padding: 0 clamp(16px, 5vw, 80px) 160px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
+.cloud-text { font-family:"ZoesHandwriting",cursive; font-size:clamp(12px,1.3vw,15px); color:#3a2560; text-align:center; line-height:1.45; }
+.cloud-btns { display:flex; gap:8px; }
+.cloud-btn { padding:3px 14px; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#6578e2; background:rgba(255,255,255,.7); border:1.5px solid #6578e2; border-radius:20px; cursor:pointer; white-space:nowrap; transition:background .15s,color .15s; }
+.cloud-btn:hover { background:#6578e2; color:white; }
+.cloud-no-text { display:none; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#3a2560; text-align:center; line-height:1.45; }
 
 /* ── CHARACTER ── */
-.char-wrap {
-  flex-shrink: 0;
-  width: clamp(140px, 22vw, 280px);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
+.char-img { width:90%; height:auto; display:block; filter:drop-shadow(0 6px 16px rgba(0,0,0,.22)); animation:charFloat 4s ease-in-out infinite; }
+@keyframes charFloat { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(1deg);} }
 
-.char-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.25));
-  animation: charFloat 4s ease-in-out infinite;
-}
+/* ── LETTER COLUMN ── */
+.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; padding-left:clamp(10px,2vw,30px); }
 
-@keyframes charFloat {
-  0%,100% { transform: translateY(0) rotate(-1deg); }
-  50%      { transform: translateY(-10px) rotate(1deg); }
-}
+/* ── LETTER PAPER ── */
+.letter-paper { position:relative; width:clamp(280px,44vw,520px); background:#f7f2e8; background-image:radial-gradient(ellipse at 20% 10%,rgba(210,195,160,.2) 0%,transparent 60%),radial-gradient(ellipse at 80% 90%,rgba(190,175,140,.15) 0%,transparent 50%); border-radius:2px; padding:clamp(28px,5vw,52px) clamp(24px,4vw,44px) clamp(24px,4vw,40px); box-shadow:2px 3px 0 1px rgba(0,0,0,.1),4px 6px 14px rgba(0,0,0,.16),inset 0 0 40px rgba(180,160,120,.07); transform-origin:top center; transform:scaleY(0.03); opacity:0; overflow:hidden; transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .2s ease; max-height:0; pointer-events:none; }
+.letter-paper.unfolded { transform:scaleY(1) rotate(-.7deg); opacity:1; max-height:2000px; pointer-events:all; }
+.letter-paper::before { content:""; position:absolute; top:0; bottom:0; left:clamp(48px,8vw,76px); width:1px; background:rgba(200,155,155,.28); pointer-events:none; }
 
-/* ── SPEECH BUBBLE ── */
-.speech-bubble {
-  background: rgba(255,255,255,0.96);
-  border-radius: 20px;
-  padding: 12px 18px;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(14px, 1.6vw, 18px);
-  color: #5a3a7a;
-  text-align: center;
-  line-height: 1.4;
-  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
-  position: relative;
-  max-width: 220px;
-}
-.speech-bubble::after {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 8px solid transparent;
-  border-bottom-color: rgba(255,255,255,0.96);
-}
+.letter-close { position:absolute; top:10px; right:12px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#a09070; cursor:pointer; background:none; border:none; line-height:1; transition:color .15s,transform .1s; z-index:5; }
+.letter-close:hover { color:#5a3a7a; transform:scale(1.2); }
 
-/* ── YES/NO BUTTONS ── */
-.bubble-btns {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 8px;
-}
-.bubble-btn {
-  padding: 4px 16px;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #6578e2;
-  background: #fdf6e3;
-  border: 2px solid #6578e2;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: transform 0.1s, background 0.1s;
-}
-.bubble-btn:hover { background: #6578e2; color: white; transform: scale(1.05); }
+.letter-body { font-family:"ZoesHandwriting",cursive; font-size:clamp(14px,1.7vw,19px); color:#2a1e14; line-height:1.85; }
+.letter-body p { margin-bottom:1.1em; }
+.letter-body p:first-child { margin-bottom:1.4em; font-size:clamp(15px,1.9vw,21px); }
+.letter-body p:last-child { margin-bottom:0; }
+.letter-sig { margin-top:1.4em; font-size:clamp(13px,1.5vw,17px); color:#5a3a7a; }
 
-/* ── LETTER PANEL ── */
-.letter-wrap {
-  flex: 1;
-  min-width: 0;
-  transition: opacity 0.4s ease;
+.copyright { position:fixed; bottom:14px; left:20px; font-family:"PFPixelScript",monospace; font-size:8px; color:rgba(255,255,255,.32); letter-spacing:1px; z-index:10; }
+.copyright a { color:inherit; text-decoration:none; }
+.copyright a:hover { color:rgba(255,255,255,.72); }
+
+@media (max-width:768px) {
+  .scene { flex-direction:column; align-items:center; padding-bottom:80px; }
+  .char-col { width:100%; flex-direction:row; align-items:flex-end; gap:12px; padding-top:0; }
+  .char-img { width:clamp(90px,36vw,160px); flex-shrink:0; }
+  .cloud-wrap { flex:1; margin-bottom:0; }
+  .letter-col { width:100%; padding-top:16px; padding-left:0; }
+  .letter-paper { width:100%; }
 }
-
-.letter-panel {
-  background: #f5f0ea;
-  border: 3px solid #c9a84c;
-  border-radius: 6px;
-  padding: clamp(20px, 4vw, 48px);
-  box-shadow: 4px 6px 0 2px rgba(0,0,0,0.15);
-  position: relative;
-}
-
-/* inner decorative border like the game panels */
-.letter-panel::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(201,168,76,0.35);
-  border-radius: 3px;
-  pointer-events: none;
-}
-
-.letter-text {
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(15px, 1.8vw, 20px);
-  color: #2a2030;
-  line-height: 1.75;
-}
-
-.letter-text p { margin-bottom: 1.2em; }
-.letter-text p:last-child { margin-bottom: 0; }
-
-.letter-sig {
-  margin-top: 1.6em;
-  font-size: clamp(13px, 1.5vw, 17px);
-  color: #5a3a7a;
-  font-style: italic;
-}
-
-.letter-hidden {
-  opacity: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* ── NO RESPONSE ── */
-.no-response {
-  display: none;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(14px, 1.6vw, 18px);
-  color: rgba(255,255,255,0.9);
-  line-height: 1.6;
-  text-align: center;
-  padding: 20px;
-  max-width: 320px;
-}
-
-/* ── COPYRIGHT ── */
-.copyright {
-  position: fixed;
-  bottom: 14px;
-  left: 20px;
-  font-family: "PFPixelScript", monospace;
-  font-size: 8px;
-  color: rgba(255,255,255,0.32);
-  letter-spacing: 1px;
-  z-index: 10;
-}
-.copyright a { color: inherit; text-decoration: none; }
-.copyright a:hover { color: rgba(255,255,255,0.72); }
-
-/* ── MOBILE ── */
-@media (max-width: 768px) {
-  .scene {
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 80px;
-  }
-  .char-wrap {
-    width: clamp(120px, 40vw, 200px);
-    flex-direction: row;
-    align-items: flex-end;
-    width: 100%;
-    gap: 16px;
-  }
-  .char-img { width: clamp(100px, 35vw, 160px); }
-  .speech-bubble {
-    font-size: clamp(13px, 3.5vw, 17px);
-  }
-  .speech-bubble::after {
-    top: 50%;
-    left: -10px;
-    transform: translateY(-50%);
-    border-bottom-color: transparent;
-    border-right-color: rgba(255,255,255,0.96);
-  }
-}
-
 </style>
 </head>
 <body>
-
 <div id="stars"></div>
-
-<a class="back-btn" href="index.html">← home</a>
+<a class="back-btn" href="index.html">&#8592; home</a>
 
 <div class="page-title">
-  <img src="assets/elements/circle-rainbow.png" alt="about" id="titleRainbow">
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-20%);font-family:'PFPixelScript',cursive;font-size:clamp(28px,5vw,40px);color:white;text-shadow:2px 3px 0 rgba(0,0,0,0.2);white-space:nowrap;pointer-events:none;">about</div>
+  <div class="page-title-wrap">
+    <img src="assets/elements/circle-rainbow.png" alt="" id="titleRainbow" aria-hidden="true">
+    <div class="page-title-text">about us</div>
+  </div>
 </div>
 
 <div class="scene">
+  <div class="char-col">
 
-  <!-- CHARACTER + BUBBLE -->
-  <div class="char-wrap">
-    <div id="bubbleWrap">
-      <div class="speech-bubble" id="speechBubble">
-        I wrote you a letter.<br>do you want to read it?
-      </div>
-      <div class="bubble-btns" id="bubbleBtns">
-        <button class="bubble-btn" id="btnYes">yes!</button>
-        <button class="bubble-btn" id="btnNo">no thanks</button>
+    <div class="cloud-wrap" id="cloudWrap">
+      <img class="cloud-bg" src="assets/elements/speech-bubble.png" alt="">
+      <div class="cloud-content">
+        <span class="cloud-text" id="cloudText">I wrote you a letter.<br>want to read it?</span>
+        <div class="cloud-btns" id="cloudBtns">
+          <button class="cloud-btn" id="btnYes">open it</button>
+          <button class="cloud-btn" id="btnNo">maybe later</button>
+        </div>
+        <span class="cloud-no-text" id="cloudNoText">no problem &#8212;<br>no rules here :)</span>
       </div>
     </div>
-    <img class="char-img"
-         src="assets/elements/guides/letter.png"
-         alt="Letter Character">
+
+    <img class="char-img" src="assets/elements/guides/circle-sun.png" alt="Zoe &#8212; Heartability founder">
   </div>
 
-  <!-- LETTER (hidden until yes) -->
-  <div class="letter-wrap letter-hidden" id="letterWrap">
-    <div class="letter-panel">
-      <div class="letter-text">
+  <div class="letter-col">
+    <div class="letter-paper" id="letterPaper">
+      <button class="letter-close" id="letterClose" aria-label="Close letter">&#x2715;</button>
+      <div class="letter-body">
         <p>hey, you found us.</p>
-        <p>Heartability is a self care game designed to help you gain perspective over your life trajectory — not what an algorithm thinks you want, not what a wellness influencer is selling. Just you, your imagination, and the magic of showing up for yourself.</p>
-        <p>The four core games — Treasure Map, What's in your Bag, Self Care Bingo, and Infinity Mirror — take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There's no wrong way to play, and nothing to optimize. Just endless possibilities.</p>
+        <p>Heartability is a self care game designed to help you gain perspective over your life trajectory &#8212; not what an algorithm thinks you want, not what a wellness influencer is selling. Just you, your imagination, and the magic of showing up for yourself.</p>
+        <p>The four core games &#8212; Treasure Map, What&#39;s in your Bag, Self Care Bingo, and Infinity Mirror &#8212; take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There&#39;s no wrong way to play, and nothing to optimize. Just endless possibilities.</p>
         <p>We built this because the creative process deserves better tools. The world is full of recommendations and routines that were made for someone else. Heartability was made from the lived experience of forging a new path and having to figure it out alone. Now you can figure it out with Heartability.</p>
         <p>Enter the castle, the door is open.</p>
-        <div class="letter-sig">— with love, Zoe Tinnes, founder of Heartability</div>
+        <div class="letter-sig">&#8212; with love, Zoe Tinnes, founder of Heartability</div>
       </div>
     </div>
   </div>
-
-  <!-- NO RESPONSE -->
-  <div class="no-response" id="noResponse">
-    No problem, there are no rules here.<br>Enter and do as you please :)
-  </div>
-
 </div>
 
-<p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
+<p class="copyright">&#169;&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
-(function () {
-
-  /* ── Starfield ── */
-  const field = document.getElementById('stars');
-  for (let i = 0; i < 90; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    const sz = (Math.random() * 5 + 2).toFixed(1);
-    s.style.cssText = [
-      `width:${sz}px`, `height:${sz}px`,
-      `left:${(Math.random()*100).toFixed(1)}%`,
-      `top:${(Math.random()*100).toFixed(1)}%`,
-      `--d:${(1.4+Math.random()*3.2).toFixed(2)}s`,
-      `--del:${(-Math.random()*4).toFixed(2)}s`
-    ].join(';');
+(function(){
+  const field=document.getElementById("stars");
+  for(let i=0;i<90;i++){
+    const s=document.createElement("div"); s.className="star";
+    const sz=(Math.random()*5+2).toFixed(1);
+    s.style.cssText=["width:"+sz+"px","height:"+sz+"px","left:"+(Math.random()*100).toFixed(1)+"%","top:"+(Math.random()*100).toFixed(1)+"%","--d:"+(1.4+Math.random()*3.2).toFixed(2)+"s","--del:"+(-Math.random()*4).toFixed(2)+"s"].join(";");
     field.appendChild(s);
   }
-
-  /* ── Rainbow title swap mobile ── */
-  function swapRainbow() {
-    const img = document.getElementById('titleRainbow');
-    if (!img) return;
-    img.src = window.innerWidth <= 768
-      ? 'assets/elements/circle-rainbow-m.png'
-      : 'assets/elements/circle-rainbow.png';
+  function swapRainbow(){
+    const img=document.getElementById("titleRainbow"); if(!img)return;
+    img.src=window.innerWidth<=768?"assets/elements/circle-rainbow-m.png":"assets/elements/circle-rainbow.png";
   }
-  swapRainbow();
-  window.addEventListener('resize', swapRainbow);
+  swapRainbow(); window.addEventListener("resize",swapRainbow);
 
-  /* ── Letter interaction ── */
-  const btnYes     = document.getElementById('btnYes');
-  const btnNo      = document.getElementById('btnNo');
-  const bubbleBtns = document.getElementById('bubbleBtns');
-  const bubble     = document.getElementById('speechBubble');
-  const letterWrap = document.getElementById('letterWrap');
-  const noResponse = document.getElementById('noResponse');
+  const cloudWrap  = document.getElementById("cloudWrap");
+  const cloudBtns  = document.getElementById("cloudBtns");
+  const cloudNoText= document.getElementById("cloudNoText");
+  const cloudText  = document.getElementById("cloudText");
+  const letterPaper= document.getElementById("letterPaper");
+  const letterClose= document.getElementById("letterClose");
 
-  btnYes.addEventListener('click', function () {
-    bubbleBtns.style.display = 'none';
-    bubble.textContent = 'enjoy :)';
-    letterWrap.classList.remove('letter-hidden');
-    letterWrap.style.opacity = '0';
-    setTimeout(() => { letterWrap.style.transition='opacity 0.5s'; letterWrap.style.opacity='1'; }, 20);
+  document.getElementById("btnYes").addEventListener("click",function(){
+    cloudWrap.classList.add("hidden");
+    setTimeout(function(){ letterPaper.classList.add("unfolded"); },150);
   });
 
-  btnNo.addEventListener('click', function () {
-    bubbleBtns.style.display = 'none';
-    bubble.style.display = 'none';
-    noResponse.style.display = 'block';
+  document.getElementById("btnNo").addEventListener("click",function(){
+    cloudBtns.style.display="none";
+    cloudText.style.display="none";
+    cloudNoText.style.display="block";
   });
 
+  letterClose.addEventListener("click",function(){
+    letterPaper.classList.remove("unfolded");
+    setTimeout(function(){
+      cloudWrap.classList.remove("hidden");
+      cloudBtns.style.display="flex";
+      cloudText.style.display="";
+      cloudText.innerHTML="I wrote you a letter.<br>want to read it?";
+      cloudNoText.style.display="none";
+    },350);
+  });
 })();
 </script>
 </body>
