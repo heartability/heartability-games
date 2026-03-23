@@ -20,19 +20,12 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 .page-title { position:relative; z-index:2; text-align:center; padding-top:clamp(60px,10vh,100px); padding-bottom:30px; }
 .page-title-wrap { position:relative; display:inline-block; }
 .page-title-wrap img { width:clamp(260px,46vw,540px); height:auto; }
-.page-title-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-55%); font-family:"PFPixelScript",cursive; font-size:clamp(24px,4.5vw,40px); color:white; text-shadow:2px 3px 0 rgba(0,0,0,.2); white-space:nowrap; pointer-events:none; }
+.page-title-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:"PFPixelScript",cursive; font-size:clamp(24px,4.5vw,40px); color:white; text-shadow:2px 3px 0 rgba(0,0,0,.2); white-space:nowrap; pointer-events:none; }
 
 .scene { position:relative; z-index:2; display:flex; align-items:flex-start; justify-content:center; gap:clamp(10px,2vw,30px); padding:0 clamp(20px,5vw,80px) 120px; max-width:1100px; margin:0 auto; min-height:520px; }
 
-/* ── LEFT COLUMN: character + castle side by side ── */
-.char-col { flex-shrink:0; width:clamp(300px,40vw,520px); display:flex; flex-direction:column; align-items:flex-start; padding-top:10px; }
-
-.char-and-castle { display:flex; align-items:flex-end; justify-content:flex-start; gap:clamp(16px,2vw,32px); width:100%; }
-
-.castle-link { display:block; text-decoration:none; flex-shrink:0; }
-.castle-img { width:clamp(120px,18vw,240px); height:auto; display:block; filter:drop-shadow(0 6px 16px rgba(0,0,0,.25)); animation:castlePulse 3s ease-in-out infinite; transition:filter .2s; }
-.castle-link:hover .castle-img { filter:drop-shadow(0 8px 24px rgba(255,255,255,.4)) drop-shadow(0 4px 12px rgba(0,0,0,.4)); animation:none; }
-@keyframes castlePulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
+/* ── CHARACTER COLUMN ── */
+.char-col { flex-shrink:0; width:clamp(160px,20vw,240px); display:flex; flex-direction:column; align-items:center; padding-top:10px; position:relative; z-index:3; }
 
 /* ── CLOUD BUBBLE ── */
 .cloud-wrap { position:relative; width:100%; margin-bottom:8px; transition:opacity .25s ease,transform .25s ease; }
@@ -48,7 +41,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
   /* leave ~18% bottom for the tail */
   bottom:22%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:8px; padding:16px 16px 0;
+  gap:8px; padding:20px 16px 0;
 }
 
 .cloud-text { font-family:"ZoesHandwriting",cursive; font-size:clamp(12px,1.3vw,15px); color:#3a2560; text-align:center; line-height:1.45; }
@@ -58,11 +51,11 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 .cloud-no-text { display:none; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#3a2560; text-align:center; line-height:1.45; }
 
 /* ── CHARACTER ── */
-.char-img { width:clamp(120px,16vw,200px); height:auto; display:block; filter:drop-shadow(0 6px 16px rgba(0,0,0,.22)); animation:charFloat 4s ease-in-out infinite; flex-shrink:0; }
+.char-img { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 16px rgba(0,0,0,.22)); animation:charFloat 4s ease-in-out infinite; }
 @keyframes charFloat { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(1deg);} }
 
 /* ── LETTER COLUMN ── */
-.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; padding-left:clamp(10px,2vw,30px); }
+.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; padding-left:clamp(10px,2vw,30px); position:relative; z-index:2; }
 
 /* ── LETTER PAPER ── */
 .letter-paper { position:relative; width:clamp(280px,44vw,520px); background:#f7f2e8; background-image:radial-gradient(ellipse at 20% 10%,rgba(210,195,160,.2) 0%,transparent 60%),radial-gradient(ellipse at 80% 90%,rgba(190,175,140,.15) 0%,transparent 50%); border-radius:2px; padding:clamp(28px,5vw,52px) clamp(24px,4vw,44px) clamp(24px,4vw,40px); box-shadow:2px 3px 0 1px rgba(0,0,0,.1),4px 6px 14px rgba(0,0,0,.16),inset 0 0 40px rgba(180,160,120,.07); transform-origin:top center; transform:scaleY(0.03); opacity:0; overflow:hidden; transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .2s ease; max-height:0; pointer-events:none; }
@@ -83,15 +76,48 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 .copyright a:hover { color:rgba(255,255,255,.72); }
 
 @media (max-width:768px) {
+  .castle-bg-link { display:none; }
   .scene { flex-direction:column; align-items:center; padding-bottom:80px; }
-  .char-col { width:100%; padding-top:0; }
-  .char-and-castle { gap:12px; }
-  .char-img { width:clamp(80px,28vw,140px); }
-  .castle-img { width:clamp(80px,22vw,120px); }
-  .cloud-wrap { margin-bottom:8px; }
+  .char-col { width:100%; flex-direction:row; align-items:flex-end; gap:12px; padding-top:0; }
+  .char-img { width:clamp(90px,36vw,160px); flex-shrink:0; }
+  .cloud-wrap { flex:1; margin-bottom:0; }
   .letter-col { width:100%; padding-top:16px; padding-left:0; }
   .letter-paper { width:100%; }
 }
+
+/* ── CASTLE (background, right side) ── */
+.castle-bg {
+  position: fixed;
+  right: clamp(20px, 5vw, 80px);
+  bottom: 0;
+  width: clamp(200px, 32vw, 460px);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.2));
+  animation: castlePulse 3s ease-in-out infinite;
+}
+.castle-bg-link {
+  position: fixed;
+  right: clamp(20px, 5vw, 80px);
+  bottom: 0;
+  width: clamp(200px, 32vw, 460px);
+  z-index: 1;
+  display: block;
+}
+.castle-bg-link img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.2));
+  animation: castlePulse 3s ease-in-out infinite;
+  transition: filter .2s;
+}
+.castle-bg-link:hover img {
+  filter: drop-shadow(0 8px 28px rgba(255,255,255,.4)) drop-shadow(0 4px 12px rgba(0,0,0,.35));
+  animation: none;
+}
+@keyframes castlePulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.02);} }
 </style>
 </head>
 <body>
@@ -120,12 +146,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
       </div>
     </div>
 
-    <div class="char-and-castle">
-      <img class="char-img" src="assets/elements/guides/letter.png" alt="letter holder">
-      <a class="castle-link" href="game-select.html" aria-label="Enter the game room">
-        <img class="castle-img" src="assets/elements/castle.png" alt="Castle — enter game room">
-      </a>
-    </div>
+    <img class="char-img" src="assets/elements/guides/letter.png" alt="letter holder">
   </div>
 
   <div class="letter-col">
@@ -142,6 +163,10 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
     </div>
   </div>
 </div>
+
+<a class="castle-bg-link" href="game-select.html" aria-label="Enter the game room">
+  <img src="assets/elements/castle.png" alt="Castle — enter game room">
+</a>
 
 <p class="copyright">&#169;&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
