@@ -290,6 +290,118 @@ body {
 
 }
 
+
+/* ── SPEECH BUBBLE (above heart guide) ── */
+.heart-bubble-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-195%, -185%);
+  z-index: 6;
+  width: clamp(80px, 10vw, 140px);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.heart-bubble-wrap.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-195%, -195%);
+}
+.heart-bubble-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+}
+.heart-bubble-content {
+  position: absolute;
+  top: 40%; left: 10%; right: 10%; bottom: 12%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 0;
+}
+.heart-bubble-text {
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(7px, 0.85vw, 11px);
+  color: #3a2560;
+  text-align: center;
+  line-height: 1.2;
+}
+.heart-bubble-btns { display: flex; gap: 6px; }
+.heart-bubble-btn {
+  padding: 1px 6px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(7px, 0.8vw, 10px);
+  color: #3a2560;
+  background: none; border: none; cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: transform .15s, color .15s;
+  display: inline-block;
+}
+.heart-bubble-btn:hover { transform: scale(1.12); color: #6578e2; }
+.heart-bubble-btn:active { transform: scale(0.96); }
+.heart-bubble-no {
+  display: none;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(7px, 0.8vw, 10px);
+  color: #3a2560;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── LETTER OVERLAY (opens over castle) ── */
+.letter-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-120%, -90%) scaleY(0.03);
+  transform-origin: top left;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 7;
+  width: clamp(240px, 32vw, 420px);
+  background: #f7f2e8;
+  background-image: radial-gradient(ellipse at 20% 10%, rgba(210,195,160,.2) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 90%, rgba(190,175,140,.15) 0%, transparent 50%);
+  border-radius: 2px;
+  padding: clamp(20px,3vw,36px) clamp(16px,2.5vw,32px);
+  box-shadow: 2px 3px 0 1px rgba(0,0,0,.1), 4px 6px 14px rgba(0,0,0,.16);
+  transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+}
+.letter-overlay.unfolded {
+  transform: translate(-120%, -90%) scaleY(1) rotate(.6deg);
+  opacity: 1;
+  max-height: 1000px;
+  pointer-events: all;
+}
+.letter-overlay-close {
+  position: absolute; top: 8px; right: 10px;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #a09070;
+  cursor: pointer; background: none; border: none;
+  transition: color .15s, transform .1s;
+}
+.letter-overlay-close:hover { color: #5a3a7a; transform: scale(1.2); }
+.letter-overlay-body {
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(11px, 1.2vw, 15px);
+  color: #2a1e14;
+  line-height: 1.7;
+}
+.letter-overlay-body p { margin-bottom: .9em; }
+.letter-overlay-body p:first-child { font-size: clamp(12px, 1.3vw, 16px); margin-bottom: 1.1em; }
+.letter-overlay-body p:last-child { margin-bottom: 0; }
+.letter-overlay-sig { margin-top: 1em; font-size: clamp(10px, 1vw, 13px); color: #5a3a7a; }
+
+/* mobile — hide letter overlay, keep enter flow */
+@media (max-width: 768px) {
+  .heart-bubble-wrap { display: none; }
+  .letter-overlay { display: none; }
+}
 </style>
 </head>
 <body>
@@ -328,11 +440,37 @@ body {
          alt=""
          aria-hidden="true">
 
-    <!-- Cloud — z4, above rainbow -->
-    <div class="heart-guide-wrap">
+    <!-- Heart guide — z4, above rainbow -->
+    <div class="heart-guide-wrap" id="heartGuideWrap" style="pointer-events:all; cursor:pointer;">
       <img class="heart-guide-img"
            src="assets/elements/guides/heart.png"
-           alt="">
+           alt="Heart guide — click to read a letter">
+    </div>
+
+    <!-- Speech bubble — z6, above heart guide -->
+    <div class="heart-bubble-wrap" id="heartBubbleWrap">
+      <img class="heart-bubble-bg" src="assets/elements/speech-bubble.png" alt="">
+      <div class="heart-bubble-content">
+        <span class="heart-bubble-text" id="heartBubbleText">about us</span>
+        <div class="heart-bubble-btns" id="heartBubbleBtns">
+          <button class="heart-bubble-btn" id="heartBtnYes">read now</button>
+          <button class="heart-bubble-btn" id="heartBtnNo">maybe later</button>
+        </div>
+        <span class="heart-bubble-no" id="heartBubbleNo">see ya</span>
+      </div>
+    </div>
+
+    <!-- Letter overlay — z7, opens over castle -->
+    <div class="letter-overlay" id="letterOverlay">
+      <button class="letter-overlay-close" id="letterOverlayClose">&#x2715;</button>
+      <div class="letter-overlay-body">
+        <p>Dear visitor,</p>
+        <p>Heartability is a self care game designed to help you visualize the bigger picture of your life.</p>
+        <p>The four core games take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on your energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There&#39;s no wrong way to play, and nothing to optimize. Just endless possibilities to explore.</p>
+        <p>The creative process deserves better tools. You don&#39;t have to figure it out alone anymore. Now you can figure it out with Heartability.</p>
+        <p>Enter the castle, the door is always open.</p>
+        <div class="letter-overlay-sig">With love,<br>Zoe Tinnes, founder of Heartability</div>
+      </div>
     </div>
 
     <!-- Enter — z5, right of castle (desktop) / below (mobile) -->
@@ -374,6 +512,36 @@ body {
 
   swapRainbow();
   window.addEventListener('resize', swapRainbow);
+
+  /* ── Speech bubble + letter interaction ── */
+  const heartBubbleWrap   = document.getElementById('heartBubbleWrap');
+  const heartBubbleText   = document.getElementById('heartBubbleText');
+  const heartBubbleBtns   = document.getElementById('heartBubbleBtns');
+  const heartBubbleNo     = document.getElementById('heartBubbleNo');
+  const letterOverlay     = document.getElementById('letterOverlay');
+  const letterOverlayClose= document.getElementById('letterOverlayClose');
+
+  document.getElementById('heartBtnYes').addEventListener('click', function() {
+    heartBubbleWrap.classList.add('hidden');
+    setTimeout(function() { letterOverlay.classList.add('unfolded'); }, 150);
+  });
+
+  document.getElementById('heartBtnNo').addEventListener('click', function() {
+    heartBubbleBtns.style.display = 'none';
+    heartBubbleText.style.display = 'none';
+    heartBubbleNo.style.display = 'block';
+  });
+
+  letterOverlayClose.addEventListener('click', function() {
+    letterOverlay.classList.remove('unfolded');
+    setTimeout(function() {
+      heartBubbleWrap.classList.remove('hidden');
+      heartBubbleBtns.style.display = 'flex';
+      heartBubbleText.style.display = '';
+      heartBubbleText.innerHTML = 'I wrote you<br>a letter :)';
+      heartBubbleNo.style.display = 'none';
+    }, 350);
+  });
 
 })();
 </script>
