@@ -37,7 +37,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 /* Content sits absolutely over the image, inside the cloud body (above the tail) */
 .cloud-content {
   position:absolute;
-  top:30%; left:10%; right:10%;
+  top:22%; left:10%; right:10%;
   bottom:14%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:6px; padding:0;
@@ -85,21 +85,10 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 }
 
 /* ── CASTLE (background, right side) ── */
-.castle-bg {
-  position: fixed;
-  right: clamp(20px, 5vw, 80px);
-  bottom: clamp(20px, 15vw, 150px);
-  width: clamp(200px, 32vw, 460px);
-  height: auto;
-  z-index: 1;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 20px rgba(0,0,0,.2));
-  animation: castlePulse 3s ease-in-out infinite;
-}
 .castle-bg-link {
   position: fixed;
   right: clamp(0px, 2vw, 40px);
-  bottom: clamp(60px, 15vh, 180px);
+  bottom: clamp(60px, 15vh, 150px);
   width: clamp(340px, 48vw, 680px);
   z-index: 1;
   display: block;
