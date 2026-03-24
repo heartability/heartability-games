@@ -30,7 +30,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
   right:clamp(5px, 2vw, 40px);
   top:clamp(180px,28vh,320px);
   width:clamp(300px,42vw,580px);
-  z-index:3;
+  z-index:1;
   display:block;
   cursor:pointer;
 }
@@ -39,10 +39,10 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 @keyframes castlePulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.02);} }
 
 /* ── SCENE ── */
-.scene { position:relative; z-index:2; display:flex; align-items:flex-start; justify-content:flex-start; gap:0; padding:0 clamp(20px,5vw,80px) 60px; max-width:1100px; margin:0 auto; }
+.scene { position:relative; z-index:2; display:flex; align-items:flex-start; justify-content:flex-start; gap:0; padding:0 clamp(20px,5vw,80px) 60px; max-width:1100px; margin:0 auto; pointer-events:none; }
 
 /* ── CHARACTER COLUMN ── */
-.char-col { flex-shrink:0; width:clamp(160px,20vw,240px); display:flex; flex-direction:column; align-items:center; padding-top:10px; position:relative; z-index:3; }
+.char-col { flex-shrink:0; width:clamp(160px,20vw,240px); display:flex; flex-direction:column; align-items:center; padding-top:10px; position:relative; z-index:3; pointer-events:all; }
 
 /* ── CLOUD BUBBLE ── */
 .cloud-wrap { position:relative; width:100%; margin-bottom:8px; transition:opacity .25s ease,transform .25s ease; }
@@ -61,7 +61,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 @keyframes charFloat { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(1deg);} }
 
 /* ── LETTER COLUMN ── */
-.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-left:clamp(10px,2vw,30px); position:relative; z-index:6; margin-top:-160px; }
+.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-left:clamp(10px,2vw,30px); position:relative; z-index:5; margin-top:-175px; pointer-events:all; }
 
 /* ── LETTER PAPER ── */
 .letter-paper {
@@ -73,7 +73,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
   padding:clamp(24px,4vw,44px) clamp(20px,3.5vw,40px);
   box-shadow:2px 3px 0 1px rgba(0,0,0,.1),4px 6px 14px rgba(0,0,0,.16),inset 0 0 40px rgba(180,160,120,.07);
   transform-origin:top center;
-  transform:scaleY(0.03);
+  transform:scaleY(0.07);
   opacity:0;
   overflow:hidden;
   transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .2s ease;
