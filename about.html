@@ -27,7 +27,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 /* ── CASTLE — fixed right, top aligned with bottom of title area ── */
 .castle-bg-link {
   position:fixed;
-  right:0;
+  right:clamp(5px, 2vw, 40px);
   top:clamp(180px,28vh,320px);
   width:clamp(300px,42vw,580px);
   z-index:1;
@@ -60,7 +60,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 @keyframes charFloat { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(1deg);} }
 
 /* ── LETTER COLUMN ── */
-.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-left:clamp(10px,2vw,30px); position:relative; z-index:4; margin-top:-40px; }
+.letter-col { flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding-left:clamp(10px,2vw,30px); position:relative; z-index:4; margin-top:-20px; }
 
 /* ── LETTER PAPER ── */
 .letter-paper {
@@ -132,7 +132,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
           <button class="cloud-btn" id="btnYes">open it</button>
           <button class="cloud-btn" id="btnNo">maybe later</button>
         </div>
-        <span class="cloud-no-text" id="cloudNoText">no problem &#8212;<br>no rules here :)</span>
+        <span class="cloud-no-text" id="cloudNoText">choose your own adventure, baby</span>
       </div>
     </div>
 
