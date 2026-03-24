@@ -101,13 +101,57 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 
 /* ── MOBILE ── */
 @media (max-width:768px) {
-  .castle-bg-link { display:none; }
-  .scene { flex-direction:column; align-items:center; padding-bottom:80px; }
-  .char-col { width:100%; flex-direction:row; align-items:flex-end; gap:12px; padding-top:0; }
-  .char-img { width:clamp(90px,36vw,160px); flex-shrink:0; }
-  .cloud-wrap { flex:1; margin-bottom:0; }
-  .letter-col { width:100%; padding-left:0; margin-top:16px; }
-  .letter-paper { width:100%; }
+
+.castle-bg-link {
+  position:relative;
+  right:auto; top:auto;
+  width:clamp(200px,70vw,340px);
+  display:block;
+  margin:0 auto 40px;
+  z-index:2;
+}
+
+.scene {
+  flex-direction:column;
+  align-items:flex-start;
+  padding:0 20px 20px;
+  margin:0;
+  pointer-events:none;
+}
+
+.char-col {
+  width:100%;
+  flex-direction:row;
+  align-items:flex-end;
+  gap:0;
+  padding-top:0;
+  pointer-events:all;
+}
+
+.char-img {
+  width:clamp(100px,32vw,160px);
+  flex-shrink:0;
+  order:1;
+}
+
+.cloud-wrap {
+  flex:1;
+  margin-bottom:0;
+  order:2;
+  width:clamp(160px,48vw,240px);
+  flex-shrink:0;
+  align-self:flex-end;
+  margin-bottom:clamp(10px,3vw,20px);
+}
+
+.letter-col {
+  width:100%;
+  padding-left:0;
+  margin-top:16px;
+  pointer-events:all;
+}
+
+.letter-paper { width:100%; }
 }
 </style>
 </head>
@@ -172,11 +216,6 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
     s.style.cssText=["width:"+sz+"px","height:"+sz+"px","left:"+(Math.random()*100).toFixed(1)+"%","top:"+(Math.random()*100).toFixed(1)+"%","--d:"+(1.4+Math.random()*3.2).toFixed(2)+"s","--del:"+(-Math.random()*4).toFixed(2)+"s"].join(";");
     field.appendChild(s);
   }
-  function swapRainbow(){
-    const img=document.getElementById("titleRainbow"); if(!img)return;
-    img.src=window.innerWidth<=768?"assets/elements/circle-rainbow-m.png":"assets/elements/circle-rainbow.png";
-  }
-  swapRainbow(); window.addEventListener("resize",swapRainbow);
 
   const cloudWrap  = document.getElementById("cloudWrap");
   const cloudBtns  = document.getElementById("cloudBtns");
