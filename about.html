@@ -119,30 +119,28 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
   pointer-events:none;
 }
 
-.char-col {
-  width:100%;
-  flex-direction:row;
-  align-items:flex-end;
-  gap:0;
-  padding-top:0;
-  pointer-events:all;
-}
-
 .char-img {
   width:clamp(100px,32vw,160px);
   flex-shrink:0;
-  order:1;
 }
 
 .cloud-wrap {
   flex:1;
   margin-bottom:0;
-  order:2;
   width:clamp(70px,18vw,120px);
   flex-shrink:0;
   align-self:flex-end;
   margin-bottom:clamp(10px,3vw,20px);
 }
+
+.char-col {
+    width:100%;
+    flex-direction:column;
+    align-items:center;
+    gap:0;
+    padding-top:0;
+    pointer-events:all;
+  }
 
 .letter-col {
   width:100%;
@@ -189,7 +187,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
       <button class="letter-close" id="letterClose" aria-label="Close letter">&#x2715;</button>
       <div class="letter-body">
         <p>Dear visitor,</p>
-        <p>Heartability is a self care game designed to help you discover the bigger picture of your life.
+        <p>Heartability is a self care game designed to help you visualize the bigger picture of your life.
         <p>The four core games take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on your energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There&#39;s no wrong way to play, and nothing to optimize. Just endless possibilities to explore.</p>
         <p>The creative process deserves better tools. You don&#39;t have to figure it out alone anymore. Now you can figure it out with Heartability.</p>
         <p>Enter the castle, the door is always open.</p>
