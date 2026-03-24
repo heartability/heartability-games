@@ -37,16 +37,17 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 /* Content sits absolutely over the image, inside the cloud body (above the tail) */
 .cloud-content {
   position:absolute;
-  top:22%; left:10%; right:10%;
-  bottom:14%;
+  top:20%; left:10%; right:10%;
+  bottom:12%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:6px; padding:0;
+  gap:4px; padding:0;
 }
 
-.cloud-text { font-family:"ZoesHandwriting",cursive; font-size:clamp(12px,1.3vw,15px); color:#3a2560; text-align:center; line-height:1.45; }
+.cloud-text { font-family:"ZoesHandwriting",cursive; font-size:clamp(12px,1.3vw,15px); color:#3a2560; text-align:center; line-height:1.2; }
 .cloud-btns { display:flex; gap:8px; }
-.cloud-btn { padding:3px 14px; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#6578e2; background:rgba(255,255,255,.7); border:1.5px solid #6578e2; border-radius:20px; cursor:pointer; white-space:nowrap; transition:background .15s,color .15s; }
-.cloud-btn:hover { background:#6578e2; color:white; }
+.cloud-btn { padding:2px 8px; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#3a2560; background:none; border:none; cursor:pointer; white-space:nowrap; text-decoration:underline; text-underline-offset:2px; transition:transform .15s, color .15s; display:inline-block; }
+.cloud-btn:hover { transform:scale(1.12); color:#6578e2; }
+.cloud-btn:active { transform:scale(0.96); }
 .cloud-no-text { display:none; font-family:"ZoesHandwriting",cursive; font-size:clamp(11px,1.2vw,14px); color:#3a2560; text-align:center; line-height:1.45; }
 
 /* ── CHARACTER ── */
@@ -88,7 +89,7 @@ body { min-height:100vh; background:#6578e2; font-family:"ZoesHandwriting",cursi
 .castle-bg-link {
   position: fixed;
   right: clamp(0px, 2vw, 40px);
-  bottom: clamp(60px, 15vh, 150px);
+  bottom: clamp(-60px, -5vh, -20px);
   width: clamp(340px, 48vw, 680px);
   z-index: 1;
   display: block;
