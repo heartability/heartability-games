@@ -157,26 +157,26 @@ body {
   50%        { transform: scale(1.03); }
 }
 
-/* ── CLOUD — z4, above rainbow ────────────────────── */
+/* ── HEART GUIDE — z4, above rainbow ─────────────── */
 
-.cloud-wrap {
+.heart-guide-wrap {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(2vw, -18vh);
+  transform: translate(-160%, -60%);
   z-index: 4;
   pointer-events: none;
 }
 
-.cloud-img {
+.heart-guide-img {
   width: clamp(60px, 7vw, 100px);
   height: auto;
   display: block;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-  animation: cloudFloat 4s ease-in-out infinite;
+  animation: heartFloat 4s ease-in-out infinite;
 }
 
-@keyframes cloudFloat {
+@keyframes heartFloat {
   0%,  100% { transform: translateY(0px) rotate(-2deg); }
   50%        { transform: translateY(-10px) rotate(2deg); }
 }
@@ -186,9 +186,8 @@ body {
 .enter-btn {
   position: absolute;
   top: 50%;
-  right: 50%;
-  /* left of castle, vertically aligned with its mid-point */
-  transform: translate(-155%, -80%);
+  left: 50%;
+  transform: translate(70%, -80%);
   font-family: "ZoesHandwriting", cursive;
   font-size: clamp(24px, 3vw, 46px);
   color: rgba(255, 255, 255, 0.92);
@@ -275,17 +274,17 @@ body {
 
   /* Mobile: enter centered below castle */
   .enter-btn {
-  right: 50%;
+  left: 50%;
   transform: translate(-50%, 130%);
   font-size: clamp(20px, 5vw, 32px);
 }
 
   /* Mobile: cloud higher, tighter to spire */
-  .cloud-wrap {
+  .heart-guide-wrap {
     transform: translate(5vw, -25vw);
   }
 
-  .cloud-img {
+  .heart-guide-img {
     width: clamp(40px, 11vw, 68px);
   }
 
@@ -330,8 +329,8 @@ body {
          aria-hidden="true">
 
     <!-- Cloud — z4, above rainbow -->
-    <div class="cloud-wrap">
-      <img class="cloud-img"
+    <div class="heart-guide-wrap">
+      <img class="heart-guide-img"
            src="assets/elements/guides/heart.png"
            alt="">
     </div>
