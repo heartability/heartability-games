@@ -355,7 +355,7 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-120%, -90%) scaleY(0.03);
+  transform: translate(-80%, -70%) scaleY(0.03);
   transform-origin: top left;
   opacity: 0;
   max-height: 0;
@@ -372,7 +372,7 @@ body {
   transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
 }
 .letter-overlay.unfolded {
-  transform: translate(-120%, -90%) scaleY(1) rotate(.6deg);
+  transform: translate(-80%, -70%) scaleY(1) rotate(.6deg);
   opacity: 1;
   max-height: 1000px;
   pointer-events: all;
@@ -538,7 +538,7 @@ body {
       heartBubbleWrap.classList.remove('hidden');
       heartBubbleBtns.style.display = 'flex';
       heartBubbleText.style.display = '';
-      heartBubbleText.innerHTML = 'I wrote you<br>a letter :)';
+      heartBubbleText.innerHTML = 'about us';
       heartBubbleNo.style.display = 'none';
     }, 350);
   });
