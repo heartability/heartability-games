@@ -361,7 +361,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: all;
 }
 
 .letter-overlay.hidden { display: none; }
@@ -485,75 +485,76 @@ body {
 </div>
 
 <script>
-(function () {
-
-  const heart  = document.getElementById('char-heart');
-  const bubble = document.getElementById('heart-bubble');
-
-  const messages = {
-  'art-map':     'you are not lost, you just need a map',
-  'art-bingo':   "how are you really feeling?",
-  'art-mirror':  'you contain multitudes',
-  'art-bag':     "what's in your bag?",
-  'art-padlock': "i can't wait to show you",
-};
-  function triggerWiggle(artEl) {
-    artEl.classList.remove('wiggling');
-    void artEl.offsetWidth;
-    artEl.classList.add('wiggling');
-    artEl.addEventListener('animationend',
-      () => artEl.classList.remove('wiggling'), { once: true });
-  }
-
-  function activate(artId) {
-    bubble.textContent = messages[artId] || '';
-    heart.classList.add('active');
-  }
-
-  function deactivate() { heart.classList.remove('active'); }
-
-  Object.keys(messages).forEach(function (artId) {
-    const art = document.getElementById(artId);
-    if (!art) return;
-    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
-    art.addEventListener('mouseleave', deactivate);
-
-    const padlock = document.getElementById('art-padlock');
-const letterOverlay = document.getElementById('letter-overlay');
-const letterPaper   = document.getElementById('letter-paper');
-const letterClose   = document.getElementById('letter-close');
-
-if (padlock) {
-  padlock.addEventListener('click', () => {
-    letterOverlay.classList.remove('hidden');
-    setTimeout(() => letterPaper.classList.add('unfolded'), 30);
-  });
-}
-
-if (letterClose) {
-  letterClose.addEventListener('click', () => {
-    letterPaper.classList.remove('unfolded');
-    setTimeout(() => letterOverlay.classList.add('hidden'), 400);
-  });
-}
-  });
-
-  heart.addEventListener('mouseenter', () => {
-    bubble.textContent = 'welcome! pick a game to begin';
-    heart.classList.add('active');
-  });
-  heart.addEventListener('mouseleave', deactivate);
-
-  const door = document.getElementById('door-img');
-  if (door) {
-    door.addEventListener('click', () => {
-      door.style.filter = 'drop-shadow(-4px 0 16px rgba(80,60,130,0.5))';
-      setTimeout(() => door.style.filter = '', 800);
-    });
-  }
+  (function () {
   
-})();
-</script>
+    const heart  = document.getElementById('char-heart');
+    const bubble = document.getElementById('heart-bubble');
+  
+    const messages = {
+      'art-map':     'you are not lost, you just need a map',
+      'art-bingo':   "how are you really feeling?",
+      'art-mirror':  'you contain multitudes',
+      'art-bag':     "what's in your bag?",
+      'art-padlock': "i can't wait to show you",
+    };
+  
+    function triggerWiggle(artEl) {
+      artEl.classList.remove('wiggling');
+      void artEl.offsetWidth;
+      artEl.classList.add('wiggling');
+      artEl.addEventListener('animationend',
+        () => artEl.classList.remove('wiggling'), { once: true });
+    }
+  
+    function activate(artId) {
+      bubble.textContent = messages[artId] || '';
+      heart.classList.add('active');
+    }
+  
+    function deactivate() { heart.classList.remove('active'); }
+  
+    Object.keys(messages).forEach(function (artId) {
+      const art = document.getElementById(artId);
+      if (!art) return;
+      art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
+      art.addEventListener('mouseleave', deactivate);
+    });
+  
+    heart.addEventListener('mouseenter', () => {
+      bubble.textContent = 'welcome! pick a game to begin';
+      heart.classList.add('active');
+    });
+    heart.addEventListener('mouseleave', deactivate);
+  
+    const door = document.getElementById('door-img');
+    if (door) {
+      door.addEventListener('click', () => {
+        door.style.filter = 'drop-shadow(-4px 0 16px rgba(80,60,130,0.5))';
+        setTimeout(() => door.style.filter = '', 800);
+      });
+    }
+  
+    const padlock     = document.getElementById('art-padlock');
+    const letterOverlay = document.getElementById('letter-overlay');
+    const letterPaper   = document.getElementById('letter-paper');
+    const letterClose   = document.getElementById('letter-close');
+  
+    if (padlock) {
+      padlock.addEventListener('click', () => {
+        letterOverlay.classList.remove('hidden');
+        setTimeout(() => letterPaper.classList.add('unfolded'), 30);
+      });
+    }
+  
+    if (letterClose) {
+      letterClose.addEventListener('click', () => {
+        letterPaper.classList.remove('unfolded');
+        setTimeout(() => letterOverlay.classList.add('hidden'), 400);
+      });
+    }
+  
+  })();
+  </script>
 
 <!-- LETTER OVERLAY -->
 <div class="letter-overlay hidden" id="letter-overlay">
