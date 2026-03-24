@@ -333,6 +333,91 @@ body {
 }
 
 }
+
+/* ─────────────────────────────────────────────────
+   PADLOCK
+───────────────────────────────────────────────── */
+
+.padlock-art {
+  right: 80px;
+  bottom: calc(var(--floor-h) + var(--base-h) + 4vw);
+  width: 8vw;
+  min-width: 60px;
+  max-width: 110px;
+  left: auto;
+  top: auto;
+  z-index: 5;
+  transform: translateX(50%);
+}
+
+/* ─────────────────────────────────────────────────
+   LETTER
+───────────────────────────────────────────────── */
+
+.letter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.letter-overlay.hidden { display: none; }
+
+.letter-paper {
+  position: relative;
+  width: clamp(280px, 44vw, 500px);
+  background: #f7f2e8;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(210,195,160,.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(190,175,140,.15) 0%, transparent 50%);
+  border-radius: 2px;
+  padding: clamp(24px, 4vw, 44px) clamp(20px, 3.5vw, 40px);
+  box-shadow:
+    2px 3px 0 1px rgba(0,0,0,.1),
+    4px 6px 14px rgba(0,0,0,.25),
+    inset 0 0 40px rgba(180,160,120,.07);
+  transform: scaleY(0.07);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+}
+
+.letter-paper.unfolded {
+  transform: scaleY(1) rotate(.6deg);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.letter-close {
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #a09070;
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  transition: color .15s, transform .1s;
+}
+.letter-close:hover { color: #5a3a7a; transform: scale(1.2); }
+
+.letter-body {
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: #2a1e14;
+  line-height: 1.75;
+}
+.letter-body p { margin-bottom: 1em; }
+.letter-body p:first-child { margin-bottom: 1.2em; font-size: clamp(15px, 1.8vw, 20px); }
+.letter-body p:last-child { margin-bottom: 0; }
+.letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #5a3a7a; }
   
 </style>
 </head>
@@ -386,6 +471,11 @@ body {
      role="button"
      aria-label="Library — coming soon">
 
+<!-- PADLOCK  z:5 -->
+<div class="wall-art padlock-art" id="art-padlock">
+  <img src="assets/elements/padlock.png" alt="Coming soon — locked door">
+</div>
+
 <!-- HEART GUIDE  z:5 -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
@@ -401,12 +491,12 @@ body {
   const bubble = document.getElementById('heart-bubble');
 
   const messages = {
-    'art-map':    'you are not lost, you just need a map',
-    'art-bingo':  "how are you really feeling?",
-    'art-mirror': 'you contain multitudes',
-    'art-bag':    "what's in your bag?",
-  };
-
+  'art-map':     'you are not lost, you just need a map',
+  'art-bingo':   "how are you really feeling?",
+  'art-mirror':  'you contain multitudes',
+  'art-bag':     "what's in your bag?",
+  'art-padlock': "i can't wait to show you",
+};
   function triggerWiggle(artEl) {
     artEl.classList.remove('wiggling');
     void artEl.offsetWidth;
@@ -427,6 +517,25 @@ body {
     if (!art) return;
     art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
     art.addEventListener('mouseleave', deactivate);
+
+    const padlock = document.getElementById('art-padlock');
+const letterOverlay = document.getElementById('letter-overlay');
+const letterPaper   = document.getElementById('letter-paper');
+const letterClose   = document.getElementById('letter-close');
+
+if (padlock) {
+  padlock.addEventListener('click', () => {
+    letterOverlay.classList.remove('hidden');
+    setTimeout(() => letterPaper.classList.add('unfolded'), 30);
+  });
+}
+
+if (letterClose) {
+  letterClose.addEventListener('click', () => {
+    letterPaper.classList.remove('unfolded');
+    setTimeout(() => letterOverlay.classList.add('hidden'), 400);
+  });
+}
   });
 
   heart.addEventListener('mouseenter', () => {
@@ -445,6 +554,21 @@ body {
   
 })();
 </script>
+
+<!-- LETTER OVERLAY -->
+<div class="letter-overlay hidden" id="letter-overlay">
+  <div class="letter-paper" id="letter-paper">
+    <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
+    <div class="letter-body">
+      <p>Dear visitor,</p>
+      <p>Something magical is coming through this door soon. Check back later.</p>
+      <div class="letter-sig">
+        <p>With love,</p>
+        <p>Zoe Tinnes, founder of Heartability</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
