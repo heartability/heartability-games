@@ -360,17 +360,12 @@ body {
 .letter-body p:last-child { margin-bottom: 0; }
 .letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #5a3a7a; }
 
-@media (max-width: 768px) {
+@media (max-width: 375px) {
   .art-map    { left: 2vw;  top: 20vh; width: 38vw; }
   .art-bingo  { left: 40vw; top: 20vh; width: 36vw; }
   .art-bag    { left: 11vw; top: 40vh; width: 18vw; }
   .art-mirror { left: 35vw; top: 40vh; width: 28vw; }
-
-  .padlock-art {
-    right: calc(5px + 17vw - 30px);
-    bottom: calc(var(--floor-h) + var(--base-h) + 12vh);
-    width: 14vw;
-  }
+  .padlock-art {right: 5vw; top: 50vh; width: 14vw; }
 
   .door-img {
     width: 35vw;
