@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Builder — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+}
+
+body {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: #f5f0ea;
+  user-select: none;
+}
+
+/* ─────────────────────────────────────────────────
+   ROOM BACKGROUND  z:0
+───────────────────────────────────────────────── */
+
+.room-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.room-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────────
+   INVISIBLE DOOR CLICK ZONES  z:1
+───────────────────────────────────────────────── */
+
+/* "take me back" — bottom-left door area */
+.door-zone-left {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 11%;
+  height: 48%;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* "keep it going" — bottom-right door area */
+.door-zone-right {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 11%;
+  height: 48%;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────────
+   TOPBAR  z:10
+───────────────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  display: inline-block;
+  padding: 6px 18px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: clamp(6px, 2vw, 12px);
+  color: #6579e2;
+  background: #fdf6e3;
+  border: 3px solid #6579e2;
+  outline: 2px solid #83d2e6;
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
+
+.room-sign {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: clamp(16px, 2.6vw, 36px);
+  color: #6579e2;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────
+   WALL ART  z:2
+───────────────────────────────────────────────── */
+
+.wall-art {
+  position: fixed;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.wall-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
+}
+
+.wall-art:hover img,
+.wall-art.active img {
+  filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35));
+}
+
+@keyframes art-wiggle {
+  0%,100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-3deg); }
+  40%      { transform: rotate(3deg); }
+  60%      { transform: rotate(-2deg); }
+  80%      { transform: rotate(2deg); }
+}
+
+.wall-art.wiggling { animation: art-wiggle 0.48s ease; }
+
+.art-map    { left: 15vw;  top: 15vh; width: 22vw; }
+.art-bingo  { left: 45vw; top: 15vh; width: 18vw; }
+.art-bag    { left: 35vw; top: 42vh; width:  8vw; }
+.art-mirror { left: 50vw; top: 36vh; width: 14vw; }
+
+/* ─────────────────────────────────────────────────
+   CHARACTER ANIMATIONS
+───────────────────────────────────────────────── */
+
+@keyframes intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  18%  { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); }
+  58%  { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes idle-pulse {
+  0%,100% { transform: translateY(0)     rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px)  rotate(2deg)  scale(1.03); }
+}
+
+@keyframes hover-bounce {
+  0%,100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
+  50%      { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
+}
+
+/* ─────────────────────────────────────────────────
+   HEART GUIDE  z:5
+───────────────────────────────────────────────── */
+
+.char-heart {
+  position: fixed;
+  left: 150px;
+  bottom: 28%;
+  width: clamp(150px, 20vw, 285px);
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.char-heart .char-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
+  animation:
+    intro-wiggle 0.85s ease-out 0.35s 1 backwards,
+    idle-pulse   3.6s ease-in-out 1.5s infinite;
+}
+
+.char-heart.active .char-img {
+  animation: hover-bounce 0.55s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────
+   THOUGHT BUBBLE  z:6
+───────────────────────────────────────────────── */
+
+.thought-bubble {
+  position: absolute;
+  left: calc(100% - 10px);
+  top: calc(100% - 40px);
+  width: clamp(200px, 32vw, 350px);
+  height: auto;
+  aspect-ratio: 846 / 248;
+  background-image: url('assets/elements/speech-box.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 11% 8% 0 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.6vw, 20px);
+  color: #5a3a7a;
+  text-align: center;
+  line-height: 1.3;
+  filter: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 6;
+  white-space: normal;
+}
+
+.thought-bubble::after { display: none; }
+
+.char-heart.active .thought-bubble { opacity: 1; }
+
+/* ─────────────────────────────────────────────────
+   GAME MODAL  z:100
+───────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: background 0.35s ease;
+}
+
+.modal-overlay.open {
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: all;
+}
+
+.modal-window {
+  position: relative;
+  width: clamp(320px, 88vw, 1100px);
+  height: clamp(400px, 84dvh, 820px);
+  background: #f5f0ea;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 3px #6579e2,
+    0 0 0 6px #83d2e6,
+    6px 10px 40px rgba(0,0,0,0.45);
+  overflow: hidden;
+  transform: scale(0.88) translateY(24px);
+  opacity: 0;
+  transition:
+    transform 0.38s cubic-bezier(.22,1,.36,1),
+    opacity 0.28s ease;
+  pointer-events: none;
+}
+
+.modal-overlay.open .modal-window {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #a09070;
+  background: #fdf6e3;
+  border: 2px solid #6579e2;
+  border-radius: 2px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s, background 0.15s;
+  box-shadow: 1px 2px 0 1px rgba(0,0,0,0.2);
+}
+
+.modal-close:hover {
+  color: #5a3a7a;
+  background: #ede6f7;
+  transform: scale(1.15);
+}
+
+.modal-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────────
+   LETTER OVERLAY  z:50
+───────────────────────────────────────────────── */
+
+.letter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  pointer-events: all;
+  transition: opacity 0.25s ease;
+}
+
+.letter-overlay.hidden {
+  display: none;
+}
+
+.letter-paper {
+  position: relative;
+  width: clamp(280px, 44vw, 500px);
+  background: #f7f2e8;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(210,195,160,.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(190,175,140,.15) 0%, transparent 50%);
+  border-radius: 2px;
+  padding: clamp(24px, 4vw, 44px) clamp(20px, 3.5vw, 40px);
+  box-shadow:
+    2px 3px 0 1px rgba(0,0,0,.1),
+    4px 6px 14px rgba(0,0,0,.25),
+    inset 0 0 40px rgba(180,160,120,.07);
+  transform: scaleY(0.07);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+}
+
+.letter-paper.unfolded {
+  transform: scaleY(1) rotate(.6deg);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.letter-close {
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #a09070;
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  transition: color .15s, transform .1s;
+}
+.letter-close:hover { color: #5a3a7a; transform: scale(1.2); }
+
+.letter-body {
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: #2a1e14;
+  line-height: 1.75;
+}
+.letter-body p { margin-bottom: 1em; }
+.letter-body p:first-child { margin-bottom: 1.2em; font-size: clamp(15px, 1.8vw, 20px); }
+.letter-body p:last-child { margin-bottom: 0; }
+.letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #5a3a7a; }
+
+/* ─────────────────────────────────────────────────
+   MOBILE
+───────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .art-map    { left: 2vw;  top: 20vh; width: 38vw; }
+  .art-bingo  { left: 40vw; top: 20vh; width: 36vw; }
+  .art-bag    { left: 11vw; top: 40vh; width: 18vw; }
+  .art-mirror { left: 35vw; top: 40vh; width: 28vw; }
+
+  .char-heart {
+    width: clamp(50px, 25vw, 200px);
+    left: 8px;
+    bottom: 30%;
+  }
+
+  .room-sign {
+    font-size: clamp(14px, 4vw, 24px); top: 60px;
+  }
+
+  .thought-bubble {
+    width: clamp(160px, 55vw, 320px);
+    font-family: ZoesHandwriting;
+    font-size: clamp(11px, 3vw, 16px);
+    left: calc(100% - 20px);
+    top: calc(100% - 15px);
+  }
+
+  .modal-window {
+    width: 96vw;
+    height: 88dvh;
+  }
+
+  .door-zone-left,
+  .door-zone-right {
+    width: 13%;
+    height: 44%;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ROOM BACKGROUND  z:0 -->
+<div class="room-bg">
+  <img src="assets/elements/game-room.png" alt="" aria-hidden="true">
+</div>
+
+<!-- DOOR CLICK ZONES  z:1 -->
+<div class="door-zone-left"  id="door-left"  role="button" tabindex="0" aria-label="Take me back — go home"></div>
+<div class="door-zone-right" id="door-right" role="button" tabindex="0" aria-label="Keep it going — coming soon"></div>
+
+<!-- TOPBAR  z:10 -->
+<div class="topbar">
+  <a class="back-btn" href="index.html">← home</a>
+  <h1 class="room-sign">build a world</h1>
+</div>
+
+<!-- WALL ART  z:2 -->
+<div class="wall-art art-map" id="art-map" data-game="treasure-map" role="button" tabindex="0" aria-label="Open Treasure Map game">
+  <img src="assets/elements/map.png" alt="Treasure Map">
+</div>
+
+<div class="wall-art art-bingo" id="art-bingo" data-game="bingo" role="button" tabindex="0" aria-label="Open Bingo game">
+  <img src="assets/elements/bingo.png" alt="Bingo">
+</div>
+
+<div class="wall-art art-bag" id="art-bag" data-game="inventory" role="button" tabindex="0" aria-label="Open Inventory game">
+  <img src="assets/elements/bag.png" alt="What's in my bag">
+</div>
+
+<div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror" role="button" tabindex="0" aria-label="Open Infinity Mirror game">
+  <img src="assets/elements/mirror.png" alt="Infinity Mirror">
+</div>
+
+<!-- HEART GUIDE  z:5 -->
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="heart-bubble"></div>
+  <img class="char-img"
+       src="assets/elements/guides/heart.png"
+       alt="Heart guide character">
+</div>
+
+<!-- GAME MODAL  z:100 -->
+<div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog" aria-label="Game">
+  <div class="modal-window" id="modal-window">
+    <button class="modal-close" id="modal-close" aria-label="Close game">&#x2715;</button>
+    <iframe class="modal-frame" id="modal-frame" src="" title="Game"></iframe>
+  </div>
+</div>
+
+<!-- LETTER OVERLAY  z:50 -->
+<div class="letter-overlay hidden" id="letter-overlay">
+  <div class="letter-paper" id="letter-paper">
+    <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
+    <div class="letter-body">
+      <p>Dear visitor,</p>
+      <p>This is just the beginning of something much bigger. The four core games will always be free. But as Heartability grows here is what we are building:</p>
+      <li>user profiles so the world remembers you</li>
+      <li>a media library to find inspiration</li>
+      <li>a self care tool library to find resources</li>
+      <li>a fully explorable world custom built from your inputs</li>
+      <li>a community board for travelers on similar emotional landscapes</li>
+      <div class="letter-sig">
+        <p>More magic, coming soon...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+
+  /* ── Heart guide messages ── */
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  const messages = {
+    'art-map':    'you are not lost, you just need a map',
+    'art-bingo':  'how are you really feeling?',
+    'art-mirror': 'you contain multitudes',
+    'art-bag':    "what's in your bag?",
+  };
+
+  function triggerWiggle(artEl) {
+    artEl.classList.remove('wiggling');
+    void artEl.offsetWidth;
+    artEl.classList.add('wiggling');
+    artEl.addEventListener('animationend',
+      () => artEl.classList.remove('wiggling'), { once: true });
+  }
+
+  function activate(artId) {
+    bubble.textContent = messages[artId] || '';
+    heart.classList.add('active');
+  }
+
+  function deactivate() { heart.classList.remove('active'); }
+
+  Object.keys(messages).forEach(function (artId) {
+    const art = document.getElementById(artId);
+    if (!art) return;
+    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
+    art.addEventListener('mouseleave', deactivate);
+  });
+
+  heart.addEventListener('mouseenter', () => {
+    bubble.textContent = 'welcome! pick a game to begin';
+    heart.classList.add('active');
+  });
+  heart.addEventListener('mouseleave', deactivate);
+
+  /* ── Modal system ── */
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalFrame   = document.getElementById('modal-frame');
+  const modalClose   = document.getElementById('modal-close');
+
+  function openModal(gamePage) {
+    modalFrame.src = gamePage + '.html';
+    modalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+    // Small delay before clearing src so close animation plays first
+    setTimeout(() => {
+      modalFrame.src = '';
+    }, 400);
+    document.body.style.overflow = '';
+  }
+
+  // Wall art click → open modal
+  document.querySelectorAll('.wall-art[data-game]').forEach(function (art) {
+    art.addEventListener('click', () => openModal(art.dataset.game));
+    art.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') openModal(art.dataset.game);
+    });
+  });
+
+  // Close button
+  modalClose.addEventListener('click', closeModal);
+
+  // Click outside modal window to close
+  modalOverlay.addEventListener('click', function (e) {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  // Escape key to close
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
+  });
+
+  /* ── Door zones ── */
+  const doorLeft  = document.getElementById('door-left');
+  const doorRight = document.getElementById('door-right');
+
+  // "take me back" → home
+  doorLeft.addEventListener('click', () => { window.location.href = 'index.html'; });
+  doorLeft.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html';
+  });
+
+  // "keep it going" → letter overlay
+  const letterOverlay = document.getElementById('letter-overlay');
+  const letterPaper   = document.getElementById('letter-paper');
+  const letterClose   = document.getElementById('letter-close');
+
+  function openLetter() {
+    letterOverlay.classList.remove('hidden');
+    setTimeout(() => letterPaper.classList.add('unfolded'), 30);
+  }
+
+  function closeLetter() {
+    letterPaper.classList.remove('unfolded');
+    setTimeout(() => letterOverlay.classList.add('hidden'), 400);
+  }
+
+  doorRight.addEventListener('click', openLetter);
+  doorRight.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') openLetter();
+  });
+
+  letterClose.addEventListener('click', closeLetter);
+
+  // Click outside letter paper to close
+  letterOverlay.addEventListener('click', function (e) {
+    if (e.target === letterOverlay) closeLetter();
+  });
+
+})();
+</script>
+
+</body>
+</html>
