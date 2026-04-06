@@ -27,8 +27,26 @@ body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
-  background: #f5f0ea;
+  background: #e8e3dc; /* pillarbox/letterbox fill — matches room edge color */
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────────
+   ROOM STAGE — fixed aspect ratio container
+   game-room.png natural ratio is 1456 × 816 ≈ 16:9
+───────────────────────────────────────────────── */
+
+.room-stage {
+  position: relative;
+  /* Always fill the viewport, constrained to room's natural ratio */
+  width: 100vw;
+  height: 100dvh;
+  max-width: calc(100dvh * (1456 / 816));
+  max-height: calc(100vw * (816 / 1456));
+  flex-shrink: 0;
 }
 
 /* ─────────────────────────────────────────────────
@@ -36,7 +54,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .room-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -47,8 +65,7 @@ body {
 .room-bg img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center center;
+  object-fit: fill; /* exact fit — no crop, no distortion since container matches ratio */
   display: block;
 }
 
@@ -58,7 +75,7 @@ body {
 
 /* "take me back" — bottom-left door area */
 .door-zone-left {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   width: 11%;
@@ -69,7 +86,7 @@ body {
 
 /* "keep it going" — bottom-right door area */
 .door-zone-right {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   right: 0;
   width: 11%;
@@ -83,7 +100,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .topbar {
-  position: fixed;
+  position: absolute;
   top: 20px;
   left: 0;
   right: 0;
@@ -132,7 +149,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .wall-art {
-  position: fixed;
+  position: absolute;
   cursor: pointer;
   z-index: 2;
 }
@@ -160,10 +177,11 @@ body {
 
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
-.art-map    { left: 15vw;  top: 15vh; width: 22vw; }
-.art-bingo  { left: 45vw; top: 15vh; width: 18vw; }
-.art-bag    { left: 35vw; top: 42vh; width:  8vw; }
-.art-mirror { left: 50vw; top: 36vh; width: 14vw; }
+/* Shifted +7.5% right, +8% down from original to center group in wall area */
+.art-map    { left: 22.5%; top: 16%; width: 22%; }
+.art-bingo  { left: 52.5%; top: 16%; width: 18%; }
+.art-bag    { left: 42.5%; top: 43%; width:  8%; }
+.art-mirror { left: 57.5%; top: 37%; width: 14%; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER ANIMATIONS
@@ -193,10 +211,10 @@ body {
 ───────────────────────────────────────────────── */
 
 .char-heart {
-  position: fixed;
-  left: 150px;
+  position: absolute;
+  left: 14%;
   bottom: 28%;
-  width: clamp(150px, 20vw, 285px);
+  width: clamp(150px, 20%, 285px);
   display: flex;
   align-items: flex-end;
   cursor: pointer;
@@ -259,7 +277,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .modal-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 100;
   background: rgba(0, 0, 0, 0);
@@ -339,7 +357,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .letter-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 50;
   display: flex;
@@ -412,13 +430,13 @@ body {
 ───────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .art-map    { left: 2vw;  top: 20vh; width: 38vw; }
-  .art-bingo  { left: 40vw; top: 20vh; width: 36vw; }
-  .art-bag    { left: 11vw; top: 40vh; width: 18vw; }
-  .art-mirror { left: 35vw; top: 40vh; width: 28vw; }
+  .art-map    { left: 9%;  top: 21%; width: 38%; }
+  .art-bingo  { left: 47%; top: 21%; width: 36%; }
+  .art-bag    { left: 18%; top: 41%; width: 18%; }
+  .art-mirror { left: 42%; top: 41%; width: 28%; }
 
   .char-heart {
-    width: clamp(50px, 25vw, 200px);
+    width: clamp(50px, 20%, 200px);
     left: 8px;
     bottom: 30%;
   }
@@ -436,8 +454,8 @@ body {
   }
 
   .modal-window {
-    width: 96vw;
-    height: 88dvh;
+    width: 96%;
+    height: 88%;
   }
 
   .door-zone-left,
@@ -450,6 +468,8 @@ body {
 </style>
 </head>
 <body>
+
+<div class="room-stage">
 
 <!-- ROOM BACKGROUND  z:0 -->
 <div class="room-bg">
@@ -640,6 +660,7 @@ body {
 
 })();
 </script>
+</div><!-- /.room-stage -->
 
 </body>
 </html>
