@@ -108,29 +108,6 @@ body {
   pointer-events: none;
 }
 
-.back-btn {
-  position: absolute;
-  left: 24px;
-  top: 0;
-  display: inline-block;
-  padding: 6px 18px;
-  text-decoration: none;
-  font-family: var(--font-pixel);
-  font-size: clamp(6px, 2vw, 12px);
-  color: #6579e2;
-  background: #fdf6e3;
-  border: 3px solid #6579e2;
-  outline: 2px solid #83d2e6;
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
-  transition: transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
-.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
-
 .room-sign {
   position: absolute;
   left: 50%;
@@ -178,10 +155,10 @@ body {
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
 /* Shifted +7.5% right, +8% down from original to center group in wall area */
-.art-map    { left: 22.5%; top: 16%; width: 22%; }
-.art-bingo  { left: 52.5%; top: 16%; width: 18%; }
-.art-bag    { left: 42.5%; top: 43%; width:  8%; }
-.art-mirror { left: 57.5%; top: 37%; width: 14%; }
+.art-map    { left: 22.5%; top: 21%; width: 22%; }
+.art-bingo  { left: 52.5%; top: 21%; width: 18%; }
+.art-bag    { left: 42.5%; top: 48%; width:  8%; }
+.art-mirror { left: 57.5%; top: 42%; width: 14%; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER ANIMATIONS
@@ -442,7 +419,7 @@ body {
   }
 
   .room-sign {
-    font-size: clamp(14px, 4vw, 24px); top: 60px;
+    font-size: clamp(14px, 4vw, 24px);
   }
 
   .thought-bubble {
@@ -482,7 +459,6 @@ body {
 
 <!-- TOPBAR  z:10 -->
 <div class="topbar">
-  <a class="back-btn" href="index.html">← home</a>
   <h1 class="room-sign">build a world</h1>
 </div>
 
