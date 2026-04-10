@@ -105,12 +105,11 @@ html, body {
 }
 
 /* Back wall: full viewport rectangle behind all panels */
-.panel-back {
-  background: var(--back-wall);
-  z-index: -1;
-}
+/* Back wall = body background showing through the gap between panels.
+   No extra div needed — body bg color handles this. */
+.panel-back { display: none; }
 
-/* Floor: image tiled naturally within the clipped triangle */
+/* Floor: clipped triangle, image stretches full width at bottom */
 .panel-floor {
   clip-path: polygon(
     0 100%,
@@ -118,10 +117,25 @@ html, body {
     var(--vp-x) var(--vp-y),
     100% 100%
   );
-  background-image: url('assets/elements/walls/floor.png');
-  background-size: 40% auto;
-  background-repeat: repeat-x;
-  background-position: bottom center;
+  background: none; /* image handled by .floor-img below */
+}
+
+/* Floor image: sits above the clip panel, full width, bottom-anchored */
+.floor-img {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  z-index: 0;
+  pointer-events: none;
+  /* clip to same floor triangle so it doesnt bleed into walls */
+  clip-path: polygon(
+    0 100%,
+    var(--vp-x) var(--vp-y),
+    var(--vp-x) var(--vp-y),
+    100% 100%
+  );
 }
 
 /* ── Perspective lines ── */
@@ -540,6 +554,9 @@ html, body {
 <div class="room-panel panel-left"></div>
 <div class="room-panel panel-right"></div>
 <div class="room-panel panel-floor"></div>
+
+<!-- ═══ FLOOR IMAGE ═══ -->
+<img class="floor-img" src="assets/elements/walls/floor.png" alt="" aria-hidden="true">
 
 <!-- ═══ PERSPECTIVE LINES  z:1 ═══
      SVG draws the 4 corner-to-vanishingpoint lines.
