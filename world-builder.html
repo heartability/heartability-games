@@ -27,70 +27,78 @@ body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
-  background: #e8e3dc; /* pillarbox/letterbox fill — matches room edge color */
+  background: #f5f0ea; /* back wall — shows in center between the four pieces */
   user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ─────────────────────────────────────────────────
-   ROOM STAGE — fixed aspect ratio container
-   game-room.png natural ratio is 1456 × 816 ≈ 16:9
+   ROOM WALLS  z:0
+   Each piece pins to its edge and stretches only
+   in one axis, so perspective lines stay correct
+   at any screen size.
 ───────────────────────────────────────────────── */
 
-.room-stage {
-  position: relative;
-  /* Always fill the viewport, constrained to room's natural ratio */
-  width: 100vw;
-  height: 100dvh;
-  max-width: calc(100dvh * (1456 / 816));
-  max-height: calc(100vw * (816 / 1456));
-  flex-shrink: 0;
-}
-
-/* ─────────────────────────────────────────────────
-   ROOM BACKGROUND  z:0
-───────────────────────────────────────────────── */
-
-.room-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.wall {
+  position: fixed;
   z-index: 0;
   pointer-events: none;
-}
-
-.room-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: fill; /* exact fit — no crop, no distortion since container matches ratio */
   display: block;
 }
 
-/* ─────────────────────────────────────────────────
-   INVISIBLE DOOR CLICK ZONES  z:1
-───────────────────────────────────────────────── */
+/* Ceiling: full width, height auto */
+.wall-ceiling {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
 
-/* "take me back" — bottom-left door area */
-.door-zone-left {
-  position: absolute;
+/* Floor: full width, height auto */
+.wall-floor {
   bottom: 0;
   left: 0;
-  width: 11%;
-  height: 48%;
+  width: 100%;
+  height: auto;
+}
+
+/* Left wall: full height, width auto */
+.wall-left {
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+}
+
+/* Right wall: full height, width auto */
+.wall-right {
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: auto;
+}
+
+/* ─────────────────────────────────────────────────
+   DOOR CLICK ZONES  z:1
+   Invisible hit areas over the door arches.
+   Tweak width/height % to match your artwork.
+───────────────────────────────────────────────── */
+
+.door-zone-left {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 10%;
+  height: 50%;
   z-index: 1;
   cursor: pointer;
 }
 
-/* "keep it going" — bottom-right door area */
 .door-zone-right {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   right: 0;
-  width: 11%;
-  height: 48%;
+  width: 10%;
+  height: 50%;
   z-index: 1;
   cursor: pointer;
 }
@@ -100,13 +108,36 @@ body {
 ───────────────────────────────────────────────── */
 
 .topbar {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 0;
   right: 0;
   z-index: 10;
   pointer-events: none;
 }
+
+.back-btn {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  display: inline-block;
+  padding: 6px 18px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: clamp(6px, 2vw, 12px);
+  color: #6579e2;
+  background: #fdf6e3;
+  border: 3px solid #6579e2;
+  outline: 2px solid #83d2e6;
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
+.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
 
 .room-sign {
   position: absolute;
@@ -126,7 +157,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .wall-art {
-  position: absolute;
+  position: fixed;
   cursor: pointer;
   z-index: 2;
 }
@@ -154,11 +185,10 @@ body {
 
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
-/* Shifted +7.5% right, +8% down from original to center group in wall area */
-.art-map    { left: 22.5%; top: 21%; width: 22%; }
-.art-bingo  { left: 52.5%; top: 21%; width: 18%; }
-.art-bag    { left: 42.5%; top: 48%; width:  8%; }
-.art-mirror { left: 57.5%; top: 42%; width: 14%; }
+.art-map    { left: 22vw; top: 18vh; width: 22vw; }
+.art-bingo  { left: 50vw; top: 18vh; width: 18vw; }
+.art-bag    { left: 40vw; top: 44vh; width:  8vw; }
+.art-mirror { left: 55vw; top: 38vh; width: 14vw; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER ANIMATIONS
@@ -188,10 +218,10 @@ body {
 ───────────────────────────────────────────────── */
 
 .char-heart {
-  position: absolute;
-  left: 18%;
-  bottom: 11%;
-  width: clamp(150px, 20%, 185px);
+  position: fixed;
+  left: 18vw;
+  bottom: 22vh;
+  width: clamp(120px, 16vw, 260px);
   display: flex;
   align-items: flex-end;
   cursor: pointer;
@@ -220,7 +250,7 @@ body {
   position: absolute;
   left: calc(100% - 10px);
   top: calc(100% - 40px);
-  width: clamp(200px, 32vw, 350px);
+  width: clamp(180px, 28vw, 350px);
   height: auto;
   aspect-ratio: 846 / 248;
   background-image: url('assets/elements/speech-box.png');
@@ -233,11 +263,10 @@ body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-hand);
-  font-size: clamp(13px, 1.6vw, 20px);
+  font-size: clamp(12px, 1.4vw, 20px);
   color: #5a3a7a;
   text-align: center;
   line-height: 1.3;
-  filter: none;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
@@ -246,7 +275,6 @@ body {
 }
 
 .thought-bubble::after { display: none; }
-
 .char-heart.active .thought-bubble { opacity: 1; }
 
 /* ─────────────────────────────────────────────────
@@ -254,7 +282,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .modal-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 100;
   background: rgba(0, 0, 0, 0);
@@ -334,7 +362,7 @@ body {
 ───────────────────────────────────────────────── */
 
 .letter-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 50;
   display: flex;
@@ -342,12 +370,9 @@ body {
   justify-content: center;
   background: rgba(0,0,0,0.45);
   pointer-events: all;
-  transition: opacity 0.25s ease;
 }
 
-.letter-overlay.hidden {
-  display: none;
-}
+.letter-overlay.hidden { display: none; }
 
 .letter-paper {
   position: relative;
@@ -407,28 +432,37 @@ body {
 ───────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
+  .art-map    { left: 4vw;  top: 22vh; width: 40vw; }
+  .art-bingo  { left: 46vw; top: 22vh; width: 38vw; }
+  .art-bag    { left: 14vw; top: 48vh; width: 20vw; }
+  .art-mirror { left: 42vw; top: 45vh; width: 30vw; }
 
-  .room-sign {
-    font-size: clamp(14px, 4vw, 24px);
+  .char-heart {
+    left: 4vw;
+    bottom: 24vh;
+    width: clamp(80px, 22vw, 160px);
   }
 
   .thought-bubble {
-    width: clamp(160px, 55vw, 320px);
-    font-family: ZoesHandwriting;
-    font-size: clamp(11px, 3vw, 16px);
+    width: clamp(140px, 52vw, 280px);
+    font-size: clamp(10px, 2.8vw, 15px);
     left: calc(100% - 20px);
     top: calc(100% - 15px);
   }
 
-  .modal-window {
-    width: 96%;
-    height: 88%;
-  }
-
   .door-zone-left,
   .door-zone-right {
-    width: 13%;
-    height: 44%;
+    width: 14%;
+    height: 45%;
+  }
+
+  .modal-window {
+    width: 96vw;
+    height: 88dvh;
+  }
+
+  .room-sign {
+    font-size: clamp(14px, 5vw, 24px);
   }
 }
 
@@ -436,12 +470,11 @@ body {
 </head>
 <body>
 
-<div class="room-stage">
-
-<!-- ROOM BACKGROUND  z:0 -->
-<div class="room-bg">
-  <img src="assets/elements/game-room.png" alt="" aria-hidden="true">
-</div>
+<!-- ROOM WALLS  z:0 -->
+<img class="wall wall-ceiling" src="assets/elements/walls/ceiling.png"    alt="" aria-hidden="true">
+<img class="wall wall-floor"   src="assets/elements/walls/floor.png"      alt="" aria-hidden="true">
+<img class="wall wall-left"    src="assets/elements/walls/left wall.png"  alt="" aria-hidden="true">
+<img class="wall wall-right"   src="assets/elements/walls/right wall.png" alt="" aria-hidden="true">
 
 <!-- DOOR CLICK ZONES  z:1 -->
 <div class="door-zone-left"  id="door-left"  role="button" tabindex="0" aria-label="Take me back — go home"></div>
@@ -449,6 +482,7 @@ body {
 
 <!-- TOPBAR  z:10 -->
 <div class="topbar">
+  <a class="back-btn" href="index.html">← home</a>
   <h1 class="room-sign">build a world</h1>
 </div>
 
@@ -554,19 +588,13 @@ body {
   function openModal(gamePage) {
     modalFrame.src = gamePage + '.html';
     modalOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
   }
 
   function closeModal() {
     modalOverlay.classList.remove('open');
-    // Small delay before clearing src so close animation plays first
-    setTimeout(() => {
-      modalFrame.src = '';
-    }, 400);
-    document.body.style.overflow = '';
+    setTimeout(() => { modalFrame.src = ''; }, 400);
   }
 
-  // Wall art click → open modal
   document.querySelectorAll('.wall-art[data-game]').forEach(function (art) {
     art.addEventListener('click', () => openModal(art.dataset.game));
     art.addEventListener('keydown', (e) => {
@@ -574,15 +602,12 @@ body {
     });
   });
 
-  // Close button
   modalClose.addEventListener('click', closeModal);
 
-  // Click outside modal window to close
   modalOverlay.addEventListener('click', function (e) {
     if (e.target === modalOverlay) closeModal();
   });
 
-  // Escape key to close
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
   });
@@ -591,13 +616,11 @@ body {
   const doorLeft  = document.getElementById('door-left');
   const doorRight = document.getElementById('door-right');
 
-  // "take me back" → home
   doorLeft.addEventListener('click', () => { window.location.href = 'index.html'; });
   doorLeft.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html';
   });
 
-  // "keep it going" → letter overlay
   const letterOverlay = document.getElementById('letter-overlay');
   const letterPaper   = document.getElementById('letter-paper');
   const letterClose   = document.getElementById('letter-close');
@@ -619,14 +642,12 @@ body {
 
   letterClose.addEventListener('click', closeLetter);
 
-  // Click outside letter paper to close
   letterOverlay.addEventListener('click', function (e) {
     if (e.target === letterOverlay) closeLetter();
   });
 
 })();
 </script>
-</div><!-- /.room-stage -->
 
 </body>
 </html>
