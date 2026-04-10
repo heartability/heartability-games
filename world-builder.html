@@ -19,93 +19,173 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --font-hand:  "ZoesHandwriting", cursive;
-  --font-pixel: "PFPixelscript", cursive;
+  --font-hand:   "ZoesHandwriting", cursive;
+  --font-pixel:  "PFPixelscript", cursive;
+
+  /* ── Room palette ── */
+  --back-wall:   #f0ece4;   /* back wall — lightest */
+  --side-wall:   #e2ddd5;   /* left/right walls — slightly darker */
+  --ceiling-col: #dbd6ce;   /* ceiling — darkest of the walls */
+  --line-col:    #111111;   /* perspective lines */
+  --line-w:      2px;
+
+  /* ── Vanishing point: horizontal center, 30% down ── */
+  --vp-x: 50%;
+  --vp-y: 30%;
 }
 
-body {
+html, body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
-  background: #f5f0ea; /* back wall — shows in center between the four pieces */
   user-select: none;
+  background: var(--back-wall);
 }
 
-/* ─────────────────────────────────────────────────
-   ROOM WALLS  z:0
-   Each piece pins to its edge and stretches only
-   in one axis, so perspective lines stay correct
-   at any screen size.
-───────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   ROOM — all panels use clip-path polygon so they
+   always fill their region at ANY viewport size.
+   Vanishing point anchors every corner diagonal.
+═══════════════════════════════════════════════════ */
 
-.wall {
+.room-panel {
   position: fixed;
-  z-index: 0;
+  inset: 0;
   pointer-events: none;
+  z-index: 0;
+}
+
+/*
+  All panels share the same full-viewport rectangle.
+  clip-path carves each one into its correct region.
+
+  Vanishing point = (50vw, 30dvh) ≈ (50%, 30%)
+
+  CEILING: top-left → top-right → VP → VP
+    polygon: 0 0, 100% 0, var(--vp-x) var(--vp-y), var(--vp-x) var(--vp-y)
+    (the two VP points collapse to a point — makes a triangle)
+
+  LEFT WALL: top-left → VP → VP → bottom-left
+  RIGHT WALL: top-right → VP → VP → bottom-right
+  FLOOR: bottom-left → VP → VP → bottom-right
+
+  Each side-wall is a quadrilateral:
+  LEFT:  0 0, VP, VP, 0 100%
+  RIGHT: 100% 0, VP, VP, 100% 100%
+*/
+
+.panel-ceiling {
+  background: var(--ceiling-col);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    var(--vp-x) var(--vp-y),
+    var(--vp-x) var(--vp-y)
+  );
+}
+
+.panel-left {
+  background: var(--side-wall);
+  clip-path: polygon(
+    0 0,
+    var(--vp-x) var(--vp-y),
+    var(--vp-x) var(--vp-y),
+    0 100%
+  );
+}
+
+.panel-right {
+  background: var(--side-wall);
+  clip-path: polygon(
+    100% 0,
+    var(--vp-x) var(--vp-y),
+    var(--vp-x) var(--vp-y),
+    100% 100%
+  );
+}
+
+/* Floor: image-filled using clip-path + object-fit */
+.panel-floor {
+  clip-path: polygon(
+    0 100%,
+    var(--vp-x) var(--vp-y),
+    var(--vp-x) var(--vp-y),
+    100% 100%
+  );
+  /* floor image fills the panel */
+  background-image: url('assets/elements/walls/floor.png');
+  background-size: cover;
+  background-position: top center;
+}
+
+/* ── Perspective lines ── */
+/* Each line is a 1px-wide div rotated to connect
+   a screen corner to the vanishing point.
+   We use a pseudo-element gradient trick instead:
+   draw all 4 lines as a single SVG overlay. */
+
+.room-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.room-lines svg {
+  width: 100%;
+  height: 100%;
   display: block;
+  overflow: visible;
 }
 
-/* Ceiling: full width, height auto */
-.wall-ceiling {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-}
+/* ═══════════════════════════════════════════════════
+   DOOR ARCHES — drawn in CSS, positioned on side walls
+   Left arch: ~10% from left, bottom-aligned
+   Right arch: ~10% from right, bottom-aligned
+═══════════════════════════════════════════════════ */
 
-/* Floor: full width, height auto */
-.wall-floor {
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-}
-
-/* Left wall: full height, width auto */
-.wall-left {
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: auto;
-}
-
-/* Right wall: full height, width auto */
-.wall-right {
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: auto;
-}
-
-/* ─────────────────────────────────────────────────
-   DOOR CLICK ZONES  z:1
-   Invisible hit areas over the door arches.
-   Tweak width/height % to match your artwork.
-───────────────────────────────────────────────── */
-
-.door-zone-left {
+.door-arch {
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: 10%;
-  height: 50%;
-  z-index: 1;
+  z-index: 3;
   cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.door-zone-right {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 10%;
-  height: 50%;
-  z-index: 1;
-  cursor: pointer;
+.door-arch-left  { left: 0;   width: 10vw; height: 48dvh; }
+.door-arch-right { right: 0;  width: 10vw; height: 48dvh; }
+
+.door-arch-inner {
+  width: 80%;
+  height: 95%;
+  background: #c8c3d0;
+  border-radius: 50% 50% 0 0 / 60% 60% 0 0;
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,0.15),
+    0 0 0 3px #b8b3c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 30%;
 }
 
-/* ─────────────────────────────────────────────────
+.door-arch-label {
+  font-family: var(--font-pixel);
+  font-size: clamp(8px, 1.1vw, 14px);
+  color: #fff;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
    TOPBAR  z:10
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .topbar {
   position: fixed;
@@ -152,9 +232,9 @@ body {
   pointer-events: none;
 }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    WALL ART  z:2
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .wall-art {
   position: fixed;
@@ -190,9 +270,9 @@ body {
 .art-bag    { left: 40vw; top: 44vh; width:  8vw; }
 .art-mirror { left: 55vw; top: 38vh; width: 14vw; }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    CHARACTER ANIMATIONS
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 @keyframes intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }
@@ -204,8 +284,8 @@ body {
 }
 
 @keyframes idle-pulse {
-  0%,100% { transform: translateY(0)     rotate(-2deg) scale(1); }
-  50%      { transform: translateY(-8px)  rotate(2deg)  scale(1.03); }
+  0%,100% { transform: translateY(0)    rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
 }
 
 @keyframes hover-bounce {
@@ -213,9 +293,9 @@ body {
   50%      { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
 }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    HEART GUIDE  z:5
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .char-heart {
   position: fixed;
@@ -242,9 +322,9 @@ body {
   animation: hover-bounce 0.55s ease-in-out infinite;
 }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    THOUGHT BUBBLE  z:6
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .thought-bubble {
   position: absolute;
@@ -257,7 +337,6 @@ body {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-color: transparent;
-  border-radius: 0;
   padding: 11% 8% 0 8%;
   display: flex;
   align-items: center;
@@ -277,15 +356,15 @@ body {
 .thought-bubble::after { display: none; }
 .char-heart.active .thought-bubble { opacity: 1; }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    GAME MODAL  z:100
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0);
+  background: rgba(0,0,0,0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -294,7 +373,7 @@ body {
 }
 
 .modal-overlay.open {
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.55);
   pointer-events: all;
 }
 
@@ -325,11 +404,9 @@ body {
 
 .modal-close {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 10px; right: 12px;
   z-index: 10;
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,27 +416,20 @@ body {
   border: 2px solid #6579e2;
   border-radius: 2px;
   cursor: pointer;
-  line-height: 1;
   transition: color 0.15s, transform 0.1s, background 0.15s;
   box-shadow: 1px 2px 0 1px rgba(0,0,0,0.2);
 }
 
-.modal-close:hover {
-  color: #5a3a7a;
-  background: #ede6f7;
-  transform: scale(1.15);
-}
+.modal-close:hover { color: #5a3a7a; background: #ede6f7; transform: scale(1.15); }
 
 .modal-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
+  width: 100%; height: 100%;
+  border: none; display: block;
 }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    LETTER OVERLAY  z:50
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 .letter-overlay {
   position: fixed;
@@ -369,7 +439,6 @@ body {
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.45);
-  pointer-events: all;
 }
 
 .letter-overlay.hidden { display: none; }
@@ -403,15 +472,9 @@ body {
   position: absolute;
   top: 10px; right: 12px;
   width: 24px; height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #a09070;
-  cursor: pointer;
-  background: none;
-  border: none;
-  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #a09070;
+  cursor: pointer; background: none; border: none;
   transition: color .15s, transform .1s;
 }
 .letter-close:hover { color: #5a3a7a; transform: scale(1.2); }
@@ -424,18 +487,18 @@ body {
 }
 .letter-body p { margin-bottom: 1em; }
 .letter-body p:first-child { margin-bottom: 1.2em; font-size: clamp(15px, 1.8vw, 20px); }
-.letter-body p:last-child { margin-bottom: 0; }
+.letter-body p:last-child  { margin-bottom: 0; }
 .letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #5a3a7a; }
 
-/* ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    MOBILE
-───────────────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .art-map    { left: 4vw;  top: 22vh; width: 40vw; }
-  .art-bingo  { left: 46vw; top: 22vh; width: 38vw; }
-  .art-bag    { left: 14vw; top: 48vh; width: 20vw; }
-  .art-mirror { left: 42vw; top: 45vh; width: 30vw; }
+  .art-map    { left: 14vw; top: 20vh; width: 36vw; }
+  .art-bingo  { left: 52vw; top: 20vh; width: 34vw; }
+  .art-bag    { left: 28vw; top: 46vh; width: 16vw; }
+  .art-mirror { left: 50vw; top: 42vh; width: 26vw; }
 
   .char-heart {
     left: 4vw;
@@ -450,60 +513,88 @@ body {
     top: calc(100% - 15px);
   }
 
-  .door-zone-left,
-  .door-zone-right {
-    width: 14%;
-    height: 45%;
-  }
+  .door-arch-left  { width: 16vw; }
+  .door-arch-right { width: 16vw; }
 
   .modal-window {
     width: 96vw;
     height: 88dvh;
   }
 
-  .room-sign {
-    font-size: clamp(14px, 5vw, 24px);
-  }
+  .room-sign { font-size: clamp(14px, 5vw, 24px); }
 }
 
 </style>
 </head>
 <body>
 
-<!-- ROOM WALLS  z:0 -->
-<img class="wall wall-ceiling" src="assets/elements/walls/ceiling.png"    alt="" aria-hidden="true">
-<img class="wall wall-floor"   src="assets/elements/walls/floor.png"      alt="" aria-hidden="true">
-<img class="wall wall-left"    src="assets/elements/walls/left wall.png"  alt="" aria-hidden="true">
-<img class="wall wall-right"   src="assets/elements/walls/right wall.png" alt="" aria-hidden="true">
+<!-- ═══ ROOM PANELS  z:0 ═══ -->
+<div class="room-panel panel-ceiling"></div>
+<div class="room-panel panel-left"></div>
+<div class="room-panel panel-right"></div>
+<div class="room-panel panel-floor"></div>
 
-<!-- DOOR CLICK ZONES  z:1 -->
-<div class="door-zone-left"  id="door-left"  role="button" tabindex="0" aria-label="Take me back — go home"></div>
-<div class="door-zone-right" id="door-right" role="button" tabindex="0" aria-label="Keep it going — coming soon"></div>
+<!-- ═══ PERSPECTIVE LINES  z:1 ═══
+     SVG draws the 4 corner-to-vanishingpoint lines.
+     percentages map directly to vw/dvh via viewBox="0 0 100 100"
+     preserveAspectRatio="none" so it always fills the viewport. -->
+<div class="room-lines" aria-hidden="true">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+       xmlns="http://www.w3.org/2000/svg">
+    <!-- top-left corner → vanishing point -->
+    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <!-- top-right corner → vanishing point -->
+    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <!-- bottom-left corner → vanishing point -->
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <!-- bottom-right corner → vanishing point -->
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+  </svg>
+</div>
 
-<!-- TOPBAR  z:10 -->
+<!-- ═══ DOOR ARCHES  z:3 ═══ -->
+<div class="door-arch door-arch-left" id="door-left"
+     role="button" tabindex="0" aria-label="Take me back — go home">
+  <div class="door-arch-inner">
+    <span class="door-arch-label">take&#10;me&#10;back</span>
+  </div>
+</div>
+
+<div class="door-arch door-arch-right" id="door-right"
+     role="button" tabindex="0" aria-label="Keep it going — coming soon">
+  <div class="door-arch-inner">
+    <span class="door-arch-label">keep&#10;it&#10;going</span>
+  </div>
+</div>
+
+<!-- ═══ TOPBAR  z:10 ═══ -->
 <div class="topbar">
   <a class="back-btn" href="index.html">← home</a>
   <h1 class="room-sign">build a world</h1>
 </div>
 
-<!-- WALL ART  z:2 -->
-<div class="wall-art art-map" id="art-map" data-game="treasure-map" role="button" tabindex="0" aria-label="Open Treasure Map game">
+<!-- ═══ WALL ART  z:2 ═══ -->
+<div class="wall-art art-map" id="art-map" data-game="treasure-map"
+     role="button" tabindex="0" aria-label="Open Treasure Map game">
   <img src="assets/elements/map.png" alt="Treasure Map">
 </div>
 
-<div class="wall-art art-bingo" id="art-bingo" data-game="bingo" role="button" tabindex="0" aria-label="Open Bingo game">
+<div class="wall-art art-bingo" id="art-bingo" data-game="bingo"
+     role="button" tabindex="0" aria-label="Open Bingo game">
   <img src="assets/elements/bingo.png" alt="Bingo">
 </div>
 
-<div class="wall-art art-bag" id="art-bag" data-game="inventory" role="button" tabindex="0" aria-label="Open Inventory game">
+<div class="wall-art art-bag" id="art-bag" data-game="inventory"
+     role="button" tabindex="0" aria-label="Open Inventory game">
   <img src="assets/elements/bag.png" alt="What's in my bag">
 </div>
 
-<div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror" role="button" tabindex="0" aria-label="Open Infinity Mirror game">
+<div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror"
+     role="button" tabindex="0" aria-label="Open Infinity Mirror game">
   <img src="assets/elements/mirror.png" alt="Infinity Mirror">
 </div>
 
-<!-- HEART GUIDE  z:5 -->
+<!-- ═══ HEART GUIDE  z:5 ═══ -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
   <img class="char-img"
@@ -511,7 +602,7 @@ body {
        alt="Heart guide character">
 </div>
 
-<!-- GAME MODAL  z:100 -->
+<!-- ═══ GAME MODAL  z:100 ═══ -->
 <div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog" aria-label="Game">
   <div class="modal-window" id="modal-window">
     <button class="modal-close" id="modal-close" aria-label="Close game">&#x2715;</button>
@@ -519,7 +610,7 @@ body {
   </div>
 </div>
 
-<!-- LETTER OVERLAY  z:50 -->
+<!-- ═══ LETTER OVERLAY  z:50 ═══ -->
 <div class="letter-overlay hidden" id="letter-overlay">
   <div class="letter-paper" id="letter-paper">
     <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
@@ -541,7 +632,7 @@ body {
 <script>
 (function () {
 
-  /* ── Heart guide messages ── */
+  /* ── Heart guide ── */
   const heart  = document.getElementById('char-heart');
   const bubble = document.getElementById('heart-bubble');
 
@@ -552,99 +643,64 @@ body {
     'art-bag':    "what's in your bag?",
   };
 
-  function triggerWiggle(artEl) {
-    artEl.classList.remove('wiggling');
-    void artEl.offsetWidth;
-    artEl.classList.add('wiggling');
-    artEl.addEventListener('animationend',
-      () => artEl.classList.remove('wiggling'), { once: true });
+  function triggerWiggle(el) {
+    el.classList.remove('wiggling');
+    void el.offsetWidth;
+    el.classList.add('wiggling');
+    el.addEventListener('animationend', () => el.classList.remove('wiggling'), { once: true });
   }
 
-  function activate(artId) {
-    bubble.textContent = messages[artId] || '';
-    heart.classList.add('active');
-  }
-
+  function activate(id) { bubble.textContent = messages[id] || ''; heart.classList.add('active'); }
   function deactivate() { heart.classList.remove('active'); }
 
-  Object.keys(messages).forEach(function (artId) {
-    const art = document.getElementById(artId);
-    if (!art) return;
-    art.addEventListener('mouseenter', () => { activate(artId); triggerWiggle(art); });
-    art.addEventListener('mouseleave', deactivate);
+  Object.keys(messages).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('mouseenter', () => { activate(id); triggerWiggle(el); });
+    el.addEventListener('mouseleave', deactivate);
   });
 
-  heart.addEventListener('mouseenter', () => {
-    bubble.textContent = 'welcome! pick a game to begin';
-    heart.classList.add('active');
-  });
+  heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* ── Modal system ── */
+  /* ── Modal ── */
   const modalOverlay = document.getElementById('modal-overlay');
   const modalFrame   = document.getElementById('modal-frame');
   const modalClose   = document.getElementById('modal-close');
 
-  function openModal(gamePage) {
-    modalFrame.src = gamePage + '.html';
-    modalOverlay.classList.add('open');
-  }
-
+  function openModal(page) { modalFrame.src = page + '.html'; modalOverlay.classList.add('open'); }
   function closeModal() {
     modalOverlay.classList.remove('open');
     setTimeout(() => { modalFrame.src = ''; }, 400);
   }
 
-  document.querySelectorAll('.wall-art[data-game]').forEach(function (art) {
+  document.querySelectorAll('.wall-art[data-game]').forEach(art => {
     art.addEventListener('click', () => openModal(art.dataset.game));
-    art.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') openModal(art.dataset.game);
-    });
+    art.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(art.dataset.game); });
   });
 
   modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal(); });
 
-  modalOverlay.addEventListener('click', function (e) {
-    if (e.target === modalOverlay) closeModal();
-  });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
-  });
-
-  /* ── Door zones ── */
+  /* ── Doors ── */
   const doorLeft  = document.getElementById('door-left');
   const doorRight = document.getElementById('door-right');
 
   doorLeft.addEventListener('click', () => { window.location.href = 'index.html'; });
-  doorLeft.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html';
-  });
+  doorLeft.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
 
   const letterOverlay = document.getElementById('letter-overlay');
   const letterPaper   = document.getElementById('letter-paper');
   const letterClose   = document.getElementById('letter-close');
 
-  function openLetter() {
-    letterOverlay.classList.remove('hidden');
-    setTimeout(() => letterPaper.classList.add('unfolded'), 30);
-  }
-
-  function closeLetter() {
-    letterPaper.classList.remove('unfolded');
-    setTimeout(() => letterOverlay.classList.add('hidden'), 400);
-  }
+  function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
+  function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
 
   doorRight.addEventListener('click', openLetter);
-  doorRight.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') openLetter();
-  });
-
+  doorRight.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
-
-  letterOverlay.addEventListener('click', function (e) {
-    if (e.target === letterOverlay) closeLetter();
-  });
+  letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
 
 })();
 </script>
