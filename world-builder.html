@@ -105,9 +105,18 @@ html, body {
 }
 
 /* Back wall: full viewport rectangle behind all panels */
-/* Back wall = body background showing through the gap between panels.
-   No extra div needed — body bg color handles this. */
-.panel-back { display: none; }
+/* Back wall: plain centered rectangle on top of the wall panels.
+   Adjust left/width/top/height to taste. */
+.panel-back {
+  position: fixed;
+  top: 30%;
+  left: 13%;
+  width: 74%;
+  height: 72%;
+  background: var(--back-wall);
+  z-index: 1;
+  pointer-events: none;
+}
 
 /* Floor: clipped triangle, image stretches full width at bottom */
 .panel-floor {
@@ -168,7 +177,7 @@ html, body {
 .door-arch {
   position: fixed;
   bottom: 0;
-  z-index: 3;
+  z-index: 2;
   cursor: pointer;
   display: flex;
   align-items: flex-end;
@@ -212,7 +221,7 @@ html, body {
   top: 20px;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 11;
   pointer-events: none;
 }
 
@@ -259,7 +268,7 @@ html, body {
 .wall-art {
   position: fixed;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
 }
 
 .wall-art img {
@@ -325,7 +334,7 @@ html, body {
   display: flex;
   align-items: flex-end;
   cursor: pointer;
-  z-index: 5;
+  z-index: 6;
 }
 
 .char-heart .char-img {
