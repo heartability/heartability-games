@@ -109,12 +109,13 @@ html, body {
    Adjust left/width/top/height to taste. */
 .panel-back {
   position: fixed;
-  top: 30%;
+  top: 0;
   left: 13%;
   width: 74%;
   height: 72%;
   background: var(--back-wall);
-  z-index: 1;
+  border: 1.5px solid #111;
+  z-index: 4;  /* on top of all wall panels and lines */
   pointer-events: none;
 }
 
@@ -574,14 +575,14 @@ html, body {
 <div class="room-lines" aria-hidden="true">
   <svg viewBox="0 0 100 100" preserveAspectRatio="none"
        xmlns="http://www.w3.org/2000/svg">
-    <!-- top-left corner → vanishing point -->
+    <!-- top-left corner → vanishing point (ceiling left edge) -->
     <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <!-- top-right corner → vanishing point -->
+    <!-- top-right corner → vanishing point (ceiling right edge) -->
     <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <!-- bottom-left corner → vanishing point -->
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <!-- bottom-right corner → vanishing point -->
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <!-- bottom-left corner → left edge of back wall bottom -->
+    <line x1="0" y1="100" x2="13" y2="72" stroke="#111" stroke-width="0.18"/>
+    <!-- bottom-right corner → right edge of back wall bottom -->
+    <line x1="100" y1="100" x2="87" y2="72" stroke="#111" stroke-width="0.18"/>
   </svg>
 </div>
 
