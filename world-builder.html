@@ -10,7 +10,6 @@
   font-family: "ZoesHandwriting";
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
-
 @font-face {
   font-family: "PFPixelscript";
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
@@ -21,17 +20,26 @@
 :root {
   --font-hand:   "ZoesHandwriting", cursive;
   --font-pixel:  "PFPixelscript", cursive;
+  --back-wall:   #f0ece4;
+  --side-col:    #dbd6ce;
+  --line-col:    #111;
 
-  /* ── Room palette ── */
-  --back-wall:   #f0ece4;   /* back wall — lightest */
-  --side-wall:   #e2ddd5;   /* left/right walls — slightly darker */
-  --ceiling-col: #dbd6ce;   /* ceiling — darkest of the walls */
-  --line-col:    #111111;   /* perspective lines */
-  --line-w:      2px;
+  /*
+    Vanishing point: 50% across, 30% down.
 
-  /* ── Vanishing point: horizontal center, 30% down ── */
-  --vp-x: 50%;
-  --vp-y: 30%;
+    Back wall rectangle corners sit exactly ON the four diagonal lines:
+      t_top=0.30 → top edge at y=9%,  left=15%, right=85%,  width=70%
+      t_bot=0.55 → bot edge at y=61.5%, left=27.5%, right=72.5%
+
+    Since it's a rectangle (not a trapezoid) we use:
+      top:   9%   left: 15%   width: 70%   height: 52.5%
+    The top corners land on the top-left and top-right diagonal lines.
+    The bottom corners land on the bottom-left and bottom-right diagonal lines.
+  */
+  --bw-top:    9%;
+  --bw-left:   15%;
+  --bw-width:  70%;
+  --bw-height: 52.5%;
 }
 
 html, body {
@@ -39,129 +47,29 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   user-select: none;
-  background: var(--back-wall); /* fallback — panel-back covers this */
+  /* side/ceiling fill color shows outside the back wall */
+  background: var(--side-col);
 }
 
-/* ═══════════════════════════════════════════════════
-   ROOM — all panels use clip-path polygon so they
-   always fill their region at ANY viewport size.
-   Vanishing point anchors every corner diagonal.
-═══════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────
+   LAYER ORDER (z-index)
+   0  — body background (side wall color)
+   1  — floor image
+   2  — SVG diagonal lines
+   3  — back wall rectangle  ← covers line intersections
+   4  — wall art, heart, door arches
+   10 — topbar
+   50 — letter overlay
+   100— game modal
+───────────────────────────────────────────────── */
 
-.room-panel {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/*
-  All panels share the same full-viewport rectangle.
-  clip-path carves each one into its correct region.
-
-  Vanishing point = (50vw, 30dvh) ≈ (50%, 30%)
-
-  CEILING: top-left → top-right → VP → VP
-    polygon: 0 0, 100% 0, var(--vp-x) var(--vp-y), var(--vp-x) var(--vp-y)
-    (the two VP points collapse to a point — makes a triangle)
-
-  LEFT WALL: top-left → VP → VP → bottom-left
-  RIGHT WALL: top-right → VP → VP → bottom-right
-  FLOOR: bottom-left → VP → VP → bottom-right
-
-  Each side-wall is a quadrilateral:
-  LEFT:  0 0, VP, VP, 0 100%
-  RIGHT: 100% 0, VP, VP, 100% 100%
-*/
-
-.panel-ceiling {
-  background: var(--ceiling-col);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    var(--vp-x) var(--vp-y),
-    var(--vp-x) var(--vp-y)
-  );
-}
-
-.panel-left {
-  background: var(--side-wall);
-  clip-path: polygon(
-    0 0,
-    var(--vp-x) var(--vp-y),
-    var(--vp-x) var(--vp-y),
-    0 100%
-  );
-}
-
-.panel-right {
-  background: var(--side-wall);
-  clip-path: polygon(
-    100% 0,
-    var(--vp-x) var(--vp-y),
-    var(--vp-x) var(--vp-y),
-    100% 100%
-  );
-}
-
-/* Back wall: full viewport rectangle behind all panels */
-/* Back wall: plain centered rectangle on top of the wall panels.
-   Adjust left/width/top/height to taste. */
-.panel-back {
-  position: fixed;
-  top: 0;
-  left: 13%;
-  width: 74%;
-  height: 72%;
-  background: var(--back-wall);
-  border: 1.5px solid #111;
-  z-index: 4;  /* on top of all wall panels and lines */
-  pointer-events: none;
-}
-
-/* Floor: clipped triangle, image stretches full width at bottom */
-.panel-floor {
-  clip-path: polygon(
-    0 100%,
-    var(--vp-x) var(--vp-y),
-    var(--vp-x) var(--vp-y),
-    100% 100%
-  );
-  background: none; /* image handled by .floor-img below */
-}
-
-/* Floor image: sits above the clip panel, full width, bottom-anchored */
-.floor-img {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  z-index: 0;
-  pointer-events: none;
-  /* clip to same floor triangle so it doesnt bleed into walls */
-  clip-path: polygon(
-    0 100%,
-    var(--vp-x) var(--vp-y),
-    var(--vp-x) var(--vp-y),
-    100% 100%
-  );
-}
-
-/* ── Perspective lines ── */
-/* Each line is a 1px-wide div rotated to connect
-   a screen corner to the vanishing point.
-   We use a pseudo-element gradient trick instead:
-   draw all 4 lines as a single SVG overlay. */
-
+/* ── Four diagonal lines ── */
 .room-lines {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
-  overflow: visible;
 }
-
 .room-lines svg {
   width: 100%;
   height: 100%;
@@ -169,33 +77,52 @@ html, body {
   overflow: visible;
 }
 
-/* ═══════════════════════════════════════════════════
-   DOOR ARCHES — drawn in CSS, positioned on side walls
-   Left arch: ~10% from left, bottom-aligned
-   Right arch: ~10% from right, bottom-aligned
-═══════════════════════════════════════════════════ */
+/* ── Floor image clipped to floor triangle ── */
+.floor-img {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  clip-path: polygon(0% 100%, 50% 30%, 100% 100%);
+}
 
+/* ── Back wall: plain rectangle, ON TOP of lines ── */
+.back-wall {
+  position: fixed;
+  top:    var(--bw-top);
+  left:   var(--bw-left);
+  width:  var(--bw-width);
+  height: var(--bw-height);
+  background: var(--back-wall);
+  border: 1.5px solid var(--line-col);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────
+   DOOR ARCHES  z:4
+───────────────────────────────────────────────── */
 .door-arch {
   position: fixed;
   bottom: 0;
-  z-index: 2;
+  z-index: 4;
   cursor: pointer;
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
-
-.door-arch-left  { left: 0;   width: 10vw; height: 48dvh; }
-.door-arch-right { right: 0;  width: 10vw; height: 48dvh; }
+.door-arch-left  { left: 0;  width: 10vw; height: 48dvh; }
+.door-arch-right { right: 0; width: 10vw; height: 48dvh; }
 
 .door-arch-inner {
   width: 80%;
   height: 95%;
   background: #c8c3d0;
   border-radius: 50% 50% 0 0 / 60% 60% 0 0;
-  box-shadow:
-    inset 0 2px 8px rgba(0,0,0,0.15),
-    0 0 0 3px #b8b3c0;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px #b0abc0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,16 +140,15 @@ html, body {
   pointer-events: none;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────
    TOPBAR  z:10
-═══════════════════════════════════════════════════ */
-
+───────────────────────────────────────────────── */
 .topbar {
   position: fixed;
   top: 20px;
   left: 0;
   right: 0;
-  z-index: 11;
+  z-index: 10;
   pointer-events: none;
 }
 
@@ -245,7 +171,6 @@ html, body {
   cursor: pointer;
   pointer-events: all;
 }
-
 .back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
 .back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
 
@@ -262,16 +187,14 @@ html, body {
   pointer-events: none;
 }
 
-/* ═══════════════════════════════════════════════════
-   WALL ART  z:2
-═══════════════════════════════════════════════════ */
-
+/* ─────────────────────────────────────────────────
+   WALL ART  z:4
+───────────────────────────────────────────────── */
 .wall-art {
   position: fixed;
   cursor: pointer;
-  z-index: 3;
+  z-index: 4;
 }
-
 .wall-art img {
   display: block;
   width: 100%;
@@ -279,11 +202,7 @@ html, body {
   filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
   transition: filter 0.2s;
 }
-
-.wall-art:hover img,
-.wall-art.active img {
-  filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35));
-}
+.wall-art:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
 @keyframes art-wiggle {
   0%,100% { transform: rotate(0deg); }
@@ -292,7 +211,6 @@ html, body {
   60%      { transform: rotate(-2deg); }
   80%      { transform: rotate(2deg); }
 }
-
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
 .art-map    { left: 22vw; top: 18vh; width: 22vw; }
@@ -300,10 +218,9 @@ html, body {
 .art-bag    { left: 40vw; top: 44vh; width:  8vw; }
 .art-mirror { left: 55vw; top: 38vh; width: 14vw; }
 
-/* ═══════════════════════════════════════════════════
-   CHARACTER ANIMATIONS
-═══════════════════════════════════════════════════ */
-
+/* ─────────────────────────────────────────────────
+   CHARACTER  z:4
+───────────────────────────────────────────────── */
 @keyframes intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }
   18%  { transform: rotate(-11deg) scale(1.06); }
@@ -312,20 +229,14 @@ html, body {
   78%  { transform: rotate(6deg) scale(1.02); }
   100% { transform: rotate(0deg) scale(1); }
 }
-
 @keyframes idle-pulse {
   0%,100% { transform: translateY(0)    rotate(-2deg) scale(1); }
   50%      { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
 }
-
 @keyframes hover-bounce {
   0%,100% { transform: translateY(0)     rotate(-3deg) scale(1.07); }
   50%      { transform: translateY(-14px) rotate(3deg)  scale(1.11); }
 }
-
-/* ═══════════════════════════════════════════════════
-   HEART GUIDE  z:5
-═══════════════════════════════════════════════════ */
 
 .char-heart {
   position: fixed;
@@ -335,9 +246,8 @@ html, body {
   display: flex;
   align-items: flex-end;
   cursor: pointer;
-  z-index: 6;
+  z-index: 4;
 }
-
 .char-heart .char-img {
   display: block;
   width: 100%;
@@ -347,26 +257,17 @@ html, body {
     intro-wiggle 0.85s ease-out 0.35s 1 backwards,
     idle-pulse   3.6s ease-in-out 1.5s infinite;
 }
-
-.char-heart.active .char-img {
-  animation: hover-bounce 0.55s ease-in-out infinite;
-}
-
-/* ═══════════════════════════════════════════════════
-   THOUGHT BUBBLE  z:6
-═══════════════════════════════════════════════════ */
+.char-heart.active .char-img { animation: hover-bounce 0.55s ease-in-out infinite; }
 
 .thought-bubble {
   position: absolute;
   left: calc(100% - 10px);
   top: calc(100% - 40px);
   width: clamp(180px, 28vw, 350px);
-  height: auto;
   aspect-ratio: 846 / 248;
   background-image: url('assets/elements/speech-box.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  background-color: transparent;
   padding: 11% 8% 0 8%;
   display: flex;
   align-items: center;
@@ -379,17 +280,14 @@ html, body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
-  z-index: 6;
-  white-space: normal;
+  z-index: 5;
 }
-
 .thought-bubble::after { display: none; }
 .char-heart.active .thought-bubble { opacity: 1; }
 
-/* ═══════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────
    GAME MODAL  z:100
-═══════════════════════════════════════════════════ */
-
+───────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -401,45 +299,34 @@ html, body {
   pointer-events: none;
   transition: background 0.35s ease;
 }
-
 .modal-overlay.open {
   background: rgba(0,0,0,0.55);
   pointer-events: all;
 }
-
 .modal-window {
   position: relative;
   width: clamp(320px, 88vw, 1100px);
   height: clamp(400px, 84dvh, 820px);
   background: #f5f0ea;
   border-radius: 4px;
-  box-shadow:
-    0 0 0 3px #6579e2,
-    0 0 0 6px #83d2e6,
-    6px 10px 40px rgba(0,0,0,0.45);
+  box-shadow: 0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 6px 10px 40px rgba(0,0,0,0.45);
   overflow: hidden;
   transform: scale(0.88) translateY(24px);
   opacity: 0;
-  transition:
-    transform 0.38s cubic-bezier(.22,1,.36,1),
-    opacity 0.28s ease;
+  transition: transform 0.38s cubic-bezier(.22,1,.36,1), opacity 0.28s ease;
   pointer-events: none;
 }
-
 .modal-overlay.open .modal-window {
   transform: scale(1) translateY(0);
   opacity: 1;
   pointer-events: all;
 }
-
 .modal-close {
   position: absolute;
   top: 10px; right: 12px;
   z-index: 10;
   width: 30px; height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   font-size: 18px;
   color: #a09070;
   background: #fdf6e3;
@@ -449,18 +336,12 @@ html, body {
   transition: color 0.15s, transform 0.1s, background 0.15s;
   box-shadow: 1px 2px 0 1px rgba(0,0,0,0.2);
 }
-
 .modal-close:hover { color: #5a3a7a; background: #ede6f7; transform: scale(1.15); }
+.modal-frame { width: 100%; height: 100%; border: none; display: block; }
 
-.modal-frame {
-  width: 100%; height: 100%;
-  border: none; display: block;
-}
-
-/* ═══════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────
    LETTER OVERLAY  z:50
-═══════════════════════════════════════════════════ */
-
+───────────────────────────────────────────────── */
 .letter-overlay {
   position: fixed;
   inset: 0;
@@ -470,9 +351,7 @@ html, body {
   justify-content: center;
   background: rgba(0,0,0,0.45);
 }
-
 .letter-overlay.hidden { display: none; }
-
 .letter-paper {
   position: relative;
   width: clamp(280px, 44vw, 500px);
@@ -482,22 +361,13 @@ html, body {
     radial-gradient(ellipse at 80% 90%, rgba(190,175,140,.15) 0%, transparent 50%);
   border-radius: 2px;
   padding: clamp(24px, 4vw, 44px) clamp(20px, 3.5vw, 40px);
-  box-shadow:
-    2px 3px 0 1px rgba(0,0,0,.1),
-    4px 6px 14px rgba(0,0,0,.25),
-    inset 0 0 40px rgba(180,160,120,.07);
+  box-shadow: 2px 3px 0 1px rgba(0,0,0,.1), 4px 6px 14px rgba(0,0,0,.25);
   transform: scaleY(0.07);
   opacity: 0;
   pointer-events: none;
   transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
 }
-
-.letter-paper.unfolded {
-  transform: scaleY(1) rotate(.6deg);
-  opacity: 1;
-  pointer-events: all;
-}
-
+.letter-paper.unfolded { transform: scaleY(1) rotate(.6deg); opacity: 1; pointer-events: all; }
 .letter-close {
   position: absolute;
   top: 10px; right: 12px;
@@ -508,7 +378,6 @@ html, body {
   transition: color .15s, transform .1s;
 }
 .letter-close:hover { color: #5a3a7a; transform: scale(1.2); }
-
 .letter-body {
   font-family: var(--font-hand);
   font-size: clamp(14px, 1.6vw, 18px);
@@ -520,37 +389,19 @@ html, body {
 .letter-body p:last-child  { margin-bottom: 0; }
 .letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #5a3a7a; }
 
-/* ═══════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────
    MOBILE
-═══════════════════════════════════════════════════ */
-
+───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .art-map    { left: 14vw; top: 20vh; width: 36vw; }
-  .art-bingo  { left: 52vw; top: 20vh; width: 34vw; }
-  .art-bag    { left: 28vw; top: 46vh; width: 16vw; }
-  .art-mirror { left: 50vw; top: 42vh; width: 26vw; }
-
-  .char-heart {
-    left: 4vw;
-    bottom: 24vh;
-    width: clamp(80px, 22vw, 160px);
-  }
-
-  .thought-bubble {
-    width: clamp(140px, 52vw, 280px);
-    font-size: clamp(10px, 2.8vw, 15px);
-    left: calc(100% - 20px);
-    top: calc(100% - 15px);
-  }
-
+  .art-map    { left: 20vw; top: 16vh; width: 32vw; }
+  .art-bingo  { left: 55vw; top: 16vh; width: 28vw; }
+  .art-bag    { left: 42vw; top: 40vh; width: 14vw; }
+  .art-mirror { left: 58vw; top: 34vh; width: 22vw; }
+  .char-heart { left: 4vw; bottom: 24vh; width: clamp(80px, 22vw, 160px); }
+  .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .door-arch-left  { width: 16vw; }
   .door-arch-right { width: 16vw; }
-
-  .modal-window {
-    width: 96vw;
-    height: 88dvh;
-  }
-
+  .modal-window { width: 96vw; height: 88dvh; }
   .room-sign { font-size: clamp(14px, 5vw, 24px); }
 }
 
@@ -558,42 +409,35 @@ html, body {
 </head>
 <body>
 
-<!-- ═══ ROOM PANELS  z:0 ═══ -->
-<div class="room-panel panel-back"></div>
-<div class="room-panel panel-ceiling"></div>
-<div class="room-panel panel-left"></div>
-<div class="room-panel panel-right"></div>
-<div class="room-panel panel-floor"></div>
-
-<!-- ═══ FLOOR IMAGE ═══ -->
+<!-- FLOOR IMAGE  z:1 -->
 <img class="floor-img" src="assets/elements/walls/floor.png" alt="" aria-hidden="true">
 
-<!-- ═══ PERSPECTIVE LINES  z:1 ═══
-     SVG draws the 4 corner-to-vanishingpoint lines.
-     percentages map directly to vw/dvh via viewBox="0 0 100 100"
-     preserveAspectRatio="none" so it always fills the viewport. -->
+<!-- FOUR DIAGONAL LINES  z:2
+     All four corners → vanishing point (50%, 30%).
+     SVG viewBox 0 0 100 100 with preserveAspectRatio=none
+     so coordinates are always exactly % of the viewport. -->
 <div class="room-lines" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none"
-       xmlns="http://www.w3.org/2000/svg">
-    <!-- top-left corner → vanishing point (ceiling left edge) -->
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <!-- top-right corner → vanishing point (ceiling right edge) -->
     <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <!-- bottom-left corner → left edge of back wall bottom -->
-    <line x1="0" y1="100" x2="13" y2="72" stroke="#111" stroke-width="0.18"/>
-    <!-- bottom-right corner → right edge of back wall bottom -->
-    <line x1="100" y1="100" x2="87" y2="72" stroke="#111" stroke-width="0.18"/>
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
   </svg>
 </div>
 
-<!-- ═══ DOOR ARCHES  z:3 ═══ -->
+<!-- BACK WALL  z:3
+     Rectangle whose corners land exactly on the four diagonal lines.
+     Calculated: t_top=0.30 → top 9%, left 15%, width 70%
+                 t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
+<div class="back-wall"></div>
+
+<!-- DOOR ARCHES  z:4 -->
 <div class="door-arch door-arch-left" id="door-left"
      role="button" tabindex="0" aria-label="Take me back — go home">
   <div class="door-arch-inner">
     <span class="door-arch-label">take&#10;me&#10;back</span>
   </div>
 </div>
-
 <div class="door-arch door-arch-right" id="door-right"
      role="button" tabindex="0" aria-label="Keep it going — coming soon">
   <div class="door-arch-inner">
@@ -601,50 +445,45 @@ html, body {
   </div>
 </div>
 
-<!-- ═══ TOPBAR  z:10 ═══ -->
+<!-- TOPBAR  z:10 -->
 <div class="topbar">
   <a class="back-btn" href="index.html">← home</a>
   <h1 class="room-sign">build a world</h1>
 </div>
 
-<!-- ═══ WALL ART  z:2 ═══ -->
+<!-- WALL ART  z:4 -->
 <div class="wall-art art-map" id="art-map" data-game="treasure-map"
      role="button" tabindex="0" aria-label="Open Treasure Map game">
   <img src="assets/elements/map.png" alt="Treasure Map">
 </div>
-
 <div class="wall-art art-bingo" id="art-bingo" data-game="bingo"
      role="button" tabindex="0" aria-label="Open Bingo game">
   <img src="assets/elements/bingo.png" alt="Bingo">
 </div>
-
 <div class="wall-art art-bag" id="art-bag" data-game="inventory"
      role="button" tabindex="0" aria-label="Open Inventory game">
   <img src="assets/elements/bag.png" alt="What's in my bag">
 </div>
-
 <div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror"
      role="button" tabindex="0" aria-label="Open Infinity Mirror game">
   <img src="assets/elements/mirror.png" alt="Infinity Mirror">
 </div>
 
-<!-- ═══ HEART GUIDE  z:5 ═══ -->
+<!-- HEART GUIDE  z:4 -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
-  <img class="char-img"
-       src="assets/elements/guides/heart.png"
-       alt="Heart guide character">
+  <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
-<!-- ═══ GAME MODAL  z:100 ═══ -->
-<div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog" aria-label="Game">
+<!-- GAME MODAL  z:100 -->
+<div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog">
   <div class="modal-window" id="modal-window">
     <button class="modal-close" id="modal-close" aria-label="Close game">&#x2715;</button>
     <iframe class="modal-frame" id="modal-frame" src="" title="Game"></iframe>
   </div>
 </div>
 
-<!-- ═══ LETTER OVERLAY  z:50 ═══ -->
+<!-- LETTER OVERLAY  z:50 -->
 <div class="letter-overlay hidden" id="letter-overlay">
   <div class="letter-paper" id="letter-paper">
     <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
@@ -656,17 +495,13 @@ html, body {
       <li>a self care tool library to find resources</li>
       <li>a fully explorable world custom built from your inputs</li>
       <li>a community board for travelers on similar emotional landscapes</li>
-      <div class="letter-sig">
-        <p>More magic, coming soon...</p>
-      </div>
+      <div class="letter-sig"><p>More magic, coming soon...</p></div>
     </div>
   </div>
 </div>
 
 <script>
 (function () {
-
-  /* ── Heart guide ── */
   const heart  = document.getElementById('char-heart');
   const bubble = document.getElementById('heart-bubble');
 
@@ -697,27 +532,23 @@ html, body {
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* ── Modal ── */
+  /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
   const modalFrame   = document.getElementById('modal-frame');
   const modalClose   = document.getElementById('modal-close');
 
   function openModal(page) { modalFrame.src = page + '.html'; modalOverlay.classList.add('open'); }
-  function closeModal() {
-    modalOverlay.classList.remove('open');
-    setTimeout(() => { modalFrame.src = ''; }, 400);
-  }
+  function closeModal() { modalOverlay.classList.remove('open'); setTimeout(() => { modalFrame.src = ''; }, 400); }
 
   document.querySelectorAll('.wall-art[data-game]').forEach(art => {
     art.addEventListener('click', () => openModal(art.dataset.game));
     art.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(art.dataset.game); });
   });
-
   modalClose.addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal(); });
 
-  /* ── Doors ── */
+  /* Doors */
   const doorLeft  = document.getElementById('door-left');
   const doorRight = document.getElementById('door-right');
 
@@ -735,7 +566,6 @@ html, body {
   doorRight.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
-
 })();
 </script>
 
