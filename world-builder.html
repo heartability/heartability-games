@@ -352,6 +352,243 @@ html, body {
   .room-sign { font-size: clamp(12px, 5vw, 18px); }
 }
 
+@font-face {
+  font-family: "ZoesNumbers";
+  src: url("data:font/truetype;base64,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") format("truetype");
+}
+
+/* ═══════════════════════════════════════════════════
+   BINGO GAME — scoped to #game-bingo
+   Fonts, colors, game mechanics preserved.
+   Floor, baseboard, heart character removed.
+═══════════════════════════════════════════════════ */
+
+#game-bingo {
+  --panel-bg:           #f0e8d0;
+  --panel-border:       #6578e2;
+  --panel-border-dark:  #4a58c2;
+  --panel-border-light: #8898f2;
+  --wall-mid:           #e8e0c8;
+  --text-dark:          #2a1e14;
+  --text-mid:           #6a5a4a;
+  --heart-pink:         #E8478B;
+  --font-game:          "PFPixelscript", cursive;
+  --font-hand:          "ZoesHandwriting", cursive;
+
+  background: #fff;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 24px;
+  overflow-y: auto;
+  gap: 0;
+}
+
+#game-bingo .bingo-title {
+  font-family: "PFPixelscript", cursive;
+  font-size: clamp(28px, 4vw, 48px);
+  color: #6579e2;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#game-bingo .instruction-bar {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#game-bingo .instruction-text {
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(13px, 1.8vw, 18px);
+  color: #6ab86a;
+  line-height: 1.5;
+}
+
+#game-bingo .instruction-text .step { color: #E8478B; }
+
+#game-bingo .score-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#game-bingo .score-box {
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 4px 14px;
+  text-align: center;
+}
+
+#game-bingo .score-box .label {
+  font-size: 11px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: "PFPixelscript", cursive;
+}
+
+#game-bingo .score-box .number {
+  font-size: 28px;
+  color: var(--text-dark);
+  line-height: 1;
+  font-family: "ZoesNumbers", "PFPixelscript", cursive;
+}
+
+#game-bingo .reset-btn {
+  background: #e8e0c8;
+  border: 3px solid var(--panel-border-dark);
+  outline: 2px solid var(--panel-border-light);
+  outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 6px 14px;
+  font-family: "PFPixelscript", cursive;
+  font-size: 16px;
+  color: #6578e2;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+#game-bingo .reset-btn:hover { transform: translate(1px,1px); box-shadow: 1px 2px 0 2px rgba(0,0,0,0.4); }
+#game-bingo .reset-btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+#game-bingo .bingo-alert {
+  display: none;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: 15px;
+  color: #6578e2;
+  text-align: center;
+  padding: 8px 0;
+  animation: bingo-blink-text 0.6s ease-in-out infinite alternate;
+}
+#game-bingo .bingo-alert.show { display: block; }
+@keyframes bingo-blink-text { from { opacity:1; } to { opacity:0.4; } }
+
+#game-bingo .rpg-panel {
+  position: relative;
+  background: var(--panel-bg);
+  width: 100%;
+  max-width: 720px;
+  border: 3px solid var(--panel-border-dark);
+  outline: 3px solid var(--panel-border-light);
+  outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--panel-border), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 16px;
+}
+#game-bingo .rpg-panel::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--panel-border-light);
+  pointer-events: none;
+}
+
+#game-bingo .bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  user-select: none;
+}
+
+#game-bingo .cell {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.1s;
+  overflow: hidden;
+}
+#game-bingo .cell:hover { filter: brightness(1.05); }
+#game-bingo .cell:active { border-right-color: #c8b88a; border-bottom-color: #c8b88a; border-left-color: #5a4a2a; border-top-color: #5a4a2a; }
+#game-bingo .cell.free-space { background: #d4e8d4; border-color: #4a8a4a; }
+#game-bingo .cell.marked { background: #f0d0e0; }
+#game-bingo .cell.bingo-line { background: #fff0a0; animation: bingo-blink 0.8s ease-in-out infinite alternate; }
+@keyframes bingo-blink { from { background: #fff0a0; } to { background: #ffe040; } }
+
+#game-bingo .cell-text {
+  font-family: "PFPixelscript", cursive;
+  font-size: clamp(7px, 1.1vw, 11px);
+  color: var(--text-dark);
+  text-align: center;
+  line-height: 1.2;
+  z-index: 1;
+  pointer-events: none;
+}
+#game-bingo .cell.free-space .cell-text { font-family: "ZoesHandwriting", cursive; }
+#game-bingo .cell-heart {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: clamp(16px, 3vw, 28px);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 2;
+}
+#game-bingo .cell.marked .cell-heart { opacity: 1; }
+#game-bingo .cell.marked .cell-text  { opacity: 0.15; }
+
+#game-bingo .meter-section { margin-top: 14px; }
+#game-bingo .meter-label {
+  font-family: "PFPixelscript", cursive;
+  font-size: 13px;
+  color: var(--text-mid);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+#game-bingo .meter-track {
+  background: #c8b88a;
+  border: 2px solid var(--panel-border-dark);
+  border-right-color: var(--panel-border-light);
+  border-bottom-color: var(--panel-border-light);
+  height: 22px;
+  position: relative;
+  overflow: hidden;
+}
+#game-bingo .meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #e8478b 0px, #e8478b 18px, #ff6ba8 18px, #ff6ba8 20px);
+  transition: width 0.4s steps(12);
+  min-width: 0;
+}
+#game-bingo .meter-stages { display: flex; justify-content: space-between; margin-top: 4px; }
+#game-bingo .meter-stage { font-family: "PFPixelscript", cursive; font-size: 10px; color: #8a7a6a; letter-spacing: 0.5px; text-transform: uppercase; }
+#game-bingo .meter-stage.active { color: var(--text-dark); font-size: 11px; }
+
+#game-bingo .reading-panel {
+  display: none;
+  margin-top: 10px;
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  padding: 12px 16px;
+}
+#game-bingo .reading-panel.show { display: block; }
+#game-bingo .reading-title { font-family: "ZoesHandwriting", cursive; font-size: 18px; color: var(--text-dark); margin-bottom: 8px; }
+#game-bingo .reading-text  { font-family: "PFPixelscript", cursive; font-size: 14px; color: var(--text-mid); line-height: 1.5; letter-spacing: 0.3px; }
+
 </style>
 </head>
 <body>
@@ -410,7 +647,47 @@ html, body {
 <div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog">
   <div class="modal-window" id="modal-window">
     <button class="modal-close" id="modal-close" aria-label="Close game">&#x2715;</button>
-    <iframe class="modal-frame" id="modal-frame" src="" title="Game"></iframe>
+    <!-- Game panels injected here — only one visible at a time -->
+    <div class="game-panel" id="game-bingo">
+      <h2 class="bingo-title">heart meter</h2>
+
+      <div class="instruction-bar">
+        <div class="instruction-text"></div>
+        <div class="score-display">
+          <div class="score-box">
+            <div class="label">hearts</div>
+            <div class="number" id="b-scoreNum">0</div>
+          </div>
+          <button class="reset-btn" id="b-resetBtn">&#x25BA; RESET</button>
+        </div>
+      </div>
+
+      <div class="bingo-alert" id="b-bingoAlert">&#x2605; BINGO! &#x2605;</div>
+
+      <div class="rpg-panel">
+        <div class="bingo-grid" id="b-bingoGrid"></div>
+        <div class="meter-section">
+          <div class="meter-label">heart meter</div>
+          <div class="meter-track">
+            <div class="meter-fill" id="b-meterFill" style="width:0%"></div>
+          </div>
+          <div class="meter-stages">
+            <div class="meter-stage" id="b-stage0">waking up</div>
+            <div class="meter-stage" id="b-stage1">stronger</div>
+            <div class="meter-stage" id="b-stage2">flowing</div>
+            <div class="meter-stage" id="b-stage3">thriving</div>
+            <div class="meter-stage" id="b-stage4">full heart</div>
+          </div>
+        </div>
+        <div class="reading-panel" id="b-readingPanel">
+          <div class="reading-title" id="b-readingTitle"></div>
+          <div class="reading-text"  id="b-readingText"></div>
+        </div>
+      </div>
+    </div>
+    <div class="game-panel" id="game-treasure-map"></div>
+    <div class="game-panel" id="game-inventory"></div>
+    <div class="game-panel" id="game-infinity-mirror"></div>
   </div>
 </div>
 
@@ -463,13 +740,20 @@ html, body {
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* Modal */
+  /* Modal — inline game panels, no iframe */
   const modalOverlay = document.getElementById('modal-overlay');
-  const modalFrame   = document.getElementById('modal-frame');
   const modalClose   = document.getElementById('modal-close');
 
-  function openModal(page) { modalFrame.src = page + '.html'; modalOverlay.classList.add('open'); }
-  function closeModal() { modalOverlay.classList.remove('open'); setTimeout(() => { modalFrame.src = ''; }, 400); }
+  function openModal(gameId) {
+    document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('game-' + gameId);
+    if (panel) panel.classList.add('active');
+    modalOverlay.classList.add('open');
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+  }
 
   document.querySelectorAll('.wall-art[data-game]').forEach(art => {
     art.addEventListener('click', () => openModal(art.dataset.game));
@@ -497,6 +781,131 @@ html, body {
   doorRight.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
+
+  /* ═══ BINGO GAME ═══ */
+  (function() {
+    const SQUARES = [
+      "your body feels clean","you are not hungry or thirsty","you feel comfy in your body",
+      "you feel loved by your community","you feel well rested today","your space feels clean",
+      "you have drank a glass of water today","you have done something fun this week",
+      "you have talked to a friend this week","you find it easy to fall asleep lately",
+      "you recently cleaned your room/house","you have eaten food that you enjoyed today",
+      "you dont try to do everything alone","you do something relaxing to end your day",
+      "without moving, look at an item with a story","you have options for your next meal",
+      "you have moved your body mindfully today","without moving, look at something you love",
+      "you dont feel guilty for taking naps","you feel in control of your environment",
+      "somebody cooked for you this week","you know why you get sore and how to feel better",
+      "you have people to call in an emergency","you are not afraid to prioritize rest"
+    ];
+    const READINGS = [
+      { min:0,  max:4,  title:"its a new day",   text:"Your heart has space to grow." },
+      { min:5,  max:9,  title:"keep going",       text:"You are more resourced than you might feel right now." },
+      { min:10, max:14, title:"you got this",     text:"You are meeting your needs in real ways. Celebrate yourself." },
+      { min:15, max:19, title:"almost there",     text:"Your foundations are solid right now." },
+      { min:20, max:24, title:"full heart",        text:"You are deeply resourced right now. What dream feels possible from this place?" }
+    ];
+    const LINES = [
+      [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+      [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+      [0,6,12,18,24],[4,8,12,16,20]
+    ];
+
+    let bMarked = new Array(25).fill(false);
+    let bDragging = false;
+
+    function bLoad() {
+      try { const s = localStorage.getItem("hb-bingo"); if(s) bMarked = JSON.parse(s); } catch(e){}
+    }
+    function bSave() {
+      try { localStorage.setItem("hb-bingo", JSON.stringify(bMarked)); } catch(e){}
+    }
+
+    function bBuildGrid() {
+      const grid = document.getElementById("b-bingoGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      for(let i=0; i<25; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell" + (i===12?" free-space":"") + (bMarked[i]?" marked":"");
+        cell.dataset.idx = i;
+
+        const txt = document.createElement("div");
+        txt.className = "cell-text";
+        txt.textContent = i===12 ? "take a deep breath" : SQUARES[i<12?i:i-1];
+        cell.appendChild(txt);
+
+        const heart = document.createElement("div");
+        heart.className = "cell-heart";
+        heart.textContent = "♥";
+        heart.style.color = "#E8478B";
+        cell.appendChild(heart);
+
+        cell.addEventListener("click", () => {
+          if(i===12) return;
+          bMarked[i] = !bMarked[i];
+          bSave(); bUpdate();
+        });
+        cell.addEventListener("mousedown", e => { if(i!==12){ bDragging=true; e.preventDefault(); } });
+        cell.addEventListener("mouseenter", () => { if(bDragging && i!==12){ bMarked[i]=true; bSave(); bUpdate(); } });
+        grid.appendChild(cell);
+      }
+      document.addEventListener("mouseup", () => bDragging=false);
+    }
+
+    function bUpdate() {
+      document.querySelectorAll("#game-bingo .cell").forEach((cell,i) => {
+        cell.classList.toggle("marked", bMarked[i]||i===12);
+        cell.classList.remove("bingo-line");
+      });
+      let hasBingo = false;
+      LINES.forEach(line => {
+        if(line.every(i => bMarked[i]||i===12)) {
+          hasBingo = true;
+          line.forEach(i => {
+            const c = document.querySelector("#game-bingo .cell[data-idx='" + i + "']");
+            if(c) c.classList.add("bingo-line");
+          });
+        }
+      });
+      const score = bMarked.filter((v,i) => v && i!==12).length;
+      document.getElementById("b-scoreNum").textContent = score;
+      document.getElementById("b-bingoAlert").classList.toggle("show", hasBingo);
+      const pct = (score/24)*100;
+      document.getElementById("b-meterFill").style.width = pct + "%";
+      const si = Math.min(Math.floor(score/5),4);
+      document.querySelectorAll("#game-bingo .meter-stage").forEach((el,i) => el.classList.toggle("active",i===si));
+      const r = READINGS.find(x => score>=x.min && score<=x.max);
+      if(r && score>0) {
+        document.getElementById("b-readingTitle").textContent = r.title;
+        document.getElementById("b-readingText").textContent  = r.text;
+        document.getElementById("b-readingPanel").classList.add("show");
+      } else if(score===0) {
+        document.getElementById("b-readingPanel").classList.remove("show");
+      }
+    }
+
+    function bReset() {
+      bMarked = new Array(25).fill(false);
+      bSave(); bBuildGrid(); bUpdate();
+    }
+
+    // Init — defer until DOM ready
+    function bInit() {
+      bLoad();
+      bBuildGrid();
+      bMarked[12] = true;
+      bUpdate();
+      const resetBtn = document.getElementById("b-resetBtn");
+      if(resetBtn) resetBtn.addEventListener("click", bReset);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bInit);
+    } else {
+      bInit();
+    }
+  })();
+
 })();
 </script>
 
