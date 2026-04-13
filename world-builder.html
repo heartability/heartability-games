@@ -768,6 +768,8 @@ html, body {
     const panel = document.getElementById('game-' + gameId);
     if (panel) panel.classList.add('active');
     modalOverlay.classList.add('open');
+    // Init game after panel is visible so layout (aspect-ratio etc) works
+    if (gameId === 'bingo' && window._bingoInit) window._bingoInit();
   }
 
   function closeModal() {
@@ -908,8 +910,11 @@ html, body {
       bSave(); bBuildGrid(); bUpdate();
     }
 
-    // Init — defer until DOM ready
+    let bInitialized = false;
+
     function bInit() {
+      if (bInitialized) return;
+      bInitialized = true;
       bLoad();
       bBuildGrid();
       bMarked[12] = true;
@@ -918,11 +923,8 @@ html, body {
       if(resetBtn) resetBtn.addEventListener("click", bReset);
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bInit);
-    } else {
-      bInit();
-    }
+    // Expose init so openModal can call it
+    window._bingoInit = bInit;
   })();
 
 })();
