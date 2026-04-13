@@ -54,10 +54,9 @@ html, body {
 /* ─────────────────────────────────────────────────
    LAYER ORDER (z-index)
    0  — body background (side wall color)
-   1  — floor image
    2  — SVG diagonal lines
    3  — back wall rectangle  ← covers line intersections
-   4  — wall art, heart, door arches
+   4  — wall art, heart
    10 — topbar
    50 — letter overlay
    100— game modal
@@ -77,18 +76,6 @@ html, body {
   overflow: visible;
 }
 
-/* ── Floor image clipped to floor triangle ── */
-.floor-img {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  z-index: 1;
-  pointer-events: none;
-  clip-path: polygon(0% 100%, 15% 72%, 85% 72%, 100% 100%);
-}
-
 /* ── Back wall: plain rectangle, ON TOP of lines ── */
 .back-wall {
   position: fixed;
@@ -99,44 +86,6 @@ html, body {
   background: var(--back-wall);
   border: 1.5px solid var(--line-col);
   z-index: 3;
-  pointer-events: none;
-}
-
-/* ─────────────────────────────────────────────────
-   DOOR ARCHES  z:4
-───────────────────────────────────────────────── */
-.door-arch {
-  position: fixed;
-  bottom: 0;
-  z-index: 4;
-  cursor: pointer;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-.door-arch-left  { left: 0;  width: 10vw; height: 48dvh; }
-.door-arch-right { right: 0; width: 10vw; height: 48dvh; }
-
-.door-arch-inner {
-  width: 80%;
-  height: 95%;
-  background: #c8c3d0;
-  border-radius: 50% 50% 0 0 / 60% 60% 0 0;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px #b0abc0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 30%;
-}
-
-.door-arch-label {
-  font-family: var(--font-pixel);
-  font-size: clamp(8px, 1.1vw, 14px);
-  color: #fff;
-  text-align: center;
-  line-height: 1.5;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-  white-space: pre-line;
   pointer-events: none;
 }
 
@@ -180,7 +129,7 @@ html, body {
   top: 4px;
   transform: translateX(-50%);
   font-family: var(--font-pixel);
-  font-size: clamp(16px, 2.6vw, 36px);
+  font-size: clamp(16px, 2.6vw, 25px);
   color: #6579e2;
   text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
   white-space: nowrap;
@@ -399,8 +348,6 @@ html, body {
   .art-mirror { left: 58vw; top: 34vh; width: 22vw; }
   .char-heart { left: 4vw; bottom: 24vh; width: clamp(80px, 22vw, 160px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
-  .door-arch-left  { width: 16vw; }
-  .door-arch-right { width: 16vw; }
   .modal-window { width: 96vw; height: 88dvh; }
   .room-sign { font-size: clamp(14px, 5vw, 24px); }
 }
@@ -409,8 +356,6 @@ html, body {
 </head>
 <body>
 
-<!-- FLOOR IMAGE  z:1 -->
-<img class="floor-img" src="assets/elements/walls/floor.png" alt="" aria-hidden="true">
 
 <!-- FOUR DIAGONAL LINES  z:2
      All four corners → vanishing point (50%, 30%).
@@ -430,20 +375,6 @@ html, body {
      Calculated: t_top=0.30 → top 9%, left 15%, width 70%
                  t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
 <div class="back-wall"></div>
-
-<!-- DOOR ARCHES  z:4 -->
-<div class="door-arch door-arch-left" id="door-left"
-     role="button" tabindex="0" aria-label="Take me back — go home">
-  <div class="door-arch-inner">
-    <span class="door-arch-label">take&#10;me&#10;back</span>
-  </div>
-</div>
-<div class="door-arch door-arch-right" id="door-right"
-     role="button" tabindex="0" aria-label="Keep it going — coming soon">
-  <div class="door-arch-inner">
-    <span class="door-arch-label">keep&#10;it&#10;going</span>
-  </div>
-</div>
 
 <!-- TOPBAR  z:10 -->
 <div class="topbar">
