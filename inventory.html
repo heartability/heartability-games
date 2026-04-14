@@ -31,7 +31,6 @@
   --accent:             #83d2e6;
   --font-game:          "VT323", monospace;
   --wall-bg:            #f5f0ea;
-  --floor-h:            10dvh;
   --base-h:             16px;
 }
 
@@ -61,8 +60,6 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 24px 16px 0;
-  /* bottom padding clears floor + baseboard so content scrolls behind them */
-  padding-bottom: calc(var(--floor-h) + var(--base-h) + 24px);
 }
 
 /* ── TITLE ───────────────────────────────────────────────── */
@@ -89,29 +86,6 @@ h1.room-title {
   gap: 10px;
   flex-wrap: nowrap;
 }
-
-.back-btn {
-  position: absolute;
-  left: 24px;
-  top: 0;
-  display: inline-block;
-  padding: 6px 18px;
-  text-decoration: none;
-  font-family: var(--font-pixel);
-  font-size: clamp(6px, 2vw, 12px);
-  color: #6579e2;
-  background: #fdf6e3;
-  border: 3px solid #6579e2;
-  outline: 2px solid #83d2e6;
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
-  transition: transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
-.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
 
 .instructions {
   font-family: var(--font-game);
@@ -451,70 +425,6 @@ h1.room-title {
   padding-top: 10px;
 }
 
-/* ── GAME ROOM OVERLAY (floor / baseboard / heart) ───────── */
-
-.gr-floor {
-  position: fixed; bottom: 0; left: 0;
-  width: 100%; height: var(--floor-h);
-  z-index: 10; pointer-events: none;
-}
-.gr-floor img {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: top center;
-  display: block;
-}
-.gr-baseboard {
-  position: fixed; bottom: var(--floor-h); left: 0;
-  width: 100%; height: var(--base-h);
-  z-index: 11; pointer-events: none;
-  background: #cdc8bd;
-  box-shadow: 0 -3px 0 0 #c7c2b7, 0 4px 0 0 #b8b3a8, 0 7px 5px rgba(0,0,0,0.15);
-}
-.gr-heart {
-  position: fixed; left: 30px;
-  bottom: calc(var(--floor-h) - 35px);
-  width: clamp(100px, 13vw, 190px);
-  display: flex; align-items: flex-end;
-  cursor: default; z-index: 12;
-}
-.gr-heart img {
-  display: block; width: 100%; height: auto;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
-  animation:
-    gr-intro-wiggle 0.85s ease-out 0.35s 1 backwards,
-    gr-idle-pulse   3.6s ease-in-out 1.5s infinite;
-}
-.gr-bubble {
-  position: absolute;
-  left: calc(100% - 10px);
-  top: calc(100% - 40px);
-  width: clamp(200px, 32vw, 250px);
-  height: auto;
-  aspect-ratio: 846 / 248;
-  background-image: url('assets/elements/speech-box.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  border-radius: 0;
-  padding: 11% 8% 0 8%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "ZoesHandwriting";
-  font-size: clamp(12px, 1.6vw, 18px);
-  color: #5a3a7a;
-  text-align: center;
-  line-height: 1.3;
-  filter: none;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 0.22s ease;
-  z-index: 6;
-  white-space: normal;
-}
-
-.gr-bubble::after { display: none; }
-
 @keyframes gr-intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }
   18%  { transform: rotate(-11deg) scale(1.06); }
@@ -552,7 +462,6 @@ h1.room-title {
 
      <!-- Title sits above the panel, outside capture area -->
      <h1 class="room-title">Inventory</h1>
-     <a class="back-btn" href="game-select.html">← BACK</a>
 
     <!-- Action bar (excluded from screenshot) -->
     <div class="action-bar">
@@ -990,15 +899,5 @@ document.addEventListener('keydown', e => {
 
 init();
 </script>
-
-<!-- ── GAME ROOM OVERLAY ── -->
-<div class="gr-floor" aria-hidden="true">
-  <img src="assets/elements/floor.png" alt="">
-</div>
-<div class="gr-baseboard" aria-hidden="true"></div>
-<div class="gr-heart" aria-hidden="true">
-  <div class="gr-bubble">what are you carrying with you?</div>
-  <img src="assets/elements/guides/heart.png" alt="">
-</div>
 </body>
 </html>
