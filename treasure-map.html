@@ -211,9 +211,9 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .weather-category.snowy { background: #83d2e6; border-color: #5fa3b4; }
 
 .weather-cat-header { font-family: var(--font-hand); font-size: 20px; margin-bottom: 6px; }
-.sunny .weather-cat-header { color: #7a5a00; }
-.rainy .weather-cat-header { color: #1a3a7a; }
-.windy .weather-cat-header { color: #7a3a00; }
+.sunny .weather-cat-header { color: #690a24; }
+.rainy .weather-cat-header { color: #3d4656; }
+.windy .weather-cat-header { color: #395d07; }
 .snowy .weather-cat-header { color: #2a4a6a; }
 
 .feeling-chips { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -366,22 +366,22 @@ const TERRAIN = [
 const WEATHER_CATS = [
   {
     id:"sunny", label:"sunny", cls:"sunny",
-    tint:"rgba(255, 210, 60, 0.5)",
+    tint:"rgba(210, 137, 192, 1)",
     feelings:["trust","peace","joy","hope","confidence"]
   },
   {
     id:"rainy", label:"rainy", cls:"rainy",
-    tint:"rgba(60, 120, 220, 0.4)",
+    tint:"rgba(200, 200, 199, 1)",
     feelings:["shadows","worry","fear","depression","regret"]
   },
   {
     id:"windy", label:"windy", cls:"windy",
-    tint:"rgba(255, 130, 30, 0.45)",
+    tint:"rgba(180, 231, 107, 1)",
     feelings:["surprise","curiosity","inspiration","excitement","courage"]
   },
   {
     id:"snowy", label:"snowy", cls:"snowy",
-    tint:"rgba(200, 225, 255, 0.6)",
+    tint:"rgba(131, 210, 230, 1)",
     feelings:["anger","avoidance","bitterness","apathy","shock"]
   },
 ];
