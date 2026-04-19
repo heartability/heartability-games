@@ -186,8 +186,7 @@ html, body {
 
 .art-map    { left: 22vw; top: 18vh; width: 22vw; }
 .art-bingo  { left: 60vw; top: 18vh; width: 18vw; }
-.art-bag    { left: 50vw; top: 44vh; width:  8vw; }
-.art-mirror { left: 65vw; top: 38vh; width: 14vw; }
+.art-mirror { left: 45vw; top: 18vh; width: 14vw; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -366,7 +365,6 @@ html, body {
 @media (max-width: 768px) {
   .art-map    { left: 20vw; top: 26vh; width: 32vw; }
   .art-bingo  { left: 55vw; top: 26vh; width: 28vw; }
-  .art-bag    { left: 32vw; top: 48vh; width: 18vw; }
   .art-mirror { left: 54vw; top: 42vh; width: 28vw; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
@@ -414,10 +412,6 @@ html, body {
      role="button" tabindex="0" aria-label="Open Bingo game">
   <img src="assets/elements/bingo.png" alt="Bingo">
 </div>
-<div class="wall-art art-bag" id="art-bag" data-game="inventory"
-     role="button" tabindex="0" aria-label="Open Inventory game">
-  <img src="assets/elements/bag.png" alt="What's in my bag">
-</div>
 <div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror"
      role="button" tabindex="0" aria-label="Open Infinity Mirror game">
   <img src="assets/elements/mirror.png" alt="Infinity Mirror">
@@ -463,7 +457,6 @@ html, body {
     'art-map':    'you are not lost, you just need a map',
     'art-bingo':  'how are you really feeling?',
     'art-mirror': 'you contain multitudes',
-    'art-bag':    "what's in your bag?",
   };
 
   function triggerWiggle(el) {
