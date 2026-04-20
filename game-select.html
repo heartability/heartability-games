@@ -90,75 +90,6 @@ html, body {
 }
 
 /* ─────────────────────────────────────────────────
-   TOPBAR  z:10
-───────────────────────────────────────────────── */
-.topbar {
-  position: fixed;
-  top: 20px;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.back-btn {
-  position: absolute;
-  left: 24px;
-  top: 0;
-  display: inline-block;
-  padding: 6px 18px;
-  text-decoration: none;
-  font-family: var(--font-pixel);
-  font-size: clamp(6px, 2vw, 12px);
-  color: #6579e2;
-  background: #fdf6e3;
-  border: 3px solid #6579e2;
-  outline: 2px solid #83d2e6;
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
-  transition: transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
-  pointer-events: all;
-}
-.back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
-.back-btn:active { transform: translate(2px,3px);   box-shadow: none; }
-
-.room-sign {
-  position: absolute;
-  left: 50%;
-  top: 2px;
-  transform: translateX(-50%);
-  font-family: var(--font-pixel);
-  font-size: clamp(16px, 2.6vw, 25px);
-  color: #6579e2;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.next-btn {
-  position: absolute;
-  right: 24px;
-  top: 0;
-  display: inline-block;
-  padding: 6px 18px;
-  text-decoration: none;
-  font-family: var(--font-pixel);
-  font-size: clamp(6px, 2vw, 12px);
-  color: #6579e2;
-  background: #fdf6e3;
-  border: 3px solid #6579e2;
-  outline: 2px solid #83d2e6;
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.3);
-  transition: transform 0.08s, box-shadow 0.08s;
-  cursor: pointer;
-  pointer-events: all;
-}
-.next-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 2px rgba(0,0,0,0.3); }
-.next-btn:active { transform: translate(2px,3px);   box-shadow: none; }
-
-/* ─────────────────────────────────────────────────
    WALL ART  z:4
 ───────────────────────────────────────────────── */
 .wall-art {
@@ -369,7 +300,6 @@ html, body {
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
-  .room-sign {top: 13vw}; { font-size: clamp(14px, 5vw, 20px); }
 }
 
 </style>
@@ -397,11 +327,6 @@ html, body {
 <div class="back-wall"></div>
 
 <!-- TOPBAR  z:10 -->
-<div class="topbar">
-  <a class="back-btn" href="index.html">← back</a>
-  <h1 class="room-sign">build a world</h1>
-  <a class="next-btn" href="letter-overlay">next →</a>
-</div>
 
 <!-- WALL ART  z:4 -->
 <div class="wall-art art-map" id="art-map" data-game="treasure-map"
