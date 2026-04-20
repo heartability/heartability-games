@@ -118,6 +118,7 @@ html, body {
 .art-map    { left: 17vw; top: 18vh; width: 22vw; }
 .art-bingo  { left: 65vw; top: 18vh; width: 16vw; }
 .art-mirror { left: 45vw; top: 18vh; width: 14vw; }
+.art-door   {left: 40vw; top: 40vh; width: 14vw}
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -296,7 +297,8 @@ html, body {
 @media (max-width: 768px) {
   .art-map    { left: 20vw; top: 26vh; width: 32vw; }
   .art-bingo  { left: 55vw; top: 26vh; width: 28vw; }
-  .art-mirror { left: 54vw; top: 42vh; width: 28vw; }
+  .art-mirror { left: 20vw; top: 40vh; width: 28vw; }
+  .art-door   { left: 50vw; top: 60vh; width: 28vw}
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
@@ -342,6 +344,11 @@ html, body {
   <img src="assets/elements/mirror.png" alt="Infinity Mirror">
 </div>
 
+<div class="wall-art art-door" id="art-door"
+     role="button" tabindex="0" aria-label="Open letter">
+  <img src="assets/elements/dream-door" alt="Dreamworld door">
+</div>
+
 <!-- HEART GUIDE  z:4 -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
@@ -382,6 +389,7 @@ html, body {
     'art-map':    'you are not lost, you just need a map',
     'art-bingo':  'how are you really feeling?',
     'art-mirror': 'you contain multitudes',
+    'art-door': 'more coming soon'
   };
 
   function triggerWiggle(el) {
