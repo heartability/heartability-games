@@ -57,8 +57,6 @@ html, body {
    2  — SVG diagonal lines
    3  — back wall rectangle  ← covers line intersections
    4  — wall art, heart
-   50 — letter overlay
-   100— game modal
 ───────────────────────────────────────────────── */
 
 /* ── Four diagonal lines ── */
@@ -114,9 +112,9 @@ html, body {
 }
 .back-door.wiggling { animation: art-wiggle 0.48s ease; }
 
-.garden-door  { left: 25vw; bottom: 15vh; width: 14vw; }
-.library-door { left: 43vw; bottom: 15vh; width: 14vw; }
-.gallery-door { right: 25vw; bottom: 15vh; width: 14vw; }
+.garden-door  { left: 25vw; bottom: 20vh; width: 14vw; }
+.library-door { left: 43vw; bottom: 20vh; width: 14vw; }
+.gallery-door { right: 25vw; bottom: 20vh; width: 14vw; }
 
 /* ─────────────────────────────────────────────────
    SIDE NAV DOORS  z:4
@@ -274,23 +272,6 @@ html, body {
   <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
-<!-- LETTER OVERLAY  z:50 -->
-<div class="letter-overlay hidden" id="letter-overlay">
-  <div class="letter-paper" id="letter-paper">
-    <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
-    <div class="letter-body">
-      <p>Dear visitor,</p>
-      <p>This is just the beginning of something much biggerur core games will. Soon you will have access to:</p>
-      <li>user profiles to save your spirals</li>
-      <li>a media library to find inspiration</li>
-      <li>a self care tool library to find resources</li>
-      <li>a 2d side scroll game customized with your inputs</li>
-      <li>a community board for travelers on similar emotional landscapes</li>
-      <div class="letter-sig"><p>Stick around for updates</p></div>
-    </div>
-  </div>
-</div>
-
 <script>
 (function () {
   const heart  = document.getElementById('char-heart');
@@ -323,17 +304,6 @@ html, body {
 
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'where do you want to go?'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
-
-  /* Letter */
-  const letterOverlay = document.getElementById('letter-overlay');
-  const letterPaper   = document.getElementById('letter-paper');
-  const letterClose   = document.getElementById('letter-close');
-
-  function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
-  function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
-
-  letterClose.addEventListener('click', closeLetter);
-  letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
 
   /* Navigation */
   const doorHome    = document.getElementById('door-home');
