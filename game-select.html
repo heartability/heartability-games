@@ -119,6 +119,7 @@ html, body {
 .art-bingo  { left: 65vw; top: 18vh; width: 16vw; }
 .art-mirror { left: 45vw; top: 18vh; width: 14vw; }
 .art-door   {left: 50vw; bottom: 21vh; width: 15vw}
+.door-left  {left: 3vw; bottom: 10vh; width: 15vw}
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -187,18 +188,6 @@ html, body {
 .thought-bubble::after { display: none; }
 .char-heart.active .thought-bubble { opacity: 1; }
 
-/* ─────────────────────────────────────────────────
-   Doors z:99
-───────────────────────────────────────────────── */
-.door-left {
-  position: fixed;
-  inset: 0;
-  z-index: 99;
-  position: fixed;
-  left: 4vw;
-  bottom: 4vh;
-  width: clamp(120px, 16vw, 150px);
-}
 
 /* ─────────────────────────────────────────────────
    GAME MODAL  z:100
@@ -342,10 +331,7 @@ html, body {
 <div class="back-wall"></div>
 
 <!-- Doors  z:10 -->
-<div class="door-left" id="door-left" data-game="index"
-     role="button" tabindex="0" aria-label="go home">
-  <img src="assets/elements/go-home.png" alt="home button">
-</div>
+
 <div class="wall-art art-map" id="art-map" data-game="treasure-map"
      role="button" tabindex="0" aria-label="Open Treasure Map game">
   <img src="assets/elements/map.png" alt="Treasure Map">
@@ -367,6 +353,11 @@ html, body {
 <div class="wall-art art-door" id="art-door"
      role="button" tabindex="0" aria-label="Open letter">
   <img src="assets/elements/dream-door.png" alt="Dreamworld door">
+</div>
+
+<div class="door-left" id="door-left" data-game="index"
+     role="button" tabindex="0" aria-label="go home">
+  <img src="assets/elements/go-home.png" alt="home button">
 </div>
 
 <!-- HEART GUIDE  z:4 -->
