@@ -516,13 +516,13 @@ function snapDoorsToFloor() {
     if (dHome) {
       const x = dHome.getBoundingClientRect().left + dHome.offsetWidth * 0.5;
       dHome.style.top    = 'auto';
-      dHome.style.bottom = (1.4 * (x / vw) * vh) + 'px';
+      dHome.style.bottom = (1.1 * (x / vw) * vh) + 'px';
     }
     if (dExplore) {
       const rect = dExplore.getBoundingClientRect();
       const xFromRight = vw - (rect.left + rect.width * 0.5);
       dExplore.style.top    = 'auto';
-      dExplore.style.bottom = (1.4 * (xFromRight / vw) * vh) + 'px';
+      dExplore.style.bottom = (1.1 * (xFromRight / vw) * vh) + 'px';
     }
   }
 
