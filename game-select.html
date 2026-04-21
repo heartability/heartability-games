@@ -504,6 +504,33 @@ document.getElementById('door-explore-mobile')
 
   doorExplore.addEventListener('click', () => { window.location.href = 'explore.html'; });
   doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
+
+  /* Snap side doors to floor diagonal */
+function snapDoorsToFloor() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const dHome    = document.getElementById('door-home');
+    const dExplore = document.getElementById('door-explore');
+
+    if (dHome) {
+      const x = dHome.getBoundingClientRect().left + dHome.offsetWidth * 0.5;
+      dHome.style.top    = 'auto';
+      dHome.style.bottom = (1.4 * (x / vw) * vh) + 'px';
+    }
+    if (dExplore) {
+      const rect = dExplore.getBoundingClientRect();
+      const xFromRight = vw - (rect.left + rect.width * 0.5);
+      dExplore.style.top    = 'auto';
+      dExplore.style.bottom = (1.4 * (xFromRight / vw) * vh) + 'px';
+    }
+  }
+
+  window.addEventListener('resize', snapDoorsToFloor);
+  snapDoorsToFloor();
+
+})();
+
 })();
 </script>
 
