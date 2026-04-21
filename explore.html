@@ -221,7 +221,7 @@ html, body {
   /* Show mobile doors */
   .mobile-only { display: block; }
 
-  .door-home-mobile    { left: 2vw;  bottom: 5vh; width: 11vw; }
+  .door-back-mobile    { left: 2vw;  bottom: 5vh; width: 11vw; }
   .door-explore-mobile { right: 2vw; bottom: 5vh; width: 11vw; }
 }
 
@@ -266,7 +266,7 @@ html, body {
 </div>
 
 <!-- Desktop side doors -->
-<div class="side-door door-home desktop-only" id="door-home" ...>
+<div class="side-door door-back desktop-only" id="door-back" ...>
   <img src="assets/elements/games-door.png" ...>
 </div>
 <div class="side-door door-explore desktop-only" id="door-explore" ...>
@@ -274,7 +274,7 @@ html, body {
 </div>
 
 <!-- Mobile side doors -->
-<div class="side-door door-home-mobile mobile-only" id="door-home-mobile" ...>
+<div class="side-door door-back-mobile mobile-only" id="door-back-mobile" ...>
   <img src="assets/elements/games-door-mobile.png" ...>
 </div>
 <div class="side-door door-explore-mobile mobile-only" id="door-explore-mobile" ...>
@@ -333,7 +333,7 @@ html, body {
   doorExplore.addEventListener('click', () => { window.location.href = '#'; });
   doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = '#'; });
 
-  document.getElementById('door-home-mobile')
+  document.getElementById('door-back-mobile')
   .addEventListener('click', () => window.location.href = 'index.html');
 document.getElementById('door-explore-mobile')
   .addEventListener('click', () => window.location.href = 'explore.html');
