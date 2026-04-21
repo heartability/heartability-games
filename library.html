@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Library — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:   "ZoesHandwriting", cursive;
+  --font-pixel:  "PFPixelscript", cursive;
+  --back-wall:   #f0ece4;
+  --side-col:    #dbd6ce;
+  --line-col:    #111;
+
+  /*
+    Vanishing point: 50% across, 30% down.
+
+    Back wall rectangle corners sit exactly ON the four diagonal lines:
+      t_top=0.30 → top edge at y=9%,  left=15%, right=85%,  width=70%
+      t_bot=0.55 → bot edge at y=61.5%, left=27.5%, right=72.5%
+
+    Since it's a rectangle (not a trapezoid) we use:
+      top:   9%   left: 15%   width: 70%   height: 52.5%
+    The top corners land on the top-left and top-right diagonal lines.
+    The bottom corners land on the bottom-left and bottom-right diagonal lines.
+  */
+  --bw-top:    9%;
+  --bw-left:   15%;
+  --bw-width:  70%;
+  --bw-height: 70%;
+}
+
+html, body {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  /* side/ceiling fill color shows outside the back wall */
+  background: var(--side-col);
+}
+
+/* ── Four diagonal lines ── */
+.room-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.room-lines svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* ── Back wall: plain rectangle, ON TOP of lines ── */
+.back-wall {
+  position: fixed;
+  top:    var(--bw-top);
+  left:   var(--bw-left);
+  width:  var(--bw-width);
+  height: var(--bw-height);
+  background: var(--back-wall);
+  border: 2px solid var(--line-col);
+  z-index: 3;
+  pointer-events: none;
+}
+
+
+
+</style>
+</head>
+<body>
+
+
+<!-- FOUR DIAGONAL LINES  z:2
+     All four corners → vanishing point (50%, 30%).
+     SVG viewBox 0 0 100 100 with preserveAspectRatio=none
+     so coordinates are always exactly % of the viewport. -->
+<div class="room-lines" aria-hidden="true">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+  </svg>
+</div>
+
+<!-- BACK WALL  z:3
+     Rectangle whose corners land exactly on the four diagonal lines.
+     Calculated: t_top=0.30 → top 9%, left 15%, width 70%
+                 t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
+<div class="back-wall"></div>
+
+
+</body>
+</html>
