@@ -120,6 +120,26 @@ html, body {
 .art-door   {left: 50vw; bottom: 21vh; width: 15vw}
 
 /* ─────────────────────────────────────────────────
+   SIDE NAV DOORS  z:4
+───────────────────────────────────────────────── */
+.side-door {
+  position: fixed;
+  cursor: pointer;
+  z-index: 4;
+}
+.side-door img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
+}
+.side-door:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
+
+.door-home    { left: 1vw;  bottom: 18vh; width: 10vw; }
+.door-explore { right: 1vw; bottom: 18vh; width: 10vw; }
+
+/* ─────────────────────────────────────────────────
    CHARACTER  z:4
 ───────────────────────────────────────────────── */
 @keyframes intro-wiggle {
@@ -302,6 +322,8 @@ html, body {
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
+  .door-home    { left: 0vw;  bottom: 12vh; width: 16vw; }
+  .door-explore { right: 0vw; bottom: 12vh; width: 16vw; }
 }
 
 </style>
@@ -347,6 +369,16 @@ html, body {
   <img src="assets/elements/dream-door.png" alt="Dreamworld door">
 </div>
 
+<!-- SIDE NAV DOORS  z:4 -->
+<div class="side-door door-home" id="door-home"
+     role="button" tabindex="0" aria-label="Go home">
+  <img src="assets/elements/go-home.png" alt="Go home door">
+</div>
+<div class="side-door door-explore" id="door-explore"
+     role="button" tabindex="0" aria-label="Keep exploring">
+  <img src="assets/elements/explore-door.png" alt="Keep exploring door">
+</div>
+
 <!-- HEART GUIDE  z:4 -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
@@ -387,7 +419,9 @@ html, body {
     'art-map':    'you are not lost, you just need a map',
     'art-bingo':  'how are you really feeling?',
     'art-mirror': 'you contain multitudes',
-    'art-door': 'more coming soon'
+    'art-door':   'more coming soon',
+    'door-home':  'go back home',
+    'door-explore': 'there is more to discover'
   };
 
   function triggerWiggle(el) {
@@ -435,10 +469,20 @@ html, body {
   function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
   function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
 
-  doorRight.addEventListener('click', openLetter);
-  doorRight.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
+  const artDoor    = document.getElementById('art-door');
+  const doorHome   = document.getElementById('door-home');
+  const doorExplore = document.getElementById('door-explore');
+
+  artDoor.addEventListener('click', openLetter);
+  artDoor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
+
+  doorHome.addEventListener('click', () => { window.location.href = 'index.html'; });
+  doorHome.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
+
+  doorExplore.addEventListener('click', () => { window.location.href = 'explore.html'; });
+  doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
 })();
 </script>
 
