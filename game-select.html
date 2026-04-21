@@ -322,8 +322,17 @@ html, body {
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
-  .door-home    { left: 1vw;  top: auto; bottom: 6vh; width: 14vw; }
-  .door-explore { right: 1vw; top: auto; bottom: 6vh; width: 14vw; }
+
+/* Hide mobile doors on desktop */
+.mobile-only { display: none; }
+
+  /* Hide desktop doors on mobile */
+  .desktop-only { display: none; }
+  /* Show mobile doors */
+  .mobile-only { display: block; }
+
+  .door-home-mobile    { left: 1vw;  top: auto; bottom: 6vh; width: 14vw; }
+  .door-explore-mobile { right: 1vw; top: auto; bottom: 6vh; width: 14vw; }
 }
 
 </style>
@@ -369,14 +378,20 @@ html, body {
   <img src="assets/elements/dream-door.png" alt="Dreamworld door">
 </div>
 
-<!-- SIDE NAV DOORS  z:4 -->
-<div class="side-door door-home" id="door-home"
-     role="button" tabindex="0" aria-label="Go home">
-  <img src="assets/elements/go-home.png" alt="Go home door">
+<!-- Desktop side doors -->
+<div class="side-door door-home desktop-only" id="door-home" ...>
+  <img src="assets/elements/go-home.png" ...>
 </div>
-<div class="side-door door-explore" id="door-explore"
-     role="button" tabindex="0" aria-label="Keep exploring">
-  <img src="assets/elements/explore-door.png" alt="Keep exploring door">
+<div class="side-door door-explore desktop-only" id="door-explore" ...>
+  <img src="assets/elements/explore-door.png" ...>
+</div>
+
+<!-- Mobile side doors -->
+<div class="side-door door-home-mobile mobile-only" id="door-home-mobile" ...>
+  <img src="assets/elements/go-home-mobile.png" ...>
+</div>
+<div class="side-door door-explore-mobile mobile-only" id="door-explore-mobile" ...>
+  <img src="assets/elements/explore-door-mobile.png" ...>
 </div>
 
 <!-- HEART GUIDE  z:4 -->
@@ -444,6 +459,12 @@ html, body {
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
+  /* Mobile Door */
+  document.getElementById('door-home-mobile')
+  .addEventListener('click', () => window.location.href = 'index.html');
+document.getElementById('door-explore-mobile')
+  .addEventListener('click', () => window.location.href = 'explore.html');
+  
   /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
   const modalFrame   = document.getElementById('modal-frame');
