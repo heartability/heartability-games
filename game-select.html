@@ -120,24 +120,51 @@ html, body {
 .art-door   {left: 50vw; bottom: 21vh; width: 15vw}
 
 /* ─────────────────────────────────────────────────
-   SIDE NAV DOORS  z:4
+   TOP NAV BAR  z:200
 ───────────────────────────────────────────────── */
-.side-door {
+.room-nav {
   position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: #fcf45f;
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn {
   cursor: pointer;
-  z-index: 4;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: background 0.15s;
 }
-.side-door img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
-  transition: filter 0.2s;
-}
-.side-door:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+.nav-title { text-align: center; }
 
-.door-home    { left: 5vw;  top: 54vh; width: 9vw; }
-.door-explore { right: 5vw; top: 54vh; width: 9vw; }
+/* ─────────────────────────────────────────────────
+   SIDE WALL CLICK ZONES  z:1
+───────────────────────────────────────────────── */
+.side-wall {
+  position: fixed;
+  top: 44px;
+  bottom: 0;
+  width: 15vw;
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.side-wall:hover {
+  background: rgba(255,255,255,0.16);
+  box-shadow: inset 0 0 60px rgba(255,255,255,0.22);
+}
+.side-wall-left  { left: 0; }
+.side-wall-right { right: 0; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -314,31 +341,33 @@ html, body {
 /* ─────────────────────────────────────────────────
    MOBILE
 ───────────────────────────────────────────────── */
-/* Hide mobile doors on desktop */
-.mobile-only { display: none; }
-
 @media (max-width: 768px) {
   .art-map    { left: 20vw; top: 20vh; width: 32vw; }
   .art-bingo  { left: 55vw; top: 20vh; width: 28vw; }
   .art-mirror { left: 20vw; top: 40vh; width: 28vw; }
-  .art-door   { left: 50vw; bottom: 21vh; width: 28vw}
+  .art-door   { left: 50vw; bottom: 21vh; width: 28vw }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
-
-  /* Hide desktop doors on mobile */
-  .desktop-only { display: none; }
-  /* Show mobile doors */
-  .mobile-only { display: block; }
-
-  .door-home-mobile    { left: 2vw;  top: auto; bottom: 5vh; width: 11vw; }
-  .door-explore-mobile { right: 2vw; top: auto; bottom: 5vh; width: 10vw; }
+  .side-wall { width: 12vw; }
+  .room-nav { font-size: clamp(12px, 3.5vw, 16px); }
 }
 
 </style>
 </head>
 <body>
 
+
+<!-- TOP NAV BAR  z:200 -->
+<nav class="room-nav">
+  <span class="nav-btn" id="nav-back">go home</span>
+  <span class="nav-title">game room</span>
+  <span class="nav-btn" id="nav-next">keep exploring</span>
+</nav>
+
+<!-- SIDE WALL CLICK ZONES  z:1 -->
+<div class="side-wall side-wall-left"  id="wall-left"  role="button" tabindex="0" aria-label="Go home"></div>
+<div class="side-wall side-wall-right" id="wall-right" role="button" tabindex="0" aria-label="Keep exploring"></div>
 
 <!-- FOUR DIAGONAL LINES  z:2
      All four corners → vanishing point (50%, 30%).
@@ -376,22 +405,6 @@ html, body {
 <div class="wall-art art-door" id="art-door"
      role="button" tabindex="0" aria-label="Open letter">
   <img src="assets/elements/dream-door.png" alt="Dreamworld door">
-</div>
-
-<!-- Desktop side doors -->
-<div class="side-door door-home desktop-only" id="door-home" ...>
-  <img src="assets/elements/go-home.png" ...>
-</div>
-<div class="side-door door-explore desktop-only" id="door-explore" ...>
-  <img src="assets/elements/explore-door.png" ...>
-</div>
-
-<!-- Mobile side doors -->
-<div class="side-door door-home-mobile mobile-only" id="door-home-mobile" ...>
-  <img src="assets/elements/go-home-mobile.png" ...>
-</div>
-<div class="side-door door-explore-mobile mobile-only" id="door-explore-mobile" ...>
-  <img src="assets/elements/explore-door-mobile.png" ...>
 </div>
 
 <!-- HEART GUIDE  z:4 -->
@@ -435,8 +448,8 @@ html, body {
     'art-bingo':  'how are you really feeling?',
     'art-mirror': 'you contain multitudes',
     'art-door':   'more coming soon',
-    'door-home':  'go back home',
-    'door-explore': 'there is more to discover'
+    'wall-left':  'go back home',
+    'wall-right': 'there is more to discover'
   };
 
   function triggerWiggle(el) {
@@ -460,10 +473,15 @@ html, body {
   heart.addEventListener('mouseleave', deactivate);
 
   /* Mobile Door */
-  document.getElementById('door-home-mobile')
-  .addEventListener('click', () => window.location.href = 'index.html');
-document.getElementById('door-explore-mobile')
-  .addEventListener('click', () => window.location.href = 'explore.html');
+  /* Navigation — nav bar buttons */
+  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = 'index.html'; });
+  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = 'explore.html'; });
+
+  /* Navigation — side wall click zones */
+  document.getElementById('wall-left').addEventListener('click',  () => { window.location.href = 'index.html'; });
+  document.getElementById('wall-right').addEventListener('click', () => { window.location.href = 'explore.html'; });
+  document.getElementById('wall-left').addEventListener('keydown',  e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
+  document.getElementById('wall-right').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
   
   /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
@@ -490,44 +508,12 @@ document.getElementById('door-explore-mobile')
   function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
   function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
 
-  const artDoor    = document.getElementById('art-door');
-  const doorHome   = document.getElementById('door-home');
-  const doorExplore = document.getElementById('door-explore');
+  const artDoor = document.getElementById('art-door');
 
   artDoor.addEventListener('click', openLetter);
   artDoor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
-
-  doorHome.addEventListener('click', () => { window.location.href = 'index.html'; });
-  doorHome.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
-
-  doorExplore.addEventListener('click', () => { window.location.href = 'explore.html'; });
-  doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
-
-  /* Snap side doors to floor diagonal */
-function snapDoorsToFloor() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    const dHome    = document.getElementById('door-home');
-    const dExplore = document.getElementById('door-explore');
-
-    if (dHome) {
-      const x = dHome.getBoundingClientRect().left + dHome.offsetWidth * 0.5;
-      dHome.style.top    = 'auto';
-      dHome.style.bottom = (.8 * (x / vw) * vh) + 'px';
-    }
-    if (dExplore) {
-      const rect = dExplore.getBoundingClientRect();
-      const xFromRight = vw - (rect.left + rect.width * 0.5);
-      dExplore.style.top    = 'auto';
-      dExplore.style.bottom = (.8 * (xFromRight / vw) * vh) + 'px';
-    }
-  }
-
-  window.addEventListener('resize', snapDoorsToFloor);
-  snapDoorsToFloor();
 
 })();
 </script>
