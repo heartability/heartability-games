@@ -91,19 +91,19 @@ html, body {
 /* ─────────────────────────────────────────────────
    Door choices z:4
 ───────────────────────────────────────────────── */
-.door.group {
+.back-door {
   position: fixed;
   cursor: pointer;
   z-index: 4;
 }
-.door.group img {
+.back-door img {
   display: block;
   width: 100%;
   height: auto;
   filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
   transition: filter 0.2s;
 }
-.door.group:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
+.back-door:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
 @keyframes art-wiggle {
   0%,100% { transform: rotate(0deg); }
@@ -112,11 +112,11 @@ html, body {
   60%      { transform: rotate(-2deg); }
   80%      { transform: rotate(2deg); }
 }
-.door.group.wiggling { animation: art-wiggle 0.48s ease; }
+.back-door.wiggling { animation: art-wiggle 0.48s ease; }
 
-.garden-door    { left: 25vw; top: 18vh; width: 14vw; }
-.library-door { left: 50vw; top: 18vh; width: 14vw; }
-.gallery-door{ right: 25vw; top: 18vh; width: 14vw; }
+.garden-door  { left: 25vw; top: 45vh; width: 14vw; }
+.library-door { left: 43vw; top: 45vh; width: 14vw; }
+.gallery-door { left: 61vw; top: 45vh; width: 14vw; }
 
 /* ─────────────────────────────────────────────────
    SIDE NAV DOORS  z:4
@@ -135,8 +135,8 @@ html, body {
 }
 .side-door:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
-.door-gameselect    { left: 4vw;  top: 54vh; width: 10vw; }
-.door-meditation { right: 4vw; top: 54vh; width: 10vw; }
+.door-home    { left: 1vw;  bottom: 18vh; width: 10vw; }
+.door-explore { right: 1vw; bottom: 18vh; width: 10vw; }
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -260,13 +260,11 @@ html, body {
    MOBILE
 ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .art-map    { left: 20vw; top: 20vh; width: 32vw; }
-  .art-bingo  { left: 55vw; top: 20vh; width: 28vw; }
-  .art-mirror { left: 20vw; top: 40vh; width: 28vw; }
-  .art-door   { left: 50vw; bottom: 45vh; width: 28vw}
+  .garden-door  { left: 20vw; top: 50vh; width: 22vw; }
+  .library-door { left: 39vw; top: 50vh; width: 22vw; }
+  .gallery-door { left: 58vw; top: 50vh; width: 22vw; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
-  .modal-window { width: 96vw; height: 88dvh; }
   .door-home    { left: 0vw;  bottom: 12vh; width: 16vw; }
   .door-explore { right: 0vw; bottom: 12vh; width: 16vw; }
 }
@@ -350,11 +348,11 @@ html, body {
   const bubble = document.getElementById('heart-bubble');
 
   const messages = {
-    'garden-door':    'take a break, smell the roses',
-    'library-door':  'find something that inspires you',
+    'garden-door':  'take a break, smell the roses',
+    'library-door': 'find something that inspires you',
     'gallery-door': 'there is always a secret waterfall',
-    'door-home':  'go back to the game builder',
-    'door-explore': 'keep epxloring the castle'
+    'door-home':    'go back to the game builder',
+    'door-explore': 'keep exploring the castle'
   };
 
   function triggerWiggle(el) {
@@ -374,27 +372,10 @@ html, body {
     el.addEventListener('mouseleave', deactivate);
   });
 
-  heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
+  heart.addEventListener('mouseenter', () => { bubble.textContent = 'where do you want to go?'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* Modal */
-  const modalOverlay = document.getElementById('modal-overlay');
-  const modalFrame   = document.getElementById('modal-frame');
-  const modalClose   = document.getElementById('modal-close');
-
-  function openModal(page) { modalFrame.src = page + '.html'; modalOverlay.classList.add('open'); }
-  function closeModal() { modalOverlay.classList.remove('open'); setTimeout(() => { modalFrame.src = ''; }, 400); }
-
-  document.querySelectorAll('.wall-art[data-game]').forEach(art => {
-    art.addEventListener('click', () => openModal(art.dataset.game));
-    art.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(art.dataset.game); });
-  });
-  modalClose.addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal(); });
-
   /* Letter */
-
   const letterOverlay = document.getElementById('letter-overlay');
   const letterPaper   = document.getElementById('letter-paper');
   const letterClose   = document.getElementById('letter-close');
@@ -402,20 +383,19 @@ html, body {
   function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
   function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
 
-  const artDoor    = document.getElementById('art-door');
-  const doorHome   = document.getElementById('door-home');
-  const doorExplore = document.getElementById('door-explore');
-
-  artDoor.addEventListener('click', openLetter);
-  artDoor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
 
-  doorHome.addEventListener('click', () => { window.location.href = 'index.html'; });
-  doorHome.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
+  /* Navigation */
+  const doorHome    = document.getElementById('door-home');
+  const doorExplore = document.getElementById('door-explore');
 
-  doorExplore.addEventListener('click', () => { window.location.href = 'explore.html'; });
-  doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
+  doorHome.addEventListener('click', () => { window.location.href = 'game-select.html'; });
+  doorHome.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'game-select.html'; });
+
+  /* door-explore destination: update href when the next room is ready */
+  doorExplore.addEventListener('click', () => { window.location.href = '#'; });
+  doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = '#'; });
 })();
 </script>
 
