@@ -118,7 +118,6 @@ html, body {
 .art-bingo  { left: 65vw; top: 18vh; width: 16vw; }
 .art-mirror { left: 45vw; top: 18vh; width: 14vw; }
 .art-door   {left: 50vw; bottom: 21vh; width: 15vw}
-.door-left  {left: 10vw; bottom: 3vh; width: 10vw}
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -329,12 +328,6 @@ html, body {
                  t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
 <div class="back-wall"></div>
 
-<!-- Doors  z:10 -->
-
-<div class="wall-art art-map" id="art-map" data-game="treasure-map"
-     role="button" tabindex="0" aria-label="Open Treasure Map game">
-  <img src="assets/elements/map.png" alt="Treasure Map">
-</div>
 <!-- WALL ART  z:4 -->
 <div class="wall-art art-map" id="art-map" data-game="treasure-map"
      role="button" tabindex="0" aria-label="Open Treasure Map game">
@@ -352,11 +345,6 @@ html, body {
 <div class="wall-art art-door" id="art-door"
      role="button" tabindex="0" aria-label="Open letter">
   <img src="assets/elements/dream-door.png" alt="Dreamworld door">
-</div>
-
-<div class="door-left" id="door-left" data-game="index"
-     role="button" tabindex="0" aria-label="go home">
-  <img src="assets/elements/go-home.png" alt="home button">
 </div>
 
 <!-- HEART GUIDE  z:4 -->
@@ -379,13 +367,13 @@ html, body {
     <button class="letter-close" id="letter-close" aria-label="Close">&#x2715;</button>
     <div class="letter-body">
       <p>Dear visitor,</p>
-      <p>This is just the beginning of something much bigger. The four core games will always be free. But as Heartability grows here is what we are building:</p>
-      <li>user profiles so the world remembers you</li>
+      <p>This is just the beginning of something much biggerur core games will. Soon you will have access to:</p>
+      <li>user profiles to save your spirals</li>
       <li>a media library to find inspiration</li>
       <li>a self care tool library to find resources</li>
-      <li>a fully explorable world custom built from your inputs</li>
+      <li>a 2d side scroll game customized with your inputs</li>
       <li>a community board for travelers on similar emotional landscapes</li>
-      <div class="letter-sig"><p>More magic, coming soon...</p></div>
+      <div class="letter-sig"><p>Stick around for updates</p></div>
     </div>
   </div>
 </div>
@@ -438,12 +426,7 @@ html, body {
   modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal(); });
 
-  /* Doors */
-  const doorLeft  = document.getElementById('door-left');
-  const doorRight = document.getElementById('door-right');
-
-  doorLeft.addEventListener('click', () => { window.location.href = 'index.html'; });
-  doorLeft.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
+  /* Letter */
 
   const letterOverlay = document.getElementById('letter-overlay');
   const letterPaper   = document.getElementById('letter-paper');
