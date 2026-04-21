@@ -188,6 +188,19 @@ html, body {
 .char-heart.active .thought-bubble { opacity: 1; }
 
 /* ─────────────────────────────────────────────────
+   Doors z:99
+───────────────────────────────────────────────── */
+.door-left {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  position: fixed;
+  left: 4vw;
+  bottom: 8vh;
+  width: clamp(120px, 16vw, 260px);
+}
+
+/* ─────────────────────────────────────────────────
    GAME MODAL  z:100
 ───────────────────────────────────────────────── */
 .modal-overlay {
@@ -328,8 +341,15 @@ html, body {
                  t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
 <div class="back-wall"></div>
 
-<!-- TOPBAR  z:10 -->
-
+<!-- Doors  z:10 -->
+<div class="door-left" id="door-left" data-game="index"
+     role="button" tabindex="0" aria-label="go home">
+  <img src="assets/elements/go-home.png" alt="home button">
+</div>
+<div class="wall-art art-map" id="art-map" data-game="treasure-map"
+     role="button" tabindex="0" aria-label="Open Treasure Map game">
+  <img src="assets/elements/map.png" alt="Treasure Map">
+</div>
 <!-- WALL ART  z:4 -->
 <div class="wall-art art-map" id="art-map" data-game="treasure-map"
      role="button" tabindex="0" aria-label="Open Treasure Map game">
