@@ -206,6 +206,9 @@ html, body {
 /* ─────────────────────────────────────────────────
    MOBILE
 ───────────────────────────────────────────────── */
+/* Hide mobile doors on desktop */
+.mobile-only { display: none; }
+
 @media (max-width: 768px) {
   .garden-door  { left: 18vw; bottom: 21vh; width: 18vw; }
   .library-door { left: 39vw; bottom: 21vh; width: 18vw; }
@@ -214,6 +217,14 @@ html, body {
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .door-back    { left: 0vw;  bottom: 12vh; width: 16vw; }
   .door-explore { right: 0vw; bottom: 12vh; width: 16vw; }
+
+  /* Hide desktop doors on mobile */
+  .desktop-only { display: none; }
+  /* Show mobile doors */
+  .mobile-only { display: block; }
+
+  .door-home-mobile    { left: 1vw;  bottom: 12vh; width: 20vw; }
+  .door-explore-mobile { right: 1vw; bottom: 12vh; width: 20vw; }
 }
 
 </style>
@@ -266,6 +277,22 @@ html, body {
   <img src="assets/elements/explore-door.png" alt="Keep exploring door">
 </div>
 
+<!-- Desktop side doors -->
+<div class="side-door door-home desktop-only" id="door-home" ...>
+  <img src="assets/elements/games-door.png" ...>
+</div>
+<div class="side-door door-explore desktop-only" id="door-explore" ...>
+  <img src="assets/elements/explore-door.png" ...>
+</div>
+
+<!-- Mobile side doors -->
+<div class="side-door door-home-mobile mobile-only" id="door-home-mobile" ...>
+  <img src="assets/elements/games-door-mobile.png" ...>
+</div>
+<div class="side-door door-explore-mobile mobile-only" id="door-explore-mobile" ...>
+  <img src="assets/elements/explore-door-mobile.png" ...>
+</div>
+
 <!-- HEART GUIDE  z:4 -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="heart-bubble"></div>
@@ -305,6 +332,8 @@ html, body {
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'where do you want to go?'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
+  
+
   /* Navigation */
   const doorBack    = document.getElementById('door-back');
   const doorExplore = document.getElementById('door-explore');
@@ -315,6 +344,12 @@ html, body {
   /* door-explore destination: update href when the next room is ready */
   doorExplore.addEventListener('click', () => { window.location.href = '#'; });
   doorExplore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = '#'; });
+
+  document.getElementById('door-home-mobile')
+  .addEventListener('click', () => window.location.href = 'index.html');
+document.getElementById('door-explore-mobile')
+  .addEventListener('click', () => window.location.href = 'explore.html');
+  
 })();
 </script>
 
