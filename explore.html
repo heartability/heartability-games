@@ -133,7 +133,7 @@ html, body {
 }
 .side-door:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
-.door-home    { left: 4vw;  bottom: 5vh; width: 10vw; }
+.door-back    { left: 4vw;  bottom: 5vh; width: 10vw; }
 .door-explore { right: 4vw; bottom: 6vh; width: 10vw; }
 
 /* ─────────────────────────────────────────────────
@@ -212,7 +212,7 @@ html, body {
   .gallery-door { left: 58vw; top: 50vh; width: 22vw; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
-  .door-home    { left: 0vw;  bottom: 12vh; width: 16vw; }
+  .door-back    { left: 0vw;  bottom: 12vh; width: 16vw; }
   .door-explore { right: 0vw; bottom: 12vh; width: 16vw; }
 }
 
@@ -257,9 +257,9 @@ html, body {
 </div>
 
 <!-- SIDE NAV DOORS  z:4 -->
-<div class="side-door door-home" id="door-home"
-     role="button" tabindex="0" aria-label="Go home">
-  <img src="assets/elements/go-home.png" alt="Go home door">
+<div class="side-door door-back" id="door- back"
+     role="button" tabindex="0" aria-label="Go back">
+  <img src="assets/elements/games-door.png" alt="Go back door">
 </div>
 <div class="side-door door-explore" id="door-explore"
      role="button" tabindex="0" aria-label="Keep exploring">
@@ -281,7 +281,7 @@ html, body {
     'garden-door':  'take a break, smell the roses',
     'library-door': 'find something that inspires you',
     'gallery-door': 'there is always a secret waterfall',
-    'door-home':    'go back to the game builder',
+    'door-back':    'go back to the game builder',
     'door-explore': 'keep exploring the castle'
   };
 
@@ -306,11 +306,11 @@ html, body {
   heart.addEventListener('mouseleave', deactivate);
 
   /* Navigation */
-  const doorHome    = document.getElementById('door-home');
+  const doorBack    = document.getElementById('door-back');
   const doorExplore = document.getElementById('door-explore');
 
-  doorHome.addEventListener('click', () => { window.location.href = 'game-select.html'; });
-  doorHome.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'game-select.html'; });
+  doorBack.addEventListener('click', () => { window.location.href = 'game-select.html'; });
+  doorBack.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'game-select.html'; });
 
   /* door-explore destination: update href when the next room is ready */
   doorExplore.addEventListener('click', () => { window.location.href = '#'; });
