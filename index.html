@@ -192,7 +192,8 @@ body {
   bottom: 8vh;
   left: 4vw;
   z-index: 4;
-  pointer-events: none;
+  pointer-events: all;
+  cursor: pointer;
 }
 
 .heart-bubble-wrap {
@@ -254,8 +255,6 @@ body {
 
 @media (max-width: 768px) {
 
-  .portal-anchor {top: 5px;}
-
   .copyright  { font-size: 5px; }
 
   .title-heart {
@@ -271,6 +270,7 @@ body {
   }
 
   .portal-anchor {
+    top: 35%;
     width: clamp(280px, 90vw, 460px);
   }
 
@@ -282,7 +282,19 @@ body {
   .heart-guide-wrap { bottom: 0vh; left: 3vw; }
   .heart-guide-img  { width: 25vw; }
 
-  .heart-bubble-wrap { display: none; }
+  /* hidden by default on mobile, shown on tap via JS */
+  .heart-bubble-wrap {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    bottom: 28vh;
+    left: 3vw;
+  }
+  .heart-bubble-wrap.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
 
 }
 
@@ -398,6 +410,25 @@ body {
 
   swapRainbow();
   window.addEventListener('resize', swapRainbow);
+
+  /* ── Mobile: tap heart to toggle speech bubble ── */
+  const heartGuide  = document.getElementById('heartGuideWrap');
+  const bubbleWrap  = document.getElementById('heartBubbleWrap');
+
+  heartGuide.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      bubbleWrap.classList.toggle('visible');
+    }
+  });
+
+  /* tap anywhere else to dismiss */
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 &&
+        !heartGuide.contains(e.target) &&
+        !bubbleWrap.contains(e.target)) {
+      bubbleWrap.classList.remove('visible');
+    }
+  });
 
 })();
 </script>
