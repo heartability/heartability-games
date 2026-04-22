@@ -147,24 +147,24 @@ html, body {
 .nav-title { text-align: center; }
 
 /* ─────────────────────────────────────────────────
-   SIDE WALL CLICK ZONES  z:1
+   ABOUT POSTER  z:4
 ───────────────────────────────────────────────── */
-.side-wall {
+.art-about {
   position: fixed;
-  top: 44px;
-  bottom: 0;
-  width: 15vw;
-  z-index: 1;
+  left: 2vw;
+  top: 28vh;
+  width: 9vw;
   cursor: pointer;
-  background: transparent;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  z-index: 4;
 }
-.side-wall:hover {
-  background: rgba(255,255,255,0.16);
-  box-shadow: inset 0 0 60px rgba(255,255,255,0.22);
+.art-about img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2));
+  transition: filter 0.2s;
 }
-.side-wall-left  { left: 0; }
-.side-wall-right { right: 0; }
+.art-about:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
 /* ─────────────────────────────────────────────────
    CHARACTER  z:4
@@ -343,10 +343,10 @@ html, body {
   .art-bingo  { left: 55vw; top: 20vh; width: 28vw; }
   .art-mirror { left: 20vw; top: 40vh; width: 28vw; }
   .art-door   { left: 50vw; bottom: 21vh; width: 28vw }
+  .art-about  { left: 1vw; top: 30vh; width: 14vw; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .thought-bubble { width: clamp(140px, 52vw, 280px); font-size: clamp(10px, 2.8vw, 15px); }
   .modal-window { width: 96vw; height: 88dvh; }
-  .side-wall { width: 12vw; }
   .room-nav { font-size: clamp(12px, 3.5vw, 16px); }
 }
 
@@ -362,9 +362,11 @@ html, body {
   <span class="nav-btn" id="nav-next">next</span>
 </nav>
 
-<!-- SIDE WALL CLICK ZONES  z:1 -->
-<div class="side-wall side-wall-left"  id="wall-left"  role="button" tabindex="0" aria-label="Go home"></div>
-<div class="side-wall side-wall-right" id="wall-right" role="button" tabindex="0" aria-label="Keep exploring"></div>
+<!-- ABOUT POSTER  z:4 -->
+<div class="art-about wall-art" id="art-about"
+     role="button" tabindex="0" aria-label="Read a letter from the creator">
+  <img src="assets/elements/about-poster.png" alt="About Heartability">
+</div>
 
 <!-- FOUR DIAGONAL LINES  z:2
      All four corners → vanishing point (50%, 30%).
@@ -435,6 +437,21 @@ html, body {
   </div>
 </div>
 
+<!-- ABOUT LETTER OVERLAY  z:50 -->
+<div class="letter-overlay hidden" id="about-overlay">
+  <div class="letter-paper" id="about-paper">
+    <button class="letter-close" id="about-close" aria-label="Close">&#x2715;</button>
+    <div class="letter-body">
+      <p>Dear visitor,</p>
+      <p>Heartability is a self care game designed to help you visualize the bigger picture of your life.</p>
+      <p>The four core games take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Fill your inventory to assess your current routines. Play bingo to check in on your energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There&#39;s no wrong way to play, and nothing to optimize. Just endless possibilities to explore.</p>
+      <p>The creative process deserves better tools. You don&#39;t have to figure it out alone anymore. Now you can figure it out with Heartability.</p>
+      <p>Enter the castle, the door is always open.</p>
+      <div class="letter-sig"><p>With love,</p><p>Zoe Tinnes, founder of Heartability</p></div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   const heart  = document.getElementById('char-heart');
@@ -442,11 +459,10 @@ html, body {
 
   const messages = {
     'art-map':    'life is confusing. if you feel lost, make yourself a map',
-    'art-bingo':  'take a minute to celebrate the care you give youself',
+    'art-bingo':  'take a minute to celebrate the care you give yourself',
     'art-mirror': 'who do you want to be today? the options are endless',
     'art-door':   'what if you could create a personal video game world?...',
-    'wall-left':  'click to read a message from the creator of Heartability',
-    'wall-right': 'explore everything the castle has to offer'
+    'art-about':  'click to read a message from the creator of Heartability'
   };
 
   function triggerWiggle(el) {
@@ -469,17 +485,10 @@ html, body {
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  /* Mobile Door */
   /* Navigation — nav bar buttons */
   document.getElementById('nav-back').addEventListener('click', () => { window.location.href = 'index.html'; });
   document.getElementById('nav-next').addEventListener('click', () => { window.location.href = 'explore.html'; });
 
-  /* Navigation — side wall click zones */
-  document.getElementById('wall-left').addEventListener('click',  () => { window.location.href = 'index.html'; });
-  document.getElementById('wall-right').addEventListener('click', () => { window.location.href = 'explore.html'; });
-  document.getElementById('wall-left').addEventListener('keydown',  e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'index.html'; });
-  document.getElementById('wall-right').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
-  
   /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
   const modalFrame   = document.getElementById('modal-frame');
@@ -505,12 +514,26 @@ html, body {
   function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
   function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
 
-  const artDoor = document.getElementById('art-door');
+  const artDoor  = document.getElementById('art-door');
+  const artAbout = document.getElementById('art-about');
 
   artDoor.addEventListener('click', openLetter);
   artDoor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
   letterClose.addEventListener('click', closeLetter);
   letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
+
+  /* About letter */
+  const aboutOverlay = document.getElementById('about-overlay');
+  const aboutPaper   = document.getElementById('about-paper');
+  const aboutClose   = document.getElementById('about-close');
+
+  function openAbout()  { aboutOverlay.classList.remove('hidden'); setTimeout(() => aboutPaper.classList.add('unfolded'), 30); }
+  function closeAbout() { aboutPaper.classList.remove('unfolded'); setTimeout(() => aboutOverlay.classList.add('hidden'), 400); }
+
+  artAbout.addEventListener('click', openAbout);
+  artAbout.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openAbout(); });
+  aboutClose.addEventListener('click', closeAbout);
+  aboutOverlay.addEventListener('click', e => { if (e.target === aboutOverlay) closeAbout(); });
 
 })();
 </script>
