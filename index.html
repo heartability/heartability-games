@@ -176,11 +176,13 @@ body {
   100%       { opacity: 0; }  /* fade out before loop restarts */
 }
 
-.castle-link:hover .castle-img,
-.castle-link:hover .portal-logo {
-  filter: drop-shadow(0 8px 24px rgba(255,255,255,0.5)) drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+.castle-link:hover .castle-img {
   animation: none;
   opacity: 1;
+}
+.castle-link:hover .portal-logo {
+  animation: none;
+  opacity: 0;
 }
 
 .heart-guide-wrap {
