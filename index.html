@@ -22,7 +22,6 @@
   font-family: "ZoesHandwriting";
   src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
-
 @font-face {
   font-family: "PFPixelScript";
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
@@ -31,7 +30,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  min-height: 100vh;
+  width: 100vw;
   height: 100vh;
   background: #6578e2;
   font-family: "ZoesHandwriting", cursive;
@@ -40,29 +39,25 @@ body {
   user-select: none;
 }
 
-/* ── STARFIELD ───────────────────────────────────── */
-
+/* ── STARFIELD ── */
 #stars {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
 }
-
 .star {
   position: absolute;
   background: #fff;
-  clip-path: polygon(50% 0%, 54% 43%, 100% 50%, 54% 57%, 50% 100%, 46% 57%, 0% 50%, 46% 43%);
+  clip-path: polygon(50% 0%,54% 43%,100% 50%,54% 57%,50% 100%,46% 57%,0% 50%,46% 43%);
   animation: twinkle var(--d, 2s) ease-in-out infinite var(--del, 0s);
 }
-
 @keyframes twinkle {
-  0%,  100% { opacity: 0.9;  transform: scale(1)   rotate(0deg); }
-  50%        { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
+  0%,100% { opacity: 0.9; transform: scale(1) rotate(0deg); }
+  50%      { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
-/* ── SCENE ───────────────────────────────────────── */
-
+/* ── SCENE ── */
 .scene {
   position: relative;
   width: 100vw;
@@ -70,8 +65,7 @@ body {
   z-index: 1;
 }
 
-/* ── TITLE TEXT IMAGES ───────────────────────────── */
-
+/* ── TITLE TEXT IMAGES ── */
 .title-heart {
   position: absolute;
   top: 8vh;
@@ -81,7 +75,6 @@ body {
   z-index: 4;
   pointer-events: none;
 }
-
 .title-ability {
   position: absolute;
   bottom: 8vh;
@@ -92,110 +85,86 @@ body {
   pointer-events: none;
 }
 
-/* ── PORTAL ANCHOR ───────────────────────────────────
-   Single centered container. All portal elements are
-   positioned absolutely within it, sharing one center.
-   z-order (back→front): castle(2) → rainbow(3) → cloud(4) → enter(5)
+/* ── PORTAL ──────────────────────────────────────────
+   portal-wrap  — positions the portal on the page
+   portal-inner — real-height container (rainbow defines height)
+   castle-link  — fills portal-inner, whole oval is clickable
+   rainbow      — sits on top, pointer-events:none lets clicks through
+   castle-img / portal-logo — centered, crossfade between each other
 ─────────────────────────────────────────────────── */
-
-.portal-anchor {
+.portal-wrap {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: clamp(520px, 72vw, 900px);
-  /* height:0 so the anchor doesn't affect flow; children self-size */
-  height: 0;
   z-index: 2;
 }
-
-/* ── RAINBOW — z3, covers castle bottom edge ──────── */
-
+.portal-inner {
+  position: relative;
+  width: 100%;
+}
 .rainbow-portal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  display: block;
   width: 100%;
   height: auto;
   pointer-events: none;
-  z-index: 2;
-  display: block;
-}
-
-/* ── CASTLE + LOGO CROSSFADE — z2, behind rainbow ─── */
-
-.castle-link {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -40%);
-  display: block;
-  cursor: pointer;
-  text-decoration: none;
+  position: relative;
   z-index: 3;
 }
-
-.castle-img {
-  width: clamp(150px, 20vw, 250px);
-  height: auto;
-  transform-origin: center bottom;
-  animation: castleFade 13s ease-in-out infinite;
+.castle-link {
   position: absolute;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, -40%);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 2;
+}
+.castle-img,
+.portal-logo {
+  position: absolute;
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
-
+.castle-img {
+  width: clamp(150px, 20vw, 250px);
+  height: auto;
+  animation: castleFade 13s ease-in-out infinite;
+}
 .portal-logo {
   width: clamp(140px, 18vw, 260px);
   height: auto;
   animation: logoFade 13s ease-in-out infinite;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: block;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
+.castle-link:hover .castle-img  { animation: none; opacity: 1; }
+.castle-link:hover .portal-logo { animation: none; opacity: 0; }
 
-/* logo on → castle on, opposite phase */
-
+/* ── CROSSFADE KEYFRAMES ── */
 @keyframes logoFade {
   0%         { opacity: 0; }
-  10%        { opacity: 1; }  /* fade in */
-  30%        { opacity: 1; }  /* hold */
-  42%        { opacity: 0; }  /* fade out */
-  100%       { opacity: 0; }  /* stay gone */
+  10%        { opacity: 1; }
+  30%        { opacity: 1; }
+  42%        { opacity: 0; }
+  100%       { opacity: 0; }
 }
-
 @keyframes castleFade {
-  0%, 52%    { opacity: 0; }  /* gap after logo leaves */
-  64%        { opacity: 1; }  /* fade in */
-  90%        { opacity: 1; }  /* hold */
-  100%       { opacity: 0; }  /* fade out before loop restarts */
+  0%, 52%    { opacity: 0; }
+  64%        { opacity: 1; }
+  90%        { opacity: 1; }
+  100%       { opacity: 0; }
 }
 
-.castle-link:hover .castle-img {
-  animation: none;
-  opacity: 1;
-}
-.castle-link:hover .portal-logo {
-  animation: none;
-  opacity: 0;
-}
-
+/* ── HEART CHARACTER ── */
 .heart-guide-wrap {
   position: absolute;
   bottom: 8vh;
   left: 4vw;
   z-index: 4;
-  pointer-events: all;
   cursor: pointer;
+  pointer-events: all;
 }
-
 .heart-guide-img {
   width: 15vw;
   height: auto;
@@ -203,46 +172,12 @@ body {
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
   animation: heartFloat 4s ease-in-out infinite;
 }
-
 @keyframes heartFloat {
-  0%,  100% { transform: translateY(0px) rotate(-2deg); }
-  50%        { transform: translateY(-10px) rotate(2deg); }
+  0%,100% { transform: translateY(0px) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
 }
 
-/* ── HEART GUIDE — z4, above rainbow ─────────────── */
-
-/* ── COPYRIGHT ───────────────────────────────────── */
-
-.copyright {
-  position: fixed;
-  bottom: 14px;
-  right: 20px;
-  font-family: "PFPixelScript", monospace;
-  font-size: 8px;
-  color: rgba(255,255,255,0.32);
-  letter-spacing: 1px;
-  z-index: 10;
-}
-
-.copyright a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.copyright a:hover { color: rgba(255,255,255,0.72); }
-
-/* ── SCREEN READER ONLY ──────────────────────────── */
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-}
-
-/* ── SPEECH BUBBLE (above heart guide) ── */
+/* ── SPEECH BUBBLE ── */
 .heart-bubble-wrap {
   position: absolute;
   bottom: 22vh;
@@ -250,7 +185,7 @@ body {
   z-index: 6;
 }
 .heart-bubble-wrap .speech-bubble {
-  background: #fff; 
+  background: #fff;
   border: 2px solid #000;
   border-radius: 50%;
   padding: 14px 24px;
@@ -264,57 +199,79 @@ body {
   max-width: clamp(200px, 20vw, 300px);
 }
 
+/* ── COPYRIGHT ── */
+.copyright {
+  position: fixed;
+  bottom: 14px;
+  right: 20px;
+  font-family: "PFPixelScript", monospace;
+  font-size: 8px;
+  color: rgba(255,255,255,0.32);
+  letter-spacing: 1px;
+  z-index: 10;
+}
+.copyright a { color: inherit; text-decoration: none; }
+.copyright a:hover { color: rgba(255,255,255,0.72); }
+
+/* ── SCREEN READER ONLY ── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
 /* ══════════════════════════════════════════════════
    MOBILE
+   Adjust .portal-wrap top% to move the rainbow up/down.
+   Higher % = lower on screen. Lower % = higher on screen.
 ══════════════════════════════════════════════════ */
-
 @media (max-width: 768px) {
 
-  .copyright  { font-size: 5px; }
-
   .title-heart {
-    top: 8vh; 
+    top: 6vh;
     left: 4vw;
     width: 80vw;
   }
-
   .title-ability {
     bottom: 20vh;
     right: 4vw;
     width: 80vw;
   }
 
-  .portal-anchor {
-    top: 50%;
-    width: clamp(280px, 90vw, 460px);
+  /* Move the whole portal up — change top% to reposition */
+  .portal-wrap {
+    top: 32%;
+    width: 90vw;
   }
 
-  .rainbow-portal {
-    top: 0%;
-    transform: translate(-50%, -100%);
+  .castle-img  { width: clamp(90px, 25vw, 160px); }
+  .portal-logo { width: clamp(90px, 26vw, 200px); }
+
+  .heart-guide-wrap {
+    bottom: 2vh;
+    left: 3vw;
   }
+  .heart-guide-img { width: 25vw; }
 
-  .castle-img  { width: clamp(90px, 28vw, 160px); }
-  .portal-logo { width: clamp(90px, 29vw, 200px); }
-
-  .castle-link { transform: translate(-45%, -60%); }
-
-  .heart-guide-wrap { bottom: 0vh; left: 3vw; }
-  .heart-guide-img  { width: 25vw; }
-
-  /* hidden by default on mobile, shown on tap via JS */
+  /* Speech bubble hidden by default, shown on heart tap */
   .heart-bubble-wrap {
     display: none;
-    bottom: 4vh;
-    left: 13vw;
+    bottom: 22vh;
+    left: 3vw;
   }
-  .heart-bubble-wrap.visible {
-    display: block;
+  .heart-bubble-wrap.visible { display: block; }
+  .heart-bubble-wrap .speech-bubble {
+    font-size: clamp(12px, 3.5vw, 18px);
+    min-width: 140px;
+    max-width: 70vw;
   }
+
+  .copyright { font-size: 5px; }
 
 }
 
-/* ── COPYRIGHT ───────────────────────────────────── */
 </style>
 </head>
 <body>
@@ -325,47 +282,47 @@ body {
 
 <div class="scene">
 
-  <!-- "stop spiraling" text — top left -->
+  <!-- "stop spiraling" — top left -->
   <img class="title-heart"
        src="assets/elements/spiraling.png"
-       alt=""
-       aria-hidden="true">
+       alt="" aria-hidden="true">
 
-  <!-- "start playing" text — bottom right -->
+  <!-- "start playing" — bottom right -->
   <img class="title-ability"
        src="assets/elements/playing.png"
-       alt=""
-       aria-hidden="true">
+       alt="" aria-hidden="true">
 
-  <div class="portal-anchor">
+  <!-- Portal -->
+  <div class="portal-wrap">
+    <div class="portal-inner">
 
-    <!-- Logo + Castle crossfade — z2, BEHIND rainbow -->
-    <a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
-      <img class="portal-logo"
-           src="assets/elements/logo.png"
-           alt="Heartability">
-      <img class="castle-img"
-           src="assets/elements/castle.png"
-           alt="Castle — click to enter">
-    </a>
+      <!-- Castle link sits behind rainbow, whole oval is clickable -->
+      <a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
+        <img class="portal-logo"
+             src="assets/elements/logo.png"
+             alt="Heartability">
+        <img class="castle-img"
+             src="assets/elements/castle.png"
+             alt="Castle — click to enter">
+      </a>
 
-    <!-- Rainbow — z3, IN FRONT of castle -->
-    <img class="rainbow-portal"
-         id="rainbowPortal"
-         src="assets/elements/circle-rainbow.png"
-         alt=""
-         aria-hidden="true">
+      <!-- Rainbow on top, pointer-events:none passes clicks through -->
+      <img class="rainbow-portal"
+           id="rainbowPortal"
+           src="assets/elements/circle-rainbow.png"
+           alt="" aria-hidden="true">
 
+    </div>
   </div>
 
-  <!-- Heart guide — bottom left of scene -->
+  <!-- Heart guide — bottom left -->
   <div class="heart-guide-wrap" id="heartGuideWrap">
     <img class="heart-guide-img"
          src="assets/elements/guides/heart.png"
-         alt="Heart guide">
+         alt="Heart guide character">
   </div>
 
-  <!-- Speech bubble — above heart guide -->
+  <!-- Speech bubble -->
   <div class="heart-bubble-wrap" id="heartBubbleWrap">
     <div class="speech-bubble">i heard there is a castle around here somewhere</div>
   </div>
@@ -377,7 +334,7 @@ body {
 <script>
 (function () {
 
-  /* ── Starfield ────────────────────────────────── */
+  /* ── Starfield ── */
   const field = document.getElementById('stars');
   for (let i = 0; i < 90; i++) {
     const s = document.createElement('div');
@@ -393,7 +350,7 @@ body {
     field.appendChild(s);
   }
 
-  /* ── Swap rainbow asset for mobile ───────────── */
+  /* ── Swap rainbow image for mobile ── */
   function swapRainbow() {
     const img = document.getElementById('rainbowPortal');
     if (!img) return;
@@ -401,13 +358,12 @@ body {
       ? 'assets/elements/circle-rainbow-m.png'
       : 'assets/elements/circle-rainbow.png';
   }
-
   swapRainbow();
   window.addEventListener('resize', swapRainbow);
 
   /* ── Mobile: tap heart to toggle speech bubble ── */
-  const heartGuide  = document.getElementById('heartGuideWrap');
-  const bubbleWrap  = document.getElementById('heartBubbleWrap');
+  const heartGuide = document.getElementById('heartGuideWrap');
+  const bubbleWrap = document.getElementById('heartBubbleWrap');
 
   heartGuide.addEventListener('click', () => {
     if (window.innerWidth <= 768) {
@@ -415,7 +371,7 @@ body {
     }
   });
 
-  /* tap anywhere else to dismiss */
+  /* Tap anywhere else to dismiss */
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768 &&
         !heartGuide.contains(e.target) &&
