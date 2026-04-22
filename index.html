@@ -296,27 +296,22 @@ body {
   min-width: 180px;
   max-width: clamp(200px, 20vw, 300px);
 }
-/* tail — black border triangle, overlaps bubble bottom to stay connected */
+/* tail — rotated square, tucked behind bubble */
 .heart-bubble-wrap .speech-bubble::before {
   content: '';
   position: absolute;
-  bottom: -17px;
-  left: 18px;
-  width: 0; height: 0;
-  border-style: solid;
-  border-width: 20px 20px 0 0;
-  border-color: #000 transparent transparent transparent;
+  bottom: -10px;
+  left: 22px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(30deg) skewX(10deg);
+  z-index: -1;
 }
-/* tail — white fill triangle, sits on top of black */
 .heart-bubble-wrap .speech-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -13px;
-  left: 20px;
-  width: 0; height: 0;
-  border-style: solid;
-  border-width: 16px 16px 0 0;
-  border-color: #fff transparent transparent transparent;
+  display: none;
 }
 
 /* ── COPYRIGHT ───────────────────────────────────── */
