@@ -180,11 +180,18 @@ body {
 
 .heart-guide-wrap {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-130%, -100%);
+  bottom: 8vh;
+  left: 4vw;
   z-index: 4;
   pointer-events: none;
+}
+
+.heart-bubble-wrap {
+  position: absolute;
+  bottom: 22vh;
+  left: 4vw;
+  z-index: 6;
+  width: clamp(80px, 10vw, 140px);
 }
 
 .heart-guide-img {
@@ -207,7 +214,7 @@ body {
 .copyright {
   position: fixed;
   bottom: 14px;
-  left: 20px;
+  right: 20px;
   font-family: "PFPixelScript", monospace;
   font-size: 8px;
   color: rgba(255,255,255,0.32);
@@ -260,7 +267,7 @@ body {
 
   .castle-link { transform: translate(-50%, -60%); }
 
-  .heart-guide-wrap { transform: translate(5vw, -25vw); }
+  .heart-guide-wrap { bottom: 5vh; left: 2vw; }
   .heart-guide-img  { width: clamp(40px, 11vw, 68px); }
 
   .heart-bubble-wrap { display: none; }
@@ -268,14 +275,6 @@ body {
 }
 
 /* ── SPEECH BUBBLE (above heart guide) ── */
-.heart-bubble-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-135%, -250%);
-  z-index: 6;
-  width: clamp(80px, 10vw, 140px);
-}
 .heart-bubble-bg {
   width: 100%;
   height: auto;
@@ -340,21 +339,21 @@ body {
          alt=""
          aria-hidden="true">
 
-    <!-- Heart guide — z4, above rainbow -->
-    <div class="heart-guide-wrap" id="heartGuideWrap">
-      <img class="heart-guide-img"
-           src="assets/elements/guides/heart.png"
-           alt="Heart guide">
-    </div>
+  </div>
 
-    <!-- Speech bubble — z6, above heart guide -->
-    <div class="heart-bubble-wrap" id="heartBubbleWrap">
-      <img class="heart-bubble-bg" src="assets/elements/speech-bubble.png" alt="">
-      <div class="heart-bubble-content">
-        <span class="heart-bubble-text">i heard there is a castle around here somewhere</span>
-      </div>
-    </div>
+  <!-- Heart guide — bottom left of scene -->
+  <div class="heart-guide-wrap" id="heartGuideWrap">
+    <img class="heart-guide-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide">
+  </div>
 
+  <!-- Speech bubble — above heart guide -->
+  <div class="heart-bubble-wrap" id="heartBubbleWrap">
+    <img class="heart-bubble-bg" src="assets/elements/speech-bubble.png" alt="">
+    <div class="heart-bubble-content">
+      <span class="heart-bubble-text">i heard there is a castle around here somewhere</span>
+    </div>
   </div>
 
 </div>
