@@ -127,7 +127,7 @@ body {
 
 .castle-link {
   position: absolute;
-  top: 70%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -40%);
   display: block;
@@ -136,27 +136,29 @@ body {
   z-index: 2;
 }
 
-.castle-img,
-.portal-logo {
+.castle-img {
+  width: clamp(150px, 20vw, 280px);
+  height: auto;
+  transform-origin: center bottom;
+  animation: castleFade 13s ease-in-out infinite;
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
 
-.castle-img {
-  width: clamp(150px, 20vw, 280px);
-  height: auto;
-  transform-origin: center bottom;
-  animation: castleFade 13s ease-in-out infinite;
-}
-
 .portal-logo {
   width: clamp(140px, 18vw, 260px);
   height: auto;
   animation: logoFade 13s ease-in-out infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
 
 /* logo on → castle on, opposite phase */
