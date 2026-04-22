@@ -249,6 +249,28 @@ body {
   white-space: nowrap;
 }
 
+/* ── SPEECH BUBBLE (above heart guide) ── */
+.heart-bubble-wrap {
+  position: absolute;
+  bottom: 22vh;
+  left: 19vw;
+  z-index: 6;
+}
+.heart-bubble-wrap .speech-bubble {
+  background: #fff; 
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 14px 24px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(10px, 1.4vw, 16px);
+  color: #3a2560;
+  text-align: center;
+  line-height: 1.4;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  min-width: 180px;
+  max-width: clamp(200px, 20vw, 300px);
+}
+
 /* ══════════════════════════════════════════════════
    MOBILE
 ══════════════════════════════════════════════════ */
@@ -270,7 +292,7 @@ body {
   }
 
   .portal-anchor {
-    top: 35%;
+    top: 30%;
     width: clamp(280px, 90vw, 460px);
   }
 
@@ -296,28 +318,6 @@ body {
     pointer-events: all;
   }
 
-}
-
-/* ── SPEECH BUBBLE (above heart guide) ── */
-.heart-bubble-wrap {
-  position: absolute;
-  bottom: 22vh;
-  left: 19vw;
-  z-index: 6;
-}
-.heart-bubble-wrap .speech-bubble {
-  background: #fff; 
-  border: 2px solid #000;
-  border-radius: 50%;
-  padding: 14px 24px;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(10px, 1.4vw, 16px);
-  color: #3a2560;
-  text-align: center;
-  line-height: 1.4;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
-  min-width: 180px;
-  max-width: clamp(200px, 20vw, 300px);
 }
 
 /* ── COPYRIGHT ───────────────────────────────────── */
