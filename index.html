@@ -279,22 +279,20 @@ body {
   bottom: 25vh;
   left: 19vw;
   z-index: 6;
-  width: clamp(200px, 20vw, 300px);
 }
-.speech-bubble-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
-}
-.speech-bubble-text {
-  position: absolute;
-  top: 18%; left: 8%; right: 8%;
+.heart-bubble-wrap .speech-bubble {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 14px 24px;
   font-family: "ZoesHandwriting", cursive;
   font-size: clamp(10px, 1.4vw, 16px);
   color: #3a2560;
   text-align: center;
   line-height: 1.4;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  min-width: 180px;
+  max-width: clamp(200px, 20vw, 300px);
 }
 
 /* ── COPYRIGHT ───────────────────────────────────── */
@@ -350,11 +348,7 @@ body {
 
   <!-- Speech bubble — above heart guide -->
   <div class="heart-bubble-wrap" id="heartBubbleWrap">
-    <svg class="speech-bubble-svg" viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 110,6 C 60,6 10,26 10,50 C 10,74 60,88 110,88 C 160,88 210,74 210,50 C 210,26 160,6 110,6 Z M 38,82 L 22,104 L 60,80 Z"
-            fill="white" stroke="black" stroke-width="2.5" stroke-linejoin="round"/>
-    </svg>
-    <span class="speech-bubble-text">i heard there is a castle around here somewhere</span>
+    <div class="speech-bubble">i heard there is a castle around here somewhere</div>
   </div>
 
 </div>
