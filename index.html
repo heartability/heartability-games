@@ -74,9 +74,9 @@ body {
 
 .title-heart {
   position: absolute;
-  top: 8vh;
-  left: 15vw;
-  width: 40vw;
+  top: clamp(4px, 8vh, 40px);
+  left: clamp(10px, 2vw, 40px);
+  width: clamp(200px, 28vw, 400px);
   height: auto;
   z-index: 4;
   pointer-events: none;
@@ -84,9 +84,9 @@ body {
 
 .title-ability {
   position: absolute;
-  bottom: 8vh;
-  right: 15vw;
-  width: 40vw;
+  bottom: clamp(20px, 8vh, 60px);
+  right: clamp(10px, 2vw, 40px);
+  width: clamp(200px, 28vw, 400px);
   height: auto;
   z-index: 4;
   pointer-events: none;
@@ -180,8 +180,8 @@ body {
 
 .heart-guide-wrap {
   position: absolute;
-  bottom: 10vh;
-  left: 20vw;
+  top: 50%;
+  left: 50%;
   transform: translate(-130%, -100%);
   z-index: 4;
   pointer-events: none;
@@ -207,7 +207,7 @@ body {
 .copyright {
   position: fixed;
   bottom: 14px;
-  right: 20px;
+  left: 20px;
   font-family: "PFPixelScript", monospace;
   font-size: 8px;
   color: rgba(255,255,255,0.32);
