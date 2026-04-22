@@ -150,25 +150,25 @@ body {
   width: clamp(150px, 20vw, 280px);
   height: auto;
   transform-origin: center bottom;
-  animation: castleFade 8s ease-in-out infinite;
+  animation: castleFade 14s ease-in-out infinite;
 }
 
 .portal-logo {
   width: clamp(140px, 18vw, 260px);
   height: auto;
-  animation: logoFade 8s ease-in-out infinite;
+  animation: logoFade 14s ease-in-out infinite;
 }
 
 /* logo on → castle on, opposite phase */
 @keyframes logoFade {
-  0%, 37.5%  { opacity: 1; }
-  50%        { opacity: 0; }
-  87.5%, 100%{ opacity: 0; }
+  0%, 30%   { opacity: 1; }  /* fully visible */
+  40%       { opacity: 0; }  /* fades out */
+  100%      { opacity: 0; }  /* stays invisible rest of cycle */
 }
 @keyframes castleFade {
-  0%, 37.5%  { opacity: 0; }
-  50%        { opacity: 1; }
-  87.5%, 100%{ opacity: 1; }
+  0%, 55%   { opacity: 0; }  /* invisible, including the empty gap */
+  65%       { opacity: 1; }  /* fades in */
+  90%, 100% { opacity: 1; }  /* fully visible */
 }
 
 .castle-link:hover .castle-img,
@@ -281,7 +281,7 @@ body {
   z-index: 6;
 }
 .heart-bubble-wrap .speech-bubble {
-  background: #fff;
+  background: #fff; 
   border: 2px solid #000;
   border-radius: 50%;
   padding: 14px 24px;
