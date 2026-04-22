@@ -9,10 +9,6 @@
   font-family: "ZoesHandwriting";
   src: url(assets/fonts/ZoesHandwriting-Regular.ttf) format("truetype");
 }
-@font-face {
-  font-family: "ZoesNumbers";
-  src: url(assets/fonts/ZoesNumbers-Regular.ttf) format("truetype");
-}
 
 @font-face {
   font-family: "PFPixelscript";
@@ -33,7 +29,7 @@
   --aqua: #FDF6E3;
   --font-hand: "ZoesHandwriting", cursive;
   --font-game: "VT323", monospace;
-  --font-nums: "ZoesNumbers", "VT323", monospace;
+  --font-nums: "ZoesHandwriting", "VT323", monospace;
 }
 
 body { min-height: 100vh; background: var(--wall); font-family: var(--font-game); display: flex; flex-direction: column; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
