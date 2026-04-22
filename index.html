@@ -196,13 +196,6 @@ body {
   cursor: pointer;
 }
 
-.heart-bubble-wrap {
-  position: absolute;
-  bottom: 21vh;
-  left: 4vw;
-  z-index: 6;
-}
-
 .heart-guide-img {
   width: 15vw;
   height: auto;
@@ -306,16 +299,12 @@ body {
 
   /* hidden by default on mobile, shown on tap via JS */
   .heart-bubble-wrap {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
+    display: none;
     bottom: 4vh;
     left: 13vw;
   }
   .heart-bubble-wrap.visible {
-    opacity: 1;
-    pointer-events: all;
+    display: block;
   }
 
 }
