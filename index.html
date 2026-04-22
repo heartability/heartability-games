@@ -275,26 +275,38 @@ body {
 }
 
 /* ── SPEECH BUBBLE (above heart guide) ── */
-.heart-bubble-bg {
-  width: 100%;
-  height: auto;
-  display: block;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
-}
-.heart-bubble-content {
+.heart-bubble-wrap {
   position: absolute;
-  top: 30%; left: 10%; right: 10%; bottom: 12%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  bottom: 21vh;
+  left: 4vw;
+  z-index: 6;
 }
-.heart-bubble-text {
+.heart-bubble-wrap .speech-bubble {
+  position: relative;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50% / 40%;
+  padding: 10px 16px;
   font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(7px, 0.85vw, 11px);
+  font-size: clamp(10px, 1vw, 14px);
   color: #3a2560;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.4;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  max-width: 160px;
+}
+.heart-bubble-wrap .speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 20px;
+  width: 20px;
+  height: 18px;
+  background: #fff;
+  border-left: 2px solid #000;
+  border-bottom: 2px solid #000;
+  border-radius: 0 0 0 60%;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
 }
 
 /* ── COPYRIGHT ───────────────────────────────────── */
@@ -350,10 +362,7 @@ body {
 
   <!-- Speech bubble — above heart guide -->
   <div class="heart-bubble-wrap" id="heartBubbleWrap">
-    <img class="heart-bubble-bg" src="assets/elements/speech-bubble.png" alt="">
-    <div class="heart-bubble-content">
-      <span class="heart-bubble-text">i heard there is a castle around here somewhere</span>
-    </div>
+    <div class="speech-bubble">i heard there is a castle around here somewhere</div>
   </div>
 
 </div>
