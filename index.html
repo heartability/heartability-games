@@ -162,24 +162,18 @@ body {
 /* logo on → castle on, opposite phase */
 
 @keyframes logoFade {
-  0%   { opacity: 0; }
-  10%  { opacity: .25; }
-  20%  { opacity: .5; }
-  25%  { opacity: 1; }
-  30%  {opacity: .5; }
-  40%  {opacity: .25; }
-  50%  { opacity: 0; }
-  100% { opacity: 0; }
+  0%         { opacity: 0; }
+  10%        { opacity: 1; }  /* fade in */
+  30%        { opacity: 1; }  /* hold */
+  42%        { opacity: 0; }  /* fade out */
+  100%       { opacity: 0; }  /* stay gone */
 }
-@keyframes castleFade {
-  0%   { opacity: 0; }
-  50%  { opacity: .25; }
-  60%  { opacity: .5; }
-  75%  { opacity: 1; }
-  80%  {opacity: .5; }
-  90%  {opacity: .25; }
-  100% { opacity: 0; }
 
+@keyframes castleFade {
+  0%, 52%    { opacity: 0; }  /* gap after logo leaves */
+  64%        { opacity: 1; }  /* fade in */
+  90%        { opacity: 1; }  /* hold */
+  100%       { opacity: 0; }  /* fade out before loop restarts */
 }
 
 .castle-link:hover .castle-img,
