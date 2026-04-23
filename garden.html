@@ -216,13 +216,9 @@ html, body {
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
   /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = 'explore.html'; });
-  document.getElementById('wall-left').addEventListener('click', () => { window.location.href = 'explore.html'; });
-  document.getElementById('wall-left').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = 'explore.html'; });
+  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = 'game-select.html'; });
 
   document.getElementById('nav-next').addEventListener('click',   nextRoom);
-  document.getElementById('wall-right').addEventListener('click', nextRoom);
-  document.getElementById('wall-right').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') nextRoom(); });
 
   /* ── Randomized room queue ─────────────────────────
      Add new room slugs to ROOMS as pages are built.
