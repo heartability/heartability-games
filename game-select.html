@@ -114,10 +114,11 @@ html, body {
 }
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
-.art-map    { left: 17vw; top: 18vh; width: 22vw; }
-.art-bingo  { left: 65vw; top: 18vh; width: 16vw; }
-.art-mirror { left: 45vw; top: 18vh; width: 14vw; }
-.art-door   {left: 50vw; bottom: 21vh; width: 15vw}
+.art-map    { left: 17vw; top: 18vh; width: clamp(160px, 22vw, 340px); }
+.art-bingo  { left: 65vw; top: 18vh; width: clamp(120px, 16vw, 240px); }
+.art-mirror { left: 45vw; top: 18vh; width: clamp(100px, 14vw, 200px); }
+.art-door   { left: 50vw; bottom: 21vh; width: clamp(100px, 15vw, 220px); }
+.art-about  { left: 2vw;  top: 28vh;  width: clamp(60px, 9vw, 130px); }
 
 /* ─────────────────────────────────────────────────
    TOP NAV BAR  z:200
@@ -296,11 +297,15 @@ html, body {
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.45);
+  overflow-y: auto;
+  padding: 20px 0;
 }
 .letter-overlay.hidden { display: none; }
 .letter-paper {
   position: relative;
   width: clamp(280px, 44vw, 500px);
+  max-height: 85vh;
+  overflow-y: auto;
   background: #f7f2e8;
   background-image:
     radial-gradient(ellipse at 20% 10%, rgba(210,195,160,.2) 0%, transparent 60%),
