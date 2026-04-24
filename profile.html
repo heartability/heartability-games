@@ -185,14 +185,6 @@ html, body {
   max-width: 240px;
 }
 
-.membership-desc {
-  font-size: clamp(10px, 1vw, 12px);
-  color: #aaa;
-  line-height: 1.5;
-  text-align: right;
-  font-family: var(--font-hand);
-}
-
 .btn-upgrade-hero {
   width: 100%;
   padding: 8px 14px;
@@ -209,6 +201,14 @@ html, body {
 }
 .btn-upgrade-hero:hover  { background: var(--purple-dark); }
 .btn-upgrade-hero:active { box-shadow: none; transform: translate(2px,2px); }
+
+.membership-desc {
+  font-size: clamp(10px, 1vw, 12px);
+  color: #aaa;
+  line-height: 1.5;
+  text-align: right;
+  font-family: var(--font-hand);
+}
 
 @media (max-width: 580px) {
   .section-grid { grid-template-columns: 1fr; }
@@ -337,7 +337,7 @@ html, body {
 
   <!-- Profile hero -->
   <div class="window">
-    <div class="window-titlebar">-`♡´-✧˖°.☾</div>
+    <div class="window-titlebar">membership</div>
     <div class="window-body">
       <div class="profile-hero">
         <div class="avatar-circle" id="avatar-display">♡</div>
@@ -348,8 +348,8 @@ html, body {
         </div>
         <div class="membership-block">
           <div class="member-badge" id="member-badge">free member</div>
-          <p class="membership-desc">founding members get full save states, exclusive tools, and early access to new games.</p>
           <button class="btn-upgrade-hero">become a founding member ♡</button>
+          <p class="membership-desc">founding members get full save states, exclusive tools, and early access to new games.</p>
         </div>
       </div>
     </div>
@@ -360,7 +360,7 @@ html, body {
 
     <!-- Account Settings -->
     <div class="window">
-      <div class="window-titlebar">⚙ account settings</div>
+      <div class="window-titlebar">account settings</div>
       <div class="window-body">
         <div class="setting-row">
           <span class="setting-label">username</span>
@@ -383,7 +383,7 @@ html, body {
 
     <!-- Saved Data -->
     <div class="window">
-      <div class="window-titlebar">💾 saved data</div>
+      <div class="window-titlebar">saved data</div>
       <div class="window-body">
         <div class="saved-item">
           <div class="saved-icon">🗺️</div>
@@ -398,11 +398,6 @@ html, body {
         <div class="saved-item">
           <div class="saved-icon">👤</div>
           <div class="saved-name">character</div>
-          <div class="saved-tag">no save</div>
-        </div>
-        <div class="saved-item">
-          <div class="saved-icon">🧴</div>
-          <div class="saved-name">inventory</div>
           <div class="saved-tag">no save</div>
         </div>
       </div>
