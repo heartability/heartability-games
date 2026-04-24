@@ -689,13 +689,8 @@ function resetCharacter() {
 
 // ── Init ─────────────────────────────────────────────────
 async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  currentUser = session?.user || null;
-
-  // Load: try Supabase first, fall back to localStorage
-  const loadedFromCloud = await loadFromSupabase();
-  if (!loadedFromCloud) loadLocal();
-
+  // Build grids immediately from localStorage — no waiting
+  loadLocal();
   makeGrid("grid-body",  BODIES, "body",  false);
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
   makeGrid("grid-eyes",  EYES,   "eyes",  false);
@@ -704,9 +699,19 @@ async function init() {
   document.getElementById("charName").value = state.name || "";
   render();
 
-  if (currentUser) {
-    showSaveStatus('cloud saves active ✓', '#83d2e6');
-  }
+  // Then check Supabase in background — quietly updates if cloud save exists
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    currentUser = session?.user || null;
+    if (currentUser) {
+      const loadedFromCloud = await loadFromSupabase();
+      if (loadedFromCloud) {
+        document.getElementById("charName").value = state.name || "";
+        render();
+        showSaveStatus('cloud saves active ✓', '#83d2e6');
+      }
+    }
+  } catch(e) {}
 }
 
 init();
