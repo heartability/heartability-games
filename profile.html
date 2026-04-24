@@ -164,13 +164,12 @@ html, body {
 
 /* ── SECTION GRID ── */
 .section-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
 @media (max-width: 580px) {
-  .section-grid { grid-template-columns: 1fr; }
   .profile-hero { flex-direction: column; text-align: center; }
   .member-badge { align-self: center; }
 }
@@ -367,17 +366,6 @@ html, body {
         <div class="upsell-body">
           <p>you're exploring the free version of heartability. founding members get full save states, exclusive tools, and early access to new games.</p>
           <button class="btn-upgrade">become a founding member ♡</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cosmic Beat -->
-    <div class="window">
-      <div class="window-titlebar">🌙 cosmic beat</div>
-      <div class="window-body">
-        <div class="upsell-body">
-          <p>seasonal self-care boxes delivered at the start of each astrological season. stickers, cards, and ritual tools curated by heartability.</p>
-          <button class="btn-upgrade">subscribe to cosmic beat ♡</button>
         </div>
       </div>
     </div>
