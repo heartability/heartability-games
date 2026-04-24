@@ -66,10 +66,17 @@ html, body {
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 
 /* ── PAGE BODY ── */
-.page-body {
+.page-wrap {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 64px 20px 48px;
+}
+
+.page-body {
+  width: 100%;
   max-width: 860px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -325,6 +332,7 @@ html, body {
 
 <div id="loading-state">loading your space ♡</div>
 
+<div class="page-wrap">
 <div class="page-body" id="main-content">
 
   <!-- Profile hero -->
@@ -401,6 +409,7 @@ html, body {
     </div>
 
   </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
