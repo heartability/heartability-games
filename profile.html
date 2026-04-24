@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-position: center;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+  user-select: none;
+}
+
+/* ── TOP NAV ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── PAGE BODY ── */
+.page-body {
+  padding: 64px 20px 48px;
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── WINDOW SHELL (shared) ── */
+.window {
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
+.window:nth-child(2) { animation-delay: 0.05s; }
+.window:nth-child(3) { animation-delay: 0.1s;  }
+.window:nth-child(4) { animation-delay: 0.15s; }
+.window:nth-child(5) { animation-delay: 0.2s;  }
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #555;
+  gap: 10px;
+}
+
+.window-body {
+  padding: 20px 22px;
+}
+
+/* ── PROFILE HERO ── */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-circle {
+  width: 68px;
+  height: 68px;
+  border: 2px solid var(--purple);
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pixel);
+  font-size: 32px;
+  color: var(--purple);
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.profile-text { flex: 1; }
+
+.profile-username {
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 2vw, 24px);
+  color: #222;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.profile-since {
+  font-size: clamp(11px, 1vw, 13px);
+  color: #aaa;
+}
+
+.member-badge {
+  padding: 5px 12px;
+  background: var(--cream-dark);
+  border: 1.5px solid #ccc;
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  color: #888;
+  white-space: nowrap;
+}
+
+/* ── SECTION GRID ── */
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 580px) {
+  .section-grid { grid-template-columns: 1fr; }
+  .profile-hero { flex-direction: column; text-align: center; }
+  .member-badge { align-self: center; }
+}
+
+/* ── SETTINGS ROWS ── */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  font-size: clamp(12px, 1.3vw, 15px);
+  color: #333;
+  gap: 12px;
+}
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { color: #888; white-space: nowrap; }
+.setting-value { font-weight: 600; font-size: clamp(12px, 1.2vw, 14px); text-align: right; word-break: break-all; }
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.btn-action {
+  padding: 7px 14px;
+  background: none;
+  border: 1.5px solid var(--purple);
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  color: var(--purple);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-action:hover { background: var(--purple); color: white; }
+
+/* ── SAVED DATA ── */
+.saved-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  font-size: clamp(12px, 1.3vw, 15px);
+}
+.saved-item:last-child { border-bottom: none; }
+.saved-icon { font-size: 20px; }
+.saved-name { flex: 1; color: #333; }
+.saved-tag {
+  font-family: var(--font-hand);
+  font-size: clamp(9px, 0.9vw, 11px);
+  padding: 3px 8px;
+  background: var(--cream-dark);
+  border: 1px solid #ccc;
+  color: #aaa;
+}
+.saved-tag.active {
+  background: rgba(101,121,226,0.1);
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+/* ── MEMBERSHIP / COSMIC ── */
+.upsell-body {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+.upsell-body p {
+  font-size: clamp(12px, 1.3vw, 15px);
+  color: #888;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.btn-upgrade {
+  width: 100%;
+  padding: 11px 18px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+}
+.btn-upgrade:hover  { background: var(--purple-dark); }
+.btn-upgrade:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── LOADING ── */
+#loading-state {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 2vw, 24px);
+  color: var(--blue-glow);
+  text-shadow: 0 0 20px rgba(131,210,230,0.6);
+}
+
+#main-content { display: none; }
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='game-select.html'">back</span>
+  <span class="nav-title">my profile</span>
+  <span class="nav-btn" id="btn-signout">sign out</span>
+</nav>
+
+<div id="loading-state">loading your space ♡</div>
+
+<div class="page-body" id="main-content">
+
+  <!-- Profile hero -->
+  <div class="window">
+    <div class="window-titlebar">-`♡´-✧˖°.☾</div>
+    <div class="window-body">
+      <div class="profile-hero">
+        <div class="avatar-circle" id="avatar-display">♡</div>
+        <div class="profile-text">
+          <div class="profile-username" id="display-username">loading...</div>
+          <div class="profile-email"    id="display-email"></div>
+          <div class="profile-since"    id="display-since"></div>
+        </div>
+        <div class="member-badge" id="member-badge">free member</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section grid -->
+  <div class="section-grid">
+
+    <!-- Account Settings -->
+    <div class="window">
+      <div class="window-titlebar">⚙ account settings</div>
+      <div class="window-body">
+        <div class="setting-row">
+          <span class="setting-label">username</span>
+          <span class="setting-value" id="settings-username">—</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">email</span>
+          <span class="setting-value" id="settings-email">—</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">password</span>
+          <span class="setting-value">••••••••</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn-action" onclick="editUsername()">edit username</button>
+          <button class="btn-action" onclick="changePassword()">change password</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Data -->
+    <div class="window">
+      <div class="window-titlebar">💾 saved data</div>
+      <div class="window-body">
+        <div class="saved-item">
+          <div class="saved-icon">🗺️</div>
+          <div class="saved-name">treasure map</div>
+          <div class="saved-tag">no save</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-icon">🎴</div>
+          <div class="saved-name">bingo card</div>
+          <div class="saved-tag">no save</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-icon">👤</div>
+          <div class="saved-name">character</div>
+          <div class="saved-tag">no save</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-icon">🧴</div>
+          <div class="saved-name">inventory</div>
+          <div class="saved-tag">no save</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Membership -->
+    <div class="window">
+      <div class="window-titlebar">✨ membership</div>
+      <div class="window-body">
+        <div class="upsell-body">
+          <p>you're exploring the free version of heartability. founding members get full save states, exclusive tools, and early access to new games.</p>
+          <button class="btn-upgrade">become a founding member ♡</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cosmic Beat -->
+    <div class="window">
+      <div class="window-titlebar">🌙 cosmic beat</div>
+      <div class="window-body">
+        <div class="upsell-body">
+          <p>seasonal self-care boxes delivered at the start of each astrological season. stickers, cards, and ritual tools curated by heartability.</p>
+          <button class="btn-upgrade">subscribe to cosmic beat ♡</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const SUPABASE_URL      = 'PLACE_SUPABASE_URL_HERE';
+  const SUPABASE_ANON_KEY = 'PLACE_SUPABASE_ANON_KEY_HERE';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Auth check ───────────────────────────────────────────
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    await loadProfile(session.user);
+  }
+
+  async function loadProfile(user) {
+    const { data: profile } = await sb
+      .from('user-profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    const username = profile?.username || 'explorer';
+    const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    document.getElementById('display-username').textContent = username;
+    document.getElementById('display-email').textContent    = user.email;
+    document.getElementById('display-since').textContent    = 'member since ' + joinDate;
+    document.getElementById('settings-username').textContent = username;
+    document.getElementById('settings-email').textContent   = user.email;
+    document.getElementById('avatar-display').textContent   = username.charAt(0).toUpperCase();
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('main-content').style.display  = 'flex';
+  }
+
+  // ── Edit username ────────────────────────────────────────
+  window.editUsername = async function () {
+    const newName = prompt('enter new username:');
+    if (!newName || !newName.trim()) return;
+    const { data: { session } } = await sb.auth.getSession();
+    const { error } = await sb.from('user-profiles')
+      .update({ username: newName.trim() })
+      .eq('id', session.user.id);
+    if (!error) {
+      document.getElementById('display-username').textContent  = newName.trim();
+      document.getElementById('settings-username').textContent = newName.trim();
+      document.getElementById('avatar-display').textContent    = newName.trim().charAt(0).toUpperCase();
+    } else {
+      alert('error: ' + error.message);
+    }
+  };
+
+  // ── Change password ──────────────────────────────────────
+  window.changePassword = async function () {
+    const newPass = prompt('enter new password (min 6 characters):');
+    if (!newPass || newPass.length < 6) return;
+    const { error } = await sb.auth.updateUser({ password: newPass });
+    if (error) alert('error: ' + error.message);
+  };
+
+  // ── Sign out ─────────────────────────────────────────────
+  document.getElementById('btn-signout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  });
+
+  init();
+})();
+</script>
+
+</body>
+</html>

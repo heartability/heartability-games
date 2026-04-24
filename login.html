@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+}
+
+html, body {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-position: center;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+  user-select: none;
+}
+
+/* ── TOP NAV ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── PAGE BODY ── */
+.page-body {
+  position: fixed;
+  top: 44px; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ── LOGIN WINDOW ── */
+.login-window {
+  width: clamp(300px, 88vw, 460px);
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── TITLE BAR ── */
+.login-titlebar {
+  height: 42px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #333;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* ── TABS ── */
+.tab-row {
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  background: var(--cream-dark);
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  text-align: center;
+  cursor: pointer;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s;
+}
+.tab.active {
+  color: var(--purple);
+  border-bottom-color: var(--purple);
+}
+
+/* ── FORM AREA ── */
+.login-body {
+  padding: 24px 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form { display: none; flex-direction: column; gap: 14px; }
+.form.active { display: flex; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+label {
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  color: #888;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #222;
+  background: var(--cream);
+  border: 1.5px solid #bbb;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  user-select: text;
+}
+input:focus { border-color: var(--purple); }
+
+/* ── BUTTON ── */
+.btn-submit {
+  padding: 10px 18px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+  margin-top: 4px;
+}
+.btn-submit:hover  { background: var(--purple-dark); }
+.btn-submit:active { box-shadow: none; transform: translate(2px,2px); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── MESSAGES ── */
+.msg {
+  font-size: clamp(11px, 1.1vw, 13px);
+  padding: 8px 12px;
+  font-family: var(--font-hand);
+  display: none;
+}
+.msg.error   { display: block; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.2); }
+.msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.2); }
+
+/* ── FOOTER ── */
+.login-footer {
+  text-align: center;
+  padding: 0 28px 18px;
+  font-size: clamp(10px, 1vw, 12px);
+  color: #aaa;
+  font-family: var(--font-hand);
+}
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='game-select.html'">back</span>
+  <span class="nav-title">login</span>
+  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+</nav>
+
+<div class="page-body">
+  <div class="login-window">
+
+    <div class="login-titlebar">-`♡´-✧˖°.☾</div>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('login', this)">log in</button>
+      <button class="tab" onclick="switchTab('signup', this)">sign up</button>
+    </div>
+
+    <div class="login-body">
+
+      <!-- Login -->
+      <form class="form active" id="form-login" onsubmit="handleLogin(event)">
+        <div class="field">
+          <label>email</label>
+          <input type="email" id="login-email" placeholder="your@email.com" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label>password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required />
+        </div>
+        <div class="msg" id="login-msg"></div>
+        <button type="submit" class="btn-submit" id="login-btn">enter ♡</button>
+      </form>
+
+      <!-- Signup -->
+      <form class="form" id="form-signup" onsubmit="handleSignup(event)">
+        <div class="field">
+          <label>username</label>
+          <input type="text" id="signup-username" placeholder="choose a name" required maxlength="40" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>email</label>
+          <input type="email" id="signup-email" placeholder="your@email.com" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label>password</label>
+          <input type="password" id="signup-password" placeholder="at least 6 characters" required minlength="6" />
+        </div>
+        <div class="msg" id="signup-msg"></div>
+        <button type="submit" class="btn-submit" id="signup-btn">create account ♡</button>
+      </form>
+
+    </div>
+
+    <div class="login-footer">your journey starts here ✧</div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL      = 'PLACE_SUPABASE_URL_HERE';
+  const SUPABASE_ANON_KEY = 'PLACE_SUPABASE_ANON_KEY_HERE';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = 'profile.html';
+  });
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('form-' + tab).classList.add('active');
+    document.querySelectorAll('.msg').forEach(m => { m.className = 'msg'; m.textContent = ''; });
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'entering...';
+    const { error } = await sb.auth.signInWithPassword({
+      email:    document.getElementById('login-email').value.trim(),
+      password: document.getElementById('login-password').value
+    });
+    if (error) {
+      showMsg('login-msg', error.message, 'error');
+      btn.disabled = false; btn.textContent = 'enter ♡';
+    } else {
+      showMsg('login-msg', 'welcome back! loading your profile...', 'success');
+      setTimeout(() => window.location.href = 'profile.html', 800);
+    }
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true; btn.textContent = 'creating...';
+    const username = document.getElementById('signup-username').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) {
+      showMsg('signup-msg', error.message, 'error');
+      btn.disabled = false; btn.textContent = 'create account ♡';
+      return;
+    }
+    if (data.user) {
+      await sb.from('user-profiles').insert({ id: data.user.id, username });
+    }
+    showMsg('signup-msg', 'account created! taking you to your profile...', 'success');
+    setTimeout(() => window.location.href = 'profile.html', 1000);
+  }
+</script>
+
+</body>
+</html>
