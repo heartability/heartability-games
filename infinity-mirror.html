@@ -348,7 +348,10 @@ body, .wall { background: #f5f0ea; }
     <div class="topbar">
       <div class="instructions">
       </div>
-      <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span id="save-status" style="font-family:var(--font-game); font-size:14px; color:#83d2e6; transition: opacity 0.3s;"></span>
+        <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
+      </div>
     </div>
 
     <div class="main-panel">
@@ -360,7 +363,7 @@ body, .wall { background: #f5f0ea; }
       <div class="two-col">
         <div class="selector-side">
           <div class="category-section">
-            <div class="category-title">&#x2665; Body Color</div>
+            <div class="category-title">Body Color</div>
             <div class="parts-grid" id="grid-body"></div>
           </div>
           <div class="category-section">
@@ -400,7 +403,24 @@ body, .wall { background: #f5f0ea; }
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── Supabase ─────────────────────────────────────────────
+const SUPABASE_URL      = 'PLACE_SUPABASE_URL_HERE';
+const SUPABASE_ANON_KEY = 'PLACE_SUPABASE_ANON_KEY_HERE';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+// ── Save status indicator ────────────────────────────────
+function showSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || '#83d2e6';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
 // All image paths are relative — just drop your PNGs in assets/characters/
 const ASSETS = {
   body_red:    "assets/characters-thumbnail/01.01 RED_BODY.png",
@@ -557,11 +577,49 @@ const ACCS = [
 
 let state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
 
-function save() {
+// ── localStorage (fallback for logged-out users) ─────────
+function saveLocal() {
   try { localStorage.setItem("hb-char", JSON.stringify(state)); } catch(e){}
 }
-function load() {
+function loadLocal() {
   try { const s = localStorage.getItem("hb-char"); if(s) state = JSON.parse(s); } catch(e){}
+}
+
+// ── Supabase save ────────────────────────────────────────
+async function saveToSupabase() {
+  if (!currentUser) return;
+  const { error } = await sb.from('game_saves').upsert({
+    user_id:   currentUser.id,
+    game_name: 'character',
+    save_data: state
+  }, { onConflict: 'user_id,game_name' });
+  if (error) {
+    showSaveStatus('save failed', '#ff6b6b');
+  } else {
+    showSaveStatus('saved ✓', '#83d2e6');
+  }
+}
+
+// ── Supabase load ────────────────────────────────────────
+async function loadFromSupabase() {
+  if (!currentUser) return false;
+  const { data, error } = await sb
+    .from('game_saves')
+    .select('save_data')
+    .eq('user_id', currentUser.id)
+    .eq('game_name', 'character')
+    .single();
+  if (!error && data?.save_data) {
+    state = data.save_data;
+    return true;
+  }
+  return false;
+}
+
+// ── Combined save (local + cloud) ───────────────────────
+function save() {
+  saveLocal();
+  saveToSupabase();
 }
 
 function renderLayer(layerId, partId) {
@@ -629,14 +687,29 @@ function resetCharacter() {
   save(); render();
 }
 
-load();
-makeGrid("grid-body",  BODIES, "body",  false);
-makeGrid("grid-hair",  HAIRS,  "hair",  false);
-makeGrid("grid-eyes",  EYES,   "eyes",  false);
-makeGrid("grid-mouth", MOUTHS, "mouth", false);
-makeGrid("grid-acc",   ACCS,   "acc",   false);
-document.getElementById("charName").value = state.name || "";
-render();
+// ── Init ─────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session?.user || null;
+
+  // Load: try Supabase first, fall back to localStorage
+  const loadedFromCloud = await loadFromSupabase();
+  if (!loadedFromCloud) loadLocal();
+
+  makeGrid("grid-body",  BODIES, "body",  false);
+  makeGrid("grid-hair",  HAIRS,  "hair",  false);
+  makeGrid("grid-eyes",  EYES,   "eyes",  false);
+  makeGrid("grid-mouth", MOUTHS, "mouth", false);
+  makeGrid("grid-acc",   ACCS,   "acc",   false);
+  document.getElementById("charName").value = state.name || "";
+  render();
+
+  if (currentUser) {
+    showSaveStatus('cloud saves active ✓', '#83d2e6');
+  }
+}
+
+init();
 </script>
 
 </body>
