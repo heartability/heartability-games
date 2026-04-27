@@ -392,14 +392,11 @@ html, body {
 </head>
 <body>
 
-  <nav class="room-nav">
-    <span class="nav-btn" onclick="window.location.href='profile.html'">login</span>
-    <span class="nav-title">character archive</span>
-    <div style="display:flex; align-items:center; gap:4px;">
-      <span class="nav-btn" onclick="window.location.href='profile.html'">← back</span>
-      <span class="nav-btn" onclick="window.location.href='map-archive.html'">next →</span>
-    </div>
-  </nav>
+<nav class="room-nav">
+  <span class="nav-btn" onclick="history.back()">back</span>
+  <span>character archive</span>
+  <span class="nav-btn" onclick="window.location.href='infinity-mirror.html'">build ♡</span>
+</nav>
 
 <div id="loading-state">loading your archive ♡</div>
 
@@ -408,7 +405,7 @@ html, body {
 
     <div class="window">
       <div class="window-titlebar">
-        <span>-`♡´-✧˖°.☾ your characters</span>
+        <span>your characters</span>
         <span id="archive-email" style="font-size:12px; color:#aaa;"></span>
       </div>
       <div class="window-body">
@@ -486,55 +483,54 @@ const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Asset map (mirrors infinity-mirror.html) ─────────────
-const ASSET_BASE = 'assets/characters/';
+// ── Asset map (exact match to infinity-mirror.html FULL_ASSETS) ──
 const FULL = {
-  body_red:    ASSET_BASE+'body/body_red.png',
-  body_orange: ASSET_BASE+'body/body_orange.png',
-  body_yellow: ASSET_BASE+'body/body_yellow.png',
-  body_green:  ASSET_BASE+'body/body_green.png',
-  body_cyan:   ASSET_BASE+'body/body_cyan.png',
-  body_blue:   ASSET_BASE+'body/body_blue.png',
-  body_purple: ASSET_BASE+'body/body_purple.png',
-  body_pink:   ASSET_BASE+'body/body_pink.png',
-  hair_fire:      ASSET_BASE+'hair/hair_fire.png',
-  hair_flower:    ASSET_BASE+'hair/hair_flower.png',
-  hair_rays:      ASSET_BASE+'hair/hair_rays.png',
-  hair_spikes:    ASSET_BASE+'hair/hair_spikes.png',
-  hair_squiggle:  ASSET_BASE+'hair/hair_squiggle.png',
-  hair_wings:     ASSET_BASE+'hair/hair_wings.png',
-  hair_pigtails:  ASSET_BASE+'hair/hair_pigtails.png',
-  hair_wide_ray:  ASSET_BASE+'hair/hair_wide_ray.png',
-  eyes_open:      ASSET_BASE+'eyes/eyes_open.png',
-  eyes_closed:    ASSET_BASE+'eyes/eyes_closed.png',
-  eyes_cyclops:   ASSET_BASE+'eyes/eyes_cyclops.png',
-  eyes_glasses:   ASSET_BASE+'eyes/eyes_glasses.png',
-  eyes_serious:   ASSET_BASE+'eyes/eyes_serious.png',
-  eyes_upward:    ASSET_BASE+'eyes/eyes_upward.png',
-  eyes_shades:    ASSET_BASE+'eyes/eyes_shades.png',
-  eyes_sideways:  ASSET_BASE+'eyes/eyes_sideways.png',
-  mouth_smile:    ASSET_BASE+'mouth/mouth_smile.png',
-  mouth_open:     ASSET_BASE+'mouth/mouth_open.png',
-  mouth_kiss:     ASSET_BASE+'mouth/mouth_kiss.png',
-  mouth_tongue:   ASSET_BASE+'mouth/mouth_tongue.png',
-  mouth_teeth:    ASSET_BASE+'mouth/mouth_teeth.png',
-  mouth_grimace:  ASSET_BASE+'mouth/mouth_grimace.png',
-  mouth_smirk:    ASSET_BASE+'mouth/mouth_smirk.png',
-  mouth_ooo:      ASSET_BASE+'mouth/mouth_ooo.png',
-  acc_halo:       ASSET_BASE+'acc/acc_halo.png',
-  acc_crown:      ASSET_BASE+'acc/acc_crown.png',
-  acc_bow:        ASSET_BASE+'acc/acc_bow.png',
-  acc_horns:      ASSET_BASE+'acc/acc_horns.png',
-  acc_antlers:    ASSET_BASE+'acc/acc_antlers.png',
-  acc_ears:       ASSET_BASE+'acc/acc_ears.png',
-  acc_mushroom:   ASSET_BASE+'acc/acc_mushroom.png',
-  acc_star:       ASSET_BASE+'acc/acc_star.png',
-  acc_flower_crown: ASSET_BASE+'acc/acc_flower_crown.png',
-  acc_moon:       ASSET_BASE+'acc/acc_moon.png',
-  acc_bandana:    ASSET_BASE+'acc/acc_bandana.png',
-  acc_wizard:     ASSET_BASE+'acc/acc_wizard.png',
-  acc_headphones: ASSET_BASE+'acc/acc_headphones.png',
-  acc_antenna:    ASSET_BASE+'acc/acc_antenna.png',
+  body_red:    "assets/characters-full/01.01 RED_BODY.png",
+  body_orange: "assets/characters-full/02.01-ORANGE_BODY.png",
+  body_yellow: "assets/characters-full/03.01-YELLOW_BODY.png",
+  body_green:  "assets/characters-full/04.01-GREEN_BODY.png",
+  body_cyan:   "assets/characters-full/05.01-CYAN_BODY.png",
+  body_blue:   "assets/characters-full/06.01-BLUE_BODY.png",
+  body_purple: "assets/characters-full/07.01-PURPLE_BODY.png",
+  body_pink:   "assets/characters-full/08.01-PINK_BODY.png",
+
+  eyes_open:       "assets/characters-full/01.02 OPEN_EYES.png",
+  eyes_closed:     "assets/characters-full/02.02-EYES_CLOSED.png",
+  eyes_cyclops:    "assets/characters-full/03.02-SINGLE_EYE.png",
+  eyes_glasses:    "assets/characters-full/04.02-GLASSES.png",
+  eyes_serious:    "assets/characters-full/05.02-SERIOUS_EYES.png",
+  eyes_up:         "assets/characters-full/06.02-UP_EYES.png",
+  eyes_sunglasses: "assets/characters-full/07.02-SUNGLASSES.png",
+  eyes_sideways:   "assets/characters-full/08.02-SIDE_EYES.png",
+
+  mouth_lips:     "assets/characters-full/01.03 RED_LIPS.png",
+  mouth_tongue:   "assets/characters-full/02.03-TONGUE_SMILE.png",
+  mouth_thin:     "assets/characters-full/03.03-THIN_SMILE.png",
+  mouth_flat:     "assets/characters-full/04.03-FLAT_MOUTH.png",
+  mouth_straight: "assets/characters-full/05.03-STRAIGHT_MOUTH.png",
+  mouth_sad:      "assets/characters-full/06.03-SLIGHT_SAD.png",
+  mouth_grin:     "assets/characters-full/07.03-BIG_GRIN.png",
+  mouth_smooch:   "assets/characters-full/08.03-SMOOCH.png",
+
+  hair_fire:     "assets/characters-full/01.04 FIRE_HAIR.png",
+  hair_flower:   "assets/characters-full/02.04-ORANGE_HAIR.png",
+  hair_rays:     "assets/characters-full/03.04-RAY_HAIR.png",
+  hair_spikes:   "assets/characters-full/04.04-SPIKE_HAIR.png",
+  hair_squiggle: "assets/characters-full/05.04-SQUIGGLE_HAIR.png",
+  hair_wings:    "assets/characters-full/06.04-BLUE_HAIR.png",
+  hair_pigtails: "assets/characters-full/07.04-PIGTAIL_HAIR.png",
+  hair_wideray:  "assets/characters-full/08.04-WIDE_RAY.png",
+
+  acc_rollerblades: "assets/characters-full/09.02-ROLLERBLADES.png",
+  acc_sneakers:     "assets/characters-full/09.03-SNEAKERS.png",
+  acc_heels:        "assets/characters-full/09.01-HIGH_HEELS.png",
+  acc_sandals:      "assets/characters-full/09.04-SANDALS.png",
+  acc_devil:        "assets/characters-full/10.01-DEVIL.png",
+  acc_angel:        "assets/characters-full/10.02-HALO.png",
+  acc_birthday:     "assets/characters-full/10.03-BIRTHDAY.png",
+  acc_swearword:    "assets/characters-full/10.05-SENSOR.png",
+  acc_rainstorm:    "assets/characters-full/10-RAINSTORM.png",
+  acc_rainbow:      "assets/characters-full/10.04-RAINBOW.png",
 };
 
 // ── State ────────────────────────────────────────────────
