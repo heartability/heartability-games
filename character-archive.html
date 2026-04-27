@@ -392,11 +392,14 @@ html, body {
 </head>
 <body>
 
-<nav class="room-nav">
-  <span class="nav-btn" onclick="history.back()">back</span>
-  <span>character archive</span>
-  <span class="nav-btn" onclick="window.location.href='infinity-mirror.html'">build ♡</span>
-</nav>
+  <nav class="room-nav">
+    <span class="nav-btn" onclick="window.location.href='profile.html'">login</span>
+    <span class="nav-title">character archive</span>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span class="nav-btn" onclick="window.location.href='profile.html'">← back</span>
+      <span class="nav-btn" onclick="window.location.href='map-archive.html'">next →</span>
+    </div>
+  </nav>
 
 <div id="loading-state">loading your archive ♡</div>
 
@@ -479,8 +482,8 @@ html, body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── Supabase ─────────────────────────────────────────────
-const SUPABASE_URL      = 'PLACE_SUPABASE_URL_HERE';
-const SUPABASE_ANON_KEY = 'PLACE_SUPABASE_ANON_KEY_HERE';
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── Asset map (mirrors infinity-mirror.html) ─────────────
