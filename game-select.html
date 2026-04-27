@@ -355,6 +355,133 @@ html, body {
   .room-nav { font-size: clamp(12px, 3.5vw, 16px); }
 }
 
+/* ─────────────────────────────────────────────────
+   LOGIN POPUP  z:300
+───────────────────────────────────────────────── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: none;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 46px;
+  padding-left: clamp(12px, 2vw, 28px);
+}
+.login-overlay.open { display: flex; }
+
+.login-popup {
+  background: #f5f0ea;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 4px 8px 28px rgba(0,0,0,0.35);
+  width: clamp(280px, 88vw, 360px);
+  overflow: hidden;
+  animation: popIn 0.2s ease both;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-popup-titlebar {
+  height: 38px;
+  background: #e8e3da;
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: #555;
+}
+
+.popup-close {
+  cursor: pointer;
+  color: #aaa;
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+}
+.popup-close:hover { color: #6579e2; }
+
+.login-popup-tabs {
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  background: #e8e3da;
+}
+.popup-tab {
+  flex: 1;
+  padding: 8px;
+  font-family: var(--font-hand);
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s;
+}
+.popup-tab.active { color: #6579e2; border-bottom-color: #6579e2; }
+
+.login-popup-body {
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.popup-form { display: none; flex-direction: column; gap: 12px; }
+.popup-form.active { display: flex; }
+
+.popup-field { display: flex; flex-direction: column; gap: 4px; }
+.popup-label {
+  font-family: var(--font-hand);
+  font-size: 12px;
+  color: #aaa;
+}
+.popup-input {
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: #222;
+  background: #f5f0ea;
+  border: 1.5px solid #bbb;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+  user-select: text;
+}
+.popup-input:focus { border-color: #6579e2; }
+
+.popup-btn {
+  padding: 9px;
+  background: #6579e2;
+  border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.05s;
+  margin-top: 2px;
+}
+.popup-btn:hover  { background: #4a5bc4; }
+.popup-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.popup-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.popup-msg {
+  font-size: 12px;
+  font-family: var(--font-hand);
+  padding: 6px 10px;
+  display: none;
+}
+.popup-msg.error   { display: block; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.15); }
+.popup-msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.15); }
+
 </style>
 </head>
 <body>
@@ -362,9 +489,12 @@ html, body {
 
 <!-- TOP NAV BAR  z:200 -->
 <nav class="room-nav">
-  <span class="nav-btn" id="nav-back">back</span>
+  <span class="nav-btn" id="nav-login" onclick="handleLoginBtn()">login</span>
   <span class="nav-title">game room</span>
-  <span class="nav-btn" id="nav-next">next</span>
+  <div style="display:flex; align-items:center; gap:4px;">
+    <span class="nav-btn" id="nav-back">← back</span>
+    <span class="nav-btn" id="nav-next">next →</span>
+  </div>
 </nav>
 
 <!-- ABOUT POSTER  z:4 -->
@@ -540,6 +670,180 @@ html, body {
   aboutOverlay.addEventListener('click', e => { if (e.target === aboutOverlay) closeAbout(); });
 
 })();
+</script>
+
+<!-- LOGIN POPUP  z:300 -->
+<div class="login-overlay" id="login-overlay" onclick="handleOverlayClick(event)">
+  <div class="login-popup">
+    <div class="login-popup-titlebar">
+      <span>-`♡´-✧˖°.☾</span>
+      <span class="popup-close" onclick="closeLoginPopup()">✕</span>
+    </div>
+    <div class="login-popup-tabs">
+      <button class="popup-tab active" onclick="switchPopupTab('login', this)">log in</button>
+      <button class="popup-tab" onclick="switchPopupTab('signup', this)">sign up</button>
+    </div>
+    <div class="login-popup-body">
+
+      <!-- Login form -->
+      <form class="popup-form active" id="popup-form-login" onsubmit="popupLogin(event)">
+        <div class="popup-field">
+          <div class="popup-label">email</div>
+          <input class="popup-input" type="email" id="popup-login-email" placeholder="your@email.com" required autocomplete="email" />
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">password</div>
+          <input class="popup-input" type="password" id="popup-login-password" placeholder="••••••••" required />
+        </div>
+        <div class="popup-msg" id="popup-login-msg"></div>
+        <button type="submit" class="popup-btn" id="popup-login-btn">enter ♡</button>
+      </form>
+
+      <!-- Signup form -->
+      <form class="popup-form" id="popup-form-signup" onsubmit="popupSignup(event)">
+        <div class="popup-field">
+          <div class="popup-label">username</div>
+          <input class="popup-input" type="text" id="popup-signup-username" placeholder="choose a name" required maxlength="40" autocomplete="off" />
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">email</div>
+          <input class="popup-input" type="email" id="popup-signup-email" placeholder="your@email.com" required autocomplete="email" />
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">password</div>
+          <input class="popup-input" type="password" id="popup-signup-password" placeholder="at least 6 characters" required minlength="6" />
+        </div>
+        <div class="popup-msg" id="popup-signup-msg"></div>
+        <button type="submit" class="popup-btn" id="popup-signup-btn">create account ♡</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase ──────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+// ── Nav login button ──────────────────────────────────────
+function setNavUser(username) {
+  const btn = document.getElementById('nav-login');
+  if (username) {
+    btn.textContent = username;
+    btn.onclick = () => window.location.href = 'profile.html';
+  } else {
+    btn.textContent = 'login';
+    btn.onclick = handleLoginBtn;
+  }
+}
+
+async function checkSession() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      // Fetch username from user-profiles
+      const { data: profile } = await sb
+        .from('user-profiles')
+        .select('username')
+        .eq('id', currentUser.id)
+        .single();
+      setNavUser(profile?.username || currentUser.email.split('@')[0]);
+    }
+  } catch(e) {}
+}
+
+// ── Popup open/close ──────────────────────────────────────
+function handleLoginBtn() {
+  document.getElementById('login-overlay').classList.add('open');
+}
+function closeLoginPopup() {
+  document.getElementById('login-overlay').classList.remove('open');
+  clearPopupMsgs();
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('login-overlay')) closeLoginPopup();
+}
+
+function switchPopupTab(tab, btn) {
+  document.querySelectorAll('.popup-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.popup-form').forEach(f => f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('popup-form-' + tab).classList.add('active');
+  clearPopupMsgs();
+}
+
+function clearPopupMsgs() {
+  document.querySelectorAll('.popup-msg').forEach(m => { m.className = 'popup-msg'; m.textContent = ''; });
+}
+
+function showPopupMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'popup-msg ' + type;
+}
+
+// ── Login ─────────────────────────────────────────────────
+async function popupLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('popup-login-btn');
+  btn.disabled = true; btn.textContent = 'entering...';
+
+  const { data, error } = await sb.auth.signInWithPassword({
+    email:    document.getElementById('popup-login-email').value.trim(),
+    password: document.getElementById('popup-login-password').value
+  });
+
+  if (error) {
+    showPopupMsg('popup-login-msg', error.message, 'error');
+    btn.disabled = false; btn.textContent = 'enter ♡';
+  } else {
+    currentUser = data.user;
+    const { data: profile } = await sb
+      .from('user-profiles')
+      .select('username')
+      .eq('id', currentUser.id)
+      .single();
+    const username = profile?.username || currentUser.email.split('@')[0];
+    setNavUser(username);
+    showPopupMsg('popup-login-msg', `welcome back, ${username} ♡`, 'success');
+    setTimeout(closeLoginPopup, 1000);
+  }
+}
+
+// ── Signup ────────────────────────────────────────────────
+async function popupSignup(e) {
+  e.preventDefault();
+  const btn = document.getElementById('popup-signup-btn');
+  btn.disabled = true; btn.textContent = 'creating...';
+
+  const username = document.getElementById('popup-signup-username').value.trim();
+  const email    = document.getElementById('popup-signup-email').value.trim();
+  const password = document.getElementById('popup-signup-password').value;
+
+  const { data, error } = await sb.auth.signUp({ email, password });
+
+  if (error) {
+    showPopupMsg('popup-signup-msg', error.message, 'error');
+    btn.disabled = false; btn.textContent = 'create account ♡';
+    return;
+  }
+
+  if (data.user) {
+    await sb.from('user-profiles').insert({ id: data.user.id, username });
+    currentUser = data.user;
+    setNavUser(username);
+    showPopupMsg('popup-signup-msg', `welcome, ${username} ♡`, 'success');
+    setTimeout(closeLoginPopup, 1000);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────
+checkSession();
 </script>
 
 </body>
