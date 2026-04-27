@@ -350,6 +350,7 @@ body, .wall { background: #f5f0ea; }
       </div>
       <div style="display:flex; align-items:center; gap:14px;">
         <span id="save-status" style="font-family:var(--font-game); font-size:14px; color:#83d2e6; transition: opacity 0.3s;"></span>
+        <button class="btn" id="btn-save-today" onclick="saveToday()">► SAVE TODAY'S CHARACTER</button>
         <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
       </div>
     </div>
@@ -585,22 +586,69 @@ function loadLocal() {
   try { const s = localStorage.getItem("hb-char"); if(s) state = JSON.parse(s); } catch(e){}
 }
 
-// ── Supabase save ────────────────────────────────────────
-async function saveToSupabase() {
+// ── Today's date in user's local timezone ────────────────
+function localToday() {
+  return new Date().toLocaleDateString('en-CA'); // returns YYYY-MM-DD
+}
+
+// ── Supabase: auto-save draft (no date, key = user+game) ─
+async function saveDraftToSupabase() {
   if (!currentUser) return;
+  await sb.from('game_saves').upsert({
+    user_id:    currentUser.id,
+    game_name:  'character_draft',
+    save_data:  state,
+    saved_date: null
+  }, { onConflict: 'user_id,game_name,saved_date' });
+}
+
+// ── Supabase: save today's character to archive ──────────
+async function saveToday() {
+  if (!currentUser) {
+    showSaveStatus('log in to save ♡', '#ff6b6b');
+    return;
+  }
+  if (!state.body) {
+    showSaveStatus('pick a body first!', '#ff6b6b');
+    return;
+  }
+  const today = localToday();
   const { error } = await sb.from('game_saves').upsert({
-    user_id:   currentUser.id,
-    game_name: 'character',
-    save_data: state
-  }, { onConflict: 'user_id,game_name' });
+    user_id:    currentUser.id,
+    game_name:  'character',
+    save_data:  state,
+    saved_date: today
+  }, { onConflict: 'user_id,game_name,saved_date' });
+
   if (error) {
     showSaveStatus('save failed', '#ff6b6b');
   } else {
-    showSaveStatus('saved ✓', '#83d2e6');
+    showSaveStatus("today's character saved ✓", '#83d2e6');
+    updateSaveBtnState(today);
   }
 }
 
-// ── Supabase load ────────────────────────────────────────
+// ── Check if already saved today ────────────────────────
+async function checkTodaySave() {
+  if (!currentUser) return;
+  const today = localToday();
+  const { data } = await sb.from('game_saves')
+    .select('saved_date')
+    .eq('user_id', currentUser.id)
+    .eq('game_name', 'character')
+    .eq('saved_date', today)
+    .single();
+  if (data) updateSaveBtnState(today);
+}
+
+function updateSaveBtnState(today) {
+  const btn = document.getElementById('btn-save-today');
+  if (!btn) return;
+  btn.textContent = '► SAVED TODAY ✓';
+  btn.style.opacity = '0.6';
+}
+
+// ── Supabase: load most recent character ─────────────────
 async function loadFromSupabase() {
   if (!currentUser) return false;
   const { data, error } = await sb
@@ -608,6 +656,8 @@ async function loadFromSupabase() {
     .select('save_data')
     .eq('user_id', currentUser.id)
     .eq('game_name', 'character')
+    .order('saved_date', { ascending: false })
+    .limit(1)
     .single();
   if (!error && data?.save_data) {
     state = data.save_data;
@@ -616,10 +666,10 @@ async function loadFromSupabase() {
   return false;
 }
 
-// ── Combined save (local + cloud) ───────────────────────
+// ── Auto-save draft on every change ─────────────────────
 function save() {
   saveLocal();
-  saveToSupabase();
+  saveDraftToSupabase();
 }
 
 function renderLayer(layerId, partId) {
@@ -699,7 +749,7 @@ async function init() {
   document.getElementById("charName").value = state.name || "";
   render();
 
-  // Then check Supabase in background — quietly updates if cloud save exists
+  // Then check Supabase in background
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
@@ -708,8 +758,9 @@ async function init() {
       if (loadedFromCloud) {
         document.getElementById("charName").value = state.name || "";
         render();
-        showSaveStatus('cloud saves active ✓', '#83d2e6');
       }
+      showSaveStatus('cloud saves active ✓', '#83d2e6');
+      checkTodaySave();
     }
   } catch(e) {}
 }
