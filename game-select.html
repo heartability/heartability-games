@@ -621,7 +621,7 @@ html, body {
 
   /* Navigation — nav bar buttons */
   document.getElementById('nav-back').addEventListener('click', () => { window.location.href = 'index.html'; });
-  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = 'garden.html'; });
+  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = 'rooms/garden.html'; });
 
   /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
@@ -734,7 +734,7 @@ function setNavUser(username) {
   const btn = document.getElementById('nav-login');
   if (username) {
     btn.textContent = username;
-    btn.onclick = () => window.location.href = 'profile.html';
+    btn.onclick = () => window.location.href = 'users/profile.html';
   } else {
     btn.textContent = 'login';
     btn.onclick = handleLoginBtn;
