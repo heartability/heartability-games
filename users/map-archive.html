@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Map Archive — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --font-game:     "VT323", monospace;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --panel-bg:      #f0ead6;
+  --panel-border:  #8a7a5a;
+}
+
+html, body {
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+  user-select: none;
+}
+
+/* ── NAV ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0; height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid #111;
+  z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── PAGE ── */
+.page-wrap {
+  min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 64px 20px 48px;
+}
+.page-body {
+  width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+/* ── WINDOW ── */
+.window {
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  font-family: var(--font-hand);
+  font-size: clamp(13px,1.4vw,16px);
+  color: #555; gap: 10px;
+}
+.window-body { padding: 24px; }
+
+/* ── MONTH NAV ── */
+.month-nav {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  margin-bottom: 20px;
+}
+.month-btn {
+  font-family: var(--font-game); font-size: 22px;
+  background: none; border: 1.5px solid var(--purple); color: var(--purple);
+  width: 36px; height: 36px; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.month-btn:hover { background: var(--purple); color: white; }
+.month-label {
+  font-family: var(--font-pixel);
+  font-size: clamp(20px, 2.5vw, 28px); color: #333;
+  min-width: 220px; text-align: center;
+}
+
+/* ── CALENDAR ── */
+.cal-header {
+  display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px;
+}
+.cal-day-label {
+  text-align: center; font-family: var(--font-game); font-size: 14px;
+  color: #aaa; padding: 4px 0;
+}
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+
+.cal-cell {
+  aspect-ratio: 1;
+  border: 1.5px solid rgba(101,121,226,0.15);
+  background: rgba(255,255,255,0.4);
+  border-radius: 2px; position: relative;
+  cursor: default; transition: border-color 0.15s, transform 0.1s; overflow: hidden;
+}
+.cal-cell.empty { background: transparent; border-color: transparent; }
+.cal-cell.has-save {
+  border-color: var(--purple); cursor: pointer;
+  background: rgba(101,121,226,0.05);
+}
+.cal-cell.has-save:hover { border-color: var(--blue-glow); transform: scale(1.04); z-index: 2; box-shadow: 0 0 0 2px var(--blue-glow); }
+.cal-cell.today { border-color: var(--blue-glow); box-shadow: 0 0 0 1px var(--blue-glow); }
+
+.cal-date {
+  position: absolute; top: 4px; left: 5px;
+  font-family: var(--font-game); font-size: 11px; color: #aaa; line-height: 1;
+}
+.cal-cell.has-save .cal-date { color: var(--purple); }
+.cal-cell.today .cal-date { color: var(--blue-glow); }
+
+/* Map type badges inside cell */
+.cell-badges {
+  position: absolute; bottom: 4px; left: 0; right: 0;
+  display: flex; flex-direction: column; gap: 2px; padding: 0 4px;
+}
+.cell-badge {
+  font-family: var(--font-game); font-size: 9px;
+  padding: 1px 4px; border-radius: 1px; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell-badge.spiral  { background: rgba(101,121,226,0.2); color: var(--purple); }
+.cell-badge.freeform { background: rgba(131,210,230,0.2); color: #2a6a7a; }
+
+/* Feeling tint strip */
+.cell-tint {
+  position: absolute; top: 18px; left: 0; right: 0; height: 3px;
+}
+
+/* ── STREAK BAR ── */
+.streak-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: rgba(101,121,226,0.08);
+  border-top: 1px solid rgba(101,121,226,0.15);
+  font-family: var(--font-game); font-size: 15px; color: var(--purple);
+}
+.streak-num { font-size: 22px; color: var(--blue-glow); }
+
+/* ── DETAIL POPUP ── */
+.detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.detail-overlay.open { display: flex; }
+
+.detail-window {
+  background: var(--cream); border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 8px 12px 40px rgba(0,0,0,0.4);
+  width: clamp(300px, 92vw, 560px); overflow: hidden;
+  animation: windowIn 0.2s ease both; max-height: 90dvh; overflow-y: auto;
+}
+.detail-titlebar {
+  height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+  font-family: var(--font-hand); font-size: 14px; color: #555; position: sticky; top: 0; z-index: 2;
+}
+.detail-close { cursor: pointer; font-size: 18px; color: #aaa; padding: 4px; line-height: 1; }
+.detail-close:hover { color: var(--purple); }
+.detail-body { padding: 20px 24px; }
+
+.detail-type-label {
+  font-family: var(--font-game); font-size: 13px; letter-spacing: 1px;
+  padding: 3px 10px; display: inline-block; margin-bottom: 12px;
+}
+.detail-type-label.spiral  { background: rgba(101,121,226,0.15); color: var(--purple); }
+.detail-type-label.freeform { background: rgba(131,210,230,0.2); color: #2a6a7a; }
+
+.detail-map-name {
+  font-family: var(--font-pixel); font-size: 22px; color: #333; margin-bottom: 4px;
+}
+.detail-date { font-family: var(--font-hand); font-size: 13px; color: #aaa; margin-bottom: 16px; }
+
+/* Spiral zones display */
+.zones-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;
+}
+.zone-card {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 4px;
+  background: rgba(200,196,180,0.5); border: 1px solid #ccc;
+}
+.zone-num {
+  font-family: var(--font-hand); font-size: 18px; color: #5a4a2a;
+}
+.zone-terrain-img { width: 44px; height: 36px; object-fit: contain; }
+.zone-feeling-pill {
+  font-family: var(--font-game); font-size: 10px;
+  padding: 2px 6px; border-radius: 1px; text-align: center; width: 100%;
+}
+.zone-empty { opacity: 0.35; font-family: var(--font-game); font-size: 11px; color: #aaa; }
+
+/* Freeform items display */
+.freeform-items {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+}
+.freeform-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 8px; background: rgba(200,196,180,0.5); border: 1px solid #ccc;
+  min-width: 60px;
+}
+.freeform-item img { width: 36px; height: 30px; object-fit: contain; }
+.freeform-item-label { font-family: var(--font-game); font-size: 10px; color: #5a4a2a; text-align: center; }
+.freeform-item-feeling { font-family: var(--font-game); font-size: 9px; color: #7a6a5a; text-align: center; }
+
+.btn-load {
+  width: 100%; padding: 10px 20px;
+  background: var(--purple); border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand); font-size: 15px; color: white;
+  cursor: pointer; transition: all 0.05s;
+}
+.btn-load:hover  { background: var(--purple-dark); }
+.btn-load:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── EMPTY ── */
+.empty-month {
+  text-align: center; padding: 40px 20px;
+  font-family: var(--font-hand); font-style: italic; color: #bbb; font-size: 15px; line-height: 1.8;
+}
+.empty-month a { color: var(--purple); text-decoration: none; }
+.empty-month a:hover { text-decoration: underline; }
+
+/* ── LOADING ── */
+#loading-state {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-pixel); font-size: 24px;
+  color: var(--blue-glow); text-shadow: 0 0 20px rgba(131,210,230,0.6);
+}
+#main-content { display: none; }
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='profile.html'">login</span>
+  <span>map archive</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="window.location.href='character-archive.html'">← back</span>
+    <span class="nav-btn" onclick="window.location.href='game-select.html'">next →</span>
+  </div>
+</nav>
+
+<div id="loading-state">loading your maps ♡</div>
+
+<div class="page-wrap">
+  <div class="page-body" id="main-content">
+
+    <div class="window">
+      <div class="window-titlebar">
+        <span>-`♡´-✧˖°.☾ your maps</span>
+        <span id="archive-email" style="font-size:12px;color:#aaa;"></span>
+      </div>
+      <div class="window-body">
+
+        <div class="month-nav">
+          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+          <div class="month-label" id="month-label"></div>
+          <button class="month-btn" onclick="changeMonth(1)">►</button>
+        </div>
+
+        <div class="cal-header">
+          <div class="cal-day-label">SUN</div>
+          <div class="cal-day-label">MON</div>
+          <div class="cal-day-label">TUE</div>
+          <div class="cal-day-label">WED</div>
+          <div class="cal-day-label">THU</div>
+          <div class="cal-day-label">FRI</div>
+          <div class="cal-day-label">SAT</div>
+        </div>
+
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="empty-month" id="empty-state" style="display:none;">
+          no maps saved this month ♡<br>
+          <a href="treasure-map.html">go build one →</a>
+        </div>
+
+      </div>
+
+      <div class="streak-bar">
+        <span>current streak:</span>
+        <span class="streak-num" id="streak-count">0</span>
+        <span>days</span>
+        &nbsp;·&nbsp;
+        <span>total saves:</span>
+        <span class="streak-num" id="total-count">0</span>
+        &nbsp;·&nbsp;
+        <span style="color:var(--purple);">◉</span> spiral
+        &nbsp;
+        <span style="color:#2a6a7a;">◆</span> freeform
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detail popup -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-window">
+    <div class="detail-titlebar">
+      <span id="detail-title">map</span>
+      <span class="detail-close" onclick="closeDetailBtn()">✕</span>
+    </div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase ─────────────────────────────────────────────
+const SUPABASE_URL      = 'PLACE_SUPABASE_URL_HERE';
+const SUPABASE_ANON_KEY = 'PLACE_SUPABASE_ANON_KEY_HERE';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Terrain images (matches treasure-map.html) ───────────
+const TERRAIN_IMGS = {
+  dunes:     "assets/elements/maps/dunes.png",
+  forest:    "assets/elements/maps/forest.png",
+  meadow:    "assets/elements/maps/meadow.png",
+  mountains: "assets/elements/maps/mountains.png",
+  ocean:     "assets/elements/maps/ocean.png",
+  orchard:   "assets/elements/maps/orchard.png",
+  plateu:    "assets/elements/maps/plateu.png",
+  pond:      "assets/elements/maps/pond.png",
+  river:     "assets/elements/maps/river.png",
+  spring:    "assets/elements/maps/spring.png",
+  waterfall: "assets/elements/maps/waterfall.png",
+};
+
+const WEATHER_CATS = {
+  sunny: { tint:"rgba(210,137,192,0.5)" },
+  rainy: { tint:"rgba(200,200,199,0.5)" },
+  windy: { tint:"rgba(180,231,107,0.5)" },
+  snowy: { tint:"rgba(131,210,230,0.5)" },
+};
+
+const ZONE_PROMPTS = [
+  "what gives you the sense you have to start over?",
+  "what does taking the first step feel like?",
+  "what does it feel like when things are finally changing?",
+  "what does it feel like when you slip?",
+  "what does it feel like when you are tested?"
+];
+
+// ── State ────────────────────────────────────────────────
+let currentUser = null;
+let allSaves    = []; // all map saves (both types)
+let viewYear    = new Date().getFullYear();
+let viewMonth   = new Date().getMonth();
+let selectedDay = null; // { spiral, freeform } saves for that date
+
+// ── Helpers ──────────────────────────────────────────────
+function localToday() { return new Date().toLocaleDateString('en-CA'); }
+
+function formatDateLabel(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y, m-1, d).toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function getDominantTint(save) {
+  if (!save) return null;
+  const catCounts = {};
+  if (save.game_name === 'map_spiral') {
+    (save.save_data?.zones || []).forEach(z => {
+      if (z.cat) catCounts[z.cat] = (catCounts[z.cat] || 0) + 1;
+    });
+  } else {
+    (save.save_data?.items || []).forEach(item => {
+      if (item.feeling) {
+        const cat = getCatForFeeling(item.feeling);
+        if (cat) catCounts[cat] = (catCounts[cat] || 0) + 1;
+      }
+    });
+  }
+  const top = Object.keys(catCounts).sort((a,b) => catCounts[b]-catCounts[a])[0];
+  return top ? WEATHER_CATS[top]?.tint : null;
+}
+
+const FEELING_MAP = {
+  trust:'sunny',peace:'sunny',joy:'sunny',hope:'sunny',confidence:'sunny',
+  shadows:'rainy',worry:'rainy',fear:'rainy',depression:'rainy',regret:'rainy',
+  surprise:'windy',curiosity:'windy',inspiration:'windy',excitement:'windy',courage:'windy',
+  anger:'snowy',avoidance:'snowy',bitterness:'snowy',apathy:'snowy',shock:'snowy',
+};
+function getCatForFeeling(f) { return FEELING_MAP[f] || null; }
+
+// ── Streak ───────────────────────────────────────────────
+function calcStreak(saves) {
+  if (!saves.length) return 0;
+  const dates = [...new Set(saves.map(s => s.saved_date))].sort().reverse();
+  const today = localToday();
+  let streak = 0, check = today;
+  for (const d of dates) {
+    if (d === check) {
+      streak++;
+      const dt = new Date(check + 'T12:00:00');
+      dt.setDate(dt.getDate() - 1);
+      check = dt.toLocaleDateString('en-CA');
+    } else if (d < check) break;
+  }
+  return streak;
+}
+
+// ── Calendar ─────────────────────────────────────────────
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-label').textContent = `${monthNames[viewMonth]} ${viewYear}`;
+
+  const grid  = document.getElementById('cal-grid');
+  const today = localToday();
+  grid.innerHTML = '';
+
+  // Build map: date → { spiral, freeform }
+  const dayMap = {};
+  allSaves.forEach(s => {
+    if (!dayMap[s.saved_date]) dayMap[s.saved_date] = {};
+    if (s.game_name === 'map_spiral')   dayMap[s.saved_date].spiral   = s;
+    if (s.game_name === 'map_freeform') dayMap[s.saved_date].freeform = s;
+  });
+
+  const firstDay    = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  const monthSaves = allSaves.filter(s => {
+    const [y,m] = s.saved_date.split('-').map(Number);
+    return y === viewYear && m === viewMonth + 1;
+  });
+
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell empty';
+    grid.appendChild(cell);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const daySaves = dayMap[dateStr];
+    const isToday  = dateStr === today;
+    const hasSave  = !!daySaves;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (hasSave ? ' has-save' : '') + (isToday ? ' today' : '');
+
+    const dateLabel = document.createElement('div');
+    dateLabel.className = 'cal-date';
+    dateLabel.textContent = d;
+    cell.appendChild(dateLabel);
+
+    if (hasSave) {
+      // Tint strip from dominant feeling
+      const s = daySaves.spiral || daySaves.freeform;
+      const tint = getDominantTint(s);
+      if (tint) {
+        const tintEl = document.createElement('div');
+        tintEl.className = 'cell-tint';
+        tintEl.style.background = tint;
+        cell.appendChild(tintEl);
+      }
+
+      // Type badges
+      const badges = document.createElement('div');
+      badges.className = 'cell-badges';
+      if (daySaves.spiral) {
+        const b = document.createElement('div');
+        b.className = 'cell-badge spiral';
+        b.textContent = '◉ ' + (daySaves.spiral.save_data?.name || 'spiral');
+        badges.appendChild(b);
+      }
+      if (daySaves.freeform) {
+        const b = document.createElement('div');
+        b.className = 'cell-badge freeform';
+        b.textContent = '◆ ' + (daySaves.freeform.save_data?.name || 'freeform');
+        badges.appendChild(b);
+      }
+      cell.appendChild(badges);
+      cell.addEventListener('click', () => openDetail(dateStr, daySaves));
+    }
+
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('empty-state').style.display = monthSaves.length === 0 ? 'block' : 'none';
+}
+
+// ── Detail popup ─────────────────────────────────────────
+function openDetail(dateStr, daySaves) {
+  selectedDay = daySaves;
+  document.getElementById('detail-title').textContent = formatDateLabel(dateStr);
+
+  const body = document.getElementById('detail-body');
+  body.innerHTML = '';
+
+  // Render spiral save if present
+  if (daySaves.spiral) {
+    body.appendChild(buildSpiralDetail(daySaves.spiral, dateStr));
+  }
+
+  // Divider if both
+  if (daySaves.spiral && daySaves.freeform) {
+    const hr = document.createElement('hr');
+    hr.style.cssText = 'border:none;border-top:1px solid #ccc;margin:16px 0;';
+    body.appendChild(hr);
+  }
+
+  // Render freeform save if present
+  if (daySaves.freeform) {
+    body.appendChild(buildFreeformDetail(daySaves.freeform, dateStr));
+  }
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function buildSpiralDetail(save, dateStr) {
+  const wrap = document.createElement('div');
+  const sd   = save.save_data || {};
+
+  const typeLabel = document.createElement('div');
+  typeLabel.className = 'detail-type-label spiral';
+  typeLabel.textContent = '◉ SPIRAL MAP';
+  wrap.appendChild(typeLabel);
+
+  const name = document.createElement('div');
+  name.className = 'detail-map-name';
+  name.textContent = sd.name ? sd.name.toUpperCase() : '(unnamed)';
+  wrap.appendChild(name);
+
+  const date = document.createElement('div');
+  date.className = 'detail-date';
+  date.textContent = formatDateLabel(dateStr);
+  wrap.appendChild(date);
+
+  // 5 zone cards
+  const grid = document.createElement('div');
+  grid.className = 'zones-grid';
+  (sd.zones || [{},{},{},{},{}]).forEach((zone, i) => {
+    const card = document.createElement('div');
+    card.className = 'zone-card';
+
+    const num = document.createElement('div');
+    num.className = 'zone-num';
+    num.textContent = i + 1;
+    card.appendChild(num);
+
+    if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
+      const img = document.createElement('img');
+      img.src = TERRAIN_IMGS[zone.terrain];
+      img.className = 'zone-terrain-img';
+      img.alt = zone.terrain;
+      card.appendChild(img);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'zone-empty';
+      empty.textContent = '—';
+      card.appendChild(empty);
+    }
+
+    if (zone.feeling) {
+      const pill = document.createElement('div');
+      pill.className = 'zone-feeling-pill';
+      pill.style.background = zone.tint ? zone.tint.replace('1)', '0.25)') : 'rgba(200,196,180,0.5)';
+      pill.style.color = '#5a4a2a';
+      pill.textContent = zone.feeling;
+      card.appendChild(pill);
+    }
+
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+
+  const btn = document.createElement('button');
+  btn.className = 'btn-load';
+  btn.textContent = 'load into builder ♡';
+  btn.onclick = () => {
+    try { localStorage.setItem('hb-spiral', JSON.stringify(sd)); } catch(e){}
+    window.location.href = 'treasure-map.html';
+  };
+  wrap.appendChild(btn);
+
+  return wrap;
+}
+
+function buildFreeformDetail(save, dateStr) {
+  const wrap = document.createElement('div');
+  const sd   = save.save_data || {};
+
+  const typeLabel = document.createElement('div');
+  typeLabel.className = 'detail-type-label freeform';
+  typeLabel.textContent = '◆ FREEFORM MAP';
+  wrap.appendChild(typeLabel);
+
+  const name = document.createElement('div');
+  name.className = 'detail-map-name';
+  name.textContent = sd.name ? sd.name.toUpperCase() : '(unnamed)';
+  wrap.appendChild(name);
+
+  const date = document.createElement('div');
+  date.className = 'detail-date';
+  date.textContent = formatDateLabel(dateStr);
+  wrap.appendChild(date);
+
+  // Items grid
+  const items = sd.items || [];
+  if (items.length > 0) {
+    const grid = document.createElement('div');
+    grid.className = 'freeform-items';
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'freeform-item';
+
+      if (TERRAIN_IMGS[item.id]) {
+        const img = document.createElement('img');
+        img.src = TERRAIN_IMGS[item.id];
+        img.alt = item.label;
+        card.appendChild(img);
+      }
+
+      const lbl = document.createElement('div');
+      lbl.className = 'freeform-item-label';
+      lbl.textContent = item.label;
+      card.appendChild(lbl);
+
+      if (item.feeling) {
+        const fl = document.createElement('div');
+        fl.className = 'freeform-item-feeling';
+        fl.textContent = item.feeling;
+        card.appendChild(fl);
+      }
+
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+  } else {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:#aaa;font-style:italic;font-size:13px;margin-bottom:16px;';
+    empty.textContent = 'no items placed';
+    wrap.appendChild(empty);
+  }
+
+  const btn = document.createElement('button');
+  btn.className = 'btn-load';
+  btn.textContent = 'load into builder ♡';
+  btn.onclick = () => {
+    try { localStorage.setItem('hb-map', JSON.stringify(sd)); } catch(e){}
+    window.location.href = 'treasure-map.html';
+  };
+  wrap.appendChild(btn);
+
+  return wrap;
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detail-overlay')) closeDetailBtn();
+}
+function closeDetailBtn() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  selectedDay = null;
+}
+
+function changeMonth(dir) {
+  viewMonth += dir;
+  if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
+  if (viewMonth > 11) { viewMonth = 0;  viewYear++; }
+  renderCalendar();
+}
+
+// ── Init ─────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUser = session.user;
+    document.getElementById('archive-email').textContent = currentUser.email;
+
+    const { data, error } = await sb
+      .from('game_saves')
+      .select('game_name, saved_date, save_data')
+      .eq('user_id', currentUser.id)
+      .in('game_name', ['map_spiral','map_freeform'])
+      .not('saved_date', 'is', null)
+      .order('saved_date', { ascending: false });
+
+    if (!error && data) {
+      allSaves = data;
+      const uniqueDays = new Set(data.map(s => s.saved_date)).size;
+      document.getElementById('total-count').textContent  = uniqueDays;
+      document.getElementById('streak-count').textContent = calcStreak(data);
+    }
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('main-content').style.display  = 'flex';
+    renderCalendar();
+
+  } catch(e) { console.error(e); }
+}
+
+init();
+</script>
+
+</body>
+</html>
