@@ -321,21 +321,15 @@ body, .wall { background: #f5f0ea; }
 
     <div class="rpg-panel">
 
-      <!-- MODE TOGGLE -->
-      <div class="mode-toggle">
-        <button class="rpg-btn mode-active" id="btn-freeform" onclick="setMode('freeform')">◆ FREEFORM</button>
-        <button class="rpg-btn" id="btn-spiral" onclick="setMode('spiral')">◉ SPIRAL</button>
-      </div>
-
-      <div>
-        <div class="section-header">name your map</div>
-        <input class="map-input" id="mapName" type="text" placeholder="the map of..." maxlength="60" oninput="onNameInput()">
-      </div>
-
       <div class="two-col">
 
-        <!-- SIDE PANEL — terrain + feelings -->
+        <!-- SIDE PANEL — name input + terrain + feelings -->
         <div class="side-panel">
+
+          <div>
+            <div class="section-header">name your map</div>
+            <input class="map-input" id="mapName" type="text" placeholder="the map of..." maxlength="60" oninput="onNameInput()">
+          </div>
 
           <div class="status-bar" id="statusBar">
             tap a terrain piece to select it, then tap the map to place it
@@ -353,30 +347,33 @@ body, .wall { background: #f5f0ea; }
 
         </div>
 
-        <!-- MAP AREA — freeform OR spiral, toggled -->
+        <!-- MAP AREA -->
         <div class="map-col">
           <div class="section-header">your map</div>
 
-          <!-- Freeform canvas (existing) -->
+          <!-- Freeform canvas -->
           <div class="map-canvas" id="mapCanvas">
             <div class="map-placeholder" id="mapPlaceholder">
               <div class="map-placeholder-text">your map will appear here</div>
             </div>
           </div>
 
-          <!-- Spiral canvas (new) -->
+          <!-- Spiral canvas -->
           <div class="spiral-canvas" id="spiralCanvas">
             <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="spiralDefs"></defs>
-              <!-- Grid lines (subtle) -->
               <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
               <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
-              <!-- Spiral path (populated by JS) -->
               <path id="spiralPath" fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round"/>
-              <!-- Zone circles (populated by JS) -->
               <g id="zoneGroup"></g>
             </svg>
             <div class="zone-prompt-box" id="zonePrompt"></div>
+          </div>
+
+          <!-- Mode toggle UNDER the map -->
+          <div class="mode-toggle" style="margin-top:10px;">
+            <button class="rpg-btn mode-active" id="btn-freeform" onclick="setMode('freeform')">◆ FREEFORM</button>
+            <button class="rpg-btn" id="btn-spiral" onclick="setMode('spiral')">◉ SPIRAL</button>
           </div>
 
         </div>
