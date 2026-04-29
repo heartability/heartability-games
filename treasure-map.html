@@ -552,43 +552,30 @@ function selectZone(i) {
 // SPIRAL SVG BUILDER
 // ─────────────────────────────────────────────────────────
 function buildSpiralSVG() {
-  const svgEl = document.getElementById('spiralSvg');
   const W = 500, H = 400;
   const cx = W / 2, cy = H / 2 - 10;
-  const b = 10;           // tighter loops
-  const thetaMin = 0.3;
-  const thetaMax = 15.5;  // ~2.5 full rotations
+  const b = 10;
+  const thetaMin = 0.1;
+  const thetaMax = 15.5;
   const steps = 700;
 
-  // Generate spiral points
+  // Generate spiral path
   const pts = [];
   for (let i = 0; i <= steps; i++) {
     const t = thetaMin + (thetaMax - thetaMin) * i / steps;
     const r = b * t;
     pts.push([ cx + r * Math.cos(t), cy - r * Math.sin(t) ]);
   }
-
-  // Build SVG path
   const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
   document.getElementById('spiralPath').setAttribute('d', d);
 
-  // Cumulative arc lengths
-  const arcLens = [0];
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i][0] - pts[i-1][0];
-    const dy = pts[i][1] - pts[i-1][1];
-    arcLens.push(arcLens[i-1] + Math.sqrt(dx*dx + dy*dy));
-  }
-  const total = arcLens[arcLens.length - 1];
-
-  // 5 zone positions at equal arc-length intervals
-  ZONE_POSITIONS = [];
-  for (let z = 0; z < 5; z++) {
-    const target = total * z / 4;
-    let idx = 0;
-    while (idx < arcLens.length - 1 && arcLens[idx] < target) idx++;
-    ZONE_POSITIONS.push({ x: pts[idx][0], y: pts[idx][1] });
-  }
+  // Manually tuned theta values for visual balance matching wireframe:
+  // 1=center, 2=upper-right, 3=upper-left, 4=lower-left, 5=lower-right
+  const zoneThetaValues = [0.5, 6.8, 8.5, 10.5, 11.8];
+  ZONE_POSITIONS = zoneThetaValues.map(t => ({
+    x: cx + b * t * Math.cos(t),
+    y: cy - b * t * Math.sin(t)
+  }));
 
   renderZoneCircles();
 }
@@ -639,12 +626,19 @@ function renderZoneCircles() {
       zoneGroup.appendChild(halo);
     }
 
-    // Main circle
+    // Main circle — grey placeholder when empty, transparent when filled
+    const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y);
     circle.setAttribute('r', R);
-    circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
-    circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
+    if (hasTerrain) {
+      // No grey fill — terrain image takes over. Keep active border if selected.
+      circle.setAttribute('fill', 'transparent');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : 'transparent');
+    } else {
+      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
+    }
     circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
     circle.style.cursor = 'pointer';
     zoneGroup.appendChild(circle);
@@ -669,18 +663,20 @@ function renderZoneCircles() {
       zoneGroup.appendChild(img);
     }
 
-    // Number
-    const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    numEl.setAttribute('x', pos.x);
-    numEl.setAttribute('y', pos.y + (zone.terrain ? R - 10 : 5));
-    numEl.setAttribute('text-anchor', 'middle');
-    numEl.setAttribute('dominant-baseline', 'middle');
-    numEl.setAttribute('fill', isActive ? '#6579e2' : '#5a4a2a');
-    numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
-    numEl.setAttribute('font-size', zone.terrain ? '15' : '26');
-    numEl.style.pointerEvents = 'none';
-    numEl.textContent = i + 1;
-    zoneGroup.appendChild(numEl);
+    // Number — only show when zone is empty (placeholder) or active
+    if (!hasTerrain || isActive) {
+      const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      numEl.setAttribute('x', pos.x);
+      numEl.setAttribute('y', pos.y + (hasTerrain ? R - 10 : 5));
+      numEl.setAttribute('text-anchor', 'middle');
+      numEl.setAttribute('dominant-baseline', 'middle');
+      numEl.setAttribute('fill', isActive ? '#6579e2' : '#5a4a2a');
+      numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
+      numEl.setAttribute('font-size', hasTerrain ? '15' : '26');
+      numEl.style.pointerEvents = 'none';
+      numEl.textContent = i + 1;
+      zoneGroup.appendChild(numEl);
+    }
 
     // Feeling label under circle
     if (zone.feeling) {
