@@ -8,11 +8,11 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -35,7 +35,7 @@
 
 html, body {
   min-height: 100dvh;
-  background-image: url('assets/elements/stars.gif');
+  background-image: url('../assets/elements/stars.gif');
   background-size: auto;
   background-repeat: repeat;
   font-family: var(--font-hand);
@@ -274,7 +274,7 @@ html, body {
   <span>map archive</span>
   <div style="display:flex;align-items:center;gap:4px;">
     <span class="nav-btn" onclick="window.location.href='character-archive.html'">← back</span>
-    <span class="nav-btn" onclick="window.location.href='game-select.html'">next →</span>
+    <span class="nav-btn" onclick="window.location.href='../game-select.html'">next →</span>
   </div>
 </nav>
 
@@ -309,7 +309,7 @@ html, body {
         <div class="cal-grid" id="cal-grid"></div>
         <div class="empty-month" id="empty-state" style="display:none;">
           no maps saved this month ♡<br>
-          <a href="treasure-map.html">go build one →</a>
+          <a href="../treasure-map.html">go build one →</a>
         </div>
 
       </div>
@@ -351,17 +351,17 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── Terrain images (matches treasure-map.html) ───────────
 const TERRAIN_IMGS = {
-  dunes:     "assets/elements/maps/dunes.png",
-  forest:    "assets/elements/maps/forest.png",
-  meadow:    "assets/elements/maps/meadow.png",
-  mountains: "assets/elements/maps/mountains.png",
-  ocean:     "assets/elements/maps/ocean.png",
-  orchard:   "assets/elements/maps/orchard.png",
-  plateu:    "assets/elements/maps/plateu.png",
-  pond:      "assets/elements/maps/pond.png",
-  river:     "assets/elements/maps/river.png",
-  spring:    "assets/elements/maps/spring.png",
-  waterfall: "assets/elements/maps/waterfall.png",
+  dunes:     "../assets/elements/maps/dunes.png",
+  forest:    "../assets/elements/maps/forest.png",
+  meadow:    "../assets/elements/maps/meadow.png",
+  mountains: "../assets/elements/maps/mountains.png",
+  ocean:     "../assets/elements/maps/ocean.png",
+  orchard:   "../assets/elements/maps/orchard.png",
+  plateu:    "../assets/elements/maps/plateu.png",
+  pond:      "../assets/elements/maps/pond.png",
+  river:     "../assets/elements/maps/river.png",
+  spring:    "../assets/elements/maps/spring.png",
+  waterfall: "../assets/elements/maps/waterfall.png",
 };
 
 const WEATHER_CATS = {
@@ -609,7 +609,7 @@ function buildSpiralDetail(save, dateStr) {
   btn.textContent = 'load into builder ♡';
   btn.onclick = () => {
     try { localStorage.setItem('hb-spiral', JSON.stringify(sd)); } catch(e){}
-    window.location.href = 'treasure-map.html';
+    window.location.href = '../treasure-map.html';
   };
   wrap.appendChild(btn);
 
@@ -678,7 +678,7 @@ function buildFreeformDetail(save, dateStr) {
   btn.textContent = 'load into builder ♡';
   btn.onclick = () => {
     try { localStorage.setItem('hb-map', JSON.stringify(sd)); } catch(e){}
-    window.location.href = 'treasure-map.html';
+    window.location.href = '../treasure-map.html';
   };
   wrap.appendChild(btn);
 
@@ -704,7 +704,7 @@ function changeMonth(dir) {
 async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    if (!session) { window.location.href = '../login.html'; return; }
     currentUser = session.user;
     document.getElementById('archive-email').textContent = currentUser.email;
 

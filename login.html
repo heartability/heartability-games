@@ -273,7 +273,7 @@ input:focus { border-color: var(--purple); }
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = 'profile.html';
+    if (session) window.location.href = 'users/profile.html';
   });
 
   function switchTab(tab, btn) {
@@ -303,7 +303,7 @@ input:focus { border-color: var(--purple); }
       btn.disabled = false; btn.textContent = 'enter ♡';
     } else {
       showMsg('login-msg', 'welcome back! loading your profile...', 'success');
-      setTimeout(() => window.location.href = 'profile.html', 800);
+      setTimeout(() => window.location.href = 'users/profile.html', 800);
     }
   }
 
@@ -324,7 +324,7 @@ input:focus { border-color: var(--purple); }
       await sb.from('user-profiles').insert({ id: data.user.id, username });
     }
     showMsg('signup-msg', 'account created! taking you to your profile...', 'success');
-    setTimeout(() => window.location.href = 'profile.html', 1000);
+    setTimeout(() => window.location.href = 'users/profile.html', 1000);
   }
 </script>
 

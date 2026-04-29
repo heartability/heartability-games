@@ -8,11 +8,11 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -168,36 +168,36 @@ html, body {
 
   <!-- Grass ground -->
   <div class="garden-el el-grass">
-    <img src="assets/elements/grass.png" alt="">
+    <img src="../assets/elements/grass.png" alt="">
   </div>
 
   <!-- Fountain (swap to .gif when ready) -->
   <div class="garden-el el-fountain">
-    <img src="assets/elements/fountain.png" alt="Fountain" id="fountain-img">
+    <img src="../assets/elements/fountain.png" alt="Fountain" id="fountain-img">
   </div>
 
   <!-- Phone booth -->
   <div class="garden-el el-phonebooth">
-    <img src="assets/elements/phonebooth.png" alt="Dream Hotline">
+    <img src="../assets/elements/phonebooth.png" alt="Dream Hotline">
   </div>
 
   <!-- Mailbox -->
   <div class="garden-el el-mailbox">
-    <img src="assets/elements/mailbox.png" alt="Love Letters mailbox">
+    <img src="../assets/elements/mailbox.png" alt="Love Letters mailbox">
   </div>
 
   <!-- Decorative heart clouds -->
   <div class="garden-el el-cloud-l">
-    <img src="assets/elements/heart-cloud-L.png" alt="">
+    <img src="../assets/elements/heart-cloud-L.png" alt="">
   </div>
   <div class="garden-el el-cloud-r">
-    <img src="assets/elements/heart-cloud-R.png" alt="">
+    <img src="../assets/elements/heart-cloud-R.png" alt="">
   </div>
 
   <!-- Purple cloud guide -->
   <div class="char-cloud" id="char-cloud">
     <div class="thought-bubble" id="cloud-bubble"></div>
-    <img class="char-img" src="assets/elements/guides/cloud.png" alt="Cloud guide">
+    <img class="char-img" src="../assets/elements/guides/cloud.png" alt="Cloud guide">
   </div>
 
 </div>
@@ -216,7 +216,7 @@ html, body {
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
   /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = 'game-select.html'; });
+  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = '../game-select.html'; });
 
   document.getElementById('nav-next').addEventListener('click',   nextRoom);
 
@@ -248,7 +248,7 @@ html, body {
     if (queue.length === 0) {
       /* All rooms visited — back to game-select, reset queue */
       localStorage.removeItem(STORAGE_KEY);
-      window.location.href = 'game-select.html';
+      window.location.href = '../game-select.html';
       return;
     }
 

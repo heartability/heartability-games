@@ -8,11 +8,11 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,7 +27,7 @@ html, body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
-  background-image: url('assets/elements/stars.gif');
+  background-image: url('../assets/elements/stars.gif');
   background-size: auto;
   background-position: center;
   background-repeat: repeat;
@@ -485,8 +485,8 @@ html, body {
     .subscribe();
 
   /* ─── Nav ─── */
-  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = 'game-select.html'; });
-  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = 'index.html'; });
+  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../game-select.html'; });
+  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../index.html'; });
 
   /* ─── Init ─── */
   initNameField();
