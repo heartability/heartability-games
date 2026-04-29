@@ -452,7 +452,7 @@ function setMode(mode) {
   const btnS     = document.getElementById("btn-spiral");
 
   if (mode === 'freeform') {
-    freeEl.style.display   = '';
+    freeEl.style.display   = 'block';
     spiralEl.style.display = 'none';
     btnF.classList.add('mode-active');
     btnS.classList.remove('mode-active');
@@ -461,7 +461,7 @@ function setMode(mode) {
     updateStatus();
   } else {
     freeEl.style.display   = 'none';
-    spiralEl.style.display = '';
+    spiralEl.style.display = 'block';
     btnS.classList.add('mode-active');
     btnF.classList.remove('mode-active');
     document.getElementById("mapName").value = spiralState.name || "";
