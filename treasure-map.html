@@ -555,12 +555,12 @@ function buildSpiralSVG() {
   const svgEl = document.getElementById('spiralSvg');
   const W = 500, H = 400;
   const cx = W / 2, cy = H / 2 - 10;
-  const b = 17;           // px per radian — controls spacing between turns
-  const thetaMin = 0.05;
-  const thetaMax = 8.6;   // ~1.37 full rotations
-  const steps = 500;
+  const b = 10;           // tighter loops
+  const thetaMin = 0.3;
+  const thetaMax = 15.5;  // ~2.5 full rotations
+  const steps = 700;
 
-  // Generate spiral points (counterclockwise visually — -sin due to SVG y-flip)
+  // Generate spiral points
   const pts = [];
   for (let i = 0; i <= steps; i++) {
     const t = thetaMin + (thetaMax - thetaMin) * i / steps;
@@ -605,13 +605,36 @@ function renderZoneCircles() {
     const zone     = spiralState.zones[i] || {};
     const isActive = activeZone === i;
 
-    // Tint halo
+    // Tint halo — radial gradient fade like freeform map
     if (zone.tint) {
+      const gradId = `halo-grad-${i}`;
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      grad.setAttribute('id', gradId);
+      grad.setAttribute('cx', '50%'); grad.setAttribute('cy', '50%'); grad.setAttribute('r', '50%');
+
+      // Parse tint color to get rgb values
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', '0%');
+      stop1.setAttribute('stop-color', zone.tint);
+      stop1.setAttribute('stop-opacity', '0.5');
+
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '65%');
+      stop2.setAttribute('stop-color', zone.tint);
+      stop2.setAttribute('stop-opacity', '0.18');
+
+      const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop3.setAttribute('offset', '100%');
+      stop3.setAttribute('stop-color', zone.tint);
+      stop3.setAttribute('stop-opacity', '0');
+
+      grad.appendChild(stop1); grad.appendChild(stop2); grad.appendChild(stop3);
+      defs.appendChild(grad);
+
       const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y);
-      halo.setAttribute('r', R + 22);
-      halo.setAttribute('fill', zone.tint);
-      halo.setAttribute('opacity', '0.32');
+      halo.setAttribute('r', R + 28);
+      halo.setAttribute('fill', `url(#${gradId})`);
       halo.style.pointerEvents = 'none';
       zoneGroup.appendChild(halo);
     }
