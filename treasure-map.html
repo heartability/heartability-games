@@ -239,17 +239,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .rpg-btn:active { transform: translate(2px,3px); box-shadow: none; }
 .rpg-btn.primary { background: var(--aqua); color: #0a1a2e; }
 
-/* READING */
-.reading-panel {
-  display: none; background: #e8e0c8;
-  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
-  border-left-color: #c8b88a; border-top-color: #c8b88a;
-  padding: 14px 16px;
-}
-.reading-panel.show { display: block; }
-.reading-title { font-family: var(--font-hand); font-size: 24px; color: var(--text-dark); margin-bottom: 6px; }
-.reading-text { font-family: var(--font-game); font-size: 14px; color: var(--text-mid); line-height: 1.6; }
-
 /* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
 body, .wall { background: #f5f0ea; }
 
@@ -425,19 +414,12 @@ const WEATHER_CATS = [
   { id:"snowy",  label:"snowy",  cls:"snowy",  tint:"rgba(131,210,230,1)",   feelings:["anger","avoidance","bitterness","apathy","shock"] },
 ];
 
-const READINGS = {
-  sunny: { title:"a bright season",      text:"The light is favorable right now. Things that felt obscure are becoming clearer. This is a good time to move toward what you want." },
-  rainy: { title:"a season of softening", text:"Rain dissolves what was hardened. Something in you is releasing. Let it go." },
-  windy: { title:"a season of motion",    text:"Things are moving fast. You may not be able to control the direction but you can choose what to hold close." },
-  snowy: { title:"a season of stillness", text:"The cold quiets everything. This is not absence — it is preservation. What are you keeping safe under the surface?" },
-};
-
 const ZONE_PROMPTS = [
-  "1 — what is the core emotion that gives you the sense you have to 'start over again'?",
-  "2 — what does taking the first step feel like?",
-  "3 — what does it feel like when you get into a good rhythm and it feels like things are finally changing?",
-  "4 — what does it feel like when you slip?",
-  "5 — what does it feel like when you are tested?"
+  "zone one — what does it feel like to imagine your goal coming true?",
+  "zone two — what does it feel like to begin?",
+  "zone three — what does it feel like when you get into a good rhythm?",
+  "zone four — what does it feel like when you take a big step forward?",
+  "zone five — what does it feel like when you are tested?"
 ];
 
 // ── MODE ─────────────────────────────────────────────────
@@ -873,45 +855,6 @@ function restoreItems() {
     document.getElementById("mapPlaceholder").style.display = "none";
     state.items.forEach(item => placeItem(item.id, item.label, item.x, item.y, item.feeling||null, item.tint||null));
   }
-}
-
-// ─────────────────────────────────────────────────────────
-// READ MAP
-// ─────────────────────────────────────────────────────────
-function readMap() {
-  const panel   = document.getElementById("readingPanel");
-  const mapName = document.getElementById("mapName").value;
-  const label   = mapName ? `"${mapName}"` : "your map";
-  let catId;
-
-  if (currentMode === 'spiral') {
-    const catCounts = {};
-    spiralState.zones.forEach(z => {
-      if (z.cat) catCounts[z.cat] = (catCounts[z.cat] || 0) + 1;
-    });
-    catId = Object.keys(catCounts).sort((a,b) => catCounts[b]-catCounts[a])[0];
-  } else {
-    const cats = {};
-    state.items.forEach(item => {
-      if(item.feeling) {
-        const cat = WEATHER_CATS.find(c => c.feelings.includes(item.feeling));
-        if(cat) cats[cat.id] = (cats[cat.id]||0) + 1;
-      }
-    });
-    catId = Object.keys(cats).sort((a,b) => cats[b]-cats[a])[0];
-    if(!catId) catId = state.activeCat;
-  }
-
-  if(!catId) {
-    document.getElementById("readingTitle").textContent = "add a location and feeling first";
-    document.getElementById("readingText").textContent  = "Select a feeling and apply it to your terrain pieces. Then come back here.";
-  } else {
-    const r = READINGS[catId];
-    document.getElementById("readingTitle").textContent = `${label}: ${r.title}`;
-    document.getElementById("readingText").textContent  = r.text;
-  }
-  panel.classList.add("show");
-  panel.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 
 // ─────────────────────────────────────────────────────────
