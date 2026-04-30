@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bingo Archive — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "ZoesNumbers";
+  src: url("assets/fonts/ZoesNumbers-Regular.ttf") format("truetype");
+}
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:   "ZoesHandwriting", cursive;
+  --font-pixel:  "PFPixelscript", cursive;
+  --font-game:   "VT323", monospace;
+  --purple:      #6579e2;
+  --purple-dark: #4a5bc4;
+  --blue-glow:   #83d2e6;
+  --mint:        #c9fff5;
+  --cream:       #f5f0ea;
+  --cream-dark:  #e8e3da;
+  --pink:        #E8478B;
+  --pink-light:  #ff6ba8;
+  --green:       #6ab86a;
+}
+
+html, body {
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto; background-repeat: repeat;
+  font-family: var(--font-game);
+  user-select: none;
+}
+
+/* ── NAV ── */
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: var(--mint); border-bottom: 2px solid #111;
+  z-index: 200; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(12px,2vw,28px);
+  font-family: var(--font-hand); font-size: clamp(14px,1.6vw,20px); color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── PAGE ── */
+.page-wrap {
+  min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: 64px 20px 48px;
+}
+.page-body { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
+
+/* ── WINDOW ── */
+.window {
+  background: var(--cream); border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden; animation: windowIn 0.35s ease both;
+}
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.window-titlebar {
+  height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+  font-family: var(--font-hand); font-size: clamp(13px,1.4vw,16px); color: #555;
+}
+.window-body { padding: 24px; }
+
+/* ── MONTH NAV ── */
+.month-nav {
+  display: flex; align-items: center; justify-content: center; gap: 24px; margin-bottom: 20px;
+}
+.month-btn {
+  font-family: var(--font-game); font-size: 22px; background: none;
+  border: 1.5px solid var(--purple); color: var(--purple);
+  width: 36px; height: 36px; cursor: pointer; transition: background 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.month-btn:hover { background: var(--purple); color: white; }
+.month-label {
+  font-family: var(--font-pixel); font-size: clamp(20px,2.5vw,28px);
+  color: #333; min-width: 220px; text-align: center;
+}
+
+/* ── CALENDAR ── */
+.cal-header { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px; }
+.cal-day-label { text-align: center; font-family: var(--font-game); font-size: 14px; color: #aaa; padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+
+.cal-cell {
+  aspect-ratio: 1; border: 1.5px solid rgba(101,121,226,0.15);
+  background: rgba(255,255,255,0.4); border-radius: 2px;
+  position: relative; cursor: default;
+  transition: border-color 0.15s, transform 0.1s; overflow: hidden;
+}
+.cal-cell.empty { background: transparent; border-color: transparent; }
+.cal-cell.has-save {
+  border-color: var(--purple); cursor: pointer; background: rgba(101,121,226,0.05);
+}
+.cal-cell.has-save:hover { border-color: var(--blue-glow); transform: scale(1.04); z-index: 2; box-shadow: 0 0 0 2px var(--blue-glow); }
+.cal-cell.today { border-color: var(--blue-glow); box-shadow: 0 0 0 1px var(--blue-glow); }
+
+.cal-date {
+  position: absolute; top: 4px; left: 5px;
+  font-family: var(--font-game); font-size: 11px; color: #aaa; line-height: 1;
+}
+.cal-cell.has-save .cal-date { color: var(--purple); }
+.cal-cell.today .cal-date { color: var(--blue-glow); }
+
+/* Mini heart meter inside cell */
+.mini-meter-wrap {
+  position: absolute; bottom: 6px; left: 4px; right: 4px;
+}
+.mini-meter-track {
+  height: 6px; background: #c8b88a;
+  border: 1px solid #8a7a5a; overflow: hidden;
+}
+.mini-meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #e8478b 0px, #e8478b 3px, #ff6ba8 3px, #ff6ba8 4px);
+}
+.mini-score {
+  font-family: var(--font-game); font-size: 10px; color: var(--pink);
+  text-align: center; line-height: 1; margin-bottom: 2px;
+}
+
+/* ── STREAK BAR ── */
+.streak-bar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: rgba(101,121,226,0.08); border-top: 1px solid rgba(101,121,226,0.15);
+  font-family: var(--font-game); font-size: 15px; color: var(--purple);
+}
+.streak-num { font-size: 22px; color: var(--blue-glow); }
+
+/* ── DETAIL POPUP ── */
+.detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.detail-overlay.open { display: flex; }
+
+.detail-window {
+  background: var(--cream); border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 8px 12px 40px rgba(0,0,0,0.4);
+  width: clamp(300px,92vw,520px); overflow: hidden; animation: windowIn 0.2s ease both;
+}
+.detail-titlebar {
+  height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+  font-family: var(--font-hand); font-size: 14px; color: #555;
+}
+.detail-close { cursor: pointer; font-size: 18px; color: #aaa; padding: 4px; }
+.detail-close:hover { color: var(--purple); }
+.detail-body { padding: 20px 24px; }
+
+.detail-date { font-family: var(--font-hand); font-size: 13px; color: #aaa; margin-bottom: 4px; }
+.detail-score {
+  font-family: "ZoesNumbers", var(--font-game); font-size: 32px; color: var(--pink);
+  margin-bottom: 2px;
+}
+.detail-stage { font-family: var(--font-game); font-size: 14px; color: var(--purple); margin-bottom: 12px; }
+
+/* Full meter in popup */
+.detail-meter-track {
+  height: 18px; background: #c8b88a; border: 2px solid #8a7a5a;
+  overflow: hidden; margin-bottom: 4px;
+}
+.detail-meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #e8478b 0px, #e8478b 18px, #ff6ba8 18px, #ff6ba8 20px);
+  transition: width 0.3s;
+}
+.detail-meter-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-game); font-size: 10px; color: #8a7a6a;
+  margin-bottom: 16px;
+}
+
+/* 5×5 mini bingo grid in popup */
+.detail-grid {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; margin-bottom: 16px;
+}
+.detail-cell {
+  aspect-ratio: 1; background: #e8e0c8;
+  border: 1.5px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-game); font-size: 7px; color: #5a4a2a;
+  text-align: center; padding: 2px; line-height: 1.1;
+  overflow: hidden; position: relative;
+}
+.detail-cell.marked { background: #f0d0e0; }
+.detail-cell.free-space { background: #d4e8d4; border-color: #4a8a4a; }
+.detail-cell.bingo-line { background: #fff0a0; }
+.detail-cell .heart-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--pink); opacity: 0;
+}
+.detail-cell.marked .heart-overlay { opacity: 1; }
+.detail-cell.marked .cell-label { opacity: 0.15; }
+.cell-label { font-size: 7px; line-height: 1.1; text-align: center; z-index: 1; }
+
+.btn-load {
+  width: 100%; padding: 10px 20px; background: var(--purple);
+  border: 2px solid var(--purple-dark); box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 15px; color: white;
+  cursor: pointer; transition: all 0.05s;
+}
+.btn-load:hover { background: var(--purple-dark); }
+.btn-load:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── EMPTY STATE ── */
+.empty-month {
+  text-align: center; padding: 40px 20px;
+  font-family: var(--font-hand); font-style: italic; color: #bbb; font-size: 15px; line-height: 1.8;
+}
+.empty-month a { color: var(--purple); text-decoration: none; }
+.empty-month a:hover { text-decoration: underline; }
+
+/* ── LOADING ── */
+#loading-state {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-pixel); font-size: 24px;
+  color: var(--blue-glow); text-shadow: 0 0 20px rgba(131,210,230,0.6);
+}
+#main-content { display: none; }
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='../users/profile.html'">login</span>
+  <span>bingo archive</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="window.location.href='map-archive.html'">← back</span>
+    <span class="nav-btn" onclick="window.location.href='../game-select.html'">next →</span>
+  </div>
+</nav>
+
+<div id="loading-state">loading your hearts ♡</div>
+
+<div class="page-wrap">
+  <div class="page-body" id="main-content">
+
+    <div class="window">
+      <div class="window-titlebar">
+        <span>-`♡´-✧˖°.☾ your heart meter history</span>
+        <span id="archive-email" style="font-size:12px;color:#aaa;"></span>
+      </div>
+      <div class="window-body">
+
+        <div class="month-nav">
+          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+          <div class="month-label" id="month-label"></div>
+          <button class="month-btn" onclick="changeMonth(1)">►</button>
+        </div>
+
+        <div class="cal-header">
+          <div class="cal-day-label">SUN</div>
+          <div class="cal-day-label">MON</div>
+          <div class="cal-day-label">TUE</div>
+          <div class="cal-day-label">WED</div>
+          <div class="cal-day-label">THU</div>
+          <div class="cal-day-label">FRI</div>
+          <div class="cal-day-label">SAT</div>
+        </div>
+
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="empty-month" id="empty-state" style="display:none;">
+          no bingo saved this month ♡<br>
+          <a href="../games/bingo.html">go check in →</a>
+        </div>
+
+      </div>
+
+      <div class="streak-bar">
+        <span>current streak:</span>
+        <span class="streak-num" id="streak-count">0</span>
+        <span>days</span>
+        &nbsp;·&nbsp;
+        <span>total saves:</span>
+        <span class="streak-num" id="total-count">0</span>
+        &nbsp;·&nbsp;
+        <span>avg score:</span>
+        <span class="streak-num" id="avg-score">—</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detail popup -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-window">
+    <div class="detail-titlebar">
+      <span id="detail-title">heart meter</span>
+      <span class="detail-close" onclick="closeDetailBtn()">✕</span>
+    </div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase ──────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Bingo squares (matches bingo.html) ───────────────────
+const SQUARES = [
+  "your body feels clean","you are not hungry or thirsty","you feel comfy in your body",
+  "you feel loved by your community","you feel well rested today","your space feels clean",
+  "you have drank a glass of water today","you have done something fun this week",
+  "you have talked to a friend this week","you find it easy to fall asleep lately",
+  "you recently cleaned your room/house","you have eaten food that you enjoyed today",
+  "you dont try to do everything alone","you do something relaxing to end your day",
+  "without moving, look at an item with a story","you have options for your next meal",
+  "you have moved your body mindfully today","without moving, look at something you love",
+  "you dont feel guilty for taking naps","you feel in control of your environment",
+  "somebody cooked for you this week","you know why you get sore and how to feel better",
+  "you have people to call in an emergency","you are not afraid to prioritize rest"
+];
+
+const STAGES = ["waking up","stronger","flowing","thriving","full heart"];
+
+const READINGS = [
+  { min:0,  max:4,  title:"its a new day" },
+  { min:5,  max:9,  title:"keep going" },
+  { min:10, max:14, title:"you got this" },
+  { min:15, max:19, title:"almost there" },
+  { min:20, max:24, title:"full heart" }
+];
+
+const BINGO_LINES = [
+  [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+  [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+  [0,6,12,18,24],[4,8,12,16,20]
+];
+
+// ── State ─────────────────────────────────────────────────
+let currentUser = null;
+let allSaves    = [];
+let viewYear    = new Date().getFullYear();
+let viewMonth   = new Date().getMonth();
+
+// ── Helpers ───────────────────────────────────────────────
+function localToday() { return new Date().toLocaleDateString('en-CA'); }
+
+function formatDateLabel(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function getStage(score) { return Math.min(Math.floor(score/5),4); }
+
+function getReading(score) {
+  return READINGS.find(r => score >= r.min && score <= r.max);
+}
+
+function hasBingo(marked) {
+  return BINGO_LINES.some(line => line.every(i => marked[i] || i===12));
+}
+
+function getBingoLines(marked) {
+  return BINGO_LINES.filter(line => line.every(i => marked[i] || i===12));
+}
+
+function calcStreak(saves) {
+  if (!saves.length) return 0;
+  const dates = saves.map(s => s.saved_date).sort().reverse();
+  const today = localToday();
+  let streak = 0, check = today;
+  for (const d of dates) {
+    if (d === check) {
+      streak++;
+      const dt = new Date(check+'T12:00:00');
+      dt.setDate(dt.getDate()-1);
+      check = dt.toLocaleDateString('en-CA');
+    } else if (d < check) break;
+  }
+  return streak;
+}
+
+// ── Calendar ──────────────────────────────────────────────
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-label').textContent = `${monthNames[viewMonth]} ${viewYear}`;
+
+  const grid  = document.getElementById('cal-grid');
+  const today = localToday();
+  grid.innerHTML = '';
+
+  const saveMap = {};
+  allSaves.forEach(s => { saveMap[s.saved_date] = s; });
+
+  const firstDay    = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+
+  const monthSaves = allSaves.filter(s => {
+    const [y,m] = s.saved_date.split('-').map(Number);
+    return y === viewYear && m === viewMonth+1;
+  });
+
+  for (let i=0; i<firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell empty';
+    grid.appendChild(cell);
+  }
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const save    = saveMap[dateStr];
+    const isToday = dateStr === today;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (save ? ' has-save' : '') + (isToday ? ' today' : '');
+
+    const dateLabel = document.createElement('div');
+    dateLabel.className = 'cal-date';
+    dateLabel.textContent = d;
+    cell.appendChild(dateLabel);
+
+    if (save?.save_data) {
+      const score = save.save_data.score || 0;
+      const pct   = (score/24)*100;
+
+      // Mini score
+      const miniScore = document.createElement('div');
+      miniScore.className = 'mini-score';
+      miniScore.textContent = `♥ ${score}`;
+
+      // Mini meter
+      const meterWrap = document.createElement('div');
+      meterWrap.className = 'mini-meter-wrap';
+      const track = document.createElement('div');
+      track.className = 'mini-meter-track';
+      const fill = document.createElement('div');
+      fill.className = 'mini-meter-fill';
+      fill.style.width = pct + '%';
+      track.appendChild(fill);
+      meterWrap.appendChild(miniScore);
+      meterWrap.appendChild(track);
+      cell.appendChild(meterWrap);
+
+      cell.addEventListener('click', () => openDetail(save, dateStr));
+    }
+
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('empty-state').style.display = monthSaves.length===0 ? 'block' : 'none';
+}
+
+// ── Detail popup ──────────────────────────────────────────
+function openDetail(save, dateStr) {
+  document.getElementById('detail-title').textContent = formatDateLabel(dateStr);
+  const body = document.getElementById('detail-body');
+  body.innerHTML = '';
+
+  const sd     = save.save_data || {};
+  const marked = sd.marked || new Array(25).fill(false);
+  const score  = sd.score || 0;
+  const pct    = (score/24)*100;
+  const stage  = getStage(score);
+  const read   = getReading(score);
+  const bLines = getBingoLines(marked);
+  const bingoCells = new Set(bLines.flat());
+
+  // Date
+  const dateEl = document.createElement('div');
+  dateEl.className = 'detail-date';
+  dateEl.textContent = formatDateLabel(dateStr);
+  body.appendChild(dateEl);
+
+  // Score
+  const scoreEl = document.createElement('div');
+  scoreEl.className = 'detail-score';
+  scoreEl.textContent = `♥ ${score} / 24`;
+  body.appendChild(scoreEl);
+
+  // Stage
+  const stageEl = document.createElement('div');
+  stageEl.className = 'detail-stage';
+  stageEl.textContent = read ? read.title.toUpperCase() : STAGES[stage].toUpperCase();
+  body.appendChild(stageEl);
+
+  // Full meter
+  const meterTrack = document.createElement('div');
+  meterTrack.className = 'detail-meter-track';
+  const meterFill = document.createElement('div');
+  meterFill.className = 'detail-meter-fill';
+  meterFill.style.width = pct + '%';
+  meterTrack.appendChild(meterFill);
+  body.appendChild(meterTrack);
+
+  const meterLabels = document.createElement('div');
+  meterLabels.className = 'detail-meter-labels';
+  ['waking up','stronger','flowing','thriving','full heart'].forEach((s,i) => {
+    const el = document.createElement('span');
+    el.textContent = s.toUpperCase();
+    if (i === stage) el.style.color = '#000f5a';
+    meterLabels.appendChild(el);
+  });
+  body.appendChild(meterLabels);
+
+  // 5×5 grid
+  const gridEl = document.createElement('div');
+  gridEl.className = 'detail-grid';
+
+  for (let i=0; i<25; i++) {
+    const isMarked   = marked[i] || i===12;
+    const isFree     = i===12;
+    const isBingo    = bingoCells.has(i);
+    const cell       = document.createElement('div');
+    cell.className   = 'detail-cell' + (isFree ? ' free-space' : '') + (isMarked && !isFree ? ' marked' : '') + (isBingo ? ' bingo-line' : '');
+
+    const label = document.createElement('div');
+    label.className = 'cell-label';
+    label.textContent = isFree ? '♡' : SQUARES[i<12?i:i-1];
+    cell.appendChild(label);
+
+    if (!isFree) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-overlay';
+      heart.textContent = '♥';
+      cell.appendChild(heart);
+    }
+
+    gridEl.appendChild(cell);
+  }
+  body.appendChild(gridEl);
+
+  // Load button
+  const btn = document.createElement('button');
+  btn.className = 'btn-load';
+  btn.textContent = 'load into bingo ♡';
+  btn.onclick = () => {
+    try { localStorage.setItem('hb-bingo', JSON.stringify(marked)); } catch(e){}
+    window.location.href = '../games/bingo.html';
+  };
+  body.appendChild(btn);
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detail-overlay')) closeDetailBtn();
+}
+function closeDetailBtn() {
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function changeMonth(dir) {
+  viewMonth += dir;
+  if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
+  if (viewMonth > 11) { viewMonth = 0;  viewYear++; }
+  renderCalendar();
+}
+
+// ── Init ──────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = '../users/login.html'; return; }
+    currentUser = session.user;
+    document.getElementById('archive-email').textContent = currentUser.email;
+
+    const { data, error } = await sb
+      .from('game_saves')
+      .select('saved_date, save_data')
+      .eq('user_id', currentUser.id)
+      .eq('game_name', 'bingo')
+      .not('saved_date', 'is', null)
+      .order('saved_date', { ascending: false });
+
+    if (!error && data) {
+      allSaves = data;
+      const total = allSaves.length;
+      const avgScore = total > 0
+        ? Math.round(allSaves.reduce((a,s) => a + (s.save_data?.score||0), 0) / total)
+        : 0;
+      document.getElementById('total-count').textContent  = total;
+      document.getElementById('streak-count').textContent = calcStreak(allSaves);
+      document.getElementById('avg-score').textContent    = total > 0 ? avgScore : '—';
+    }
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('main-content').style.display  = 'flex';
+    renderCalendar();
+
+  } catch(e) { console.error(e); }
+}
+
+init();
+</script>
+
+</body>
+</html>

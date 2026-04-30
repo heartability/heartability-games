@@ -417,7 +417,9 @@ body {
           <div class="label">hearts</div>
           <div class="number" id="scoreNum">0</div>
         </div>
+        <button class="reset-btn" id="btn-save-today" onclick="saveToday()">► SAVE TODAY</button>
         <button class="reset-btn" onclick="resetGame()">&#x25BA; RESET</button>
+        <span id="save-status" style="font-family:var(--font-game);font-size:15px;color:#6578e2;"></span>
       </div>
     </div>
 
@@ -450,7 +452,76 @@ body {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── Supabase ─────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+function localToday() { return new Date().toLocaleDateString('en-CA'); }
+
+function showSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || '#6578e2';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+async function saveToday() {
+  if (!currentUser) { showSaveStatus('log in to save ♡', '#E8478B'); return; }
+  const score = marked.filter((v,i) => v && i!==12).length;
+  if (score === 0) { showSaveStatus('check some squares first!', '#E8478B'); return; }
+
+  const btn = document.getElementById('btn-save-today');
+  btn.textContent = '► SAVING...';
+
+  const { error } = await sb.from('game_saves').upsert({
+    user_id:    currentUser.id,
+    game_name:  'bingo',
+    save_data:  { marked, score },
+    saved_date: localToday()
+  }, { onConflict: 'user_id,game_name,saved_date' });
+
+  if (error) {
+    showSaveStatus('save failed', '#E8478B');
+    btn.textContent = '► SAVE TODAY';
+  } else {
+    showSaveStatus('saved ✓', '#6ab86a');
+    btn.textContent = '► SAVED TODAY ✓';
+    btn.style.opacity = '0.6';
+  }
+}
+
+async function checkTodaySave() {
+  if (!currentUser) return;
+  const { data } = await sb.from('game_saves')
+    .select('saved_date')
+    .eq('user_id', currentUser.id)
+    .eq('game_name', 'bingo')
+    .eq('saved_date', localToday())
+    .single();
+  if (data) {
+    const btn = document.getElementById('btn-save-today');
+    btn.textContent = '► SAVED TODAY ✓';
+    btn.style.opacity = '0.6';
+  }
+}
+
+async function initSupabase() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    currentUser = session?.user || null;
+    if (currentUser) {
+      showSaveStatus('cloud saves active ✓', '#6ab86a');
+      checkTodaySave();
+    }
+  } catch(e) {}
+}
+
 const SQUARES = [
   "your body feels clean",
   "you are not hungry or thirsty",
@@ -582,6 +653,7 @@ load();
 buildGrid();
 marked[12] = true;
 update();
+initSupabase();
 </script>
 
 </body>
