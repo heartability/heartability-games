@@ -313,7 +313,6 @@ body, .wall { background: #f5f0ea; }
     <div class="topbar">
       <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="rpg-btn" onclick="clearMap()">&#x25BA; CLEAR</button>
-        <button class="rpg-btn primary" onclick="readMap()">&#x2605; READ MAP</button>
         <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">&#x2665; SAVE TODAY</button>
       </div>
       <span id="save-status" style="font-family:var(--font-game);font-size:16px;color:#83d2e6;"></span>
@@ -323,7 +322,7 @@ body, .wall { background: #f5f0ea; }
 
       <div class="two-col">
 
-        <!-- SIDE PANEL — name input + terrain + feelings -->
+        <!-- SIDE PANEL — name input + zone prompt + terrain + feelings -->
         <div class="side-panel">
 
           <div>
@@ -331,9 +330,8 @@ body, .wall { background: #f5f0ea; }
             <input class="map-input" id="mapName" type="text" placeholder="the map of..." maxlength="60" oninput="onNameInput()">
           </div>
 
-          <div class="status-bar" id="statusBar">
-            tap a terrain piece to select it, then tap the map to place it
-          </div>
+          <!-- Zone prompt lives here in left column -->
+          <div class="status-bar" id="zonePrompt" style="display:none;"></div>
 
           <div class="palette-section">
             <div class="section-header">terrain</div>
@@ -349,17 +347,25 @@ body, .wall { background: #f5f0ea; }
 
         <!-- MAP AREA -->
         <div class="map-col">
-          <div class="section-header">your map</div>
+
+          <!-- Mode toggle TOP RIGHT of map column -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div class="section-header" style="margin-bottom:0;">your map</div>
+            <div class="mode-toggle" style="margin:0;">
+              <button class="rpg-btn" id="btn-freeform" onclick="setMode('freeform')">◆ FREEFORM</button>
+              <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">◉ SPIRAL</button>
+            </div>
+          </div>
 
           <!-- Freeform canvas -->
-          <div class="map-canvas" id="mapCanvas">
+          <div class="map-canvas" id="mapCanvas" style="display:none;">
             <div class="map-placeholder" id="mapPlaceholder">
               <div class="map-placeholder-text">your map will appear here</div>
             </div>
           </div>
 
-          <!-- Spiral canvas -->
-          <div class="spiral-canvas" id="spiralCanvas">
+          <!-- Spiral canvas (default) -->
+          <div class="spiral-canvas" id="spiralCanvas" style="display:block;">
             <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="spiralDefs"></defs>
               <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
@@ -367,22 +373,15 @@ body, .wall { background: #f5f0ea; }
               <path id="spiralPath" fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round"/>
               <g id="zoneGroup"></g>
             </svg>
-            <div class="zone-prompt-box" id="zonePrompt"></div>
           </div>
 
-          <!-- Mode toggle UNDER the map -->
-          <div class="mode-toggle" style="margin-top:10px;">
-            <button class="rpg-btn mode-active" id="btn-freeform" onclick="setMode('freeform')">◆ FREEFORM</button>
-            <button class="rpg-btn" id="btn-spiral" onclick="setMode('spiral')">◉ SPIRAL</button>
+          <!-- Status bar BELOW map -->
+          <div class="status-bar" id="statusBar" style="margin-top:8px;">
+            click a zone on the spiral to begin
           </div>
 
         </div>
 
-      </div>
-
-      <div class="reading-panel" id="readingPanel">
-        <div class="reading-title" id="readingTitle"></div>
-        <div class="reading-text" id="readingText"></div>
       </div>
 
     </div>
@@ -442,7 +441,7 @@ const ZONE_PROMPTS = [
 ];
 
 // ── MODE ─────────────────────────────────────────────────
-let currentMode = 'freeform';
+let currentMode = 'spiral';
 
 function setMode(mode) {
   currentMode = mode;
@@ -450,6 +449,8 @@ function setMode(mode) {
   const spiralEl = document.getElementById("spiralCanvas");
   const btnF     = document.getElementById("btn-freeform");
   const btnS     = document.getElementById("btn-spiral");
+  const promptEl = document.getElementById("zonePrompt");
+  const statusEl = document.getElementById("statusBar");
 
   if (mode === 'freeform') {
     freeEl.style.display   = 'block';
@@ -457,13 +458,25 @@ function setMode(mode) {
     btnF.classList.add('mode-active');
     btnS.classList.remove('mode-active');
     document.getElementById("mapName").value = state.name || "";
-    document.getElementById("readingPanel").classList.remove("show");
+    promptEl.style.display = 'none';
+    promptEl.textContent   = '';
     updateStatus();
   } else {
     freeEl.style.display   = 'none';
     spiralEl.style.display = 'block';
     btnS.classList.add('mode-active');
     btnF.classList.remove('mode-active');
+    document.getElementById("mapName").value = spiralState.name || "";
+    updateSpiralStatus();
+  }
+  // Clear panel selections
+  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
+  state.activeTerrain = null;
+  state.activeFeeling = null;
+  state.activeCat     = null;
+  state.activeTint    = null;
+}
     document.getElementById("mapName").value = spiralState.name || "";
     document.getElementById("readingPanel").classList.remove("show");
     updateSpiralStatus();
@@ -529,16 +542,16 @@ function spiralSaveState() {
 }
 
 function updateSpiralStatus() {
-  const bar = document.getElementById("statusBar");
+  const bar    = document.getElementById("statusBar");
   const prompt = document.getElementById("zonePrompt");
   if (activeZone === null) {
     bar.innerHTML = 'click a zone on the spiral to begin';
+    prompt.style.display = 'none';
     prompt.textContent = '';
-    prompt.classList.remove('show');
   } else {
     bar.innerHTML = `<span class="status-active">zone ${activeZone + 1} selected</span> <span class="status-hint">· choose terrain and feeling below</span>`;
     prompt.textContent = ZONE_PROMPTS[activeZone];
-    prompt.classList.add('show');
+    prompt.style.display = 'block';
   }
 }
 
@@ -554,7 +567,7 @@ function selectZone(i) {
 function buildSpiralSVG() {
   const W = 500, H = 400;
   const cx = W / 2, cy = H / 2 - 10;
-  const b = 10;
+  const b = 13;           // larger = bigger spiral, more space between zones
   const thetaMin = 0.1;
   const thetaMax = 15.5;
   const steps = 700;
@@ -569,9 +582,8 @@ function buildSpiralSVG() {
   const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
   document.getElementById('spiralPath').setAttribute('d', d);
 
-  // Manually tuned theta values for visual balance matching wireframe:
-  // 1=center, 2=upper-right, 3=upper-left, 4=lower-left, 5=lower-right
-  const zoneThetaValues = [0.5, 6.8, 8.5, 10.5, 11.8];
+  // Zone positions: 1=center, 2=upper-right, 3=upper-left, 4=lower-left, 5=lower-right
+  const zoneThetaValues = [0.4, 5.5, 8.0, 10.2, 11.6];
   ZONE_POSITIONS = zoneThetaValues.map(t => ({
     x: cx + b * t * Math.cos(t),
     y: cy - b * t * Math.sin(t)
@@ -917,10 +929,9 @@ function readMap() {
 // CLEAR
 // ─────────────────────────────────────────────────────────
 function clearMap() {
-  document.getElementById("readingPanel").classList.remove("show");
-  document.getElementById("mapName").value = "";
   document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
   document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  document.getElementById("mapName").value = "";
 
   if (currentMode === 'spiral') {
     spiralState = { name:"", zones:[{},{},{},{},{}] };
@@ -1072,9 +1083,9 @@ spiralLoadState();
 buildTerrain();
 buildWeather();
 buildSpiralSVG();
-if(state.name) document.getElementById("mapName").value = state.name;
-restoreItems();
-updateStatus();
+// Default to spiral mode
+document.getElementById("mapName").value = spiralState.name || "";
+updateSpiralStatus();
 initSupabase();
 </script>
 </body>
