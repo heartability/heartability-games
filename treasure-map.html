@@ -570,9 +570,9 @@ function buildSpiralSVG() {
   const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
   document.getElementById('spiralPath').setAttribute('d', d);
 
-  // Zone positions tuned to match wireframe layout:
-  // 1=center, 2=left, 3=lower-right, 4=upper-right, 5=upper-left
-  const zoneThetaValues = [0.4, 3.2, 5.3, 7.0, 8.4];
+  // Zones spread across full spiral length — 1=center(inner), 5=near end(outer)
+  // 1=center, 2=left(2nd loop), 3=lower-right(outer), 4=upper-right(outer), 5=upper-left(near end)
+  const zoneThetaValues = [0.5, 9.4, 11.5, 13.3, 14.9];
   ZONE_POSITIONS = zoneThetaValues.map(t => ({
     x: cx + b * t * Math.cos(t),
     y: cy - b * t * Math.sin(t)
