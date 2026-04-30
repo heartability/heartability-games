@@ -570,8 +570,9 @@ function buildSpiralSVG() {
   const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
   document.getElementById('spiralPath').setAttribute('d', d);
 
-  // Zone positions: 1=center, 2=upper-right, 3=upper-left, 4=lower-left, 5=lower-right
-  const zoneThetaValues = [0.4, 5.5, 8.0, 10.2, 11.6];
+  // Zone positions tuned to match wireframe layout:
+  // 1=center, 2=left, 3=lower-right, 4=upper-right, 5=upper-left
+  const zoneThetaValues = [0.4, 3.2, 5.3, 7.0, 8.4];
   ZONE_POSITIONS = zoneThetaValues.map(t => ({
     x: cx + b * t * Math.cos(t),
     y: cy - b * t * Math.sin(t)
