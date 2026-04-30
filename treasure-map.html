@@ -477,18 +477,6 @@ function setMode(mode) {
   state.activeCat     = null;
   state.activeTint    = null;
 }
-    document.getElementById("mapName").value = spiralState.name || "";
-    document.getElementById("readingPanel").classList.remove("show");
-    updateSpiralStatus();
-  }
-  // Clear panel selections
-  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
-  state.activeTerrain = null;
-  state.activeFeeling = null;
-  state.activeCat     = null;
-  state.activeTint    = null;
-}
 
 function onNameInput() {
   if (currentMode === 'freeform') saveState();
