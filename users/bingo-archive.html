@@ -252,14 +252,14 @@ html, body {
   </div>
 </nav>
 
-<div id="loading-state">loading your hearts ♡</div>
+<div id="loading-state">loading your hearts</div>
 
 <div class="page-wrap">
   <div class="page-body" id="main-content">
 
     <div class="window">
       <div class="window-titlebar">
-        <span>-`♡´-✧˖°.☾ your heart meter history</span>
+        <span>-heart meter archive</span>
         <span id="archive-email" style="font-size:12px;color:#aaa;"></span>
       </div>
       <div class="window-body">
@@ -282,7 +282,7 @@ html, body {
 
         <div class="cal-grid" id="cal-grid"></div>
         <div class="empty-month" id="empty-state" style="display:none;">
-          no bingo saved this month ♡<br>
+          no bingo saved this month<br>
           <a href="../games/bingo.html">go check in →</a>
         </div>
 
@@ -549,7 +549,7 @@ function openDetail(save, dateStr) {
   // Load button
   const btn = document.createElement('button');
   btn.className = 'btn-load';
-  btn.textContent = 'load into bingo ♡';
+  btn.textContent = 'load into bingo';
   btn.onclick = () => {
     try { localStorage.setItem('hb-bingo', JSON.stringify(marked)); } catch(e){}
     window.location.href = '../games/bingo.html';

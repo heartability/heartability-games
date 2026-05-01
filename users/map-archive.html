@@ -278,14 +278,14 @@ html, body {
   </div>
 </nav>
 
-<div id="loading-state">loading your maps ♡</div>
+<div id="loading-state">loading your maps</div>
 
 <div class="page-wrap">
   <div class="page-body" id="main-content">
 
     <div class="window">
       <div class="window-titlebar">
-        <span>-`♡´-✧˖°.☾ your maps</span>
+        <span>map archive</span>
         <span id="archive-email" style="font-size:12px;color:#aaa;"></span>
       </div>
       <div class="window-body">
@@ -308,7 +308,7 @@ html, body {
 
         <div class="cal-grid" id="cal-grid"></div>
         <div class="empty-month" id="empty-state" style="display:none;">
-          no maps saved this month ♡<br>
+          no maps saved this month<br>
           <a href="../treasure-map.html">go build one →</a>
         </div>
 
@@ -606,7 +606,7 @@ function buildSpiralDetail(save, dateStr) {
 
   const btn = document.createElement('button');
   btn.className = 'btn-load';
-  btn.textContent = 'load into builder ♡';
+  btn.textContent = 'load into builder';
   btn.onclick = () => {
     try { localStorage.setItem('hb-spiral', JSON.stringify(sd)); } catch(e){}
     window.location.href = '../treasure-map.html';
@@ -675,7 +675,7 @@ function buildFreeformDetail(save, dateStr) {
 
   const btn = document.createElement('button');
   btn.className = 'btn-load';
-  btn.textContent = 'load into builder ♡';
+  btn.textContent = 'load into builder';
   btn.onclick = () => {
     try { localStorage.setItem('hb-map', JSON.stringify(sd)); } catch(e){}
     window.location.href = '../treasure-map.html';
