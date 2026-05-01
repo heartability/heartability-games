@@ -8,15 +8,15 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 @font-face {
   font-family: "ZoesNumbers";
-  src: url("assets/fonts/ZoesNumbers-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesNumbers-Regular.ttf") format("truetype");
 }
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -28,6 +28,7 @@
   --font-game:   "VT323", monospace;
   --purple:      #6579e2;
   --purple-dark: #4a5bc4;
+  --purple-shadow: #3a4aaa;
   --blue-glow:   #83d2e6;
   --mint:        #c9fff5;
   --cream:       #f5f0ea;
@@ -39,9 +40,9 @@
 
 html, body {
   min-height: 100dvh;
-  background-image: url('assets/elements/stars.gif');
+  background-image: url('../assets/elements/stars.gif');
   background-size: auto; background-repeat: repeat;
-  font-family: var(--font-game);
+  font-family: var(--font-hand);
   user-select: none;
 }
 
@@ -174,7 +175,6 @@ html, body {
 }
 .detail-stage { font-family: var(--font-game); font-size: 14px; color: var(--purple); margin-bottom: 12px; }
 
-/* Full meter in popup */
 .detail-meter-track {
   height: 18px; background: #c8b88a; border: 2px solid #8a7a5a;
   overflow: hidden; margin-bottom: 4px;
@@ -190,7 +190,6 @@ html, body {
   margin-bottom: 16px;
 }
 
-/* 5×5 mini bingo grid in popup */
 .detail-grid {
   display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; margin-bottom: 16px;
 }
@@ -223,7 +222,6 @@ html, body {
 .btn-load:hover { background: var(--purple-dark); }
 .btn-load:active { box-shadow: none; transform: translate(2px,2px); }
 
-/* ── EMPTY STATE ── */
 .empty-month {
   text-align: center; padding: 40px 20px;
   font-family: var(--font-hand); font-style: italic; color: #bbb; font-size: 15px; line-height: 1.8;
@@ -231,7 +229,6 @@ html, body {
 .empty-month a { color: var(--purple); text-decoration: none; }
 .empty-month a:hover { text-decoration: underline; }
 
-/* ── LOADING ── */
 #loading-state {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-pixel); font-size: 24px;
