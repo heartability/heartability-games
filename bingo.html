@@ -112,7 +112,7 @@ body {
   width: 100%;
   max-width: 760px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 10px;
   position: relative;
@@ -411,7 +411,6 @@ body {
     <h1 class="room-title">heart meter</h1>
 
     <div class="instruction-bar">
-      <div class="instruction-text"></div>
       <div class="score-display">
         <div class="score-box">
           <div class="label">hearts</div>
@@ -421,6 +420,7 @@ body {
         <button class="reset-btn" onclick="resetGame()">&#x25BA; RESET</button>
         <span id="save-status" style="font-family:var(--font-game);font-size:15px;color:#6578e2;"></span>
       </div>
+      <div class="instruction-text"></div>
     </div>
 
     <div class="bingo-alert" id="bingoAlert">&#x2605; BINGO! &#x2605;</div>
