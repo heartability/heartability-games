@@ -169,6 +169,18 @@ html, body {
   white-space: nowrap;
 }
 
+.member-badge.basic {
+  background: rgba(101,121,226,0.08);
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+.member-badge.founding {
+  background: rgba(101,121,226,0.15);
+  border-color: var(--purple-dark);
+  color: var(--purple-dark);
+}
+
 /* ── SECTION GRID ── */
 .section-grid {
   display: grid;
@@ -207,7 +219,6 @@ html, body {
   .profile-hero { flex-direction: column; text-align: center; }
   .member-badge { align-self: center; }
   .membership-block { align-items: center; max-width: 100%; }
-  .membership-desc { text-align: center; }
 }
 
 /* ── SETTINGS ROWS ── */
@@ -245,6 +256,56 @@ html, body {
 .btn-action:hover { background: var(--purple); color: white; }
 
 /* ── SAVED DATA ── */
+.saved-data-wrap {
+  position: relative;
+}
+
+/* locked overlay for free users */
+.saved-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(245,240,234,0.88);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  z-index: 10;
+}
+
+.lock-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.lock-msg {
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 15px);
+  color: #666;
+  line-height: 1.5;
+  max-width: 200px;
+}
+
+.btn-upgrade-inline {
+  padding: 8px 16px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+  white-space: nowrap;
+}
+.btn-upgrade-inline:hover  { background: var(--purple-dark); }
+.btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* saved items */
 .saved-item {
   display: flex;
   align-items: center;
@@ -256,6 +317,23 @@ html, body {
 .saved-item:last-child { border-bottom: none; }
 .saved-icon { font-size: 20px; }
 .saved-name { flex: 1; color: #333; }
+
+.saved-link {
+  font-family: var(--font-hand);
+  font-size: clamp(9px, 0.9vw, 11px);
+  padding: 3px 8px;
+  background: rgba(101,121,226,0.1);
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.saved-link:hover {
+  background: var(--purple);
+  color: #fff;
+}
+
 .saved-tag {
   font-family: var(--font-hand);
   font-size: clamp(9px, 0.9vw, 11px);
@@ -264,38 +342,6 @@ html, body {
   border: 1px solid #ccc;
   color: #aaa;
 }
-.saved-tag.active {
-  background: rgba(101,121,226,0.1);
-  border-color: var(--purple);
-  color: var(--purple);
-}
-
-/* ── sections ── */
-.upsell-body {
-  text-align: center;
-  padding: 8px 0 4px;
-}
-.upsell-body p {
-  font-size: clamp(12px, 1.3vw, 15px);
-  color: #888;
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-.btn-upgrade {
-  width: 100%;
-  padding: 11px 18px;
-  background: var(--purple);
-  border: 2px solid var(--purple-dark);
-  box-shadow: 2px 2px 0 var(--purple-shadow);
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.05s;
-}
-.btn-upgrade:hover  { background: var(--purple-dark); }
-.btn-upgrade:active { box-shadow: none; transform: translate(2px,2px); }
 
 /* ── LOADING ── */
 #loading-state {
@@ -340,7 +386,8 @@ html, body {
         </div>
         <div class="membership-block">
           <div class="member-badge" id="member-badge">free member</div>
-          <button class="btn-upgrade-hero">become a founding member</button>
+          <!-- hidden once user has a paid membership -->
+          <button class="btn-upgrade-hero" id="btn-upgrade-hero" onclick="goToUpgrade()">become a founding member</button>
         </div>
       </div>
     </div>
@@ -375,22 +422,32 @@ html, body {
     <!-- Saved Data -->
     <div class="window">
       <div class="window-titlebar">saved data</div>
-      <div class="window-body">
+      <div class="window-body saved-data-wrap" id="saved-data-wrap">
+
+        <!-- lock overlay — shown for free users, hidden for members -->
+        <div class="saved-lock-overlay" id="saved-lock-overlay">
+          <div class="lock-icon">🔒</div>
+          <div class="lock-msg">save your progress across all games — join to unlock</div>
+          <button class="btn-upgrade-inline" onclick="goToUpgrade()">become a member ♡</button>
+        </div>
+
+        <!-- always rendered, visible through overlay for members -->
         <div class="saved-item">
           <div class="saved-icon">🎴</div>
           <div class="saved-name">bingo card</div>
-          <div class="saved-tag">no save</div>
+          <a class="saved-link" href="bingo-archive.html" id="link-bingo">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">👤</div>
           <div class="saved-name">character</div>
-          <div class="saved-tag">no save</div>
+          <a class="saved-link" href="character-archive.html" id="link-character">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">🗺️</div>
           <div class="saved-name">treasure map</div>
-          <div class="saved-tag">no save</div>
+          <a class="saved-link" href="map-archive.html" id="link-map">view archive</a>
         </div>
+
       </div>
     </div>
 
@@ -425,18 +482,58 @@ html, body {
       year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    document.getElementById('display-username').textContent = username;
-    document.getElementById('display-email').textContent    = user.email;
-    document.getElementById('display-since').textContent    = 'member since ' + joinDate;
+    document.getElementById('display-username').textContent  = username;
+    document.getElementById('display-email').textContent     = user.email;
+    document.getElementById('display-since').textContent     = 'member since ' + joinDate;
     document.getElementById('settings-username').textContent = username;
-    document.getElementById('settings-email').textContent   = user.email;
-    document.getElementById('avatar-display').textContent   = username.charAt(0).toUpperCase();
+    document.getElementById('settings-email').textContent    = user.email;
+    document.getElementById('avatar-display').textContent    = username.charAt(0).toUpperCase();
+
+    // ── MEMBERSHIP STATUS ─────────────────────────────────
+    // TODO: once Stripe + Supabase edge functions are wired up,
+    // replace this line with: const membershipStatus = profile?.membership_status || 'free';
+    const membershipStatus = profile?.membership_status || 'free';
+
+    applyMembershipUI(membershipStatus);
 
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').style.display  = 'flex';
   }
 
-  // ── Edit username ────────────────────────────────────────
+  // ── Membership UI ─────────────────────────────────────────
+  function applyMembershipUI(status) {
+    const badge       = document.getElementById('member-badge');
+    const upgradeBtn  = document.getElementById('btn-upgrade-hero');
+    const lockOverlay = document.getElementById('saved-lock-overlay');
+
+    if (status === 'basic') {
+      badge.textContent = 'basic member';
+      badge.className   = 'member-badge basic';
+      upgradeBtn.style.display = 'none';
+      lockOverlay.style.display = 'none';
+
+    } else if (status === 'founding') {
+      badge.textContent = '✦ founding member';
+      badge.className   = 'member-badge founding';
+      upgradeBtn.style.display = 'none';
+      lockOverlay.style.display = 'none';
+
+    } else {
+      // free
+      badge.textContent = 'free member';
+      badge.className   = 'member-badge';
+      upgradeBtn.style.display = 'block';
+      lockOverlay.style.display = 'flex';
+    }
+  }
+
+  // ── Upgrade redirect ──────────────────────────────────────
+  // TODO: replace with your actual membership/checkout page when ready
+  window.goToUpgrade = function () {
+    window.location.href = '../membership.html';
+  };
+
+  // ── Edit username ─────────────────────────────────────────
   window.editUsername = async function () {
     const newName = prompt('enter new username:');
     if (!newName || !newName.trim()) return;
@@ -453,7 +550,7 @@ html, body {
     }
   };
 
-  // ── Change password ──────────────────────────────────────
+  // ── Change password ───────────────────────────────────────
   window.changePassword = async function () {
     const newPass = prompt('enter new password (min 6 characters):');
     if (!newPass || newPass.length < 6) return;
@@ -461,7 +558,7 @@ html, body {
     if (error) alert('error: ' + error.message);
   };
 
-  // ── Sign out ─────────────────────────────────────────────
+  // ── Sign out ──────────────────────────────────────────────
   document.getElementById('btn-signout').addEventListener('click', async () => {
     await sb.auth.signOut();
     window.location.href = '../login.html';
