@@ -268,14 +268,14 @@ html, body {
   <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
 </nav>
 
-<div id="loading-state">loading ♡</div>
+<div id="loading-state">loading</div>
 
 <div class="page-wrap" id="main-content">
 
   <div class="banner" id="banner"></div>
 
   <div class="intro">
-    <div class="intro-title">join heartability ♡</div>
+    <div class="intro-title">join heartability</div>
     <div class="intro-sub">save your progress, unlock your archives, and support an independent wellness game studio</div>
   </div>
 
@@ -313,10 +313,9 @@ html, body {
         <div class="price-note">save $8 vs monthly — billed annually</div>
         <hr class="divider" />
         <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>everything in basic</span></div>
           <div class="feature-item"><span class="feature-check">✦</span><span>founding member badge on your profile</span></div>
           <div class="feature-item"><span class="feature-check">✦</span><span>locked-in rate — price never increases for you</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>shape the future of heartability ♡</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>shape the future of heartability</span></div>
         </div>
         <hr class="divider" />
         <button class="btn-founding" id="btn-founding" onclick="checkout('founding')">become a founding member ✦</button>
@@ -351,10 +350,10 @@ html, body {
     const params = new URLSearchParams(window.location.search);
     const banner = document.getElementById('banner');
     if (params.get('success') === 'true') {
-      banner.textContent = 'welcome to heartability! your membership is now active ♡';
+      banner.textContent = 'welcome to heartability! your membership is now active';
       banner.className = 'banner success';
     } else if (params.get('cancelled') === 'true') {
-      banner.textContent = "no worries — you can join whenever you're ready ♡";
+      banner.textContent = "no worries — you can join whenever you're ready";
       banner.className = 'banner cancelled';
     }
 
@@ -401,7 +400,7 @@ html, body {
       btn.disabled = false;
       btn.classList.remove('btn-loading');
       btn.textContent = tier === 'basic' ? 'become a basic member' : 'become a founding member ✦';
-      alert('something went wrong — please try again ♡');
+      alert('something went wrong — please try again');
     }
   };
 
