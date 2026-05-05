@@ -27,9 +27,10 @@
   --mint:          #c9fff5;
   --cream:         #f5f0ea;
   --cream-dark:    #e8e3da;
-  --gold:          #e2a935;
-  --gold-dark:     #c4912a;
-  --gold-shadow:   #a87820;
+  --pink:          #f8b6ff;
+  --pink-dark:     #d98aec;
+  --pink-shadow:   #b86dcc;
+  --pink-light:    #fde0ff;
   --line-col:      #111;
 }
 
@@ -44,7 +45,6 @@ html, body {
   user-select: none;
 }
 
-/* ── TOP NAV ── */
 .room-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -68,7 +68,6 @@ html, body {
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 
-/* ── PAGE WRAP ── */
 .page-wrap {
   min-height: 100dvh;
   display: flex;
@@ -78,7 +77,6 @@ html, body {
   gap: 24px;
 }
 
-/* ── BANNER (success / cancel) ── */
 .banner {
   width: 100%;
   max-width: 780px;
@@ -89,20 +87,9 @@ html, body {
   display: none;
   animation: windowIn 0.3s ease both;
 }
-.banner.success {
-  display: block;
-  background: rgba(45,122,79,0.1);
-  border: 1.5px solid rgba(45,122,79,0.35);
-  color: #2d7a4f;
-}
-.banner.cancelled {
-  display: block;
-  background: rgba(192,57,43,0.08);
-  border: 1.5px solid rgba(192,57,43,0.2);
-  color: #c0392b;
-}
+.banner.success  { display: block; background: rgba(45,122,79,0.1); border: 1.5px solid rgba(45,122,79,0.35); color: #2d7a4f; }
+.banner.cancelled { display: block; background: rgba(192,57,43,0.08); border: 1.5px solid rgba(192,57,43,0.2); color: #c0392b; }
 
-/* ── INTRO ── */
 .intro {
   text-align: center;
   max-width: 520px;
@@ -116,14 +103,12 @@ html, body {
   margin-bottom: 10px;
 }
 .intro-sub {
-  font-family: var(--font-hand);
   font-size: clamp(13px, 1.4vw, 16px);
   color: rgba(255,255,255,0.85);
   line-height: 1.6;
   text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
 }
 
-/* ── TIER GRID ── */
 .tier-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -131,12 +116,8 @@ html, body {
   width: 100%;
   max-width: 780px;
 }
+@media (max-width: 580px) { .tier-grid { grid-template-columns: 1fr; } }
 
-@media (max-width: 580px) {
-  .tier-grid { grid-template-columns: 1fr; }
-}
-
-/* ── WINDOW SHELL ── */
 .window {
   background: var(--cream);
   border-radius: 4px;
@@ -148,7 +129,7 @@ html, body {
   animation-delay: 0.05s;
 }
 .window.founding {
-  box-shadow: 0 0 0 3px var(--gold), 0 0 0 6px rgba(226,169,53,0.45), 4px 8px 28px rgba(0,0,0,0.32);
+  box-shadow: 0 0 0 3px var(--pink), 0 0 0 6px var(--pink-light), 4px 8px 28px rgba(0,0,0,0.28);
   animation-delay: 0.1s;
 }
 
@@ -165,20 +146,18 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  font-family: var(--font-hand);
   font-size: clamp(13px, 1.4vw, 16px);
   color: #555;
 }
-
 .founding .window-titlebar {
-  background: rgba(226,169,53,0.12);
-  border-bottom-color: rgba(226,169,53,0.35);
+  background: rgba(248,182,255,0.15);
+  border-bottom-color: rgba(248,182,255,0.45);
 }
 
 .titlebar-badge {
   font-size: clamp(9px, 0.9vw, 11px);
   padding: 2px 8px;
-  background: var(--gold);
+  background: var(--pink);
   color: #fff;
   border-radius: 2px;
   letter-spacing: 0.5px;
@@ -191,7 +170,6 @@ html, body {
   gap: 16px;
 }
 
-/* ── PRICE ── */
 .price-block {
   display: flex;
   align-items: baseline;
@@ -203,24 +181,10 @@ html, body {
   color: #222;
   line-height: 1;
 }
-.price-period {
-  font-family: var(--font-hand);
-  font-size: clamp(12px, 1.2vw, 14px);
-  color: #aaa;
-}
-.price-note {
-  font-size: clamp(11px, 1vw, 12px);
-  color: #aaa;
-  margin-top: -8px;
-}
+.price-period { font-size: clamp(12px, 1.2vw, 14px); color: #aaa; }
+.price-note   { font-size: clamp(11px, 1vw, 12px); color: #aaa; margin-top: -8px; }
 
-/* ── FEATURES ── */
-.features {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-}
+.features { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .feature-item {
   display: flex;
   align-items: flex-start;
@@ -229,22 +193,11 @@ html, body {
   color: #444;
   line-height: 1.4;
 }
-.feature-check {
-  color: var(--purple);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.founding .feature-check {
-  color: var(--gold-dark);
-}
+.feature-check          { color: var(--purple); flex-shrink: 0; margin-top: 1px; }
+.founding .feature-check { color: var(--pink-dark); }
 
-/* ── DIVIDER ── */
-.divider {
-  border: none;
-  border-top: 1px solid rgba(0,0,0,0.08);
-}
+.divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); }
 
-/* ── BUTTONS ── */
 .btn-basic {
   width: 100%;
   padding: 11px 18px;
@@ -265,9 +218,9 @@ html, body {
 .btn-founding {
   width: 100%;
   padding: 11px 18px;
-  background: var(--gold);
-  border: 2px solid var(--gold-dark);
-  box-shadow: 2px 2px 0 var(--gold-shadow);
+  background: var(--pink);
+  border: 2px solid var(--pink-dark);
+  box-shadow: 2px 2px 0 var(--pink-shadow);
   font-family: var(--font-hand);
   font-size: clamp(13px, 1.4vw, 16px);
   color: #fff;
@@ -275,13 +228,12 @@ html, body {
   letter-spacing: 0.5px;
   transition: all 0.05s;
 }
-.btn-founding:hover  { background: var(--gold-dark); }
+.btn-founding:hover  { background: var(--pink-dark); }
 .btn-founding:active { box-shadow: none; transform: translate(2px,2px); }
 .btn-founding:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .btn-loading { opacity: 0.6; cursor: not-allowed !important; }
 
-/* ── ALREADY MEMBER ── */
 .already-member {
   width: 100%;
   max-width: 780px;
@@ -291,13 +243,8 @@ html, body {
   text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
   animation: windowIn 0.4s ease 0.2s both;
 }
-.already-member a {
-  color: var(--mint);
-  text-decoration: underline;
-  cursor: pointer;
-}
+.already-member a { color: var(--mint); text-decoration: underline; cursor: pointer; }
 
-/* ── LOADING ── */
 #loading-state {
   position: fixed;
   inset: 0;
@@ -325,23 +272,17 @@ html, body {
 
 <div class="page-wrap" id="main-content">
 
-  <!-- Success / cancel banners -->
   <div class="banner" id="banner"></div>
 
-  <!-- Intro -->
   <div class="intro">
     <div class="intro-title">join heartability ♡</div>
     <div class="intro-sub">save your progress, unlock your archives, and support an independent wellness game studio</div>
   </div>
 
-  <!-- Tier cards -->
   <div class="tier-grid">
 
-    <!-- Basic -->
     <div class="window basic">
-      <div class="window-titlebar">
-        <span>basic membership</span>
-      </div>
+      <div class="window-titlebar"><span>basic membership</span></div>
       <div class="window-body">
         <div class="price-block">
           <span class="price-amount">$8</span>
@@ -350,27 +291,15 @@ html, body {
         <div class="price-note">billed monthly, cancel anytime</div>
         <hr class="divider" />
         <div class="features">
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>save your bingo card, character & treasure map</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>access your full game archives</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>support independent game development</span>
-          </div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>save your bingo card, character & treasure map</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>access your full game archives</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>support independent game development</span></div>
         </div>
         <hr class="divider" />
-        <button class="btn-basic" id="btn-basic" onclick="checkout('basic')">
-          become a basic member
-        </button>
+        <button class="btn-basic" id="btn-basic" onclick="checkout('basic')">become a basic member</button>
       </div>
     </div>
 
-    <!-- Founding -->
     <div class="window founding">
       <div class="window-titlebar">
         <span>founding membership</span>
@@ -384,27 +313,13 @@ html, body {
         <div class="price-note">save $8 vs monthly — billed annually</div>
         <hr class="divider" />
         <div class="features">
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>everything in basic</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>founding member badge on your profile</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>locked-in rate — price never increases for you</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-check">✦</span>
-            <span>shape the future of heartability ♡</span>
-          </div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>everything in basic</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>founding member badge on your profile</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>locked-in rate — price never increases for you</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>shape the future of heartability ♡</span></div>
         </div>
         <hr class="divider" />
-        <button class="btn-founding" id="btn-founding" onclick="checkout('founding')">
-          become a founding member ✦
-        </button>
+        <button class="btn-founding" id="btn-founding" onclick="checkout('founding')">become a founding member ✦</button>
       </div>
     </div>
 
@@ -424,39 +339,33 @@ html, body {
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ── TODO: Replace these with your actual Stripe Price IDs ──
-  // Find them in Stripe Dashboard → Product catalog → click product → copy Price ID
+  // ── TODO: Replace with your actual Stripe Price IDs ──
   const PRICE_IDS = {
-    basic:    'price_1TTV7JA0E5ebHoTmNgEX3IDr',
-    founding: 'price_1TTV44A0E5ebHoTmbYco4BmL'
+    basic:    'price_REPLACE_WITH_BASIC_PRICE_ID',
+    founding: 'price_REPLACE_WITH_FOUNDING_PRICE_ID'
   };
 
   let currentSession = null;
 
   async function init() {
-    // Check for success/cancel URL params
     const params = new URLSearchParams(window.location.search);
     const banner = document.getElementById('banner');
     if (params.get('success') === 'true') {
       banner.textContent = 'welcome to heartability! your membership is now active ♡';
       banner.className = 'banner success';
     } else if (params.get('cancelled') === 'true') {
-      banner.textContent = 'no worries — you can join whenever you\'re ready ♡';
+      banner.textContent = "no worries — you can join whenever you're ready ♡";
       banner.className = 'banner cancelled';
     }
 
-    // Auth check
     const { data: { session } } = await sb.auth.getSession();
     currentSession = session;
 
-    // Show page regardless — logged-out users can still see tiers,
-    // but clicking will redirect to login first
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').style.display  = 'flex';
   }
 
   window.checkout = async function (tier) {
-    // If not logged in, send to login first
     if (!currentSession) {
       window.location.href = 'login.html';
       return;
@@ -484,10 +393,7 @@ html, body {
       );
 
       const { url, error } = await res.json();
-
       if (error) throw new Error(error);
-
-      // Redirect to Stripe Checkout
       window.location.href = url;
 
     } catch (err) {
