@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart Room — Heartability</title>
+<style>
+@font-face { font-family:"ZoesHandwriting"; src:url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelscript";  src:url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --back-wall:  #ffffff;
+  --side-col:   #e8e4dc;
+  --line-col:   #111;
+  --blue:       #6579e2;
+  --aqua:       #83d2e6;
+  --bw-top:    9%;  --bw-left:  15%;
+  --bw-width: 70%;  --bw-height:70%;
+}
+
+html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; background:var(--side-col); }
+
+/* ── ROOM LINES ── */
+.room-lines { position:fixed; inset:0; z-index:2; pointer-events:none; }
+.room-lines svg { width:100%; height:100%; display:block; overflow:visible; }
+
+/* ── BACK WALL ── */
+.back-wall {
+  position:fixed;
+  top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height);
+  background:var(--back-wall);
+  border:2px solid var(--line-col);
+  z-index:3;
+}
+
+/* ── CONTENT PANEL — sits on back wall ── */
+.content-panel {
+  position:fixed;
+  top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height);
+  z-index:10;
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+.content-panel.active { display:flex; }
+
+/* ── IFRAME PANEL ── */
+.game-iframe {
+  width:100%; height:100%;
+  border:none; display:block;
+}
+
+/* ── STEP PANELS (map grid, phase select) ── */
+.step-panel {
+  width:100%; height:100%;
+  display:flex; flex-direction:column;
+  overflow:hidden; padding:20px;
+  font-family:var(--font-hand);
+}
+
+/* Map grid */
+.map-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px; flex:1; overflow-y:auto;
+  padding:4px;
+}
+@media (max-width:600px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
+
+.map-slot {
+  aspect-ratio:3/4;
+  border:2px solid #ccc; background:#fdf6e3;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:10px 8px; gap:5px;
+  font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s;
+}
+.map-slot:hover { border-color:var(--blue); box-shadow:2px 2px 0 var(--blue); transform:translateY(-2px); }
+.map-slot.empty { border-style:dashed; border-color:#ccc; cursor:default; }
+.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#ccc; }
+.slot-type { font-size:11px; color:#aaa; }
+.slot-name { font-size:13px; color:#333; line-height:1.3; word-break:break-word; }
+.slot-date { font-size:11px; color:#bbb; }
+.slot-plus { font-size:26px; color:#ccc; }
+
+/* Phase select */
+.phase-wrap {
+  flex:1; position:relative; display:flex;
+  align-items:stretch; overflow:hidden;
+}
+.phase-map-area {
+  flex:1; position:relative;
+  background:#e8e0c8;
+  border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
+  border-left-color:#c8b88a; border-top-color:#c8b88a;
+  overflow:hidden;
+}
+.phase-map-area svg { width:100%; height:100%; display:block; }
+
+/* Phase key — bottom right overlay */
+.phase-key {
+  position:absolute; bottom:0; right:0;
+  width:260px; max-height:100%;
+  background:rgba(245,240,234,0.97);
+  border-top:2px solid #8a7a5a; border-left:2px solid #8a7a5a;
+  padding:10px 12px; overflow-y:auto;
+  font-family:var(--font-hand);
+}
+.phase-key-title { font-size:12px; color:#aaa; letter-spacing:.3px; margin-bottom:8px; }
+.phase-key-item {
+  display:flex; gap:8px; align-items:flex-start;
+  padding:7px 10px; margin-bottom:5px;
+  border:1.5px solid #ccc; background:#fdf6e3;
+  cursor:pointer; font-size:13px; color:#555; line-height:1.4;
+  transition:all .1s;
+}
+.phase-key-item:hover { border-color:var(--blue); color:var(--blue); background:#f0edfa; }
+.phase-key-item.selected { border-color:var(--blue); background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa; }
+.phase-key-num { font-size:11px; opacity:.55; min-width:14px; padding-top:2px; }
+
+.begin-btn {
+  padding:12px 18px; background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:16px; color:#fff;
+  cursor:pointer; margin-top:10px; transition:all .05s; width:100%;
+}
+.begin-btn:hover { background:#4a5bc4; }
+.begin-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.begin-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; }
+
+/* Step header bar */
+.step-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px; flex-shrink:0;
+}
+.step-header-title { font-size:17px; color:#333; }
+.step-back {
+  font-size:14px; color:var(--blue); cursor:pointer;
+}
+.step-back:hover { text-decoration:underline; }
+
+/* Loading state */
+.loading-msg { font-family:var(--font-hand); font-size:15px; color:#aaa; text-align:center; padding:40px; }
+
+/* ── NAV BAR ── */
+.room-nav {
+  position:fixed; top:0; left:0; right:0; height:44px;
+  background:#c9fff5; border-bottom:2px solid var(--line-col);
+  z-index:200; display:flex; align-items:center;
+  justify-content:space-between; padding:0 clamp(12px,2vw,28px);
+  font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111;
+}
+.nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
+.nav-btn:hover { background:rgba(0,0,0,.08); }
+
+/* ── HEART CHARACTER ── */
+@keyframes idle-pulse {
+  0%,100% { transform:translateY(0) rotate(-2deg) scale(1); }
+  50%      { transform:translateY(-8px) rotate(2deg) scale(1.03); }
+}
+.char-heart {
+  position:fixed; left:4vw; bottom:6vh;
+  width:clamp(100px,14vw,220px);
+  z-index:20; cursor:default;
+}
+.char-heart .char-img {
+  display:block; width:100%; height:auto;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.28));
+  animation:idle-pulse 3.6s ease-in-out 1s infinite;
+}
+
+/* ── THOUGHT BUBBLE ── */
+.thought-bubble {
+  position:absolute; left:calc(100% - 8px); bottom:60%;
+  min-width:clamp(160px,20vw,280px); max-width:clamp(200px,26vw,340px);
+  background:#fff; border:2px solid #000; border-radius:50%;
+  padding:14px 24px; font-family:var(--font-hand);
+  font-size:clamp(11px,1.3vw,15px); color:#000; text-align:center;
+  line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  z-index:21;
+}
+.bubble-btns { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+.bubble-btn {
+  padding:8px 14px; background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:14px; color:#fff;
+  cursor:pointer; transition:all .05s;
+}
+.bubble-btn:hover { background:#4a5bc4; }
+.bubble-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.bubble-btn.secondary {
+  background:none; border-color:#ccc; color:#999;
+  box-shadow:none;
+}
+.bubble-btn.secondary:hover { border-color:var(--blue); color:var(--blue); }
+
+/* ── MOBILE ── */
+@media (max-width:768px) {
+  .char-heart { left:2vw; bottom:2vh; width:clamp(70px,22vw,160px); }
+  .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
+  .phase-key { width:180px; font-size:12px; }
+  .map-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='index.html'">← back</span>
+  <span>chart room</span>
+  <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
+</nav>
+
+<!-- ROOM LINES -->
+<div class="room-lines" aria-hidden="true">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+  </svg>
+</div>
+
+<!-- BACK WALL -->
+<div class="back-wall"></div>
+
+<!-- CONTENT PANEL — overlays the back wall -->
+<div class="content-panel" id="content-panel">
+  <!-- filled dynamically -->
+</div>
+
+<!-- HEART CHARACTER + BUBBLE -->
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="thought-bubble">
+    <span id="bubble-text">loading...</span>
+    <div class="bubble-btns" id="bubble-btns"></div>
+  </div>
+  <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── SUPABASE ──────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+// ── SESSION STATE ─────────────────────────────────────────
+let activeGameId   = null;
+let activeGameData = null;   // full games row
+let activePhase    = null;   // 'zone_1' … 'zone_5'
+let isGuestMode    = false;
+
+// ── ZONE PROMPTS ──────────────────────────────────────────
+const SPIRAL_PROMPTS = [
+  "what does it feel like to imagine your goal coming true?",
+  "what does it feel like to begin?",
+  "what does it feel like when you get into a good rhythm?",
+  "what does it feel like when you take a big step forward?",
+  "what does it feel like when you are tested?",
+];
+const SQUARE_PROMPTS = [
+  "corner one — [add your prompt here]",
+  "corner two — [add your prompt here]",
+  "corner three — [add your prompt here]",
+  "corner four — [add your prompt here]",
+];
+
+// Spiral zone polar positions (same as treasure-map)
+const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
+const SQUARE_POS   = [ {x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286} ];
+const SQUARE_LABELS= ['I','II','III','IV'];
+const TERRAIN_IMGS = {
+  dunes:"assets/elements/maps/dunes.png", forest:"assets/elements/maps/forest.png",
+  meadow:"assets/elements/maps/meadow.png", mountains:"assets/elements/maps/mountains.png",
+  ocean:"assets/elements/maps/ocean.png", orchard:"assets/elements/maps/orchard.png",
+  plateu:"assets/elements/maps/plateu.png", pond:"assets/elements/maps/pond.png",
+  river:"assets/elements/maps/river.png", spring:"assets/elements/maps/spring.png",
+  waterfall:"assets/elements/maps/waterfall.png",
+};
+
+// ── BUBBLE HELPERS ────────────────────────────────────────
+function setBubble(text, buttons=[]) {
+  document.getElementById('bubble-text').textContent = text;
+  const btns = document.getElementById('bubble-btns');
+  btns.innerHTML = '';
+  buttons.forEach(b => {
+    const el = document.createElement('button');
+    el.className = 'bubble-btn' + (b.secondary ? ' secondary' : '');
+    el.textContent = b.label;
+    el.onclick = b.action;
+    btns.appendChild(el);
+  });
+}
+
+// ── CONTENT PANEL HELPERS ────────────────────────────────
+function showPanel(html) {
+  const panel = document.getElementById('content-panel');
+  panel.innerHTML = html;
+  panel.classList.add('active');
+}
+function hidePanel() {
+  const panel = document.getElementById('content-panel');
+  panel.classList.remove('active');
+  panel.innerHTML = '';
+}
+function showIframe(src) {
+  showPanel(`<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`);
+}
+
+// ── STEP 1: INITIAL CHOICE ────────────────────────────────
+function stepInitial() {
+  hidePanel();
+  setBubble('ready to chart your day?', [
+    { label: 'new game +',   action: stepNewGame },
+    { label: 'load game ♡',  action: stepLoadGame },
+  ]);
+}
+
+// ── STEP 2A: NEW GAME ─────────────────────────────────────
+function stepNewGame() {
+  setBubble('build your map, then save it to begin ♡', []);
+  const src = isGuestMode
+    ? 'treasure-map.html?mode=new&loop=true'
+    : 'treasure-map.html?mode=new&loop=true';
+  showIframe(src);
+}
+
+// ── STEP 2B: LOAD GAME ────────────────────────────────────
+async function stepLoadGame() {
+  if (!currentUser && !isGuestMode) {
+    setBubble('you need to log in to load a saved game', [
+      { label: 'go to game room to log in', action: () => window.location.href='game-select.html' },
+      { label: 'play as guest instead', secondary:true, action: () => { isGuestMode=true; stepLoadGame(); } },
+    ]);
+    return;
+  }
+  setBubble('choose your map for today ♡', []);
+
+  let games = [];
+  if (isGuestMode || !currentUser) {
+    try { games = JSON.parse(localStorage.getItem('hb_games')||'[]').filter(g=>g.status==='active').slice(0,8); } catch(e){}
+  } else {
+    try {
+      const { data } = await sb.from('games').select('*')
+        .eq('user_id', currentUser.id).eq('status','active')
+        .order('updated_at',{ascending:false}).limit(8);
+      games = data || [];
+    } catch(e){}
+  }
+  renderMapGrid(games);
+}
+
+function renderMapGrid(games) {
+  let html = `<div class="step-panel">
+    <div class="step-header">
+      <span class="step-back" onclick="stepInitial()">← back</span>
+      <span class="step-header-title">choose your map</span>
+      <span></span>
+    </div>
+    <div class="map-grid">`;
+
+  for (let i=0; i<8; i++) {
+    const g = games[i];
+    if (g) {
+      const date = g.updated_at
+        ? new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+        : '';
+      html += `<div class="map-slot" onclick="selectMap('${g.id}')">
+        <div class="slot-type">${g.map_type||'spiral'}</div>
+        <div class="slot-name">${g.map_name||'untitled'}</div>
+        ${date?`<div class="slot-date">${date}</div>`:''}
+      </div>`;
+    } else {
+      html += `<div class="map-slot empty"><div class="slot-plus">+</div></div>`;
+    }
+  }
+  html += `</div></div>`;
+  showPanel(html);
+}
+
+// ── STEP 3: SELECT MAP → PHASE SELECT ────────────────────
+async function selectMap(gameId) {
+  let game = null;
+  if (isGuestMode || !currentUser) {
+    try { game = JSON.parse(localStorage.getItem('hb_games')||'[]').find(g=>g.id===gameId); } catch(e){}
+  } else {
+    try {
+      const { data } = await sb.from('games').select('*').eq('id',gameId).single();
+      game = data;
+    } catch(e){}
+  }
+  if (!game) return;
+  activeGameId   = gameId;
+  activeGameData = game;
+  activePhase    = null;
+  stepPhaseSelect();
+}
+
+function stepPhaseSelect() {
+  if (!activeGameData) return;
+  const mapType = activeGameData.map_type || 'spiral';
+  const mapData = activeGameData.map_data || {};
+  const zones   = mapData.zones || [];
+  const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
+  const zoneCount = mapType === 'square' ? 4 : 5;
+
+  setBubble(`where are you on the map today?`, []);
+
+  // Build SVG inline
+  const svgContent = mapType === 'square'
+    ? buildSquareSVG(zones)
+    : buildSpiralSVG(zones);
+
+  // Build key items
+  let keyItems = '';
+  for (let i=0; i<zoneCount; i++) {
+    const label = mapType === 'square' ? SQUARE_LABELS[i] : (i+1);
+    keyItems += `<div class="phase-key-item" id="key-${i}" onclick="selectPhase(${i})">
+      <span class="phase-key-num">${label}.</span>
+      <span>${prompts[i]}</span>
+    </div>`;
+  }
+
+  const html = `<div class="step-panel" style="padding:12px;">
+    <div class="step-header">
+      <span class="step-back" onclick="stepLoadGame()">← back</span>
+      <span class="step-header-title">${activeGameData.map_name||'your map'}</span>
+      <span></span>
+    </div>
+    <div class="phase-wrap">
+      <div class="phase-map-area" id="phase-map-area">
+        ${svgContent}
+      </div>
+      <div class="phase-key">
+        <div class="phase-key-title">where are you today?</div>
+        ${keyItems}
+        <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
+      </div>
+    </div>
+  </div>`;
+  showPanel(html);
+}
+
+function selectPhase(idx) {
+  activePhase = `zone_${idx+1}`;
+  document.querySelectorAll('.phase-key-item').forEach((el,i) =>
+    el.classList.toggle('selected', i===idx));
+  // Highlight zone circle in SVG
+  document.querySelectorAll('.zone-hit').forEach((el,i) => {
+    const circle = document.getElementById(`zone-circle-${i}`);
+    if (circle) circle.setAttribute('stroke', i===idx ? '#6579e2' : 'transparent');
+    const bg = document.getElementById(`zone-bg-${i}`);
+    if (bg) bg.setAttribute('fill', i===idx ? 'rgba(101,121,226,0.25)' : 'rgba(200,196,180,0)');
+  });
+  document.getElementById('begin-btn').disabled = false;
+}
+
+// ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
+function stepBegin() {
+  if (!activePhase) return;
+  setBubble('build your character for today ♡', []);
+  const mode = isGuestMode ? 'guest' : 'cloud';
+  const src  = `infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  showIframe(src);
+}
+
+// ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
+function stepBingo() {
+  setBubble('check in with your heart meter ♡', []);
+  const mode = isGuestMode ? 'guest' : 'cloud';
+  const src  = `bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  showIframe(src);
+}
+
+// ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
+function stepDone() {
+  setBubble("today's entry is complete ✓ great work ♡", [
+    { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
+    { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
+  ]);
+  hidePanel();
+}
+
+// ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
+window.addEventListener('message', e => {
+  const { type, game_id } = e.data || {};
+  if (!type) return;
+
+  if (type === 'map_saved' && e.data.game_id) {
+    // New map built — store its id and proceed to phase select
+    activeGameId   = e.data.game_id;
+    activeGameData = {
+      id: e.data.game_id,
+      map_name: e.data.map_name || 'my map',
+      map_type: e.data.map_type || 'spiral',
+      map_data: e.data.map_data || { zones:[] },
+    };
+    activePhase = null;
+    stepPhaseSelect();
+    return;
+  }
+  if (type === 'char_next') { stepBingo(); return; }
+  if (type === 'char_saved') { /* wait for char_next */ return; }
+  if (type === 'bingo_saved') { stepDone(); return; }
+});
+
+// ── SVG BUILDERS (read-only, zone click = phase select) ──
+function buildSpiralSVG(zones) {
+  const W=500, H=400, cx=W/2, cy=H/2-10, b=13;
+  const tMin=0.1, tMax=15.5, steps=700;
+  const pts=[];
+  for(let i=0;i<=steps;i++){
+    const t=tMin+(tMax-tMin)*i/steps;
+    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
+  }
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t), y:cy-b*t*Math.sin(t)}));
+  const R=36;
+
+  let defs='<defs>';
+  let circles='';
+  let hits='';
+
+  pos.forEach((p,i)=>{
+    const z=zones[i]||{};
+    const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
+
+    if(z.tint){
+      defs+=`<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
+      </radialGradient>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sg${i})" pointer-events="none"/>`;
+    }
+    if(hasTerrain){
+      defs+=`<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+    }
+
+    // Background circle (highlighted when selected)
+    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
+      fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
+
+    if(hasTerrain){
+      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
+        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet"
+        clip-path="url(#sc${i})" pointer-events="none"/>`;
+    } else {
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
+        fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle"
+          fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
+    }
+    if(z.feeling){
+      circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle"
+        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
+        pointer-events="none">${z.feeling}</text>`;
+    }
+    // Transparent hit target
+    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
+      fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
+  });
+  defs+='</defs>';
+
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${defs}
+    <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
+    <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
+    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
+    ${circles}${hits}
+  </svg>`;
+}
+
+function buildSquareSVG(zones) {
+  const R=36;
+  let defs='<defs>';
+  let circles='';
+  let hits='';
+
+  SQUARE_POS.forEach((p,i)=>{
+    const z=zones[i]||{};
+    const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
+    if(z.tint){
+      defs+=`<radialGradient id="sqg${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
+      </radialGradient>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sqg${i})" pointer-events="none"/>`;
+    }
+    if(hasTerrain){
+      defs+=`<clipPath id="sqc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+    }
+    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
+      fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
+    if(hasTerrain){
+      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
+        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet"
+        clip-path="url(#sqc${i})" pointer-events="none"/>`;
+    } else {
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
+        fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle"
+          fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="22" pointer-events="none">${SQUARE_LABELS[i]}</text>`;
+    }
+    if(z.feeling){
+      circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle"
+        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
+        pointer-events="none">${z.feeling}</text>`;
+    }
+    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
+      fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
+  });
+  defs+='</defs>';
+
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${defs}
+    <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
+    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+    ${circles}${hits}
+  </svg>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    currentUser = session?.user || null;
+  } catch(e) {}
+
+  // Check if arrived as guest from index
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('guest') === 'true') isGuestMode = true;
+
+  stepInitial();
+}
+
+init();
+</script>
+</body>
+</html>

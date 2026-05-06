@@ -298,7 +298,7 @@ body {
     <div class="portal-inner">
 
       <!-- Castle link sits behind rainbow, whole oval is clickable -->
-      <a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
+      <a class="castle-link" href="#" onclick="openGate(event)" aria-label="Enter Heartability">
         <img class="portal-logo"
              src="assets/elements/logo.png"
              alt="Heartability">
@@ -332,8 +332,73 @@ body {
 
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
+<style>
+/* ── GATE POPUP ── */
+.gate-overlay {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center;
+}
+.gate-overlay.open { display:flex; }
+.gate-popup {
+  background:#f5f0ea;
+  border-radius:4px;
+  box-shadow:0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 6px 10px 40px rgba(0,0,0,.45);
+  width:clamp(280px,88vw,400px);
+  overflow:hidden;
+  animation:popIn .2s ease both;
+  font-family:"ZoesHandwriting",cursive;
+}
+@keyframes popIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+.gate-titlebar {
+  height:40px; background:#e8e3da; border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px; font-size:15px; color:#555;
+}
+.gate-x { cursor:pointer; color:#aaa; font-size:16px; }
+.gate-x:hover { color:#6579e2; }
+.gate-body { padding:24px 22px 20px; display:flex; flex-direction:column; gap:12px; }
+.gate-title { font-size:14px; color:#aaa; text-align:center; margin-bottom:4px; }
+.gate-btn {
+  padding:13px 18px; background:#6579e2;
+  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:"ZoesHandwriting",cursive; font-size:16px; color:#fff;
+  cursor:pointer; transition:all .05s; text-align:left;
+}
+.gate-btn:hover { background:#4a5bc4; }
+.gate-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.gate-divider { border:none; border-top:1px solid #ccc; margin:4px 0; }
+.gate-ghost {
+  padding:10px 16px; background:none;
+  border:1.5px solid #ccc;
+  font-family:"ZoesHandwriting",cursive; font-size:14px; color:#999;
+  cursor:pointer; text-align:center; transition:all .15s;
+}
+.gate-ghost:hover { border-color:#6579e2; color:#6579e2; }
+</style>
+
+<!-- GATE POPUP -->
+<div class="gate-overlay" id="gate-overlay" onclick="handleGateOverlay(event)">
+  <div class="gate-popup">
+    <div class="gate-titlebar">
+      <span>-♡- welcome -♡-</span>
+      <span class="gate-x" onclick="closeGate()">✕</span>
+    </div>
+    <div class="gate-body">
+      <div class="gate-title">how would you like to play today?</div>
+      <button class="gate-btn" onclick="window.location.href='chart-room.html'">track your day ♡</button>
+      <div class="gate-divider"></div>
+      <button class="gate-ghost" onclick="window.location.href='game-select.html'">explore as guest</button>
+    </div>
+  </div>
+</div>
+
 <script>
-(function () {
+function openGate(e) { e.preventDefault(); document.getElementById('gate-overlay').classList.add('open'); }
+function closeGate() { document.getElementById('gate-overlay').classList.remove('open'); }
+function handleGateOverlay(e) { if(e.target===document.getElementById('gate-overlay')) closeGate(); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeGate(); });
+</script>
 
   /* ── Starfield ── */
   const field = document.getElementById('stars');
