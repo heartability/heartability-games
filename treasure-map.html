@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treasure Map — Heartability</title>
+<style>
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url(assets/fonts/ZoesHandwriting-Regular.ttf) format("truetype");
+}
+
+@font-face {
+  font-family: "PFPixelscript";
+  src: url(assets/fonts/PFPixelscriptProRegular.ttf) format("truetype");
+}
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --wall: #6579e2;
+  --wall-mid: #6579e2;
+  --panel-bg: #f0ead6;
+  --panel-border: #6579e2;
+  --panel-border-light: #83d2e6;
+  --text-dark: #0a1a2e;
+  --text-mid: #1a3a5a;
+  --aqua: #FDF6E3;
+  --font-hand: "ZoesHandwriting", cursive;
+  --font-game: "VT323", monospace;
+  --font-nums: "ZoesHandwriting", "VT323", monospace;
+}
+
+body { min-height: 100vh; background: var(--wall); font-family: var(--font-game); display: flex; flex-direction: column; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+
+.room { min-height: 100vh; display: flex; flex-direction: column; }
+
+.wall {
+  flex: 1; background: var(--wall); position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 16px 0;
+  padding-bottom: calc(10dvh + 16px + 24px);
+  overflow-y: auto;
+}
+.wall::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.04) 59px, rgba(255,255,255,0.04) 60px);
+}
+
+.room-title { 
+  font-family: "PFPixelscript", cursive; 
+  font-size: clamp(10px,5.5vw,58px); 
+  color: #6578e2; 
+  text-shadow: 2px 3px 0 rgba(0,0,0,0.14); 
+  text-align: center; margin-bottom: 4px; position: relative; z-index: 1; }
+
+.topbar { width: 100%; max-width: 960px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; position: relative; z-index: 1; gap: 10px; flex-wrap: wrap; }
+.instructions { font-family: var(--font-hand); font-size: clamp(12px,1.8vw,16px); color: #a8cce8; line-height: 1.7; }
+.instructions .step { color: var(--aqua); }
+
+.rpg-panel {
+  position: relative; z-index: 1; background: var(--panel-bg);
+  width: 100%; max-width: 960px;
+  border: 3px solid var(--panel-border);
+  outline: 3px solid var(--panel-border-light); outline-offset: -6px;
+  box-shadow: 0 0 0 6px var(--wall-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+}
+.rpg-panel::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--panel-border-light); pointer-events: none; }
+
+.section-header { font-family: var(--font-hand); font-size: 17px; color: var(--text-mid); margin-bottom: 7px; letter-spacing: 0.5px; }
+
+.map-input {
+  width: 100%; background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  padding: 6px 10px; font-family: var(--font-hand); font-size: 20px; color: var(--text-dark); outline: none;
+}
+.map-input::placeholder { color: rgba(90,74,42,0.35); }
+.map-input:focus { border-color: var(--aqua); outline: 1px solid var(--aqua); }
+
+/* TWO COLUMN — map left, controls right on desktop */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* On mobile: stack with controls ABOVE map */
+@media (max-width: 680px) {
+  .two-col {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  .side-panel { order: 1; }
+  .map-col { order: 2; }
+}
+
+/* MAP CANVAS */
+.map-canvas {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  min-height: 380px; position: relative; overflow: hidden;
+  cursor: crosshair;
+}
+
+@media (max-width: 680px) {
+  .map-canvas { min-height: 300px; }
+}
+
+.map-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.map-placeholder-text { font-family: var(--font-hand); font-size: 18px; color: rgba(90,74,42,0.25); text-align: center; line-height: 1.8; }
+
+/* MAP ITEMS */
+.map-item {
+  position: absolute; user-select: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  z-index: 5; cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.map-item.selected-for-feeling {
+  filter: drop-shadow(0 0 6px rgba(59,191,191,0.9));
+}
+.map-item-wrap { position: relative; display: inline-block; }
+.map-item-img { width: 72px; height: auto; display: block; pointer-events: none; }
+.map-item-tint {
+  position: absolute; inset: -40px;
+  pointer-events: none; border-radius: 50%;
+  mix-blend-mode: multiply;
+}
+.map-item-delete {
+  position: absolute; top: -10px; right: -10px;
+  width: 20px; height: 20px; background: #c04040; color: white;
+  border: 1px solid #8a2020;
+  font-size: 14px; cursor: pointer; display: none;
+  align-items: center; justify-content: center; font-family: var(--font-game);
+  z-index: 10; line-height: 1; border-radius: 0;
+}
+.map-item:hover .map-item-delete { display: flex; }
+/* Always show delete on touch devices */
+@media (hover: none) {
+  .map-item-delete { display: flex !important; top: -8px; right: -8px; width: 18px; height: 18px; font-size: 12px; }
+}
+
+@media (max-width: 625px) {
+  .room-title { font-size: 22px !important; white-space: nowrap; }
+}
+
+.map-item-label {
+  font-family: var(--font-hand); font-size: 13px; color: var(--text-dark);
+  white-space: nowrap; pointer-events: none; text-align: center; line-height: 1.3;
+  background: rgba(240,234,214,0.75); padding: 1px 4px;
+}
+.map-item-label .terrain-name { display: block; }
+.map-item-label .feeling-name { display: block; font-size: 11px; color: #5a4a2a; }
+
+/* SIDE PANEL */
+.side-panel { display: flex; flex-direction: column; gap: 12px; }
+
+/* STATUS BAR */
+.status-bar {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  padding: 8px 12px; font-family: var(--font-hand); font-size: 15px; color: var(--text-mid);
+  min-height: 40px; line-height: 1.4;
+}
+.status-bar .status-active { color: var(--text-dark); font-size: 17px; }
+.status-bar .status-hint { font-size: 13px; color: #7a6a5a; }
+
+/* TERRAIN PALETTE */
+.palette-section {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  padding: 10px 12px;
+}
+.palette-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.palette-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 8px; background: #f0ead6;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  cursor: pointer; user-select: none; transition: filter 0.1s;
+}
+.palette-item:hover { filter: brightness(1.06); }
+.palette-item.active {
+  border-color: var(--aqua);
+  outline: 2px solid var(--aqua); outline-offset: 1px;
+  background: #e0f0f0;
+}
+.palette-item img { width: 38px; height: 32px; object-fit: contain; pointer-events: none; }
+.palette-item-name { font-family: var(--font-game); font-size: 10px; color: var(--text-mid); pointer-events: none; letter-spacing: 0.5px; }
+
+/* WEATHER CATEGORIES */
+.weather-categories { display: flex; flex-direction: column; gap: 8px; }
+.weather-category {
+  padding: 8px 10px;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+}
+.weather-category.sunny { background: #d289c0; ; border-color: #966089; }
+.weather-category.rainy { background: #c8c8c7; border-color: #90908f; }
+.weather-category.windy { background: #b4e76b; border-color: #90c544; }
+.weather-category.snowy { background: #83d2e6; border-color: #5fa3b4; }
+
+.weather-cat-header { font-family: var(--font-hand); font-size: 20px; margin-bottom: 6px; }
+.sunny .weather-cat-header { color: #690a24; }
+.rainy .weather-cat-header { color: #3d4656; }
+.windy .weather-cat-header { color: #395d07; }
+.snowy .weather-cat-header { color: #2a4a6a; }
+
+.feeling-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.feeling-chip {
+  padding: 4px 10px; font-family: var(--font-game); font-size: 13px;
+  cursor: pointer; letter-spacing: 0.5px; border: 2px solid;
+  user-select: none; transition: filter 0.1s;
+}
+.feeling-chip:hover { filter: brightness(0.92); }
+.feeling-chip.active { outline: 2px solid var(--text-dark); outline-offset: 1px; }
+
+.sunny .feeling-chip { background: #d289c0; border-color: #966089; color: #690a24; }
+.rainy .feeling-chip { background: #c8c8c7; border-color: #90908f; color: #3d4656; }
+.windy .feeling-chip { background: #b4e76b; border-color: #90c544; color: #395d07; }
+.snowy .feeling-chip { background: #83d2e6; border-color: #5fa3b4; color: #2a4a6a; }
+
+/* BUTTONS */
+.action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.rpg-btn {
+  background: var(--wall-mid); border: 3px solid var(--panel-border);
+  outline: 2px solid var(--panel-border-light); outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 7px 16px; font-family: var(--font-game); font-size: 15px;
+  color: #a8cce8; cursor: pointer; letter-spacing: 1px;
+}
+.rpg-btn:hover { filter: brightness(1.15); }
+.rpg-btn:active { transform: translate(2px,3px); box-shadow: none; }
+.rpg-btn.primary { background: var(--aqua); color: #0a1a2e; }
+
+/* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
+body, .wall { background: #fdf6e3; }
+
+
+@keyframes gr-intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  18%  { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); }
+  58%  { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+@keyframes gr-idle-pulse {
+  0%,100% { transform: translateY(0)    rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px) rotate(2deg)  scale(1.03); }
+}
+/* ── SPIRAL MODE ─────────────────────────────────── */
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+
+.rpg-btn.mode-active {
+  background: var(--aqua);
+  color: var(--text-dark);
+  outline-color: var(--panel-border);
+}
+
+.spiral-canvas {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  position: relative; overflow: hidden;
+  display: none;
+}
+
+.spiral-canvas svg {
+  width: 100%; height: auto; display: block;
+}
+
+.zone-prompt-box {
+  margin-top: 8px;
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  padding: 10px 14px;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: var(--text-mid);
+  min-height: 44px;
+  line-height: 1.5;
+  display: none;
+}
+
+.zone-prompt-box.show { display: block; }
+
+/* ── SQUARE MODE ─────────────────────────────────── */
+.square-canvas {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  position: relative; overflow: hidden;
+  display: none;
+}
+.square-canvas svg {
+  width: 100%; height: auto; display: block;
+}
+
+/* ── GAME CONTEXT BANNER ─────────────────────────── */
+.game-context-banner {
+  width: 100%; max-width: 960px;
+  background: #d4efda;
+  border: 2px solid #6aaa7a; border-right-color: #4a8a5a; border-bottom-color: #4a8a5a;
+  border-left-color: #9acca8; border-top-color: #9acca8;
+  padding: 8px 14px;
+  font-family: var(--font-hand); font-size: 15px; color: #1a4a2a;
+  position: relative; z-index: 1; margin-bottom: 10px;
+  display: none;
+}
+
+/* Mode toggle disabled state */
+.rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+
+</style>
+</head>
+<body>
+<div class="room">
+  <div class="wall">
+    <h1 class="room-title">treasure map</h1>
+
+    <!-- GAME CONTEXT BANNER — shown when playing an existing game -->
+    <div class="game-context-banner" id="game-context"></div>
+
+    <div class="topbar">
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
+        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">SAVE MAP</button>
+      </div>
+      <span id="save-status" style="font-family:var(--font-game);font-size:16px;color:#83d2e6;"></span>
+    </div>
+
+    <div class="rpg-panel">
+
+      <div class="two-col">
+
+        <!-- SIDE PANEL — name input + zone prompt + terrain + feelings -->
+        <div class="side-panel">
+
+          <div>
+            <div class="section-header">name your goal</div>
+            <input class="map-input" id="mapName" type="text" placeholder="i am working toward..." maxlength="60" oninput="onNameInput()">
+          </div>
+
+          <!-- Zone prompt lives here in left column -->
+          <div class="status-bar" id="zonePrompt" style="display:none;"></div>
+
+          <div class="palette-section">
+            <div class="section-header">terrain</div>
+            <div class="palette-items" id="terrainPalette"></div>
+          </div>
+
+          <div>
+            <div class="section-header">feelings</div>
+            <div class="weather-categories" id="weatherCategories"></div>
+          </div>
+
+        </div>
+
+        <!-- MAP AREA -->
+        <div class="map-col">
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div class="section-header" style="margin-bottom:0;">your map</div>
+            <div class="mode-toggle" style="margin:0;">
+              <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
+              <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+            </div>
+          </div>
+
+          <!-- Spiral canvas (default) -->
+          <div class="spiral-canvas" id="spiralCanvas" style="display:block;">
+            <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+              <defs id="spiralDefs"></defs>
+              <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
+              <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
+              <path id="spiralPath" fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round"/>
+              <g id="zoneGroup"></g>
+            </svg>
+          </div>
+
+          <!-- Square canvas -->
+          <div class="square-canvas" id="squareCanvas" style="display:none;">
+            <svg id="squareSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+              <defs id="squareDefs"></defs>
+              <!-- Outer border -->
+              <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
+              <!-- Center cross (dashed) -->
+              <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+              <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+              <!-- Corner tick marks -->
+              <line x1="50" y1="28" x2="80" y2="28" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="50" y1="28" x2="50" y2="58" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="450" y1="28" x2="420" y2="28" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="450" y1="28" x2="450" y2="58" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="50" y1="372" x2="80" y2="372" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="50" y1="372" x2="50" y2="342" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="450" y1="372" x2="420" y2="372" stroke="#8a7a5a" stroke-width="1.5"/>
+              <line x1="450" y1="372" x2="450" y2="342" stroke="#8a7a5a" stroke-width="1.5"/>
+              <g id="squareZoneGroup"></g>
+            </svg>
+          </div>
+
+          <!-- Status bar BELOW map -->
+          <div class="status-bar" id="statusBar" style="margin-top:8px;">
+            click a zone on the spiral to begin
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const TERRAIN_IMGS = {
+  dunes:     "assets/elements/maps/dunes.png",
+  forest:    "assets/elements/maps/forest.png",
+  meadow:    "assets/elements/maps/meadow.png",
+  mountains: "assets/elements/maps/mountains.png",
+  ocean:     "assets/elements/maps/ocean.png",
+  orchard:   "assets/elements/maps/orchard.png",
+  plateu:    "assets/elements/maps/plateu.png",
+  pond:      "assets/elements/maps/pond.png",
+  river:     "assets/elements/maps/river.png",
+  spring:    "assets/elements/maps/spring.png",
+  waterfall: "assets/elements/maps/waterfall.png",
+};
+
+const TERRAIN = [
+  { id:"mountains", label:"mountains" }, { id:"forest",    label:"forest"    },
+  { id:"orchard",   label:"orchard"   }, { id:"meadow",    label:"meadow"    },
+  { id:"dunes",     label:"dunes"     }, { id:"pond",      label:"pond"      },
+  { id:"river",     label:"river"     }, { id:"ocean",     label:"ocean"     },
+  { id:"waterfall", label:"waterfall" }, { id:"spring",    label:"spring"    },
+  { id:"plateu",    label:"plateau"   },
+];
+
+const WEATHER_CATS = [
+  { id:"sunny", label:"sunny", cls:"sunny", tint:"rgba(210,137,192,1)", feelings:["trust","peace","joy","hope","confidence"]          },
+  { id:"rainy", label:"rainy", cls:"rainy", tint:"rgba(200,200,199,1)", feelings:["shadows","worry","fear","depression","regret"]      },
+  { id:"windy", label:"windy", cls:"windy", tint:"rgba(180,231,107,1)", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
+  { id:"snowy", label:"snowy", cls:"snowy", tint:"rgba(131,210,230,1)", feelings:["anger","avoidance","bitterness","apathy","shock"]   },
+];
+
+const ZONE_PROMPTS = [
+  "zone one — what does it feel like to imagine your goal coming true?",
+  "zone two — what does it feel like to begin?",
+  "zone three — what does it feel like when you get into a good rhythm?",
+  "zone four — what does it feel like when you take a big step forward?",
+  "zone five — what does it feel like when you are tested?"
+];
+
+const SQUARE_ZONE_PROMPTS = [
+  "corner one — [add your prompt here]",
+  "corner two — [add your prompt here]",
+  "corner three — [add your prompt here]",
+  "corner four — [add your prompt here]",
+];
+
+// Quadrant centers within the 500×400 viewBox
+const SQUARE_ZONE_POSITIONS = [
+  { x: 150, y: 114 },   // top-left
+  { x: 350, y: 114 },   // top-right
+  { x: 150, y: 286 },   // bottom-left
+  { x: 350, y: 286 },   // bottom-right
+];
+const SQUARE_LABELS = ['I', 'II', 'III', 'IV'];
+
+// ── MODE ──────────────────────────────────────────────────────────────────
+let currentMode = 'spiral';
+
+// Shared selection tracker
+let sel = { activeTerrain: null, activeFeeling: null, activeCat: null, activeTint: null };
+
+function setMode(mode) {
+  currentMode = mode;
+  const spiralEl = document.getElementById("spiralCanvas");
+  const squareEl = document.getElementById("squareCanvas");
+  const btnSp    = document.getElementById("btn-spiral");
+  const btnSq    = document.getElementById("btn-square");
+  const promptEl = document.getElementById("zonePrompt");
+
+  if (mode === 'square') {
+    spiralEl.style.display = 'none';
+    squareEl.style.display = 'block';
+    btnSq.classList.add('mode-active');
+    btnSp.classList.remove('mode-active');
+    document.getElementById("mapName").value = squareState.name || "";
+    renderSquareZones();
+    updateSquareStatus();
+  } else {
+    spiralEl.style.display = 'block';
+    squareEl.style.display = 'none';
+    btnSp.classList.add('mode-active');
+    btnSq.classList.remove('mode-active');
+    document.getElementById("mapName").value = spiralState.name || "";
+    renderZoneCircles();
+    updateSpiralStatus();
+  }
+  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
+  sel.activeTerrain = null; sel.activeFeeling = null;
+  sel.activeCat = null;     sel.activeTint = null;
+}
+
+function onNameInput() {
+  if (currentMode === 'spiral') spiralSaveState();
+  else squareSaveState();
+}
+
+// ── SPIRAL STATE ──────────────────────────────────────────────────────────
+let spiralState = { name:"", zones:[{},{},{},{},{}] };
+let activeZone  = null;
+let ZONE_POSITIONS = [];
+
+function spiralLoadState() {
+  try {
+    const s = localStorage.getItem("hb-spiral");
+    if (s) spiralState = JSON.parse(s);
+    while (spiralState.zones.length < 5) spiralState.zones.push({});
+  } catch(e) {}
+}
+function spiralSaveState() {
+  spiralState.name = document.getElementById("mapName").value;
+  try { localStorage.setItem("hb-spiral", JSON.stringify(spiralState)); } catch(e) {}
+}
+function updateSpiralStatus() {
+  const bar    = document.getElementById("statusBar");
+  const prompt = document.getElementById("zonePrompt");
+  if (activeZone === null) {
+    bar.innerHTML = 'click a zone on the spiral to begin';
+    prompt.style.display = 'none'; prompt.textContent = '';
+  } else {
+    bar.innerHTML = `<span class="status-active">zone ${activeZone + 1} selected</span> <span class="status-hint">· choose terrain and feeling below</span>`;
+    prompt.textContent = ZONE_PROMPTS[activeZone];
+    prompt.style.display = 'block';
+  }
+}
+function selectZone(i) {
+  activeZone = i;
+  renderZoneCircles();
+  updateSpiralStatus();
+}
+
+// ── SQUARE STATE ──────────────────────────────────────────────────────────
+let squareState     = { name:"", zones:[{},{},{},{}] };
+let squareActiveZone = null;
+
+function squareLoadState() {
+  try {
+    const s = localStorage.getItem("hb-square");
+    if (s) squareState = JSON.parse(s);
+    while (squareState.zones.length < 4) squareState.zones.push({});
+  } catch(e) {}
+}
+function squareSaveState() {
+  squareState.name = document.getElementById("mapName").value;
+  try { localStorage.setItem("hb-square", JSON.stringify(squareState)); } catch(e) {}
+}
+function updateSquareStatus() {
+  const bar    = document.getElementById("statusBar");
+  const prompt = document.getElementById("zonePrompt");
+  if (squareActiveZone === null) {
+    bar.innerHTML = 'click a corner to begin';
+    prompt.style.display = 'none'; prompt.textContent = '';
+  } else {
+    bar.innerHTML = `<span class="status-active">corner ${squareActiveZone + 1} selected</span> <span class="status-hint">· choose terrain and feeling below</span>`;
+    prompt.textContent = SQUARE_ZONE_PROMPTS[squareActiveZone];
+    prompt.style.display = 'block';
+  }
+}
+function selectSquareZone(i) {
+  squareActiveZone = i;
+  renderSquareZones();
+  updateSquareStatus();
+}
+
+// ── SPIRAL SVG BUILDER ────────────────────────────────────────────────────
+function buildSpiralSVG() {
+  const W = 500, H = 400;
+  const cx = W / 2, cy = H / 2 - 10;
+  const b = 13;
+  const thetaMin = 0.1, thetaMax = 15.5, steps = 700;
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = thetaMin + (thetaMax - thetaMin) * i / steps;
+    const r = b * t;
+    pts.push([ cx + r * Math.cos(t), cy - r * Math.sin(t) ]);
+  }
+  const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  document.getElementById('spiralPath').setAttribute('d', d);
+
+  const zoneThetaValues = [0.5, 9.4, 11.5, 13.3, 14.9];
+  ZONE_POSITIONS = zoneThetaValues.map(t => ({
+    x: cx + b * t * Math.cos(t),
+    y: cy - b * t * Math.sin(t)
+  }));
+  renderZoneCircles();
+}
+
+function renderZoneCircles() {
+  const zoneGroup = document.getElementById('zoneGroup');
+  const defs      = document.getElementById('spiralDefs');
+  zoneGroup.innerHTML = ''; defs.innerHTML = '';
+  const R = 36;
+  ZONE_POSITIONS.forEach((pos, i) => {
+    const zone = spiralState.zones[i] || {};
+    const isActive = activeZone === i;
+    if (zone.tint) {
+      const gradId = `halo-grad-${i}`;
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
+      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','0.5');
+      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s2.setAttribute('offset','65%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.18');
+      const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
+      grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 28);
+      halo.setAttribute('fill', `url(#${gradId})`); halo.style.pointerEvents = 'none';
+      zoneGroup.appendChild(halo);
+    }
+    const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
+    if (hasTerrain) {
+      circle.setAttribute('fill', 'transparent');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : 'transparent');
+    } else {
+      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
+    }
+    circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
+    circle.style.cursor = 'pointer';
+    zoneGroup.appendChild(circle);
+    if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
+      const clipId = `clip-z${i}`;
+      const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      clip.setAttribute('id', clipId);
+      const cc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      cc.setAttribute('cx', pos.x); cc.setAttribute('cy', pos.y); cc.setAttribute('r', R - 2);
+      clip.appendChild(cc); defs.appendChild(clip);
+      const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+      img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
+      img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
+      img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
+      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      img.setAttribute('clip-path', `url(#${clipId})`); img.style.pointerEvents = 'none';
+      zoneGroup.appendChild(img);
+    }
+    if (!hasTerrain || isActive) {
+      const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      numEl.setAttribute('x', pos.x);
+      numEl.setAttribute('y', pos.y + (hasTerrain ? R - 10 : 5));
+      numEl.setAttribute('text-anchor', 'middle'); numEl.setAttribute('dominant-baseline', 'middle');
+      numEl.setAttribute('fill', isActive ? '#6579e2' : '#5a4a2a');
+      numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
+      numEl.setAttribute('font-size', hasTerrain ? '15' : '26');
+      numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
+      zoneGroup.appendChild(numEl);
+    }
+    if (zone.feeling) {
+      const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 13);
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#5a4a2a');
+      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '11');
+      feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
+      zoneGroup.appendChild(feelEl);
+    }
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hit.setAttribute('cx', pos.x); hit.setAttribute('cy', pos.y); hit.setAttribute('r', R + 6);
+    hit.setAttribute('fill', 'transparent'); hit.style.cursor = 'pointer';
+    hit.addEventListener('click', () => selectZone(i));
+    zoneGroup.appendChild(hit);
+  });
+}
+
+// ── SQUARE SVG BUILDER ────────────────────────────────────────────────────
+function buildSquareSVG() {
+  renderSquareZones();
+}
+
+function renderSquareZones() {
+  const zoneGroup = document.getElementById('squareZoneGroup');
+  const defs      = document.getElementById('squareDefs');
+  zoneGroup.innerHTML = ''; defs.innerHTML = '';
+  const R = 36;
+  SQUARE_ZONE_POSITIONS.forEach((pos, i) => {
+    const zone     = squareState.zones[i] || {};
+    const isActive = squareActiveZone === i;
+    if (zone.tint) {
+      const gradId = `sq-halo-${i}`;
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
+      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','0.5');
+      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s2.setAttribute('offset','65%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.18');
+      const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
+      grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 28);
+      halo.setAttribute('fill', `url(#sq-halo-${i})`); halo.style.pointerEvents = 'none';
+      zoneGroup.appendChild(halo);
+    }
+    const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
+    if (hasTerrain) {
+      circle.setAttribute('fill', 'transparent');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : 'transparent');
+    } else {
+      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
+      circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
+    }
+    circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
+    zoneGroup.appendChild(circle);
+    if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
+      const clipId = `sq-clip-${i}`;
+      const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      clip.setAttribute('id', clipId);
+      const cc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      cc.setAttribute('cx', pos.x); cc.setAttribute('cy', pos.y); cc.setAttribute('r', R - 2);
+      clip.appendChild(cc); defs.appendChild(clip);
+      const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+      img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
+      img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
+      img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
+      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      img.setAttribute('clip-path', `url(#${clipId})`); img.style.pointerEvents = 'none';
+      zoneGroup.appendChild(img);
+    }
+    if (!hasTerrain || isActive) {
+      const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      numEl.setAttribute('x', pos.x);
+      numEl.setAttribute('y', pos.y + (hasTerrain ? R - 10 : 5));
+      numEl.setAttribute('text-anchor', 'middle'); numEl.setAttribute('dominant-baseline', 'middle');
+      numEl.setAttribute('fill', isActive ? '#6579e2' : '#5a4a2a');
+      numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
+      numEl.setAttribute('font-size', hasTerrain ? '15' : '26');
+      numEl.style.pointerEvents = 'none';
+      numEl.textContent = SQUARE_LABELS[i];
+      zoneGroup.appendChild(numEl);
+    }
+    if (zone.feeling) {
+      const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 13);
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#5a4a2a');
+      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '11');
+      feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
+      zoneGroup.appendChild(feelEl);
+    }
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hit.setAttribute('cx', pos.x); hit.setAttribute('cy', pos.y); hit.setAttribute('r', R + 6);
+    hit.setAttribute('fill', 'transparent'); hit.style.cursor = 'pointer';
+    hit.addEventListener('click', () => selectSquareZone(i));
+    zoneGroup.appendChild(hit);
+  });
+}
+
+// ── TERRAIN PALETTE ───────────────────────────────────────────────────────
+function buildTerrain() {
+  const tp = document.getElementById("terrainPalette");
+  TERRAIN.forEach(t => {
+    const el = document.createElement("div");
+    el.className = "palette-item"; el.id = "terrain-btn-" + t.id;
+    el.innerHTML = `<img src="${TERRAIN_IMGS[t.id]}" alt="${t.label}"><div class="palette-item-name">${t.label}</div>`;
+    el.addEventListener("click", () => selectTerrain(t, el));
+    tp.appendChild(el);
+  });
+}
+
+function selectTerrain(t, el) {
+  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  el.classList.add("active");
+  if (currentMode === 'spiral') {
+    if (activeZone !== null) { spiralState.zones[activeZone].terrain = t.id; spiralSaveState(); renderZoneCircles(); }
+    return;
+  }
+  if (currentMode === 'square') {
+    if (squareActiveZone !== null) { squareState.zones[squareActiveZone].terrain = t.id; squareSaveState(); renderSquareZones(); }
+    return;
+  }
+}
+
+// ── WEATHER / FEELINGS ────────────────────────────────────────────────────
+function buildWeather() {
+  const wc = document.getElementById("weatherCategories");
+  WEATHER_CATS.forEach(cat => {
+    const section = document.createElement("div");
+    section.className = `weather-category ${cat.cls}`;
+    const header = document.createElement("div");
+    header.className = "weather-cat-header"; header.textContent = cat.label;
+    const chips = document.createElement("div"); chips.className = "feeling-chips";
+    cat.feelings.forEach(feeling => {
+      const chip = document.createElement("div");
+      chip.className = "feeling-chip"; chip.textContent = feeling;
+      chip.addEventListener("click", () => selectFeeling(feeling, cat, chip));
+      chips.appendChild(chip);
+    });
+    section.appendChild(header); section.appendChild(chips); wc.appendChild(section);
+  });
+}
+
+function selectFeeling(feeling, cat, el) {
+  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  if (currentMode === 'spiral') {
+    if (activeZone !== null) {
+      spiralState.zones[activeZone].feeling = feeling;
+      spiralState.zones[activeZone].tint    = cat.tint;
+      spiralState.zones[activeZone].cat     = cat.id;
+      spiralSaveState(); renderZoneCircles();
+    }
+    return;
+  }
+  if (currentMode === 'square') {
+    if (squareActiveZone !== null) {
+      squareState.zones[squareActiveZone].feeling = feeling;
+      squareState.zones[squareActiveZone].tint    = cat.tint;
+      squareState.zones[squareActiveZone].cat     = cat.id;
+      squareSaveState(); renderSquareZones();
+    }
+    return;
+  }
+}
+
+// ── CLEAR ─────────────────────────────────────────────────────────────────
+function clearMap() {
+  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  document.getElementById("mapName").value = "";
+  if (currentMode === 'spiral') {
+    spiralState = { name:"", zones:[{},{},{},{},{}] }; spiralSaveState();
+    activeZone = null; renderZoneCircles(); updateSpiralStatus();
+  } else {
+    squareState = { name:"", zones:[{},{},{},{}] }; squareSaveState();
+    squareActiveZone = null; renderSquareZones(); updateSquareStatus();
+  }
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser   = null;
+let currentGameId = null;   // set from URL param or after creating new game
+let currentPhase  = null;   // 'zone_1' … 'zone_5' / 'zone_4'
+
+function localToday() { return new Date().toLocaleDateString('en-CA'); }
+
+function showSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg; el.style.color = color || '#83d2e6';
+  clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+// ── LOAD GAME FROM URL PARAMS ─────────────────────────────────────────────
+async function loadGameContext() {
+  const params  = new URLSearchParams(window.location.search);
+  currentGameId = params.get('game_id');
+  currentPhase  = params.get('phase');
+  const urlMode = params.get('mode'); // 'cloud' | 'guest' | 'new'
+
+  const saveBtn = document.getElementById('btn-save-today');
+
+  if (!currentGameId || urlMode === 'new') {
+    saveBtn.textContent = '♥ SAVE MAP';
+    return;
+  }
+
+  // Existing game — load it
+  saveBtn.textContent = '♥ SAVE TODAY';
+  showSaveStatus('loading...', '#83d2e6');
+
+  let gameData = null;
+  if (urlMode === 'guest') {
+    try {
+      const games = JSON.parse(localStorage.getItem('hb_games') || '[]');
+      gameData = games.find(g => g.id === currentGameId) || null;
+    } catch(e) {}
+  } else if (currentUser) {
+    try {
+      const { data } = await sb.from('games').select('*').eq('id', currentGameId).single();
+      gameData = data;
+    } catch(e) {}
+  }
+
+  if (!gameData) { showSaveStatus('could not load map', '#ff6b6b'); return; }
+
+  const mapType = gameData.map_type || 'spiral';
+  const mapData = gameData.map_data || {};
+
+  document.getElementById("mapName").value = gameData.map_name || '';
+
+  // Lock mode toggle — can't change type of an existing game
+  const btnSp = document.getElementById('btn-spiral');
+  const btnSq = document.getElementById('btn-square');
+  if (mapType === 'square') { btnSp.disabled = true; } else { btnSq.disabled = true; }
+
+  if (mapType === 'square') {
+    squareState = { name: gameData.map_name || '', zones: mapData.zones || [{},{},{},{}] };
+    while (squareState.zones.length < 4) squareState.zones.push({});
+    setMode('square');
+    if (currentPhase) {
+      const idx = parseInt(currentPhase.replace('zone_','')) - 1;
+      if (idx >= 0 && idx < 4) { squareActiveZone = idx; renderSquareZones(); updateSquareStatus(); }
+    }
+  } else {
+    spiralState = { name: gameData.map_name || '', zones: mapData.zones || [{},{},{},{},{}] };
+    while (spiralState.zones.length < 5) spiralState.zones.push({});
+    setMode('spiral');
+    if (currentPhase) {
+      const idx = parseInt(currentPhase.replace('zone_','')) - 1;
+      if (idx >= 0 && idx < 5) { activeZone = idx; renderZoneCircles(); updateSpiralStatus(); }
+    }
+  }
+
+  // Show context banner
+  const banner   = document.getElementById('game-context');
+  const phaseNum = currentPhase ? currentPhase.replace('zone_','') : '?';
+  banner.innerHTML = `<span class="status-active">${gameData.map_name}</span> <span class="status-hint">· zone ${phaseNum} today</span>`;
+  banner.style.display = 'block';
+
+  showSaveStatus('map loaded ✓', '#83d2e6');
+}
+
+// ── SAVE TODAY ────────────────────────────────────────────────────────────
+async function saveToday() {
+  const today     = localToday();
+  const isSpiral  = currentMode === 'spiral';
+  const mapState  = isSpiral ? spiralState : squareState;
+  const activeIdx = isSpiral ? activeZone : squareActiveZone;
+  const mapType   = currentMode;
+  const mapName   = (document.getElementById("mapName").value || mapState.name || '').trim();
+  const mapData   = { ...mapState, type: mapType };
+
+  const hasContent = mapState.zones.some(z => z.terrain);
+  if (!hasContent) { showSaveStatus('add something to your map first!', '#ff6b6b'); return; }
+
+  const btn = document.getElementById('btn-save-today');
+  btn.textContent = '♥ SAVING...';
+
+  // Guest / not logged in
+  if (!currentUser) { saveGuestData(mapName, mapData, mapType, activeIdx, today, btn); return; }
+
+  // ── NEW GAME — create games row only, no daily entry yet ──
+  if (!currentGameId) {
+    if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+    const { data: newGame, error } = await sb.from('games').insert({
+      user_id: currentUser.id, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active'
+    }).select().single();
+    if (error) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+    currentGameId = newGame.id;
+    showSaveStatus('map created ✓', '#83d2e6');
+    btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6';
+    return;
+  }
+
+  // ── EXISTING GAME — update map + save daily entry ──
+  const activeZoneData = activeIdx !== null ? mapState.zones[activeIdx] : null;
+  const mapLocation    = activeZoneData?.terrain || null;
+  const mapPhase       = currentPhase || (activeIdx !== null ? `zone_${activeIdx + 1}` : null);
+
+  await sb.from('games').update({ map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() })
+    .eq('id', currentGameId).eq('user_id', currentUser.id);
+
+  const { error: entryErr } = await sb.from('daily_entries').upsert({
+    game_id: currentGameId, user_id: currentUser.id,
+    entry_date: today, map_location: mapLocation, map_phase: mapPhase,
+  }, { onConflict: 'game_id,entry_date' });
+
+  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = '♥ SAVE TODAY'; }
+  else { showSaveStatus("entry saved ✓", '#83d2e6'); btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6'; }
+}
+
+// ── GUEST SAVE ────────────────────────────────────────────────────────────
+function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
+  try {
+    let games   = JSON.parse(localStorage.getItem('hb_games')   || '[]');
+    let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
+    if (!currentGameId) {
+      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+      const newId = 'guest_' + Date.now();
+      games.push({ id: newId, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active',
+        created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+      currentGameId = newId;
+      localStorage.setItem('hb_games', JSON.stringify(games));
+      showSaveStatus('map saved locally ✓', '#83d2e6');
+      btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6';
+      return;
+    }
+    games = games.map(g => g.id === currentGameId
+      ? { ...g, map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() } : g);
+    localStorage.setItem('hb_games', JSON.stringify(games));
+    const mapLocation = activeIdx !== null ? (mapData.zones?.[activeIdx]?.terrain || null) : null;
+    const mapPhase    = currentPhase || (activeIdx !== null ? `zone_${activeIdx + 1}` : null);
+    const entry = { id: 'e_' + Date.now(), game_id: currentGameId, entry_date: today, map_location: mapLocation, map_phase: mapPhase };
+    entries = entries.filter(e => !(e.game_id === currentGameId && e.entry_date === today));
+    entries.push(entry);
+    localStorage.setItem('hb_entries', JSON.stringify(entries));
+    showSaveStatus('saved locally ✓', '#83d2e6');
+    btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6';
+  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = '♥ SAVE TODAY'; }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function initSupabase() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    currentUser = session?.user || null;
+    await loadGameContext();
+    if (currentUser && !currentGameId) showSaveStatus('cloud saves active ✓', '#83d2e6');
+  } catch(e) {}
+}
+
+spiralLoadState();
+squareLoadState();
+buildTerrain();
+buildWeather();
+buildSpiralSVG();
+buildSquareSVG();
+document.getElementById("mapName").value = spiralState.name || "";
+updateSpiralStatus();
+initSupabase();
+</script>
+</body>
+</html>
