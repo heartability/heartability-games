@@ -347,10 +347,7 @@ body, .wall { background: #fdf6e3; }
 
     <div class="topbar">
       <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn" id="btn-save-today" onclick="saveToday()">► SAVE TODAY'S CHARACTER</button>
         <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
-        <button class="btn" id="btn-next" onclick="goNext()" style="display:none;background:#6ab86a;">► NEXT: BINGO →</button>
-        <span id="save-status" style="font-family:var(--font-game); font-size:14px; color:#83d2e6; transition: opacity 0.3s;"></span>
       </div>
     </div>
 
@@ -415,16 +412,6 @@ const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
-
-// ── Save status indicator ────────────────────────────────
-function showSaveStatus(msg, color) {
-  const el = document.getElementById('save-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = color || '#83d2e6';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => { el.textContent = ''; }, 2500);
-}
 
 // All image paths are relative — just drop your PNGs in assets/characters/
 const ASSETS = {
@@ -590,74 +577,8 @@ function loadLocal() {
   try { const s = localStorage.getItem("hb-char"); if(s) state = JSON.parse(s); } catch(e){}
 }
 
-// ── Today's date in user's local timezone ────────────────
-function localToday() {
-  return new Date().toLocaleDateString('en-CA'); // returns YYYY-MM-DD
-}
-
-// ── Supabase: auto-save draft (no date, key = user+game) ─
-// ── Auto-save draft on every change ─────────────────────
+// ── Auto-save on every change ─────────────────────────────
 function save() { saveLocal(); }
-
-
-async function saveToday() {
-  if (!state.body) { showSaveStatus('pick a body first!', '#ff6b6b'); return; }
-  const today = localToday();
-  let saved = false;
-
-  if (currentUser && GAME_ID) {
-    const { error } = await sb.from('daily_entries').upsert({
-      game_id:        GAME_ID,
-      user_id:        currentUser.id,
-      entry_date:     today,
-      character_data: state,
-    }, { onConflict: 'game_id,entry_date' });
-    saved = !error;
-    if (error) showSaveStatus('save failed', '#ff6b6b');
-  } else {
-    // Guest fallback
-    try {
-      let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
-      const idx = entries.findIndex(e => e.game_id === GAME_ID && e.entry_date === today);
-      const entry = { game_id: GAME_ID || 'guest', entry_date: today, character_data: state };
-      if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
-      else entries.push(entry);
-      localStorage.setItem('hb_entries', JSON.stringify(entries));
-      saved = true;
-    } catch(e) { showSaveStatus('save failed', '#ff6b6b'); }
-  }
-
-  if (saved) {
-    showSaveStatus("character saved ✓", '#83d2e6');
-    updateSaveBtnState();
-    // Show next button and notify parent chart-room
-    const nextBtn = document.getElementById('btn-next');
-    if (nextBtn) nextBtn.style.display = 'inline-block';
-    try { window.parent.postMessage({ type: 'char_saved', game_id: GAME_ID }, '*'); } catch(e) {}
-  }
-}
-
-function goNext() {
-  // If in loop iframe mode, tell parent to advance; otherwise navigate directly
-  try {
-    window.parent.postMessage({ type: 'char_next', game_id: GAME_ID }, '*');
-  } catch(e) {
-    if (GAME_ID) window.location.href = `bingo.html?game_id=${GAME_ID}&loop=true`;
-  }
-}
-
-function updateSaveBtnState() {
-  const btn = document.getElementById('btn-save-today');
-  if (!btn) return;
-  btn.textContent = '► SAVED TODAY ✓';
-  btn.style.opacity = '0.6';
-}
-
-// ── Auto-save draft on every change ─────────────────────
-function save() {
-  saveLocal();
-  saveDraftToSupabase();
-}
 
 function renderLayer(layerId, partId) {
   const layer = document.getElementById(layerId);
@@ -737,14 +658,6 @@ async function init() {
   document.getElementById("charName").value = state.name || "";
   render();
 
-  // Hide save/next buttons when chart-room owns saving
-  if (LOOP_MODE) {
-    const saveBtn = document.getElementById('btn-save-today');
-    const nextBtn = document.getElementById('btn-next');
-    if (saveBtn) saveBtn.style.display = 'none';
-    if (nextBtn) nextBtn.style.display = 'none';
-  }
-
   // Respond to chart-room state requests
   window.addEventListener('message', e => {
     if (e.data && e.data.type === 'request_state') {
@@ -755,7 +668,7 @@ async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
-    if (currentUser) showSaveStatus('cloud saves active ✓', '#83d2e6');
+    if (currentUser) {} // logged in
   } catch(e) {}
 }
 
