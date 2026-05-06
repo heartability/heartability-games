@@ -952,24 +952,40 @@ async function saveToday() {
   const mapData   = { ...mapState, type: mapType };
 
   const hasContent = mapState.zones.some(z => z.terrain);
-  if (!hasContent) { showSaveStatus('add something to your map first!', '#ff6b6b'); return; }
+  if (!hasContent) {
+    showSaveStatus('add something to your map first!', '#ff6b6b');
+    try { window.parent.postMessage({ type: 'map_save_failed', reason: 'add some terrain to your map first' }, '*'); } catch(e) {}
+    return;
+  }
 
   const btn = document.getElementById('btn-save-today');
-  btn.textContent = '♥ SAVING...';
+  if (btn) btn.textContent = '♥ SAVING...';
 
   // Guest / not logged in
   if (!currentUser) { saveGuestData(mapName, mapData, mapType, activeIdx, today, btn); return; }
 
   // ── NEW GAME — create games row only, no daily entry yet ──
   if (!currentGameId) {
-    if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+    if (!mapName) {
+      showSaveStatus('name your goal first!', '#ff6b6b');
+      if (btn) btn.textContent = '♥ SAVE MAP';
+      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your goal first' }, '*'); } catch(e) {}
+      return;
+    }
     const { data: newGame, error } = await sb.from('games').insert({
       user_id: currentUser.id, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active'
     }).select().single();
-    if (error) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+    if (error) {
+      showSaveStatus('save failed', '#ff6b6b');
+      if (btn) btn.textContent = '♥ SAVE MAP';
+      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'save failed' }, '*'); } catch(e) {}
+      return;
+    }
     currentGameId = newGame.id;
     showSaveStatus('map created ✓', '#83d2e6');
-    btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6';
+    if (btn) { btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6'; }
+    // Notify chart-room to advance to phase select
+    try { window.parent.postMessage({ type: 'map_saved', game_id: newGame.id, map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
     return;
   }
 
@@ -1039,6 +1055,22 @@ buildSquareSVG();
 document.getElementById("mapName").value = spiralState.name || "";
 updateSpiralStatus();
 initSupabase();
+
+// ── Loop mode — hide save button, let chart-room drive it ──
+const _loopMode = new URLSearchParams(window.location.search).get('loop') === 'true';
+if (_loopMode) {
+  const saveBtn = document.getElementById('btn-save-today');
+  if (saveBtn) saveBtn.style.display = 'none';
+  const saveStatus = document.getElementById('save-status');
+  if (saveStatus) saveStatus.style.display = 'none';
+}
+
+// ── Listen for chart-room triggering the save ─────────────
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'save_map') {
+    saveToday();
+  }
+});
 </script>
 </body>
 </html>
