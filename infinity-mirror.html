@@ -349,6 +349,7 @@ body, .wall { background: #fdf6e3; }
       <div style="display:flex; align-items:center; gap:10px;">
         <button class="btn" id="btn-save-today" onclick="saveToday()">► SAVE TODAY'S CHARACTER</button>
         <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
+        <button class="btn" id="btn-next" onclick="goNext()" style="display:none;background:#6ab86a;">► NEXT: BINGO →</button>
         <span id="save-status" style="font-family:var(--font-game); font-size:14px; color:#83d2e6; transition: opacity 0.3s;"></span>
       </div>
     </div>
@@ -405,6 +406,11 @@ body, .wall { background: #fdf6e3; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── Supabase ─────────────────────────────────────────────
+// ── URL params (set by chart-room daily loop) ─────────────
+const _params   = new URLSearchParams(window.location.search);
+const GAME_ID   = _params.get('game_id');
+const LOOP_MODE = _params.get('loop') === 'true';
+
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -590,78 +596,61 @@ function localToday() {
 }
 
 // ── Supabase: auto-save draft (no date, key = user+game) ─
-async function saveDraftToSupabase() {
-  if (!currentUser) return;
-  await sb.from('game_saves').upsert({
-    user_id:    currentUser.id,
-    game_name:  'character_draft',
-    save_data:  state,
-    saved_date: null
-  }, { onConflict: 'user_id,game_name,saved_date' });
-}
+// ── Auto-save draft on every change ─────────────────────
+function save() { saveLocal(); }
 
-// ── Supabase: save today's character to archive ──────────
+
 async function saveToday() {
-  if (!currentUser) {
-    showSaveStatus('log in to save ♡', '#ff6b6b');
-    return;
-  }
-  if (!state.body) {
-    showSaveStatus('pick a body first!', '#ff6b6b');
-    return;
-  }
+  if (!state.body) { showSaveStatus('pick a body first!', '#ff6b6b'); return; }
   const today = localToday();
-  const { error } = await sb.from('game_saves').upsert({
-    user_id:    currentUser.id,
-    game_name:  'character',
-    save_data:  state,
-    saved_date: today
-  }, { onConflict: 'user_id,game_name,saved_date' });
+  let saved = false;
 
-  if (error) {
-    showSaveStatus('save failed', '#ff6b6b');
+  if (currentUser && GAME_ID) {
+    const { error } = await sb.from('daily_entries').upsert({
+      game_id:        GAME_ID,
+      user_id:        currentUser.id,
+      entry_date:     today,
+      character_data: state,
+    }, { onConflict: 'game_id,entry_date' });
+    saved = !error;
+    if (error) showSaveStatus('save failed', '#ff6b6b');
   } else {
-    showSaveStatus("today's character saved ✓", '#83d2e6');
-    updateSaveBtnState(today);
+    // Guest fallback
+    try {
+      let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
+      const idx = entries.findIndex(e => e.game_id === GAME_ID && e.entry_date === today);
+      const entry = { game_id: GAME_ID || 'guest', entry_date: today, character_data: state };
+      if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
+      else entries.push(entry);
+      localStorage.setItem('hb_entries', JSON.stringify(entries));
+      saved = true;
+    } catch(e) { showSaveStatus('save failed', '#ff6b6b'); }
+  }
+
+  if (saved) {
+    showSaveStatus("character saved ✓", '#83d2e6');
+    updateSaveBtnState();
+    // Show next button and notify parent chart-room
+    const nextBtn = document.getElementById('btn-next');
+    if (nextBtn) nextBtn.style.display = 'inline-block';
+    try { window.parent.postMessage({ type: 'char_saved', game_id: GAME_ID }, '*'); } catch(e) {}
   }
 }
 
-// ── Check if already saved today ────────────────────────
-async function checkTodaySave() {
-  if (!currentUser) return;
-  const today = localToday();
-  const { data } = await sb.from('game_saves')
-    .select('saved_date')
-    .eq('user_id', currentUser.id)
-    .eq('game_name', 'character')
-    .eq('saved_date', today)
-    .single();
-  if (data) updateSaveBtnState(today);
+function goNext() {
+  // If in loop iframe mode, tell parent to advance; otherwise navigate directly
+  try {
+    window.parent.postMessage({ type: 'char_next', game_id: GAME_ID }, '*');
+  } catch(e) {
+    if (GAME_ID) window.location.href = `bingo.html?game_id=${GAME_ID}&loop=true`;
+  }
 }
 
-function updateSaveBtnState(today) {
+function updateSaveBtnState() {
   const btn = document.getElementById('btn-save-today');
   if (!btn) return;
   btn.textContent = '► SAVED TODAY ✓';
   btn.style.opacity = '0.6';
-}
-
-// ── Supabase: load most recent character ─────────────────
-async function loadFromSupabase() {
-  if (!currentUser) return false;
-  const { data, error } = await sb
-    .from('game_saves')
-    .select('save_data')
-    .eq('user_id', currentUser.id)
-    .eq('game_name', 'character')
-    .order('saved_date', { ascending: false })
-    .limit(1)
-    .single();
-  if (!error && data?.save_data) {
-    state = data.save_data;
-    return true;
-  }
-  return false;
 }
 
 // ── Auto-save draft on every change ─────────────────────
@@ -737,8 +726,9 @@ function resetCharacter() {
 
 // ── Init ─────────────────────────────────────────────────
 async function init() {
-  // Build grids immediately from localStorage — no waiting
-  loadLocal();
+  // In loop mode, always start fresh — blank slate each day
+  if (!LOOP_MODE) loadLocal();
+
   makeGrid("grid-body",  BODIES, "body",  false);
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
   makeGrid("grid-eyes",  EYES,   "eyes",  false);
@@ -747,19 +737,25 @@ async function init() {
   document.getElementById("charName").value = state.name || "";
   render();
 
-  // Then check Supabase in background
+  // Hide save/next buttons when chart-room owns saving
+  if (LOOP_MODE) {
+    const saveBtn = document.getElementById('btn-save-today');
+    const nextBtn = document.getElementById('btn-next');
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+  }
+
+  // Respond to chart-room state requests
+  window.addEventListener('message', e => {
+    if (e.data && e.data.type === 'request_state') {
+      window.parent.postMessage({ type: 'char_state', state: state }, '*');
+    }
+  });
+
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
-    if (currentUser) {
-      const loadedFromCloud = await loadFromSupabase();
-      if (loadedFromCloud) {
-        document.getElementById("charName").value = state.name || "";
-        render();
-      }
-      showSaveStatus('cloud saves active ✓', '#83d2e6');
-      checkTodaySave();
-    }
+    if (currentUser) showSaveStatus('cloud saves active ✓', '#83d2e6');
   } catch(e) {}
 }
 

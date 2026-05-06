@@ -419,6 +419,7 @@ body {
         <button class="reset-btn" id="btn-save-today" onclick="saveToday()">► SAVE TODAY</button>
         <button class="reset-btn" onclick="resetGame()">&#x25BA; RESET</button>
         <span id="save-status" style="font-family:var(--font-game);font-size:15px;color:#6578e2;"></span>
+        <a id="archive-link" href="archive.html" style="display:none;font-family:var(--font-game);font-size:15px;color:#6578e2;text-decoration:none;padding:6px 12px;border:2px solid #6578e2;">► VIEW ARCHIVE</a>
       </div>
       <div class="instruction-text"></div>
     </div>
@@ -454,6 +455,11 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── URL params (set by chart-room daily loop) ─────────────
+const _params    = new URLSearchParams(window.location.search);
+const GAME_ID    = _params.get('game_id');   // daily_entries game_id
+const LOOP_MODE  = _params.get('loop') === 'true'; // came from chart-room
+
 // ── Supabase ─────────────────────────────────────────────
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
@@ -472,42 +478,53 @@ function showSaveStatus(msg, color) {
 }
 
 async function saveToday() {
-  if (!currentUser) { showSaveStatus('log in to save ♡', '#E8478B'); return; }
   const score = marked.filter((v,i) => v && i!==12).length;
   if (score === 0) { showSaveStatus('check some squares first!', '#E8478B'); return; }
 
   const btn = document.getElementById('btn-save-today');
   btn.textContent = '► SAVING...';
 
-  const { error } = await sb.from('game_saves').upsert({
-    user_id:    currentUser.id,
-    game_name:  'bingo',
-    save_data:  { marked, score },
-    saved_date: localToday()
-  }, { onConflict: 'user_id,game_name,saved_date' });
+  const today        = localToday();
+  const energyScore  = Math.round((score / 24) * 100);
+  const bingoPayload = { marked: Array.from(marked), score };
 
-  if (error) {
-    showSaveStatus('save failed', '#E8478B');
-    btn.textContent = '► SAVE TODAY';
+  let saved = false;
+
+  if (currentUser && GAME_ID) {
+    // ── Cloud: upsert into daily_entries ──────────────────
+    const { error } = await sb.from('daily_entries').upsert({
+      game_id:      GAME_ID,
+      user_id:      currentUser.id,
+      entry_date:   today,
+      bingo_data:   bingoPayload,
+      energy_score: energyScore,
+    }, { onConflict: 'game_id,entry_date' });
+    saved = !error;
+    if (error) showSaveStatus('save failed', '#E8478B');
   } else {
+    // ── Guest: write to localStorage ──────────────────────
+    try {
+      let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
+      const idx = entries.findIndex(e => e.game_id === GAME_ID && e.entry_date === today);
+      const entry = { game_id: GAME_ID || 'guest', entry_date: today,
+        bingo_data: bingoPayload, energy_score: energyScore };
+      if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
+      else entries.push(entry);
+      localStorage.setItem('hb_entries', JSON.stringify(entries));
+      saved = true;
+    } catch(e) { showSaveStatus('save failed', '#E8478B'); }
+  }
+
+  if (saved) {
     showSaveStatus('saved ✓', '#6ab86a');
     btn.textContent = '► SAVED TODAY ✓';
     btn.style.opacity = '0.6';
-  }
-}
-
-async function checkTodaySave() {
-  if (!currentUser) return;
-  const { data } = await sb.from('game_saves')
-    .select('saved_date')
-    .eq('user_id', currentUser.id)
-    .eq('game_name', 'bingo')
-    .eq('saved_date', localToday())
-    .single();
-  if (data) {
-    const btn = document.getElementById('btn-save-today');
-    btn.textContent = '► SAVED TODAY ✓';
-    btn.style.opacity = '0.6';
+    // Notify chart-room parent and show archive link
+    try { window.parent.postMessage({ type: 'bingo_saved', game_id: GAME_ID }, '*'); } catch(e) {}
+    const archiveLink = document.getElementById('archive-link');
+    if (archiveLink) archiveLink.style.display = 'block';
+  } else {
+    btn.textContent = '► SAVE TODAY';
   }
 }
 
@@ -515,10 +532,7 @@ async function initSupabase() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
-    if (currentUser) {
-      showSaveStatus('cloud saves active ✓', '#6ab86a');
-      checkTodaySave();
-    }
+    if (currentUser) showSaveStatus('cloud saves active ✓', '#6ab86a');
   } catch(e) {}
 }
 
@@ -650,10 +664,28 @@ function resetGame() {
 }
 
 load();
+// Reset fresh when coming from chart-room daily loop
+if (LOOP_MODE) { marked = new Array(25).fill(false); }
 buildGrid();
 marked[12] = true;
 update();
 initSupabase();
+
+// Hide save button when chart-room owns saving
+if (LOOP_MODE) {
+  const saveBtn = document.getElementById('btn-save-today');
+  if (saveBtn) saveBtn.style.display = 'none';
+  const archiveLink = document.getElementById('archive-link');
+  if (archiveLink) archiveLink.style.display = 'none';
+}
+
+// Respond to chart-room state requests
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'request_state') {
+    const score = marked.filter((v,i) => v && i !== 12).length;
+    window.parent.postMessage({ type: 'bingo_state', marked: Array.from(marked), score }, '*');
+  }
+});
 </script>
 
 </body>

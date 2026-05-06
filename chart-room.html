@@ -201,12 +201,57 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 }
 .bubble-btn.secondary:hover { border-color:var(--blue); color:var(--blue); }
 
+/* ── SAVE & CONTINUE BUTTON — floats below back wall ── */
+.save-continue-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(21% - 44px); /* floor area below back wall */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  pointer-events: none;
+}
+.save-continue-bar.visible { display: flex; }
+
+.save-continue-btn {
+  pointer-events: all;
+  padding: 14px 40px;
+  background: var(--blue);
+  border: 2px solid #4a5bc4;
+  box-shadow: 3px 3px 0 #3a4aaa;
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.8vw, 20px);
+  color: #fff;
+  cursor: pointer;
+  transition: all .05s;
+  letter-spacing: .3px;
+}
+.save-continue-btn:hover { background: #4a5bc4; }
+.save-continue-btn:active { box-shadow: none; transform: translate(3px, 3px); }
+.save-continue-btn:disabled {
+  opacity: .38; cursor: not-allowed;
+  transform: none !important; box-shadow: 3px 3px 0 #3a4aaa;
+}
+
+.save-status-bar {
+  position: fixed;
+  bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-hand);
+  font-size: 14px;
+  color: #6ab86a;
+  z-index: 16;
+  pointer-events: none;
+}
+
 /* ── MOBILE ── */
 @media (max-width:768px) {
   .char-heart { left:2vw; bottom:2vh; width:clamp(70px,22vw,160px); }
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
   .phase-key { width:180px; font-size:12px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
+  .save-continue-bar { height: 18%; }
 }
 </style>
 </head>
@@ -246,6 +291,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
+<!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
+<div class="save-continue-bar" id="save-continue-bar">
+  <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
+    save &amp; continue →
+  </button>
+</div>
+<div class="save-status-bar" id="save-status-bar"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
@@ -256,9 +309,40 @@ let currentUser = null;
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activeGameId   = null;
-let activeGameData = null;   // full games row
-let activePhase    = null;   // 'zone_1' … 'zone_5'
+let activeGameData = null;
+let activePhase    = null;
 let isGuestMode    = false;
+let currentStep    = null; // 'character' | 'bingo'
+
+// ── STATUS BAR ────────────────────────────────────────────
+function showRoomStatus(msg, color, duration=3000) {
+  const el = document.getElementById('save-status-bar');
+  el.textContent = msg;
+  el.style.color = color || '#6ab86a';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent = ''; }, duration);
+}
+
+function setSaveBtnVisible(visible, label='save &amp; continue →') {
+  const bar = document.getElementById('save-continue-bar');
+  const btn = document.getElementById('save-continue-btn');
+  bar.classList.toggle('visible', visible);
+  if (btn) btn.innerHTML = label;
+}
+
+// ── SAVE & CONTINUE — chart-room owns all saving ─────────
+async function saveAndContinue() {
+  const btn = document.getElementById('save-continue-btn');
+  btn.disabled = true;
+  btn.textContent = 'saving...';
+
+  // Request state from iframe
+  const iframe = document.getElementById('game-iframe');
+  if (!iframe) { btn.disabled = false; return; }
+
+  iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
+  // Response handled in the message listener below
+}
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
 const SPIRAL_PROMPTS = [
@@ -345,6 +429,7 @@ async function stepLoadGame() {
     return;
   }
   setBubble('choose your map for today ♡', []);
+  setSaveBtnVisible(false);
 
   let games = [];
   if (isGuestMode || !currentUser) {
@@ -415,6 +500,7 @@ function stepPhaseSelect() {
   const zoneCount = mapType === 'square' ? 4 : 5;
 
   setBubble(`where are you on the map today?`, []);
+  setSaveBtnVisible(false);
 
   // Build SVG inline
   const svgContent = mapType === 'square'
@@ -468,18 +554,22 @@ function selectPhase(idx) {
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
 function stepBegin() {
   if (!activePhase) return;
+  currentStep = 'character';
   setBubble('build your character for today ♡', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
   const src  = `infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
+  setSaveBtnVisible(true, 'save character &amp; continue →');
 }
 
 // ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
 function stepBingo() {
+  currentStep = 'bingo';
   setBubble('check in with your heart meter ♡', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
   const src  = `bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
+  setSaveBtnVisible(true, 'save &amp; finish →');
 }
 
 // ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
@@ -492,26 +582,111 @@ function stepDone() {
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
-window.addEventListener('message', e => {
-  const { type, game_id } = e.data || {};
-  if (!type) return;
+window.addEventListener('message', async e => {
+  const msg = e.data || {};
+  if (!msg.type) return;
 
-  if (type === 'map_saved' && e.data.game_id) {
-    // New map built — store its id and proceed to phase select
-    activeGameId   = e.data.game_id;
+  // New map built — advance to phase select
+  if (msg.type === 'map_saved' && msg.game_id) {
+    activeGameId   = msg.game_id;
     activeGameData = {
-      id: e.data.game_id,
-      map_name: e.data.map_name || 'my map',
-      map_type: e.data.map_type || 'spiral',
-      map_data: e.data.map_data || { zones:[] },
+      id: msg.game_id, map_name: msg.map_name || 'my map',
+      map_type: msg.map_type || 'spiral', map_data: msg.map_data || { zones:[] },
     };
     activePhase = null;
+    setSaveBtnVisible(false);
     stepPhaseSelect();
     return;
   }
-  if (type === 'char_next') { stepBingo(); return; }
-  if (type === 'char_saved') { /* wait for char_next */ return; }
-  if (type === 'bingo_saved') { stepDone(); return; }
+
+  // ── Character state received — save to daily_entries ───
+  if (msg.type === 'char_state') {
+    const charState = msg.state || {};
+    if (!charState.body) {
+      showRoomStatus('pick a body first!', '#E8478B');
+      const btn = document.getElementById('save-continue-btn');
+      btn.disabled = false; btn.innerHTML = 'save character &amp; continue →';
+      return;
+    }
+    const today = new Date().toLocaleDateString('en-CA');
+    let saved = false;
+
+    if (currentUser && activeGameId && !isGuestMode) {
+      const { error } = await sb.from('daily_entries').upsert({
+        game_id: activeGameId, user_id: currentUser.id,
+        entry_date: today, map_phase: activePhase,
+        character_data: charState,
+      }, { onConflict: 'game_id,entry_date' });
+      saved = !error;
+      if (error) showRoomStatus('save failed', '#E8478B');
+    } else {
+      try {
+        let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
+        const idx = entries.findIndex(e => e.game_id === activeGameId && e.entry_date === today);
+        const entry = { game_id: activeGameId || 'guest', entry_date: today,
+          map_phase: activePhase, character_data: charState };
+        if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
+        else entries.push(entry);
+        localStorage.setItem('hb_entries', JSON.stringify(entries));
+        saved = true;
+      } catch(e) { showRoomStatus('save failed', '#E8478B'); }
+    }
+
+    if (saved) {
+      showRoomStatus('character saved ✓', '#6ab86a');
+      setSaveBtnVisible(false);
+      stepBingo();
+    } else {
+      const btn = document.getElementById('save-continue-btn');
+      btn.disabled = false; btn.innerHTML = 'save character &amp; continue →';
+    }
+    return;
+  }
+
+  // ── Bingo state received — save to daily_entries ───────
+  if (msg.type === 'bingo_state') {
+    const { marked: markedArr, score } = msg;
+    if (!score || score === 0) {
+      showRoomStatus('check some squares first!', '#E8478B');
+      const btn = document.getElementById('save-continue-btn');
+      btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
+      return;
+    }
+    const today        = new Date().toLocaleDateString('en-CA');
+    const energyScore  = Math.round((score / 24) * 100);
+    const bingoPayload = { marked: markedArr, score };
+    let saved = false;
+
+    if (currentUser && activeGameId && !isGuestMode) {
+      const { error } = await sb.from('daily_entries').upsert({
+        game_id: activeGameId, user_id: currentUser.id,
+        entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
+      }, { onConflict: 'game_id,entry_date' });
+      saved = !error;
+      if (error) showRoomStatus('save failed', '#E8478B');
+    } else {
+      try {
+        let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
+        const idx = entries.findIndex(e => e.game_id === activeGameId && e.entry_date === today);
+        const entry = { game_id: activeGameId || 'guest', entry_date: today,
+          bingo_data: bingoPayload, energy_score: energyScore };
+        if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
+        else entries.push(entry);
+        localStorage.setItem('hb_entries', JSON.stringify(entries));
+        saved = true;
+      } catch(e) { showRoomStatus('save failed', '#E8478B'); }
+    }
+
+    if (saved) {
+      showRoomStatus('all saved ✓', '#6ab86a');
+      setSaveBtnVisible(false);
+      stepDone();
+    } else {
+      const btn = document.getElementById('save-continue-btn');
+      btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
+    }
+    return;
+  }
 });
 
 // ── SVG BUILDERS (read-only, zone click = phase select) ──
