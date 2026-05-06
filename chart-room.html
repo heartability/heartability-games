@@ -344,11 +344,22 @@ async function saveAndContinue() {
   if (!iframe) { btn.disabled = false; return; }
 
   if (currentStep === 'map') {
-    // Tell treasure-map to run its own save logic; response arrives via map_saved postMessage
     iframe.contentWindow.postMessage({ type: 'save_map' }, '*');
   } else {
-    // Request current state from character builder or bingo
     iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
+    // Fallback: re-enable button if no response arrives within 5 seconds
+    const label = currentStep === 'character'
+      ? 'save character &amp; continue →'
+      : 'save &amp; finish →';
+    clearTimeout(window._saveFallback);
+    window._saveFallback = setTimeout(() => {
+      const b = document.getElementById('save-continue-btn');
+      if (b && b.disabled) {
+        b.disabled = false;
+        b.innerHTML = label;
+        showRoomStatus('something went wrong — try again', '#E8478B');
+      }
+    }, 5000);
   }
 }
 
@@ -620,6 +631,7 @@ window.addEventListener('message', async e => {
 
   // ── Character state received — save to daily_entries ───
   if (msg.type === 'char_state') {
+    clearTimeout(window._saveFallback);
     const charState = msg.state || {};
     if (!charState.body) {
       showRoomStatus('pick a body first!', '#E8478B');
@@ -664,6 +676,7 @@ window.addEventListener('message', async e => {
 
   // ── Bingo state received — update daily_entries (preserve character_data) ──
   if (msg.type === 'bingo_state') {
+    clearTimeout(window._saveFallback);
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
       showRoomStatus('check some squares first!', '#E8478B');
