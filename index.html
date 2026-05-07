@@ -352,10 +352,11 @@ body {
 @keyframes popIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
 .gate-titlebar {
   height:40px; background:#e8e3da; border-bottom:2px solid #bbb;
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:center; justify-content:center;
   padding:0 14px; font-size:15px; color:#555;
+  position:relative;
 }
-.gate-x { cursor:pointer; color:#aaa; font-size:16px; }
+.gate-x { cursor:pointer; color:#aaa; font-size:16px; position:absolute; right:14px; }
 .gate-x:hover { color:#6579e2; }
 .gate-body { padding:24px 22px 20px; display:flex; flex-direction:column; gap:12px; }
 .gate-title { font-size:14px; color:#aaa; text-align:center; margin-bottom:4px; }
@@ -363,7 +364,7 @@ body {
   padding:13px 18px; background:#6579e2;
   border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
   font-family:"ZoesHandwriting",cursive; font-size:16px; color:#fff;
-  cursor:pointer; transition:all .05s; text-align:left;
+  cursor:pointer; transition:all .05s; text-align:center;
 }
 .gate-btn:hover { background:#4a5bc4; }
 .gate-btn:active { box-shadow:none; transform:translate(2px,2px); }
