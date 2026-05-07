@@ -86,17 +86,6 @@ h1.room-title {
   margin-bottom: 16px;
 }
 
-.topbar {
-  width: 100%;
-  max-width: 1050px;
-  display: flex;
-  justify-content: space-between;
-  align-items: left;
-  margin-bottom: 10px;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .instructions {
   font-family: var(--font-game);
   font-size: clamp(12px, 1.8vw, 16px);
@@ -121,6 +110,15 @@ h1.room-title {
 }
 .btn:hover { filter: brightness(1.15); }
 .btn:active { transform: translate(2px,3px); box-shadow: none; }
+
+.panel-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #c8b88a;
+}
 
 .main-panel {
   width: 100%;
@@ -345,12 +343,6 @@ body, .wall { background: #e8e4dc; }
   <div class="wall">
     <h1 class="room-title">infinity mirror</h1>
 
-    <div class="topbar">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
-      </div>
-    </div>
-
     <div class="main-panel">
       <div class="name-row">
         <div class="section-label">name your character</div>
@@ -395,6 +387,10 @@ body, .wall { background: #e8e4dc; }
           <div class="char-name-display" id="charNameDisplay"></div>
           <div class="summary-box" id="summaryBox">nothing selected yet</div>
         </div>
+      </div>
+
+      <div class="panel-action-bar">
+        <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
       </div>
     </div>
   </div>
