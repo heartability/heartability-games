@@ -292,6 +292,45 @@ body, .wall { background: #e8e4dc; }
 
 .zone-prompt-box.show { display: block; }
 
+/* ── PROMPT BOX TITLE ─────────────────────────────── */
+.prompt-title {
+  font-family: var(--font-hand);
+  font-size: 13px;
+  color: var(--text-mid);
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+/* ── MAP SHAPE LABEL ──────────────────────────────── */
+.map-shape-label {
+  font-family: var(--font-hand);
+  font-size: 17px;
+  color: var(--text-mid);
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.map-shape-sub {
+  font-family: var(--font-hand);
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 6px;
+  cursor: pointer;
+  display: inline-block;
+}
+.map-shape-sub:hover { text-decoration: underline; color: #6579e2; }
+
+/* ── BOTTOM ACTION BAR ────────────────────────────── */
+.panel-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--panel-border);
+}
+
 /* ── SQUARE MODE ─────────────────────────────────── */
 .square-canvas {
   background: #e8e0c8;
@@ -341,10 +380,14 @@ body, .wall { background: #e8e4dc; }
             <input class="map-input" id="mapName" type="text" placeholder="i am working toward..." maxlength="60" oninput="onNameInput()">
           </div>
 
-          <!-- Mode toggle below name input -->
-          <div class="mode-toggle" style="margin:0;">
-            <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
-            <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+          <!-- Map shape selector with label -->
+          <div>
+            <div class="map-shape-label">map shape</div>
+            <span class="map-shape-sub">click to learn more ↗</span>
+            <div class="mode-toggle" style="margin:0;">
+              <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
+              <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+            </div>
           </div>
 
           <div class="palette-section">
@@ -362,14 +405,9 @@ body, .wall { background: #e8e4dc; }
         <!-- MAP AREA -->
         <div class="map-col">
 
-          <!-- Save/Clear buttons above map where mode toggle used to be -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <!-- "your map" label only above canvas -->
+          <div style="margin-bottom:6px;">
             <div class="section-header" style="margin-bottom:0;">your map</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
-              <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">♥ SAVE MAP</button>
-              <span id="save-status" style="font-family:var(--font-game);font-size:14px;color:#83d2e6;"></span>
-            </div>
           </div>
 
           <!-- Spiral canvas (default) -->
@@ -402,11 +440,21 @@ body, .wall { background: #e8e4dc; }
             </svg>
           </div>
 
-          <!-- Zone prompt below map (replaces old statusBar) -->
-          <div class="status-bar" id="zonePrompt" style="margin-top:8px;display:none;"></div>
+          <!-- Zone prompt below map with title -->
+          <div class="status-bar" id="zonePrompt" style="margin-top:8px;display:none;">
+            <div class="prompt-title" id="promptTitle"></div>
+            <span id="promptText"></span>
+          </div>
 
         </div>
 
+      </div>
+
+      <!-- Bottom action bar — save/clear sit here, bottom right of panel -->
+      <div class="panel-action-bar">
+        <span id="save-status" style="font-family:var(--font-game);font-size:14px;color:#83d2e6;"></span>
+        <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
+        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">♥ SAVE MAP</button>
       </div>
 
     </div>
@@ -504,6 +552,9 @@ function setMode(mode) {
   document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
   sel.activeTerrain = null; sel.activeFeeling = null;
   sel.activeCat = null;     sel.activeTint = null;
+  // Hide prompt when switching modes
+  const zp = document.getElementById("zonePrompt");
+  if (zp) zp.style.display = 'none';
 }
 
 function onNameInput() {
@@ -529,11 +580,14 @@ function spiralSaveState() {
 }
 function updateSpiralStatus() {
   const prompt = document.getElementById("zonePrompt");
+  const title  = document.getElementById("promptTitle");
+  const text   = document.getElementById("promptText");
   if (activeZone === null) {
     prompt.style.display = 'none';
-    prompt.textContent = '';
   } else {
-    prompt.textContent = ZONE_PROMPTS[activeZone];
+    const zoneNum = activeZone + 1;
+    title.textContent = `zone ${zoneNum} — [Spiral maps represent exploring iterative cycles that require divine trust.]`;
+    text.textContent  = ZONE_PROMPTS[activeZone];
     prompt.style.display = 'block';
   }
 }
@@ -560,11 +614,14 @@ function squareSaveState() {
 }
 function updateSquareStatus() {
   const prompt = document.getElementById("zonePrompt");
+  const title  = document.getElementById("promptTitle");
+  const text   = document.getElementById("promptText");
   if (squareActiveZone === null) {
     prompt.style.display = 'none';
-    prompt.textContent = '';
   } else {
-    prompt.textContent = SQUARE_ZONE_PROMPTS[squareActiveZone];
+    const labels = ['1', '2', '3', '4'];
+    title.textContent = `corner ${labels[squareActiveZone]} — [Square maps represent building something with strict routines that require disipline.]`;
+    text.textContent  = SQUARE_ZONE_PROMPTS[squareActiveZone];
     prompt.style.display = 'block';
   }
 }
