@@ -184,19 +184,19 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 /* ── THOUGHT BUBBLE ── */
 .thought-bubble {
   position:absolute; left:calc(100% - 8px); bottom:60%;
-  min-width:clamp(160px,20vw,280px); max-width:clamp(200px,26vw,340px);
+  min-width:clamp(140px,16vw,220px); max-width:clamp(160px,22vw,280px);
   background:#fff; border:2px solid #000; border-radius:50%;
-  padding:14px 24px; font-family:var(--font-hand);
-  font-size:clamp(11px,1.3vw,15px); color:#000; text-align:center;
+  padding:12px 16px; font-family:var(--font-hand);
+  font-size:clamp(11px,1.3vw,14px); color:#000; text-align:center;
   line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   z-index:21;
 }
-.bubble-btns { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.bubble-btns { display:flex; flex-direction:row; gap:6px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
 .bubble-btn {
-  padding:5px 10px; background:var(--blue);
+  padding:4px 10px; background:var(--blue);
   border:1.5px solid #4a5bc4; box-shadow:1px 1px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:12px; color:#fff;
-  cursor:pointer; transition:all .05s;
+  font-family:var(--font-hand); font-size:11px; color:#fff;
+  cursor:pointer; transition:all .05s; white-space:nowrap;
 }
 .bubble-btn:hover { background:#4a5bc4; }
 .bubble-btn:active { box-shadow:none; transform:translate(1px,1px); }
@@ -413,8 +413,8 @@ function showIframe(src) {
 function stepInitial() {
   hidePanel();
   setBubble('ready to chart your day?', [
-    { label: 'new game +',   action: stepNewGame },
-    { label: 'load game ♡',  action: stepLoadGame },
+    { label: 'new game',   action: stepNewGame },
+    { label: 'load game',  action: stepLoadGame },
   ]);
 }
 
