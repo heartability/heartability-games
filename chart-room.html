@@ -184,27 +184,43 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 /* ── THOUGHT BUBBLE ── */
 .thought-bubble {
   position:absolute; left:calc(100% - 8px); bottom:60%;
-  min-width:clamp(140px,16vw,220px); max-width:clamp(160px,22vw,280px);
+  min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
   background:#fff; border:2px solid #000; border-radius:50%;
-  padding:12px 16px; font-family:var(--font-hand);
-  font-size:clamp(11px,1.3vw,14px); color:#000; text-align:center;
+  padding:14px 20px; font-family:var(--font-hand);
+  font-size:clamp(11px,1.3vw,15px); color:#000; text-align:center;
   line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   z-index:21;
 }
-.bubble-btns { display:flex; flex-direction:row; gap:6px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
-.bubble-btn {
-  padding:4px 10px; background:var(--blue);
-  border:1.5px solid #4a5bc4; box-shadow:1px 1px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:11px; color:#fff;
-  cursor:pointer; transition:all .05s; white-space:nowrap;
+.bubble-btns { display:none; } /* buttons moved to back wall */
+
+/* ── WALL BUTTONS — centered on the back wall ── */
+.wall-btns {
+  position:fixed;
+  top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height);
+  z-index:8;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  pointer-events:none;
 }
-.bubble-btn:hover { background:#4a5bc4; }
-.bubble-btn:active { box-shadow:none; transform:translate(1px,1px); }
-.bubble-btn.secondary {
-  background:none; border-color:#ccc; color:#999;
-  box-shadow:none;
+.wall-btns.active { display:flex; }
+.wall-btn {
+  pointer-events:all;
+  padding:14px 40px;
+  background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:3px 3px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:clamp(15px,1.8vw,20px); color:#fff;
+  cursor:pointer; transition:all .05s; min-width:220px; text-align:center;
 }
-.bubble-btn.secondary:hover { border-color:var(--blue); color:var(--blue); }
+.wall-btn:hover { background:#4a5bc4; }
+.wall-btn:active { box-shadow:none; transform:translate(3px,3px); }
+.wall-btn.secondary {
+  background:none; border-color:#ccc; color:#999; box-shadow:none;
+}
+.wall-btn.secondary:hover { border-color:var(--blue); color:var(--blue); }
 
 /* ── SAVE & CONTINUE BUTTON — floats below back wall ── */
 .save-continue-bar {
@@ -286,6 +302,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <div class="content-panel" id="content-panel">
   <!-- filled dynamically -->
 </div>
+
+<!-- WALL BUTTONS — centered on back wall for step choices -->
+<div class="wall-btns" id="wall-btns"></div>
 
 <!-- HEART CHARACTER + BUBBLE -->
 <div class="char-heart" id="char-heart">
@@ -380,15 +399,21 @@ const TERRAIN_IMGS = {
 // ── BUBBLE HELPERS ────────────────────────────────────────
 function setBubble(text, buttons=[]) {
   document.getElementById('bubble-text').textContent = text;
-  const btns = document.getElementById('bubble-btns');
-  btns.innerHTML = '';
-  buttons.forEach(b => {
-    const el = document.createElement('button');
-    el.className = 'bubble-btn' + (b.secondary ? ' secondary' : '');
-    el.textContent = b.label;
-    el.onclick = b.action;
-    btns.appendChild(el);
-  });
+  // Buttons go on the wall, not in the bubble
+  const wall = document.getElementById('wall-btns');
+  wall.innerHTML = '';
+  if (buttons.length) {
+    buttons.forEach(b => {
+      const el = document.createElement('button');
+      el.className = 'wall-btn' + (b.secondary ? ' secondary' : '');
+      el.textContent = b.label;
+      el.onclick = b.action;
+      wall.appendChild(el);
+    });
+    wall.classList.add('active');
+  } else {
+    wall.classList.remove('active');
+  }
 }
 
 // ── CONTENT PANEL HELPERS ────────────────────────────────
@@ -397,6 +422,7 @@ function showPanel(html) {
   panel.innerHTML = html;
   panel.classList.remove('iframe-mode');
   panel.classList.add('active');
+  document.getElementById('wall-btns').classList.remove('active');
 }
 function hidePanel() {
   const panel = document.getElementById('content-panel');
@@ -407,6 +433,7 @@ function showIframe(src) {
   const panel = document.getElementById('content-panel');
   panel.innerHTML = `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
+  document.getElementById('wall-btns').classList.remove('active');
 }
 
 // ── STEP 1: INITIAL CHOICE ────────────────────────────────
