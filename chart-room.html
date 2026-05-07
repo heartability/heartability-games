@@ -447,7 +447,7 @@ function stepInitial() {
 
 // ── STEP 2A: NEW GAME ─────────────────────────────────────
 function stepNewGame() {
-  setBubble('build your map, then save it to begin ♡', []);
+  setBubble('build your map, then save it to begin', []);
   const src = isGuestMode
     ? 'treasure-map.html?mode=new&loop=true'
     : 'treasure-map.html?mode=new&loop=true';
@@ -463,7 +463,7 @@ async function stepLoadGame() {
     ]);
     return;
   }
-  setBubble('choose your map for today ♡', []);
+  setBubble('choose your map for today', []);
   setSaveBtnVisible(false);
 
   let games = [];
@@ -590,7 +590,7 @@ function selectPhase(idx) {
 function stepBegin() {
   if (!activePhase) return;
   currentStep = 'character';
-  setBubble('build your character for today ♡', []);
+  setBubble('build your character for today', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
   const src  = `infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
@@ -600,7 +600,7 @@ function stepBegin() {
 // ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
 function stepBingo() {
   currentStep = 'bingo';
-  setBubble('check in with your heart meter ♡', []);
+  setBubble('check in with your heart meter', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
   const src  = `bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
@@ -609,7 +609,7 @@ function stepBingo() {
 
 // ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
 function stepDone() {
-  setBubble("today's entry is complete ✓ great work ♡", [
+  setBubble("today's entry is complete ✓", [
     { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
     { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
   ]);
