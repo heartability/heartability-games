@@ -440,21 +440,23 @@ body, .wall { background: #e8e4dc; }
             </svg>
           </div>
 
-          <!-- Zone prompt below map with title -->
-          <div class="status-bar" id="zonePrompt" style="margin-top:8px;display:none;">
-            <div class="prompt-title" id="promptTitle"></div>
-            <span id="promptText"></span>
+          <!-- Zone prompt + clear map button in a flex row below the canvas -->
+          <div style="display:flex;align-items:flex-end;gap:8px;margin-top:8px;">
+            <div class="status-bar" id="zonePrompt" style="flex:1;display:none;padding:8px 12px;">
+              <div class="prompt-title" id="promptTitle"></div>
+              <span id="promptText"></span>
+            </div>
+            <button class="rpg-btn" onclick="clearMap()" style="flex-shrink:0;align-self:flex-end;">CLEAR MAP</button>
           </div>
 
         </div>
 
       </div>
 
-      <!-- Bottom action bar — save/clear sit here, bottom right of panel -->
+      <!-- Bottom action bar — save only -->
       <div class="panel-action-bar">
         <span id="save-status" style="font-family:var(--font-game);font-size:14px;color:#83d2e6;"></span>
-        <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
-        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">♥ SAVE MAP</button>
+        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">SAVE MAP</button>
       </div>
 
     </div>
@@ -524,6 +526,11 @@ let currentMode = 'spiral';
 // Shared selection tracker
 let sel = { activeTerrain: null, activeFeeling: null, activeCat: null, activeTint: null };
 
+const MAP_DESCRIPTIONS = {
+  spiral: 'Spiral maps represent exploring iterative cycles that require divine trust.',
+  square: 'Square maps represent building something with strict routines that require discipline.',
+};
+
 function setMode(mode) {
   currentMode = mode;
   const spiralEl = document.getElementById("spiralCanvas");
@@ -538,7 +545,7 @@ function setMode(mode) {
     btnSp.classList.remove('mode-active');
     document.getElementById("mapName").value = squareState.name || "";
     renderSquareZones();
-    updateSquareStatus();
+    squareActiveZone = null;
   } else {
     spiralEl.style.display = 'block';
     squareEl.style.display = 'none';
@@ -546,15 +553,21 @@ function setMode(mode) {
     btnSq.classList.remove('mode-active');
     document.getElementById("mapName").value = spiralState.name || "";
     renderZoneCircles();
-    updateSpiralStatus();
+    activeZone = null;
   }
   document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
   sel.activeTerrain = null; sel.activeFeeling = null;
   sel.activeCat = null;     sel.activeTint = null;
-  // Hide prompt when switching modes
-  const zp = document.getElementById("zonePrompt");
-  if (zp) zp.style.display = 'none';
+
+  // Show map type description in prompt box when mode is selected
+  const prompt = document.getElementById("zonePrompt");
+  const title  = document.getElementById("promptTitle");
+  const text   = document.getElementById("promptText");
+  title.style.display = '';
+  title.textContent = mode === 'square' ? 'square map' : 'spiral map';
+  text.textContent  = MAP_DESCRIPTIONS[mode];
+  prompt.style.display = 'block';
 }
 
 function onNameInput() {
@@ -585,9 +598,9 @@ function updateSpiralStatus() {
   if (activeZone === null) {
     prompt.style.display = 'none';
   } else {
-    const zoneNum = activeZone + 1;
-    title.textContent = `zone ${zoneNum} — [Spiral maps represent exploring iterative cycles that require divine trust.]`;
-    text.textContent  = ZONE_PROMPTS[activeZone];
+    title.textContent = '';
+    title.style.display = 'none';
+    text.textContent = ZONE_PROMPTS[activeZone];
     prompt.style.display = 'block';
   }
 }
@@ -619,9 +632,9 @@ function updateSquareStatus() {
   if (squareActiveZone === null) {
     prompt.style.display = 'none';
   } else {
-    const labels = ['1', '2', '3', '4'];
-    title.textContent = `corner ${labels[squareActiveZone]} — [Square maps represent building something with strict routines that require disipline.]`;
-    text.textContent  = SQUARE_ZONE_PROMPTS[squareActiveZone];
+    title.textContent = '';
+    title.style.display = 'none';
+    text.textContent = SQUARE_ZONE_PROMPTS[squareActiveZone];
     prompt.style.display = 'block';
   }
 }
@@ -927,12 +940,12 @@ async function loadGameContext() {
   const saveBtn = document.getElementById('btn-save-today');
 
   if (!currentGameId || urlMode === 'new') {
-    saveBtn.textContent = '♥ SAVE MAP';
+    saveBtn.textContent = 'SAVE MAP';
     return;
   }
 
   // Existing game — load it
-  saveBtn.textContent = '♥ SAVE TODAY';
+  saveBtn.textContent = 'SAVE TODAY';
   showSaveStatus('loading...', '#83d2e6');
 
   let gameData = null;
@@ -1005,7 +1018,7 @@ async function saveToday() {
   }
 
   const btn = document.getElementById('btn-save-today');
-  if (btn) btn.textContent = '♥ SAVING...';
+  if (btn) btn.textContent = 'SAVING...';
 
   // Guest / not logged in
   if (!currentUser) { saveGuestData(mapName, mapData, mapType, activeIdx, today, btn); return; }
@@ -1014,7 +1027,7 @@ async function saveToday() {
   if (!currentGameId) {
     if (!mapName) {
       showSaveStatus('name your goal first!', '#ff6b6b');
-      if (btn) btn.textContent = '♥ SAVE MAP';
+      if (btn) btn.textContent = 'SAVE MAP';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your goal first' }, '*'); } catch(e) {}
       return;
     }
@@ -1023,13 +1036,13 @@ async function saveToday() {
     }).select().single();
     if (error) {
       showSaveStatus('save failed', '#ff6b6b');
-      if (btn) btn.textContent = '♥ SAVE MAP';
+      if (btn) btn.textContent = 'SAVE MAP';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'save failed' }, '*'); } catch(e) {}
       return;
     }
     currentGameId = newGame.id;
     showSaveStatus('map created ✓', '#83d2e6');
-    if (btn) { btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6'; }
+    if (btn) { btn.textContent = 'SAVED ✓'; btn.style.opacity = '0.6'; }
     // Notify chart-room to advance to phase select
     try { window.parent.postMessage({ type: 'map_saved', game_id: newGame.id, map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
     return;
@@ -1048,8 +1061,8 @@ async function saveToday() {
     entry_date: today, map_location: mapLocation, map_phase: mapPhase,
   }, { onConflict: 'game_id,entry_date' });
 
-  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = '♥ SAVE TODAY'; }
-  else { showSaveStatus("entry saved ✓", '#83d2e6'); btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6'; }
+  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = 'SAVE TODAY'; }
+  else { showSaveStatus("entry saved ✓", '#83d2e6'); btn.textContent = 'SAVED TODAY ✓'; btn.style.opacity = '0.6'; }
 }
 
 // ── GUEST SAVE ────────────────────────────────────────────────────────────
@@ -1058,14 +1071,14 @@ function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
     let games   = JSON.parse(localStorage.getItem('hb_games')   || '[]');
     let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
     if (!currentGameId) {
-      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = '♥ SAVE MAP'; return; }
+      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = 'SAVE MAP'; return; }
       const newId = 'guest_' + Date.now();
       games.push({ id: newId, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active',
         created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
       currentGameId = newId;
       localStorage.setItem('hb_games', JSON.stringify(games));
       showSaveStatus('map saved locally ✓', '#83d2e6');
-      btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6';
+      btn.textContent = 'SAVED ✓'; btn.style.opacity = '0.6';
       return;
     }
     games = games.map(g => g.id === currentGameId
@@ -1078,8 +1091,8 @@ function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
     entries.push(entry);
     localStorage.setItem('hb_entries', JSON.stringify(entries));
     showSaveStatus('saved locally ✓', '#83d2e6');
-    btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6';
-  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = '♥ SAVE TODAY'; }
+    btn.textContent = 'SAVED TODAY ✓'; btn.style.opacity = '0.6';
+  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = 'SAVE TODAY'; }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
