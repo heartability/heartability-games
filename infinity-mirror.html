@@ -111,15 +111,6 @@ h1.room-title {
 .btn:hover { filter: brightness(1.15); }
 .btn:active { transform: translate(2px,3px); box-shadow: none; }
 
-.panel-action-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid #c8b88a;
-}
-
 .main-panel {
   width: 100%;
   max-width: 1050px;
@@ -386,11 +377,8 @@ body, .wall { background: #e8e4dc; }
           </div>
           <div class="char-name-display" id="charNameDisplay"></div>
           <div class="summary-box" id="summaryBox">nothing selected yet</div>
+          <button class="btn" onclick="resetCharacter()" style="margin-top:10px;width:100%;">&#x25BA; RESET</button>
         </div>
-      </div>
-
-      <div class="panel-action-bar">
-        <button class="btn" onclick="resetCharacter()">&#x25BA; RESET</button>
       </div>
     </div>
   </div>
