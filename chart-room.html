@@ -55,9 +55,10 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   width:100%; height:100%;
   border:none; display:block;
 }
-/* Blue double-border shown when back wall contains a game iframe */
+/* Black border when back wall shows a game */
 .content-panel.iframe-mode {
-  box-shadow: inset 0 0 0 3px #6579e2, inset 0 0 0 6px #83d2e6;
+  border:3px solid #111;
+  box-shadow: inset 0 0 0 2px #83d2e6;
 }
 
 /* ── STEP PANELS (map grid, phase select) ── */
@@ -190,15 +191,15 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   z-index:21;
 }
-.bubble-btns { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+.bubble-btns { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
 .bubble-btn {
-  padding:8px 14px; background:var(--blue);
-  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:14px; color:#fff;
+  padding:5px 10px; background:var(--blue);
+  border:1.5px solid #4a5bc4; box-shadow:1px 1px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:12px; color:#fff;
   cursor:pointer; transition:all .05s;
 }
 .bubble-btn:hover { background:#4a5bc4; }
-.bubble-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.bubble-btn:active { box-shadow:none; transform:translate(1px,1px); }
 .bubble-btn.secondary {
   background:none; border-color:#ccc; color:#999;
   box-shadow:none;
@@ -340,27 +341,12 @@ async function saveAndContinue() {
   btn.disabled = true;
   btn.textContent = 'saving...';
 
+  // Request state from iframe
   const iframe = document.getElementById('game-iframe');
   if (!iframe) { btn.disabled = false; return; }
 
-  if (currentStep === 'map') {
-    iframe.contentWindow.postMessage({ type: 'save_map' }, '*');
-  } else {
-    iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
-    // Fallback: re-enable button if no response arrives within 5 seconds
-    const label = currentStep === 'character'
-      ? 'save character &amp; continue →'
-      : 'save &amp; finish →';
-    clearTimeout(window._saveFallback);
-    window._saveFallback = setTimeout(() => {
-      const b = document.getElementById('save-continue-btn');
-      if (b && b.disabled) {
-        b.disabled = false;
-        b.innerHTML = label;
-        showRoomStatus('something went wrong — try again', '#E8478B');
-      }
-    }, 5000);
-  }
+  iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
+  // Response handled in the message listener below
 }
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
@@ -434,11 +420,11 @@ function stepInitial() {
 
 // ── STEP 2A: NEW GAME ─────────────────────────────────────
 function stepNewGame() {
-  currentStep = 'map';
   setBubble('build your map, then save it to begin ♡', []);
-  const src = 'treasure-map.html?mode=new&loop=true';
+  const src = isGuestMode
+    ? 'treasure-map.html?mode=new&loop=true'
+    : 'treasure-map.html?mode=new&loop=true';
   showIframe(src);
-  setSaveBtnVisible(true, 'save map &amp; continue →');
 }
 
 // ── STEP 2B: LOAD GAME ────────────────────────────────────
@@ -597,7 +583,8 @@ function stepBingo() {
 // ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
 function stepDone() {
   setBubble("today's entry is complete ✓ great work ♡", [
-    { label: 'back to game room', action: () => window.location.href='game-select.html' },
+    { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
+    { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
   ]);
   hidePanel();
 }
@@ -616,22 +603,12 @@ window.addEventListener('message', async e => {
     };
     activePhase = null;
     setSaveBtnVisible(false);
-    showRoomStatus('map saved ✓', '#6ab86a');
     stepPhaseSelect();
-    return;
-  }
-
-  // Map save failed or was cancelled — re-enable button
-  if (msg.type === 'map_save_failed') {
-    const btn = document.getElementById('save-continue-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'save map &amp; continue →'; }
-    showRoomStatus(msg.reason || 'add a goal name and some terrain first', '#E8478B');
     return;
   }
 
   // ── Character state received — save to daily_entries ───
   if (msg.type === 'char_state') {
-    clearTimeout(window._saveFallback);
     const charState = msg.state || {};
     if (!charState.body) {
       showRoomStatus('pick a body first!', '#E8478B');
@@ -674,9 +651,8 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Bingo state received — update daily_entries (preserve character_data) ──
+  // ── Bingo state received — save to daily_entries ───────
   if (msg.type === 'bingo_state') {
-    clearTimeout(window._saveFallback);
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
       showRoomStatus('check some squares first!', '#E8478B');
@@ -690,21 +666,12 @@ window.addEventListener('message', async e => {
     let saved = false;
 
     if (currentUser && activeGameId && !isGuestMode) {
-      // Use update() to only touch bingo columns — preserves character_data from earlier step
-      const { error } = await sb.from('daily_entries')
-        .update({ bingo_data: bingoPayload, energy_score: energyScore })
-        .eq('game_id', activeGameId)
-        .eq('entry_date', today)
-        .eq('user_id', currentUser.id);
-      // If no row exists yet (e.g. skipped character step), fall back to upsert
-      if (error) {
-        const { error: e2 } = await sb.from('daily_entries').upsert({
-          game_id: activeGameId, user_id: currentUser.id,
-          entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
-        }, { onConflict: 'game_id,entry_date' });
-        saved = !e2;
-        if (e2) showRoomStatus('save failed', '#E8478B');
-      } else { saved = true; }
+      const { error } = await sb.from('daily_entries').upsert({
+        game_id: activeGameId, user_id: currentUser.id,
+        entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
+      }, { onConflict: 'game_id,entry_date' });
+      saved = !error;
+      if (error) showRoomStatus('save failed', '#E8478B');
     } else {
       try {
         let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
