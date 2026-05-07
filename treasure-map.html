@@ -329,19 +329,11 @@ body, .wall { background: #e8e4dc; }
     <!-- GAME CONTEXT BANNER — shown when playing an existing game -->
     <div class="game-context-banner" id="game-context"></div>
 
-    <div class="topbar">
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
-        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">SAVE MAP</button>
-      </div>
-      <span id="save-status" style="font-family:var(--font-game);font-size:16px;color:#83d2e6;"></span>
-    </div>
-
     <div class="rpg-panel">
 
       <div class="two-col">
 
-        <!-- SIDE PANEL — name input + zone prompt + terrain + feelings -->
+        <!-- SIDE PANEL — name input + mode toggle + terrain + feelings -->
         <div class="side-panel">
 
           <div>
@@ -349,8 +341,11 @@ body, .wall { background: #e8e4dc; }
             <input class="map-input" id="mapName" type="text" placeholder="i am working toward..." maxlength="60" oninput="onNameInput()">
           </div>
 
-          <!-- Zone prompt lives here in left column -->
-          <div class="status-bar" id="zonePrompt" style="display:none;"></div>
+          <!-- Mode toggle below name input -->
+          <div class="mode-toggle" style="margin:0;">
+            <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
+            <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+          </div>
 
           <div class="palette-section">
             <div class="section-header">terrain</div>
@@ -367,11 +362,13 @@ body, .wall { background: #e8e4dc; }
         <!-- MAP AREA -->
         <div class="map-col">
 
+          <!-- Save/Clear buttons above map where mode toggle used to be -->
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <div class="section-header" style="margin-bottom:0;">your map</div>
-            <div class="mode-toggle" style="margin:0;">
-              <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
-              <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="rpg-btn" onclick="clearMap()">CLEAR MAP</button>
+              <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">♥ SAVE MAP</button>
+              <span id="save-status" style="font-family:var(--font-game);font-size:14px;color:#83d2e6;"></span>
             </div>
           </div>
 
@@ -390,12 +387,9 @@ body, .wall { background: #e8e4dc; }
           <div class="square-canvas" id="squareCanvas" style="display:none;">
             <svg id="squareSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="squareDefs"></defs>
-              <!-- Outer border -->
               <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
-              <!-- Center cross (dashed) -->
               <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
               <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
-              <!-- Corner tick marks -->
               <line x1="50" y1="28" x2="80" y2="28" stroke="#8a7a5a" stroke-width="1.5"/>
               <line x1="50" y1="28" x2="50" y2="58" stroke="#8a7a5a" stroke-width="1.5"/>
               <line x1="450" y1="28" x2="420" y2="28" stroke="#8a7a5a" stroke-width="1.5"/>
@@ -408,10 +402,8 @@ body, .wall { background: #e8e4dc; }
             </svg>
           </div>
 
-          <!-- Status bar BELOW map -->
-          <div class="status-bar" id="statusBar" style="margin-top:8px;">
-            click a zone on the spiral to begin
-          </div>
+          <!-- Zone prompt below map (replaces old statusBar) -->
+          <div class="status-bar" id="zonePrompt" style="margin-top:8px;display:none;"></div>
 
         </div>
 
@@ -490,7 +482,6 @@ function setMode(mode) {
   const squareEl = document.getElementById("squareCanvas");
   const btnSp    = document.getElementById("btn-spiral");
   const btnSq    = document.getElementById("btn-square");
-  const promptEl = document.getElementById("zonePrompt");
 
   if (mode === 'square') {
     spiralEl.style.display = 'none';
@@ -537,13 +528,11 @@ function spiralSaveState() {
   try { localStorage.setItem("hb-spiral", JSON.stringify(spiralState)); } catch(e) {}
 }
 function updateSpiralStatus() {
-  const bar    = document.getElementById("statusBar");
   const prompt = document.getElementById("zonePrompt");
   if (activeZone === null) {
-    bar.innerHTML = 'click a zone on the spiral to begin';
-    prompt.style.display = 'none'; prompt.textContent = '';
+    prompt.style.display = 'none';
+    prompt.textContent = '';
   } else {
-    bar.innerHTML = `<span class="status-active">zone ${activeZone + 1} selected</span> <span class="status-hint">· choose terrain and feeling below</span>`;
     prompt.textContent = ZONE_PROMPTS[activeZone];
     prompt.style.display = 'block';
   }
@@ -570,13 +559,11 @@ function squareSaveState() {
   try { localStorage.setItem("hb-square", JSON.stringify(squareState)); } catch(e) {}
 }
 function updateSquareStatus() {
-  const bar    = document.getElementById("statusBar");
   const prompt = document.getElementById("zonePrompt");
   if (squareActiveZone === null) {
-    bar.innerHTML = 'click a corner to begin';
-    prompt.style.display = 'none'; prompt.textContent = '';
+    prompt.style.display = 'none';
+    prompt.textContent = '';
   } else {
-    bar.innerHTML = `<span class="status-active">corner ${squareActiveZone + 1} selected</span> <span class="status-hint">· choose terrain and feeling below</span>`;
     prompt.textContent = SQUARE_ZONE_PROMPTS[squareActiveZone];
     prompt.style.display = 'block';
   }
@@ -675,9 +662,10 @@ function renderZoneCircles() {
     }
     if (zone.feeling) {
       const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 13);
-      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#5a4a2a');
-      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '11');
+      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 18);
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#2a1e14');
+      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '15');
+      feelEl.setAttribute('font-weight', 'bold');
       feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
       zoneGroup.appendChild(feelEl);
     }
@@ -759,9 +747,10 @@ function renderSquareZones() {
     }
     if (zone.feeling) {
       const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 13);
-      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#5a4a2a');
-      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '11');
+      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 18);
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#2a1e14');
+      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '15');
+      feelEl.setAttribute('font-weight', 'bold');
       feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
       zoneGroup.appendChild(feelEl);
     }
