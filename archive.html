@@ -51,7 +51,16 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 }
 .game-dropdown:focus { border-color:var(--aqua); }
 
-/* ── PAGE ── */
+/* ── PAGE HEADER — title + game selector ── */
+.page-header {
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%; gap:20px; flex-wrap:wrap;
+}
+.page-game-title {
+  font-family:var(--font-pixel);
+  font-size:clamp(28px, 4vw, 52px);
+  color:#222; font-weight:normal; line-height:1;
+}
 .page-wrap {
   min-height:100dvh; padding:60px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
@@ -214,7 +223,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
-.bar-col { flex-shrink:0; width:36px; }
+.bar-col {
+  flex-shrink:0; width:36px;
+  height:100%;
+  display:flex; align-items:flex-end;
+}
 .bar-fill {
   width:100%; border-radius:2px 2px 0 0;
   min-height:2px; transition:height .3s ease;
@@ -225,6 +238,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-game); font-size:10px; color:rgba(255,255,255,.85);
   position:absolute; top:-14px; left:50%; transform:translateX(-50%);
   white-space:nowrap;
+}
+
+/* Taller calendar titlebar for month label */
+#cal-window .window-titlebar {
+  height:52px;
 }
 
 /* Phase legend */
@@ -311,12 +329,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='game-select.html'">← back</span>
-  <div class="game-select-wrap">
-    <span style="font-size:13px;color:#777;">viewing:</span>
-    <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()">
-      <option value="">loading maps...</option>
-    </select>
-  </div>
   <span class="nav-btn" onclick="window.location.href='chart-room.html'">chart room →</span>
 </nav>
 
@@ -324,6 +336,17 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 <div class="page-wrap">
   <div class="page-body" id="main-content">
+
+    <!-- PAGE HEADER: game title + dropdown -->
+    <div class="page-header">
+      <h1 class="page-game-title" id="page-game-title">archive</h1>
+      <div class="game-select-wrap">
+        <span style="font-size:13px;color:#777;">viewing:</span>
+        <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()">
+          <option value="">loading maps...</option>
+        </select>
+      </div>
+    </div>
 
     <!-- TOP ROW: bar chart + map -->
     <div class="top-row">
@@ -664,6 +687,8 @@ async function loadEntries() {
 
   const game = allGames.find(g => g.id === activeGameId);
   document.getElementById('cal-entry-count').textContent = allEntries.length + ' entries';
+  const titleEl = document.getElementById('page-game-title');
+  if (titleEl) titleEl.textContent = game?.map_name || 'archive';
 
   renderCalendar();
   renderBarGraph();
