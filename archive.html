@@ -663,7 +663,6 @@ async function loadEntries() {
   entryMap   = buildEntryMap(allEntries);
 
   const game = allGames.find(g => g.id === activeGameId);
-  document.getElementById('cal-game-name').textContent = game?.map_name || 'archive';
   document.getElementById('cal-entry-count').textContent = allEntries.length + ' entries';
 
   renderCalendar();
