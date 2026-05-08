@@ -56,10 +56,10 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-hand); font-size:14px;
 }
 .game-dropdown {
-  font-family:var(--font-hand); font-size:14px;
+  font-family:var(--font-hand); font-size:18px;
   border:1.5px solid var(--purple); background:var(--cream);
-  color:#333; padding:3px 8px; cursor:pointer;
-  max-width:200px; outline:none;
+  color:#333; padding:5px 10px; cursor:pointer;
+  max-width:260px; outline:none;
 }
 .game-dropdown:focus { border-color:var(--aqua); }
 .page-wrap {
@@ -243,7 +243,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* Taller calendar titlebar for month label */
 #cal-window .window-titlebar {
-  height:52px;
+  height:64px;
 }
 
 /* Phase legend */
@@ -804,7 +804,7 @@ function renderBarGraph() {
   const GRAPH_H    = 180; // px of actual bar area (220 - 36 bottom padding - 4 top)
 
   // ── Y axis ──
-  const yLabels = ['hard', 'medium', 'easy'];
+  const yLabels = ['easy', 'medium', 'hard'];
   yLabels.forEach((lbl, i) => {
     const el = document.createElement('div');
     el.className = 'y-label' + (i > 0 && i < 4 ? ' reading-zone' : '');
