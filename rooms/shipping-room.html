@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping Room — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:   "ZoesHandwriting", cursive;
+  --font-pixel:  "PFPixelscript", cursive;
+  --back-wall:   #f0ece4;
+  --side-col:    #dbd6ce;
+  --line-col:    #111;
+  --bw-top:    9%;
+  --bw-left:   15%;
+  --bw-width:  70%;
+  --bw-height: 70%;
+}
+
+html, body {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  background: var(--side-col);
+}
+
+/* ── Room lines ── */
+.room-lines {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+}
+.room-lines svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* ── Back wall ── */
+.back-wall {
+  position: fixed;
+  top: var(--bw-top); left: var(--bw-left);
+  width: var(--bw-width); height: var(--bw-height);
+  background: var(--back-wall);
+  border: 2px solid var(--line-col);
+  z-index: 3; pointer-events: none;
+}
+
+/* ── Nav bar ── */
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: #c9fff5; border-bottom: 2px solid var(--line-col);
+  z-index: 200; display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px); color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; transition: background .15s; }
+.nav-btn:hover { background: rgba(0,0,0,.08); }
+
+/* ─────────────────────────────────────────────────
+   POSTERS  z:4
+   Two tall poster panels hung on the back wall.
+───────────────────────────────────────────────── */
+.poster {
+  position: fixed;
+  z-index: 4;
+  background: #fdf6e3;
+  border: 2px solid #2a1e14;
+  box-shadow: 3px 4px 0 1px rgba(0,0,0,.25), inset 0 0 0 4px #f0ead6;
+  padding: 18px 16px 22px;
+  font-family: var(--font-hand);
+  display: flex; flex-direction: column; gap: 10px;
+  /* slight tilt for character */
+}
+
+.poster-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(13px, 1.5vw, 18px);
+  color: #2a1e14;
+  border-bottom: 1.5px solid #c8b88a;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.poster-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.poster-list li {
+  font-size: clamp(11px, 1.2vw, 15px);
+  color: #3a2e1e;
+  line-height: 1.4;
+  padding-left: 14px;
+  position: relative;
+}
+.poster-list li::before {
+  content: '♡';
+  position: absolute; left: 0;
+  font-size: 10px; color: #6579e2;
+  top: 2px;
+}
+
+/* Recent updates — left side of back wall */
+.poster-updates {
+  top: calc(var(--bw-top) + 5%);
+  left: calc(var(--bw-left) + 3%);
+  width: clamp(160px, 19vw, 280px);
+  min-height: clamp(200px, 40vh, 360px);
+  transform: rotate(-1.2deg);
+}
+
+/* Coming soon — right side of back wall */
+.poster-coming {
+  top: calc(var(--bw-top) + 5%);
+  left: calc(var(--bw-left) + var(--bw-width) - clamp(160px, 19vw, 280px) - 3%);
+  width: clamp(160px, 19vw, 280px);
+  min-height: clamp(200px, 40vh, 360px);
+  transform: rotate(1deg);
+}
+
+/* ─────────────────────────────────────────────────
+   BOXES ON THE FLOOR  z:4
+   Sit in the floor area below the back wall.
+───────────────────────────────────────────────── */
+.floor-box {
+  position: fixed;
+  z-index: 4;
+  /* each box positioned individually */
+}
+.floor-box img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(4px 6px 10px rgba(0,0,0,.3));
+}
+
+/* Box cluster positions — floor area is roughly 62%–100% vertically */
+.box-1 {
+  bottom: clamp(4vh, 6vh, 9vh);
+  left: clamp(18vw, 22vw, 28vw);
+  width: clamp(80px, 10vw, 160px);
+}
+.box-2 {
+  bottom: clamp(2vh, 4vh, 7vh);
+  left: clamp(28vw, 33vw, 40vw);
+  width: clamp(60px, 8vw, 130px);
+}
+.box-3 {
+  bottom: clamp(5vh, 8vh, 12vh);
+  left: clamp(38vw, 43vw, 50vw);
+  width: clamp(90px, 12vw, 180px);
+}
+.box-4 {
+  bottom: clamp(2vh, 3vh, 6vh);
+  left: clamp(50vw, 55vw, 62vw);
+  width: clamp(70px, 9vw, 140px);
+}
+
+/* ── Heart character ── */
+.char-heart {
+  position: fixed;
+  left: clamp(12px, 4vw, 60px);
+  bottom: clamp(4vh, 8vh, 14vh);
+  width: clamp(90px, 13vw, 200px);
+  z-index: 5;
+  cursor: default;
+}
+.char-heart .char-img {
+  display: block; width: 100%; height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.28));
+  animation: idle-float 3.8s ease-in-out infinite;
+}
+@keyframes idle-float {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-8px) rotate(2deg); }
+}
+
+/* ── Thought bubble ── */
+.thought-bubble {
+  position: absolute;
+  left: calc(100% + 4px);
+  bottom: 55%;
+  min-width: clamp(140px, 18vw, 260px);
+  max-width: clamp(180px, 22vw, 300px);
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 12px 18px;
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.2vw, 15px);
+  color: #000; text-align: center; line-height: 1.5;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  display: none;
+}
+.char-heart.active .thought-bubble { display: block; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .poster-updates { width: 26vw; font-size: 11px; }
+  .poster-coming  { width: 26vw; font-size: 11px; }
+  .char-heart     { left: 2vw; bottom: 2vh; width: clamp(70px, 22vw, 150px); }
+  .thought-bubble { font-size: clamp(10px, 2.6vw, 13px); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='game-select.html'">← game room</span>
+  <span style="font-family:var(--font-pixel);">shipping room</span>
+  <span class="nav-btn" onclick="window.location.href='index.html'">home →</span>
+</nav>
+
+<!-- ROOM LINES -->
+<div class="room-lines" aria-hidden="true">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+  </svg>
+</div>
+
+<!-- BACK WALL -->
+<div class="back-wall"></div>
+
+<!-- POSTER: RECENT UPDATES -->
+<div class="poster poster-updates">
+  <div class="poster-title">recent updates</div>
+  <ul class="poster-list">
+    <li>Placeholder update — add your text here</li>
+    <li>Placeholder update — add your text here</li>
+    <li>Placeholder update — add your text here</li>
+    <li>Placeholder update — add your text here</li>
+    <li>Placeholder update — add your text here</li>
+  </ul>
+</div>
+
+<!-- POSTER: COMING SOON -->
+<div class="poster poster-coming">
+  <div class="poster-title">coming soon</div>
+  <ul class="poster-list">
+    <li>Placeholder feature — add your text here</li>
+    <li>Placeholder feature — add your text here</li>
+    <li>Placeholder feature — add your text here</li>
+    <li>Placeholder feature — add your text here</li>
+    <li>Placeholder feature — add your text here</li>
+  </ul>
+</div>
+
+<!-- FLOOR BOXES (swap src for your PNGs) -->
+<div class="floor-box box-1">
+  <img src="assets/elements/shipping/box-large.png" alt="shipping box">
+</div>
+<div class="floor-box box-2">
+  <img src="assets/elements/shipping/box-small.png" alt="shipping box">
+</div>
+<div class="floor-box box-3">
+  <img src="assets/elements/shipping/box-medium.png" alt="shipping box">
+</div>
+<div class="floor-box box-4">
+  <img src="assets/elements/shipping/box-open.png" alt="open shipping box">
+</div>
+
+<!-- HEART CHARACTER -->
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="heart-bubble">
+    fresh out of the oven — here's what's new ♡
+  </div>
+  <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
+</div>
+
+<script>
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  heart.addEventListener('mouseenter', () => heart.classList.add('active'));
+  heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
+</script>
+</body>
+</html>
