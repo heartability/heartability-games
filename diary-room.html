@@ -83,7 +83,7 @@ html, body {
   color: #5a4a2a;
 }
 .journal-controls-right {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px; width: 100%;
 }
 .game-selector {
   font-family: var(--font-hand);
@@ -290,6 +290,7 @@ html, body {
     <select class="game-selector" id="game-selector" onchange="onGameChange()">
       <option value="">select a map...</option>
     </select>
+    <span style="flex:1;"></span>
     <button class="save-btn" onclick="saveEntry()">save</button>
   </div>
 </div>
@@ -332,7 +333,7 @@ html, body {
 
 <!-- HEART CHARACTER -->
 <div class="char-heart" id="char-heart">
-  <div class="thought-bubble">anything you want to put on the record about today? wins, losses, learning moments — it all counts</div>
+  <div class="thought-bubble">what do you want to remember when this day feels far away?</div>
   <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
