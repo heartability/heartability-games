@@ -74,9 +74,8 @@ html, body {
   width: calc(var(--bw-width) - 14%);
   z-index: 4;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 .map-prompt-label {
   font-family: var(--font-pixel);
@@ -89,11 +88,12 @@ html, body {
 .game-selector {
   font-family: var(--font-hand);
   font-size: clamp(12px, 1.3vw, 16px);
-  border: 1.5px solid #c8b88a; background: #fdf6e3;
-  color: #5a4a2a; padding: 4px 8px; cursor: pointer; outline: none;
+  border: 1.5px solid #6579e2; background: #6579e2;
+  color: #fff; padding: 4px 8px; cursor: pointer; outline: none;
   max-width: clamp(140px, 18vw, 240px);
 }
-.game-selector:focus { border-color: var(--blue); }
+.game-selector:focus { border-color: #4a5bc4; }
+.game-selector option { background: #fff; color: #333; }
 .save-btn {
   padding: 5px 16px;
   background: var(--blue);
