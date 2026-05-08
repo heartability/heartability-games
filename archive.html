@@ -39,7 +39,19 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
 /* Game selector dropdown */
+/* ── PAGE HEADER — title + game selector ── */
+.page-header {
+  position:relative;
+  width:100%;
+}
+.page-game-title {
+  font-family:var(--font-pixel);
+  font-size:clamp(20px, 2.8vw, 36px);
+  color:#222; font-weight:normal; line-height:1.1;
+  padding-right:240px; /* leave room for dropdown */
+}
 .game-select-wrap {
+  position:absolute; top:0; right:0;
   display:flex; align-items:center; gap:8px;
   font-family:var(--font-hand); font-size:14px;
 }
@@ -50,19 +62,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   max-width:200px; outline:none;
 }
 .game-dropdown:focus { border-color:var(--aqua); }
-
-/* ── PAGE HEADER — title + game selector ── */
-.page-header {
-  display:flex; align-items:center; justify-content:space-between;
-  width:100%; gap:20px; flex-wrap:wrap;
-}
-.page-game-title {
-  font-family:var(--font-pixel);
-  font-size:clamp(28px, 4vw, 52px);
-  color:#222; font-weight:normal; line-height:1;
-}
 .page-wrap {
-  min-height:100dvh; padding:60px 20px 48px;
+  min-height:100dvh; padding:80px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
 .page-body { width:100%; max-width:1200px; display:flex; flex-direction:column; gap:24px; }
