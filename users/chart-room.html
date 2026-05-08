@@ -79,7 +79,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 @media (max-width:600px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
 
 .map-slot {
-  aspect-ratio:3/4;
+  height: clamp(80px, 10vh, 130px);
   border:2px solid #ccc; background:#fdf6e3;
   cursor:pointer; display:flex; flex-direction:column;
   align-items:center; justify-content:center;
@@ -92,43 +92,52 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
 .map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
 
+/* Wall nav buttons — archive / profile links inside back wall */
+.wall-nav-btn {
+  background: none;
+  border: 1.5px solid var(--blue);
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  color: var(--blue);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.wall-nav-btn:hover { background: var(--blue); color: #fff; }
+
+/* Add new button — inside back wall, bottom right corner */
+.add-new-btn {
+  position: fixed;
+  bottom: calc(21% + 12px);
+  right: calc(15% + 12px);
+  z-index: 20;
+  padding: 10px 18px;
+  background: var(--blue);
+  border: 2px solid #4a5bc4;
+  box-shadow: 3px 3px 0 #3a4aaa;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #fff;
+  cursor: pointer;
+  transition: all .05s;
+  display: none;
+}
+.add-new-btn.visible { display: block; }
+.add-new-btn:hover { background: #4a5bc4; }
+.add-new-btn:active { box-shadow: none; transform: translate(3px,3px); }
+.slot-type { font-size:11px; color:#aaa; }
+.slot-name { font-size:13px; color:#333; line-height:1.3; word-break:break-word; }
+.slot-date { font-size:11px; color:#bbb; }
+.slot-plus { font-size:26px; color:#ccc; }
+
 /* Delete button on map slot */
 .slot-delete {
   position:absolute; top:5px; right:6px;
   font-size:13px; color:#ccc; background:none; border:none;
   cursor:pointer; line-height:1; padding:2px 4px;
-  transition:color .12s;
-  z-index:2;
+  transition:color .12s; z-index:2;
 }
 .slot-delete:hover { color:#E8478B; }
-
-/* Add new button — bottom right of screen */
-.add-new-btn {
-  position:fixed;
-  bottom: clamp(16px, 4vh, 32px);
-  right: clamp(16px, 3vw, 40px);
-  z-index:20;
-  padding:12px 22px;
-  background:var(--blue);
-  border:2px solid #4a5bc4;
-  box-shadow:3px 3px 0 #3a4aaa;
-  font-family:var(--font-hand);
-  font-size:clamp(14px,1.6vw,18px);
-  color:#fff;
-  cursor:pointer;
-  transition:all .05s;
-  display:none;
-}
-.add-new-btn.visible { display:block; }
-.add-new-btn:hover { background:#4a5bc4; }
-.add-new-btn:active { box-shadow:none; transform:translate(3px,3px); }
-
-/* Nav right group */
-.nav-right { display:flex; align-items:center; gap:4px; }
-.slot-type { font-size:11px; color:#aaa; }
-.slot-name { font-size:13px; color:#333; line-height:1.3; word-break:break-word; }
-.slot-date { font-size:11px; color:#bbb; }
-.slot-plus { font-size:26px; color:#ccc; }
 
 /* Phase select */
 .phase-wrap {
@@ -317,10 +326,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
   <span>chart room</span>
-  <div class="nav-right">
-    <span class="nav-btn" onclick="window.location.href='archive.html'">archive</span>
-    <span class="nav-btn" onclick="window.location.href='../users/profile.html'">my profile</span>
-  </div>
+  <span></span>
 </nav>
 
 <!-- ROOM LINES -->
@@ -580,6 +586,10 @@ function renderMapGrid(games) {
   const html = `<div class="step-panel">
     <div class="step-header">
       <span class="step-header-title">your maps</span>
+      <div style="display:flex;gap:6px;">
+        <button class="wall-nav-btn" onclick="window.location.href='archive.html'">archive</button>
+        <button class="wall-nav-btn" onclick="window.location.href='../users/profile.html'">my profile</button>
+      </div>
     </div>
     <div class="map-grid">${slots}</div>
   </div>`;
