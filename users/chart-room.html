@@ -65,32 +65,37 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .step-panel {
   width:100%; height:100%;
   display:flex; flex-direction:column;
-  overflow:hidden; padding:20px;
+  align-items: center;
+  overflow-y: auto; padding:20px;
   font-family:var(--font-hand);
 }
-
-/* Map grid */
-.map-grid {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px; flex:1; overflow-y:auto;
-  padding:4px;
+.step-header {
+  width: 100%;
 }
-@media (max-width:600px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
+
+/* Map grid — centered in the step panel */
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 180px));
+  gap: 12px;
+  padding: 4px;
+  justify-content: center;
+}
+@media (max-width:600px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .map-slot {
-  height: clamp(80px, 10vh, 130px);
-  border:2px solid #ccc; background:#fdf6e3;
-  cursor:pointer; display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:10px 8px; gap:5px;
-  font-family:var(--font-hand); text-align:center;
-  transition:border-color .15s, box-shadow .12s, transform .1s;
-  position:relative;
+  border: 2px solid #ccc; background: #fdf6e3;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: stretch;
+  padding: 8px 8px 6px; gap: 5px;
+  font-family: var(--font-hand); text-align: center;
+  transition: border-color .15s, box-shadow .12s, transform .1s;
+  position: relative;
+  aspect-ratio: 4/5;
 }
-.map-slot:hover { border-color:var(--blue); box-shadow:2px 2px 0 var(--blue); transform:translateY(-2px); }
-.map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
-.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
+.map-slot:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
+.map-slot.empty { border-style: dashed; border-color: #e0e0e0; cursor: default; background: transparent; }
+.map-slot.empty:hover { transform: none; box-shadow: none; border-color: #e0e0e0; }
 
 /* Wall nav buttons — archive / profile links inside back wall */
 .wall-nav-btn {
@@ -125,10 +130,13 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .add-new-btn.visible { display: block; }
 .add-new-btn:hover { background: #4a5bc4; }
 .add-new-btn:active { box-shadow: none; transform: translate(3px,3px); }
-.slot-type { font-size:11px; color:#aaa; }
-.slot-name { font-size:13px; color:#333; line-height:1.3; word-break:break-word; }
-.slot-date { font-size:11px; color:#bbb; }
-.slot-plus { font-size:26px; color:#ccc; }
+.slot-name    { font-size: 12px; color: #333; line-height: 1.2; word-break: break-word; font-weight: 600; flex-shrink: 0; }
+.slot-updated { font-size: 10px; color: #bbb; flex-shrink: 0; }
+.slot-preview {
+  flex: 1; min-height: 0; overflow: hidden;
+  background: #e8e0c8; border: 1px solid #c8b88a;
+}
+.slot-preview svg { width: 100%; height: 100%; display: block; }
 
 /* Delete button on map slot */
 .slot-delete {
@@ -563,20 +571,69 @@ async function stepLoadGame() {
   renderMapGrid(games);
 }
 
+function formatUpdated(dateStr) {
+  if (!dateStr) return '';
+  return 'last updated ' + new Date(dateStr).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function buildPreviewSVG(mapType, zones) {
+  const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
+  const SQUARE_POS   = [{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}];
+  const R = 22;
+
+  if (mapType === 'square') {
+    let circles = '';
+    SQUARE_POS.forEach((p, i) => {
+      const z = zones[i] || {};
+      const fill = z.tint || 'rgba(200,196,180,0.85)';
+      circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+    });
+    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+      <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
+      <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+      ${circles}
+    </svg>`;
+  }
+
+  // Spiral
+  const cx=250, cy=190, b=13;
+  const pts=[];
+  for(let i=0;i<=700;i++){
+    const t=0.1+(15.4)*i/700;
+    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
+  }
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  let circles = '';
+  pos.forEach((p,i)=>{
+    const z = zones[i] || {};
+    const fill = z.tint || 'rgba(200,196,180,0.85)';
+    circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+    if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+  });
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
+    ${circles}
+  </svg>`;
+}
+
 function renderMapGrid(games) {
   let slots = '';
-  for (let i=0; i<8; i++) {
+  for (let i = 0; i < 8; i++) {
     const g = games[i];
     if (g) {
-      const date = g.updated_at
-        ? new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})
-        : '';
+      const zones   = (g.map_data || {}).zones || [];
+      const preview = buildPreviewSVG(g.map_type || 'spiral', zones);
+      const updated = formatUpdated(g.updated_at);
+      const safeName = (g.map_name || 'untitled').replace(/'/g, "\\'");
       slots += `<div class="map-slot" onclick="selectMap('${g.id}')">
         <button class="slot-delete" title="delete map"
-          onclick="event.stopPropagation(); deleteMap('${g.id}','${(g.map_name||'untitled').replace(/'/g,"\\'")}')">×</button>
-        <div class="slot-type">${g.map_type||'spiral'}</div>
-        <div class="slot-name">${g.map_name||'untitled'}</div>
-        ${date?`<div class="slot-date">${date}</div>`:''}
+          onclick="event.stopPropagation(); deleteMap('${g.id}','${safeName}')">×</button>
+        <div class="slot-name">${g.map_name || 'untitled'}</div>
+        <div class="slot-preview">${preview}</div>
+        ${updated ? `<div class="slot-updated">${updated}</div>` : ''}
       </div>`;
     } else {
       slots += `<div class="map-slot empty"></div>`;
