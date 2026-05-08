@@ -363,7 +363,7 @@ html, body {
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='../game-select.html'">back</span>
+  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">back</span>
   <span class="nav-title">my profile</span>
   <span class="nav-btn" id="btn-signout">sign out</span>
 </nav>
@@ -435,17 +435,17 @@ html, body {
         <div class="saved-item">
           <div class="saved-icon">🎴</div>
           <div class="saved-name">bingo card</div>
-          <a class="saved-link" href="bingo-archive.html" id="link-bingo">view archive</a>
+          <a class="saved-link" href="archive.html" id="link-bingo">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">👤</div>
           <div class="saved-name">character</div>
-          <a class="saved-link" href="character-archive.html" id="link-character">view archive</a>
+          <a class="saved-link" href="archive.html" id="link-character">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">🗺️</div>
           <div class="saved-name">treasure map</div>
-          <a class="saved-link" href="map-archive.html" id="link-map">view archive</a>
+          <a class="saved-link" href="archive.html" id="link-map">view archive</a>
         </div>
 
       </div>
@@ -466,7 +466,7 @@ html, body {
   // ── Auth check ───────────────────────────────────────────
   async function init() {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; return; }
+    if (!session) { window.location.href = 'login.html'; return; }
     await loadProfile(session.user);
   }
 
@@ -530,7 +530,7 @@ html, body {
   // ── Upgrade redirect ──────────────────────────────────────
   // TODO: replace with your actual membership/checkout page when ready
   window.goToUpgrade = function () {
-    window.location.href = '../membership.html';
+    window.location.href = 'membership.html';
   };
 
   // ── Edit username ─────────────────────────────────────────
@@ -561,7 +561,7 @@ html, body {
   // ── Sign out ──────────────────────────────────────────────
   document.getElementById('btn-signout').addEventListener('click', async () => {
     await sb.auth.signOut();
-    window.location.href = '../login.html';
+    window.location.href = 'login.html';
   });
 
   init();

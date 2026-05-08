@@ -8,11 +8,11 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,7 +34,7 @@ html, body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
-  background-image: url('assets/elements/stars.gif');
+  background-image: url('../assets/elements/stars.gif');
   background-size: auto;
   background-position: center;
   background-repeat: repeat;
@@ -209,9 +209,9 @@ input:focus { border-color: var(--purple); }
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='game-select.html'">back</span>
+  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">back</span>
   <span class="nav-title">login</span>
-  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+  <span class="nav-btn" onclick="window.location.href='../index.html'">home</span>
 </nav>
 
 <div class="page-body">
@@ -273,7 +273,7 @@ input:focus { border-color: var(--purple); }
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = 'users/profile.html';
+    if (session) window.location.href = 'profile.html';
   });
 
   function switchTab(tab, btn) {
@@ -303,7 +303,7 @@ input:focus { border-color: var(--purple); }
       btn.disabled = false; btn.textContent = 'enter ♡';
     } else {
       showMsg('login-msg', 'welcome back! loading your profile...', 'success');
-      setTimeout(() => window.location.href = 'users/profile.html', 800);
+      setTimeout(() => window.location.href = 'profile.html', 800);
     }
   }
 
@@ -324,7 +324,7 @@ input:focus { border-color: var(--purple); }
       await sb.from('user-profiles').insert({ id: data.user.id, username });
     }
     showMsg('signup-msg', 'account created! taking you to your profile...', 'success');
-    setTimeout(() => window.location.href = 'users/profile.html', 1000);
+    setTimeout(() => window.location.href = 'profile.html', 1000);
   }
 </script>
 

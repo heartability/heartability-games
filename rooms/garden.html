@@ -216,7 +216,7 @@ html, body {
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
   /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = '../game-select.html'; });
+  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = '../games/game-select.html'; });
 
   document.getElementById('nav-next').addEventListener('click',   nextRoom);
 
@@ -248,7 +248,7 @@ html, body {
     if (queue.length === 0) {
       /* All rooms visited — back to game-select, reset queue */
       localStorage.removeItem(STORAGE_KEY);
-      window.location.href = '../game-select.html';
+      window.location.href = '../games/game-select.html';
       return;
     }
 

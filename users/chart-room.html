@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chart Room — Heartability</title>
 <style>
-@font-face { font-family:"ZoesHandwriting"; src:url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
-@font-face { font-family:"PFPixelscript";  src:url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -280,7 +280,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 
 <!-- NAV -->
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='index.html'">← back</span>
+  <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
   <span>chart room</span>
   <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
 </nav>
@@ -312,7 +312,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
     <span id="bubble-text">loading...</span>
     <div class="bubble-btns" id="bubble-btns"></div>
   </div>
-  <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide">
+  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
 <!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
@@ -405,12 +405,12 @@ const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
 const SQUARE_POS   = [ {x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286} ];
 const SQUARE_LABELS= ['1','2','3','4'];
 const TERRAIN_IMGS = {
-  dunes:"assets/elements/maps/dunes.png", forest:"assets/elements/maps/forest.png",
-  meadow:"assets/elements/maps/meadow.png", mountains:"assets/elements/maps/mountains.png",
-  ocean:"assets/elements/maps/ocean.png", orchard:"assets/elements/maps/orchard.png",
-  plateu:"assets/elements/maps/plateu.png", pond:"assets/elements/maps/pond.png",
-  river:"assets/elements/maps/river.png", spring:"assets/elements/maps/spring.png",
-  waterfall:"assets/elements/maps/waterfall.png",
+  dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
+  meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
+  ocean:"../assets/elements/maps/ocean.png", orchard:"../assets/elements/maps/orchard.png",
+  plateu:"../assets/elements/maps/plateu.png", pond:"../assets/elements/maps/pond.png",
+  river:"../assets/elements/maps/river.png", spring:"../assets/elements/maps/spring.png",
+  waterfall:"../assets/elements/maps/waterfall.png",
 };
 
 // ── BUBBLE HELPERS ────────────────────────────────────────
@@ -466,7 +466,7 @@ function stepInitial() {
 function stepNewGame() {
   currentStep = 'map';
   setBubble('build your map, then save it to begin ♡', []);
-  const src = 'treasure-map.html?mode=new&loop=true';
+  const src = '../games/treasure-map.html?mode=new&loop=true';
   showIframe(src);
   setSaveBtnVisible(true, 'save map &amp; continue →');
 }
@@ -475,7 +475,7 @@ function stepNewGame() {
 async function stepLoadGame() {
   if (!currentUser && !isGuestMode) {
     setBubble('you need to log in to load a saved game', [
-      { label: 'go to game room to log in', action: () => window.location.href='game-select.html' },
+      { label: 'go to game room to log in', action: () => window.location.href='../games/game-select.html' },
       { label: 'play as guest instead', secondary:true, action: () => { isGuestMode=true; stepLoadGame(); } },
     ]);
     return;
@@ -609,7 +609,7 @@ function stepBegin() {
   currentStep = 'character';
   setBubble('build your character for today ♡', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
-  const src  = `infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
   // Show button as loading — enabled only when iframe signals ready
   setSaveBtnVisible(true, 'loading...');
@@ -621,7 +621,7 @@ function stepBingo() {
   currentStep = 'bingo';
   setBubble('check in with your heart meter', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
-  const src  = `bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
   setSaveBtnVisible(true, 'save &amp; finish →');
 }
@@ -630,7 +630,7 @@ function stepBingo() {
 function stepDone() {
   setBubble("today's entry is complete ✓", [
     { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
-    { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
+    { label: 'back to game room', secondary:true, action: () => window.location.href='../games/game-select.html' },
   ]);
   hidePanel();
 }
