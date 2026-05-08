@@ -597,11 +597,11 @@ function phaseLabel(phase) {
   return PHASE_LABELS[phase] || phase.replace('_',' ');
 }
 
-// ── DIFFICULTY (easy 0-9 / medium 10-19 / hard 20-24) ────
+// ── DIFFICULTY (hard 0-9 / medium 10-19 / easy 20-24) ────
 function getDifficulty(hearts) {
-  if (hearts <= 9)  return 'easy';
+  if (hearts <= 9)  return 'hard';
   if (hearts <= 19) return 'medium';
-  return 'hard';
+  return 'easy';
 }
 
 // ── STATE ─────────────────────────────────────────────────
@@ -803,7 +803,7 @@ function renderBarGraph() {
   const GRAPH_H    = 180; // px of actual bar area (220 - 36 bottom padding - 4 top)
 
   // ── Y axis ──
-  const yLabels = ['24 hearts', 'hard', 'medium', 'easy', '0'];
+  const yLabels = ['hard', 'medium', 'easy'];
   yLabels.forEach((lbl, i) => {
     const el = document.createElement('div');
     el.className = 'y-label' + (i > 0 && i < 4 ? ' reading-zone' : '');
@@ -814,9 +814,9 @@ function renderBarGraph() {
   // ── Difficulty band fills (solid background strips) ──
   // hard: 79.2%-100% of bar area, medium: 37.5%-79.2%, easy: 0%-37.5%
   const diffBands = [
-    { bottom:'79.2%', height:'20.8%', color:'rgba(42,59,154,.10)',  label:'hard (20–24)'   },
+    { bottom:'79.2%', height:'20.8%', color:'rgba(42,59,154,.10)',  label:'easy (20–24)'   },
     { bottom:'37.5%', height:'41.7%', color:'rgba(101,121,226,.07)', label:'medium (10–19)' },
-    { bottom:'0%',    height:'37.5%', color:'rgba(168,180,240,.07)', label:'easy (0–9)'     },
+    { bottom:'0%',    height:'37.5%', color:'rgba(168,180,240,.07)', label:'hard (0–9)'     },
   ];
   diffBands.forEach(b => {
     const band = document.createElement('div');
