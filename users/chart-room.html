@@ -86,10 +86,45 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   padding:10px 8px; gap:5px;
   font-family:var(--font-hand); text-align:center;
   transition:border-color .15s, box-shadow .12s, transform .1s;
+  position:relative;
 }
 .map-slot:hover { border-color:var(--blue); box-shadow:2px 2px 0 var(--blue); transform:translateY(-2px); }
-.map-slot.empty { border-style:dashed; border-color:#ccc; cursor:default; }
-.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#ccc; }
+.map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
+.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
+
+/* Delete button on map slot */
+.slot-delete {
+  position:absolute; top:5px; right:6px;
+  font-size:13px; color:#ccc; background:none; border:none;
+  cursor:pointer; line-height:1; padding:2px 4px;
+  transition:color .12s;
+  z-index:2;
+}
+.slot-delete:hover { color:#E8478B; }
+
+/* Add new button — bottom right of screen */
+.add-new-btn {
+  position:fixed;
+  bottom: clamp(16px, 4vh, 32px);
+  right: clamp(16px, 3vw, 40px);
+  z-index:20;
+  padding:12px 22px;
+  background:var(--blue);
+  border:2px solid #4a5bc4;
+  box-shadow:3px 3px 0 #3a4aaa;
+  font-family:var(--font-hand);
+  font-size:clamp(14px,1.6vw,18px);
+  color:#fff;
+  cursor:pointer;
+  transition:all .05s;
+  display:none;
+}
+.add-new-btn.visible { display:block; }
+.add-new-btn:hover { background:#4a5bc4; }
+.add-new-btn:active { box-shadow:none; transform:translate(3px,3px); }
+
+/* Nav right group */
+.nav-right { display:flex; align-items:center; gap:4px; }
 .slot-type { font-size:11px; color:#aaa; }
 .slot-name { font-size:13px; color:#333; line-height:1.3; word-break:break-word; }
 .slot-date { font-size:11px; color:#bbb; }
@@ -282,7 +317,10 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
   <span>chart room</span>
-  <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
+  <div class="nav-right">
+    <span class="nav-btn" onclick="window.location.href='archive.html'">archive</span>
+    <span class="nav-btn" onclick="window.location.href='../users/profile.html'">my profile</span>
+  </div>
 </nav>
 
 <!-- ROOM LINES -->
@@ -322,6 +360,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   </button>
 </div>
 <div class="save-status-bar" id="save-status-bar"></div>
+
+<!-- ADD NEW BUTTON — shown on map selector screen -->
+<button class="add-new-btn" id="add-new-btn" onclick="stepNewGame()">+ add new</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -453,17 +494,34 @@ function showIframe(src) {
   document.getElementById('wall-btns').classList.remove('active');
 }
 
-// ── STEP 1: INITIAL CHOICE ────────────────────────────────
+// ── ADD NEW BUTTON visibility ─────────────────────────────
+function showAddNew(visible) {
+  document.getElementById('add-new-btn').classList.toggle('visible', visible);
+}
+
+// ── STEP 1: go straight to map selector ──────────────────
 function stepInitial() {
-  hidePanel();
-  setBubble('ready to chart your day?', [
-    { label: 'new game',   action: stepNewGame },
-    { label: 'load game',  action: stepLoadGame },
-  ]);
+  stepLoadGame();
+}
+
+// ── DELETE MAP ────────────────────────────────────────────
+async function deleteMap(gameId, mapName) {
+  if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
+  if (currentUser && !isGuestMode) {
+    await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  } else {
+    try {
+      let games = JSON.parse(localStorage.getItem('hb_games')||'[]');
+      games = games.filter(g => g.id !== gameId);
+      localStorage.setItem('hb_games', JSON.stringify(games));
+    } catch(e){}
+  }
+  stepLoadGame(); // refresh the grid
 }
 
 // ── STEP 2A: NEW GAME ─────────────────────────────────────
 function stepNewGame() {
+  showAddNew(false);
   currentStep = 'map';
   setBubble('build your map, then save it to begin ♡', []);
   const src = '../games/treasure-map.html?mode=new&loop=true';
@@ -478,10 +536,12 @@ async function stepLoadGame() {
       { label: 'go to game room to log in', action: () => window.location.href='../games/game-select.html' },
       { label: 'play as guest instead', secondary:true, action: () => { isGuestMode=true; stepLoadGame(); } },
     ]);
+    showAddNew(false);
     return;
   }
   setBubble('choose your map for today', []);
   setSaveBtnVisible(false);
+  showAddNew(true);
 
   let games = [];
   if (isGuestMode || !currentUser) {
@@ -498,30 +558,31 @@ async function stepLoadGame() {
 }
 
 function renderMapGrid(games) {
-  let html = `<div class="step-panel">
-    <div class="step-header">
-      <span class="step-back" onclick="stepInitial()">← back</span>
-      <span class="step-header-title">choose your map</span>
-      <span></span>
-    </div>
-    <div class="map-grid">`;
-
+  let slots = '';
   for (let i=0; i<8; i++) {
     const g = games[i];
     if (g) {
       const date = g.updated_at
         ? new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})
         : '';
-      html += `<div class="map-slot" onclick="selectMap('${g.id}')">
+      slots += `<div class="map-slot" onclick="selectMap('${g.id}')">
+        <button class="slot-delete" title="delete map"
+          onclick="event.stopPropagation(); deleteMap('${g.id}','${(g.map_name||'untitled').replace(/'/g,"\\'")}')">×</button>
         <div class="slot-type">${g.map_type||'spiral'}</div>
         <div class="slot-name">${g.map_name||'untitled'}</div>
         ${date?`<div class="slot-date">${date}</div>`:''}
       </div>`;
     } else {
-      html += `<div class="map-slot empty"><div class="slot-plus">+</div></div>`;
+      slots += `<div class="map-slot empty"></div>`;
     }
   }
-  html += `</div></div>`;
+
+  const html = `<div class="step-panel">
+    <div class="step-header">
+      <span class="step-header-title">your maps</span>
+    </div>
+    <div class="map-grid">${slots}</div>
+  </div>`;
   showPanel(html);
 }
 
@@ -545,6 +606,7 @@ async function selectMap(gameId) {
 
 function stepPhaseSelect() {
   if (!activeGameData) return;
+  showAddNew(false);
   const mapType = activeGameData.map_type || 'spiral';
   const mapData = activeGameData.map_data || {};
   const zones   = mapData.zones || [];
