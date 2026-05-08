@@ -636,6 +636,9 @@ window.addEventListener('message', e => {
   }
 });
 
+// Signal to parent that this iframe is loaded and ready
+try { window.parent.postMessage({ type: 'iframe_ready', game: 'character' }, '*'); } catch(e) {}
+
 // ── Init ─────────────────────────────────────────────────
 async function init() {
   // In loop mode, always start fresh — blank slate each day

@@ -607,11 +607,13 @@ function selectPhase(idx) {
 function stepBegin() {
   if (!activePhase) return;
   currentStep = 'character';
-  setBubble('build your character for today', []);
+  setBubble('build your character for today ♡', []);
   const mode = isGuestMode ? 'guest' : 'cloud';
   const src  = `infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
   showIframe(src);
-  setSaveBtnVisible(true, 'save character &amp; continue →');
+  // Show button as loading — enabled only when iframe signals ready
+  setSaveBtnVisible(true, 'loading...');
+  document.getElementById('save-continue-btn').disabled = true;
 }
 
 // ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
@@ -637,6 +639,16 @@ function stepDone() {
 window.addEventListener('message', async e => {
   const msg = e.data || {};
   if (!msg.type) return;
+
+  // ── iframe signalled it's loaded and ready ───────────────
+  if (msg.type === 'iframe_ready' && msg.game === 'character') {
+    const btn = document.getElementById('save-continue-btn');
+    if (btn && currentStep === 'character') {
+      btn.disabled = false;
+      btn.innerHTML = 'save character &amp; continue →';
+    }
+    return;
+  }
 
   // New map built — advance to phase select
   if (msg.type === 'map_saved' && msg.game_id) {
