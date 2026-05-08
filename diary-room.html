@@ -79,7 +79,7 @@ html, body {
   gap: 12px;
 }
 .map-prompt-label {
-  font-family: var(--font-hand);
+  font-family: var(--font-pixel);
   font-size: clamp(13px, 1.4vw, 18px);
   color: #5a4a2a;
 }
@@ -285,12 +285,12 @@ html, body {
 
 <!-- CONTROLS ABOVE NOTEBOOK -->
 <div class="journal-controls" id="journal-controls" style="display:none;">
-  <span class="map-prompt-label">what map are you exploring?</span>
+  <span class="map-prompt-label">Choose a map</span>
   <div class="journal-controls-right">
     <select class="game-selector" id="game-selector" onchange="onGameChange()">
       <option value="">select a map...</option>
     </select>
-    <button class="save-btn" onclick="saveEntry()">♥ save</button>
+    <button class="save-btn" onclick="saveEntry()">save</button>
   </div>
 </div>
 
@@ -318,12 +318,12 @@ html, body {
     ></textarea>
 
     <div class="privacy-note">
-      ♡ your entries are private and only visible to you. we never read or share your diary.
+      your entries are private and only visible to you. we never read or share your diary.
     </div>
 
     <!-- Locked overlay for non-logged-in users -->
     <div class="locked-overlay" id="locked-overlay">
-      <div class="locked-msg">the diary is for founding members ♡<br>log in to access your entries</div>
+      <div class="locked-msg">the diary is for founding members<br>log in to access your entries</div>
       <button class="locked-btn" onclick="window.location.href='game-select.html'">go to game room →</button>
     </div>
 
@@ -332,7 +332,7 @@ html, body {
 
 <!-- HEART CHARACTER -->
 <div class="char-heart" id="char-heart">
-  <div class="thought-bubble">anything you want to put on the record about today? wins, losses, learning moments — it all counts ♡</div>
+  <div class="thought-bubble">anything you want to put on the record about today? wins, losses, learning moments — it all counts</div>
   <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
@@ -433,7 +433,7 @@ async function saveEntry() {
   if (!currentUser || !activeGameId) return;
   const text = document.getElementById('diary-area').value.trim();
   const btn  = document.querySelector('.save-btn');
-  if (btn) { btn.textContent = '♥ saving...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'saving...'; btn.disabled = true; }
 
   const { error } = await sb.from('diary_entries').upsert({
     game_id:    activeGameId,
@@ -443,12 +443,12 @@ async function saveEntry() {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'game_id,entry_date' });
 
-  if (btn) { btn.disabled = false; btn.textContent = '♥ save'; }
+  if (btn) { btn.disabled = false; btn.textContent = 'save'; }
 
   if (error) {
     showStatus('save failed', '#E8478B');
   } else {
-    showStatus('saved ♡', '#6ab86a');
+    showStatus('saved', '#6ab86a');
     setTimeout(() => showStatus('', ''), 2000);
   }
 }
