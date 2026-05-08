@@ -117,68 +117,16 @@ html, body {
   padding: 20px 22px;
 }
 
-/* ── PROFILE HERO ── */
-.profile-hero {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.avatar-circle {
-  width: 68px;
-  height: 68px;
-  border: 2px solid var(--purple);
-  background: var(--cream-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── WELCOME HEADING ── */
+.welcome-heading {
   font-family: var(--font-pixel);
-  font-size: 32px;
-  color: var(--purple);
-  flex-shrink: 0;
-  border-radius: 2px;
-}
-
-.profile-text { flex: 1; }
-
-.profile-username {
-  font-family: var(--font-pixel);
-  font-size: clamp(18px, 2vw, 24px);
-  color: #222;
-  margin-bottom: 4px;
-}
-
-.profile-email {
-  font-size: clamp(12px, 1.2vw, 14px);
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.profile-since {
-  font-size: clamp(11px, 1vw, 13px);
-  color: #aaa;
-}
-
-.member-badge {
-  padding: 5px 12px;
-  background: var(--cream-dark);
-  border: 1.5px solid #ccc;
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: #888;
-  white-space: nowrap;
-}
-
-.member-badge.basic {
-  background: rgba(101,121,226,0.08);
-  border-color: var(--purple);
-  color: var(--purple);
-}
-
-.member-badge.founding {
-  background: rgba(101,121,226,0.15);
-  border-color: var(--purple-dark);
-  color: var(--purple-dark);
+  font-size: clamp(30px, 5vw, 60px);
+  color: #fff;
+  text-shadow: 0 0 40px rgba(131,210,230,0.55), 0 2px 12px rgba(0,0,0,0.5);
+  text-align: center;
+  padding: 12px 0 4px;
+  letter-spacing: 1px;
+  line-height: 1.15;
 }
 
 /* ── SECTION GRID ── */
@@ -188,37 +136,8 @@ html, body {
   gap: 20px;
 }
 
-.membership-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  min-width: 200px;
-  max-width: 240px;
-}
-
-.btn-upgrade-hero {
-  width: 100%;
-  padding: 8px 14px;
-  background: var(--purple);
-  border: 2px solid var(--purple-dark);
-  box-shadow: 2px 2px 0 var(--purple-shadow);
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.05s;
-  white-space: nowrap;
-}
-.btn-upgrade-hero:hover  { background: var(--purple-dark); }
-.btn-upgrade-hero:active { box-shadow: none; transform: translate(2px,2px); }
-
 @media (max-width: 580px) {
   .section-grid { grid-template-columns: 1fr; }
-  .profile-hero { flex-direction: column; text-align: center; }
-  .member-badge { align-self: center; }
-  .membership-block { align-items: center; max-width: 100%; }
 }
 
 /* ── SETTINGS ROWS ── */
@@ -366,7 +285,7 @@ html, body {
 }
 .leaderboard-header {
   display: grid;
-  grid-template-columns: 36px 1fr 80px 80px;
+  grid-template-columns: 36px 1fr 100px;
   gap: 8px;
   padding: 6px 10px 8px;
   font-family: var(--font-hand);
@@ -377,7 +296,7 @@ html, body {
 }
 .leaderboard-row {
   display: grid;
-  grid-template-columns: 36px 1fr 80px 80px;
+  grid-template-columns: 36px 1fr 100px;
   gap: 8px;
   padding: 9px 10px;
   border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -445,25 +364,8 @@ html, body {
 <div class="page-wrap">
 <div class="page-body" id="main-content">
 
-  <!-- Profile hero -->
-  <div class="window">
-    <div class="window-titlebar">membership</div>
-    <div class="window-body">
-      <div class="profile-hero">
-        <div class="avatar-circle" id="avatar-display">♡</div>
-        <div class="profile-text">
-          <div class="profile-username" id="display-username">loading...</div>
-          <div class="profile-email"    id="display-email"></div>
-          <div class="profile-since"    id="display-since"></div>
-        </div>
-        <div class="membership-block">
-          <div class="member-badge" id="member-badge">free member</div>
-          <!-- hidden once user has a paid membership -->
-          <button class="btn-upgrade-hero" id="btn-upgrade-hero" onclick="goToUpgrade()">become a founding member</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Welcome heading -->
+  <div class="welcome-heading">Welcome, <span id="display-username">loading...</span></div>
 
   <!-- Section grid -->
   <div class="section-grid">
@@ -484,9 +386,14 @@ html, body {
           <span class="setting-label">password</span>
           <span class="setting-value">••••••••</span>
         </div>
+        <div class="setting-row">
+          <span class="setting-label">membership</span>
+          <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
+        </div>
         <div class="btn-row">
           <button class="btn-action" onclick="editUsername()">edit username</button>
           <button class="btn-action" onclick="changePassword()">change password</button>
+          <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade membership</button>
         </div>
       </div>
     </div>
@@ -507,17 +414,17 @@ html, body {
         <div class="saved-item">
           <div class="saved-icon">🎴</div>
           <div class="saved-name">bingo card</div>
-          <a class="saved-link" href="archive.html" id="link-bingo">view archive</a>
+          <a class="saved-link" href="/users/archive.html" id="link-bingo">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">👤</div>
           <div class="saved-name">character</div>
-          <a class="saved-link" href="archive.html" id="link-character">view archive</a>
+          <a class="saved-link" href="/users/archive.html" id="link-character">view archive</a>
         </div>
         <div class="saved-item">
           <div class="saved-icon">🗺️</div>
           <div class="saved-name">treasure map</div>
-          <a class="saved-link" href="archive.html" id="link-map">view archive</a>
+          <a class="saved-link" href="/users/archive.html" id="link-map">view archive</a>
         </div>
 
       </div>
@@ -564,22 +471,13 @@ html, body {
       .single();
 
     const username = profile?.username || 'explorer';
-    const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
 
     document.getElementById('display-username').textContent  = username;
-    document.getElementById('display-email').textContent     = user.email;
-    document.getElementById('display-since').textContent     = 'member since ' + joinDate;
     document.getElementById('settings-username').textContent = username;
     document.getElementById('settings-email').textContent    = user.email;
-    document.getElementById('avatar-display').textContent    = username.charAt(0).toUpperCase();
 
     // ── MEMBERSHIP STATUS ─────────────────────────────────
-    // TODO: once Stripe + Supabase edge functions are wired up,
-    // replace this line with: const membershipStatus = profile?.membership_status || 'free';
     const membershipStatus = profile?.membership_status || 'free';
-
     applyMembershipUI(membershipStatus);
 
     document.getElementById('loading-state').style.display = 'none';
@@ -588,35 +486,34 @@ html, body {
 
   // ── Membership UI ─────────────────────────────────────────
   function applyMembershipUI(status) {
-    const badge       = document.getElementById('member-badge');
-    const upgradeBtn  = document.getElementById('btn-upgrade-hero');
-    const lockOverlay = document.getElementById('saved-lock-overlay');
+    const membershipEl  = document.getElementById('settings-membership');
+    const upgradeBtn    = document.getElementById('btn-upgrade-settings');
+    const lockOverlay   = document.getElementById('saved-lock-overlay');
 
     if (status === 'basic') {
-      badge.textContent = 'basic member';
-      badge.className   = 'member-badge basic';
+      membershipEl.textContent = 'basic member';
+      membershipEl.style.color = 'var(--purple)';
       upgradeBtn.style.display = 'none';
       lockOverlay.style.display = 'none';
 
     } else if (status === 'founding') {
-      badge.textContent = '✦ founding member';
-      badge.className   = 'member-badge founding';
+      membershipEl.textContent = '✦ founding member';
+      membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
       lockOverlay.style.display = 'none';
 
     } else {
       // free
-      badge.textContent = 'free member';
-      badge.className   = 'member-badge';
-      upgradeBtn.style.display = 'block';
+      membershipEl.textContent = 'free member';
+      membershipEl.style.color = '#aaa';
+      upgradeBtn.style.display = 'inline-block';
       lockOverlay.style.display = 'flex';
     }
   }
 
   // ── Upgrade redirect ──────────────────────────────────────
-  // TODO: replace with your actual membership/checkout page when ready
   window.goToUpgrade = function () {
-    window.location.href = 'membership.html';
+    window.location.href = '/users/membership.html';
   };
 
   // ── Edit username ─────────────────────────────────────────
@@ -630,7 +527,6 @@ html, body {
     if (!error) {
       document.getElementById('display-username').textContent  = newName.trim();
       document.getElementById('settings-username').textContent = newName.trim();
-      document.getElementById('avatar-display').textContent    = newName.trim().charAt(0).toUpperCase();
     } else {
       alert('error: ' + error.message);
     }
@@ -674,7 +570,6 @@ html, body {
       <span>#</span>
       <span>player</span>
       <span style="text-align:right">saves</span>
-      <span style="text-align:right">words</span>
     </div>`;
 
     topRows.forEach(r => {
@@ -685,7 +580,6 @@ html, body {
         <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
         <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
         <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
-        <span class="lb-words">${r.weekly_words > 0 ? r.weekly_words + ' words' : '—'}</span>
       </div>`;
     });
 
@@ -696,7 +590,6 @@ html, body {
         <span class="lb-rank">${myRow.rank}</span>
         <span class="lb-username is-me">${myRow.username}</span>
         <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
-        <span class="lb-words">${myRow.weekly_words > 0 ? myRow.weekly_words + ' words' : '—'}</span>
       </div>`;
     }
 
