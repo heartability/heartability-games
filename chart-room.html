@@ -609,11 +609,8 @@ function stepBingo() {
 
 // ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
 function stepDone() {
-  setBubble("today's entry is complete ✓", [
-    { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
-    { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
-  ]);
-  hidePanel();
+  // Fallback — bingo flow navigates directly to archive, this fires only if called manually
+  window.location.href = `archive.html?game_id=${activeGameId}`;
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
@@ -715,7 +712,9 @@ window.addEventListener('message', async e => {
     if (saved) {
       showRoomStatus('all saved ✓', '#6ab86a');
       setSaveBtnVisible(false);
-      stepDone();
+      setTimeout(() => {
+        window.location.href = `archive.html?game_id=${activeGameId}`;
+      }, 900);
     } else {
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
