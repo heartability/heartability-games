@@ -624,20 +624,19 @@ html, body {
 
   /* Letter */
 
-  const letterOverlay = document.getElementById('letter-overlay');
-  const letterPaper   = document.getElementById('letter-paper');
-  const letterClose   = document.getElementById('letter-close');
-
-  function openLetter()  { letterOverlay.classList.remove('hidden'); setTimeout(() => letterPaper.classList.add('unfolded'), 30); }
-  function closeLetter() { letterPaper.classList.remove('unfolded'); setTimeout(() => letterOverlay.classList.add('hidden'), 400); }
-
   const artDoor  = document.getElementById('art-door');
   const artAbout = document.getElementById('art-about');
 
-  artDoor.addEventListener('click', openLetter);
-  artDoor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLetter(); });
-  letterClose.addEventListener('click', closeLetter);
-  letterOverlay.addEventListener('click', e => { if (e.target === letterOverlay) closeLetter(); });
+  artDoor.addEventListener('click', () => {
+    if (currentUser) {
+      window.location.href = '../users/profile.html';
+    } else {
+      document.getElementById('login-overlay').classList.add('open');
+    }
+  });
+  artDoor.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') artDoor.click();
+  });
 
   /* About letter */
   const aboutOverlay = document.getElementById('about-overlay');
