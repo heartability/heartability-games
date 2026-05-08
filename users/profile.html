@@ -332,15 +332,13 @@ html, body {
   gap: 3px;
 }
 .mini-cal-cell {
-  aspect-ratio: 1;
+  height: 32px;
   border: 1px solid rgba(101,121,226,.12);
   background: rgba(255,255,255,.35);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 2px;
 }
 .mini-cal-cell.filler { background: transparent; border-color: transparent; }
 .mini-cal-cell.has-entry {
@@ -356,16 +354,17 @@ html, body {
   font-size: 9px;
   color: #ccc;
   position: absolute;
-  top: 2px; left: 3px;
+  top: 3px; left: 4px;
   line-height: 1;
 }
 .mini-cal-cell.has-entry .mini-cal-date { color: var(--purple); }
 .mini-cal-cell.is-today .mini-cal-date  { color: var(--blue-glow); }
 
 .mini-cal-dot {
-  width: 8px; height: 8px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-left: 10px; /* nudge right of the date number */
 }
 
 .mini-archive-footer {
@@ -516,35 +515,16 @@ html, body {
       </div>
     </div>
 
-    <!-- Saved Data -->
-    <div class="window">
-      <div class="window-titlebar">saved data</div>
-      <div class="window-body saved-data-wrap" id="saved-data-wrap">
-
-        <!-- lock overlay — shown for free users, hidden for members -->
-        <div class="saved-lock-overlay" id="saved-lock-overlay">
-          <div class="lock-icon">🔒</div>
-          <div class="lock-msg">save your progress across all games — join to unlock</div>
-          <button class="btn-upgrade-inline" onclick="goToUpgrade()">become a member ♡</button>
+    <!-- Leaderboard (right column) -->
+    <div class="window" id="leaderboard-window">
+      <div class="window-titlebar">
+        weekly leaderboard
+        <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
+      </div>
+      <div class="window-body" style="padding:0;">
+        <div id="leaderboard-content">
+          <div class="lb-loading">loading this week's rankings...</div>
         </div>
-
-        <!-- always rendered, visible through overlay for members -->
-        <div class="saved-item">
-          <div class="saved-icon">🎴</div>
-          <div class="saved-name">bingo card</div>
-          <a class="saved-link" href="/users/archive.html" id="link-bingo">view archive</a>
-        </div>
-        <div class="saved-item">
-          <div class="saved-icon">👤</div>
-          <div class="saved-name">character</div>
-          <a class="saved-link" href="/users/archive.html" id="link-character">view archive</a>
-        </div>
-        <div class="saved-item">
-          <div class="saved-icon">🗺️</div>
-          <div class="saved-name">treasure map</div>
-          <a class="saved-link" href="/users/archive.html" id="link-map">view archive</a>
-        </div>
-
       </div>
     </div>
 
@@ -585,19 +565,6 @@ html, body {
         <a class="saved-link" id="mini-archive-link" href="/users/archive.html">view full archive</a>
       </div>
 
-    </div>
-  </div>
-
-  <!-- Leaderboard — full width below settings + saved data -->
-  <div class="window" id="leaderboard-window">
-    <div class="window-titlebar">
-      weekly leaderboard
-      <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
-    </div>
-    <div class="window-body" style="padding:0;">
-      <div id="leaderboard-content">
-        <div class="lb-loading">loading this week's rankings...</div>
-      </div>
     </div>
   </div>
 
@@ -647,26 +614,22 @@ html, body {
   function applyMembershipUI(status) {
     const membershipEl  = document.getElementById('settings-membership');
     const upgradeBtn    = document.getElementById('btn-upgrade-settings');
-    const lockOverlay   = document.getElementById('saved-lock-overlay');
 
     if (status === 'basic') {
       membershipEl.textContent = 'basic member';
       membershipEl.style.color = 'var(--purple)';
       upgradeBtn.style.display = 'none';
-      lockOverlay.style.display = 'none';
 
     } else if (status === 'founding') {
       membershipEl.textContent = '✦ founding member';
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
-      lockOverlay.style.display = 'none';
 
     } else {
       // free
       membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
       upgradeBtn.style.display = 'inline-block';
-      lockOverlay.style.display = 'flex';
     }
   }
 
