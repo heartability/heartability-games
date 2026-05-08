@@ -56,7 +56,22 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   min-height:100dvh; padding:60px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
-.page-body { width:100%; max-width:960px; display:flex; flex-direction:column; gap:24px; }
+.page-body { width:100%; max-width:1200px; display:flex; flex-direction:column; gap:24px; }
+
+/* Top row: bar + map side by side */
+.top-row {
+  display:grid; grid-template-columns:1fr 1fr; gap:24px;
+}
+@media (max-width:700px) { .top-row { grid-template-columns:1fr; } }
+
+/* Map window SVG */
+.map-window-body { padding:16px; display:flex; flex-direction:column; gap:8px; }
+.map-svg-wrap {
+  flex:1; background:#e8e0c8;
+  border:1.5px solid #b8a88a;
+  overflow:hidden; min-height:200px;
+}
+.map-svg-wrap svg { width:100%; height:100%; display:block; }
 
 /* ── WINDOW ── */
 .window {
@@ -175,55 +190,41 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .graph-bars-scroll { flex:1; position:relative; }
 .graph-bars-inner {
   display:flex; align-items:flex-end; gap:6px;
-  height:220px; padding-bottom:36px; padding-top:4px;
+  height:220px; padding-bottom:0; padding-top:4px;
   position:relative;
   border-left:1.5px solid rgba(101,121,226,.25);
   border-bottom:1.5px solid rgba(101,121,226,.25);
 }
-/* Horizontal gridlines */
-.graph-bars-inner::before {
-  content:'';
-  position:absolute; left:0; right:0; top:0; bottom:36px;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(101,121,226,.06) 0px,
-      rgba(101,121,226,.06) 1px,
-      transparent 1px,
-      transparent 20%
-    );
-  pointer-events:none;
-}
-/* Reading band overlays */
-.reading-band {
+/* Difficulty band fills — solid background strips */
+.diff-band {
   position:absolute; left:0; right:0; pointer-events:none;
-  border-bottom:1px dashed rgba(101,121,226,.2);
 }
-.reading-band-label {
+.diff-band-label {
   position:absolute; right:4px; font-family:var(--font-game); font-size:9px;
-  color:rgba(101,121,226,.5); line-height:1; top:-10px;
+  color:rgba(101,121,226,.55); line-height:1; bottom:3px;
 }
 
-.bar-col {
-  display:flex; flex-direction:column; align-items:center;
-  gap:4px; flex-shrink:0; width:36px;
+/* X-axis label row — sits BELOW the graph border */
+.graph-x-labels {
+  display:flex; gap:6px; padding-left:0; padding-top:4px;
 }
+.bar-x-label {
+  font-family:var(--font-game); font-size:9px; color:#aaa;
+  text-align:center; line-height:1.2; width:36px; flex-shrink:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.bar-col { flex-shrink:0; width:36px; }
 .bar-fill {
   width:100%; border-radius:2px 2px 0 0;
   min-height:2px; transition:height .3s ease;
   position:relative; cursor:pointer;
 }
-.bar-fill:hover { filter:brightness(1.15); }
-.bar-fill-inner { width:100%; height:100%; border-radius:2px 2px 0 0; }
+.bar-fill:hover { filter:brightness(1.12); }
 .bar-score {
-  font-family:var(--font-game); font-size:10px; color:#888;
-  position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+  font-family:var(--font-game); font-size:10px; color:rgba(255,255,255,.85);
+  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
   white-space:nowrap;
-}
-.bar-x-label {
-  font-family:var(--font-game); font-size:9px; color:#aaa;
-  text-align:center; line-height:1.2; width:100%;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
 /* Phase legend */
@@ -324,18 +325,52 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <div class="page-wrap">
   <div class="page-body" id="main-content">
 
-    <!-- CALENDAR WINDOW -->
+    <!-- TOP ROW: bar chart + map -->
+    <div class="top-row">
+
+      <!-- BAR GRAPH WINDOW -->
+      <div class="window" id="graph-window">
+        <div class="window-titlebar">
+          <span>energy over time</span>
+          <span style="font-size:12px;color:#aaa;">hearts / session</span>
+        </div>
+        <div class="graph-area">
+          <div class="graph-wrap">
+            <div class="graph-y" id="graph-y"></div>
+            <div class="graph-bars-scroll">
+              <div class="graph-bars-inner" id="graph-bars"></div>
+              <div class="graph-x-labels" id="graph-x-labels"></div>
+            </div>
+          </div>
+        </div>
+        <div class="phase-legend" id="phase-legend"></div>
+        <div class="empty-month" id="graph-empty" style="display:none;">
+          no energy data yet — complete the daily loop to build your graph
+        </div>
+      </div>
+
+      <!-- MAP WINDOW -->
+      <div class="window" id="map-window">
+        <div class="window-titlebar">
+          <span id="map-window-title">your map</span>
+          <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
+        </div>
+        <div class="map-window-body">
+          <div class="map-svg-wrap" id="map-svg-wrap"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CALENDAR WINDOW (full width) -->
     <div class="window" id="cal-window">
-      <div class="window-titlebar">
-        <span id="cal-game-name">archive</span>
-        <span id="cal-entry-count" style="font-size:12px;color:#aaa;"></span>
+      <div class="window-titlebar" style="justify-content:center;gap:20px;position:relative;">
+        <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+        <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
+        <button class="month-btn" onclick="changeMonth(1)">►</button>
+        <span id="cal-entry-count" style="position:absolute;right:16px;font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
       </div>
       <div class="window-body">
-        <div class="month-nav">
-          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
-          <div class="month-label" id="month-label"></div>
-          <button class="month-btn" onclick="changeMonth(1)">►</button>
-        </div>
         <div class="cal-header">
           <div class="cal-day-label">SUN</div>
           <div class="cal-day-label">MON</div>
@@ -349,26 +384,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <div class="empty-month" id="cal-empty" style="display:none;">
           no entries for this map this month
         </div>
-      </div>
-    </div>
-
-    <!-- BAR GRAPH WINDOW -->
-    <div class="window" id="graph-window">
-      <div class="window-titlebar">
-        <span>energy over time</span>
-        <span style="font-size:12px;color:#aaa;">hearts / session</span>
-      </div>
-      <div class="graph-area">
-        <div class="graph-wrap">
-          <div class="graph-y" id="graph-y"></div>
-          <div class="graph-bars-scroll">
-            <div class="graph-bars-inner" id="graph-bars"></div>
-          </div>
-        </div>
-      </div>
-      <div class="phase-legend" id="phase-legend"></div>
-      <div class="empty-month" id="graph-empty" style="display:none;">
-        no energy data yet — complete the daily loop to build your graph
       </div>
     </div>
 
@@ -450,6 +465,95 @@ const FULL = {
   acc_rainbow:      "assets/characters-full/10.04-RAINBOW.png",
 };
 
+// ── TERRAIN ASSETS ────────────────────────────────────────
+const TERRAIN_IMGS = {
+  dunes:"assets/elements/maps/dunes.png", forest:"assets/elements/maps/forest.png",
+  meadow:"assets/elements/maps/meadow.png", mountains:"assets/elements/maps/mountains.png",
+  ocean:"assets/elements/maps/ocean.png", orchard:"assets/elements/maps/orchard.png",
+  plateu:"assets/elements/maps/plateu.png", pond:"assets/elements/maps/pond.png",
+  river:"assets/elements/maps/river.png", spring:"assets/elements/maps/spring.png",
+  waterfall:"assets/elements/maps/waterfall.png",
+};
+
+const SQUARE_POS = [{x:150,y:114},{x:350,y:114},{x:350,y:286},{x:150,y:286}];
+
+// ── MAP SVG BUILDER ───────────────────────────────────────
+function buildMapSVG(mapType, zones) {
+  if (mapType === 'square') return buildSquareSVG(zones || []);
+  return buildSpiralSVG(zones || []);
+}
+
+function buildSpiralSVG(zones) {
+  const cx=250, cy=190, b=13;
+  const pts=[];
+  for(let i=0;i<=700;i++){
+    const t=0.1+(15.4)*i/700;
+    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
+  }
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const thetas=[0.5,9.4,11.5,13.3,14.9];
+  const pos=thetas.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  return buildZonesSVG('spiral', pos, zones, d);
+}
+
+function buildSquareSVG(zones) {
+  const extra = `<rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
+    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>`;
+  return buildZonesSVG('square', SQUARE_POS, zones, null, extra);
+}
+
+function buildZonesSVG(type, positions, zones, spiralPath, extra) {
+  const R=32;
+  let defs='<defs>';
+  let els='';
+
+  positions.forEach((pos,i) => {
+    const z=zones[i]||{};
+    if(z.tint){
+      defs+=`<radialGradient id="ag${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
+      </radialGradient>`;
+      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R+24}" fill="url(#ag${i})"/>`;
+    }
+    if(z.terrain && TERRAIN_IMGS[z.terrain]){
+      defs+=`<clipPath id="ac${i}"><circle cx="${pos.x}" cy="${pos.y}" r="${R-2}"/></clipPath>`;
+      els+=`<image x="${pos.x-R}" y="${pos.y-R}" width="${R*2}" height="${R*2}"
+        href="${TERRAIN_IMGS[z.terrain]}" clip-path="url(#ac${i})" preserveAspectRatio="xMidYMid meet"/>`;
+    } else {
+      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R}" fill="rgba(200,196,180,.8)" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      els+=`<text x="${pos.x}" y="${pos.y+5}" text-anchor="middle" dominant-baseline="middle"
+        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="20">${i+1}</text>`;
+    }
+    if(z.feeling){
+      els+=`<text x="${pos.x}" y="${pos.y+R+14}" text-anchor="middle"
+        fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="14" font-weight="bold">${z.feeling}</text>`;
+    }
+  });
+  defs+='</defs>';
+
+  const spiral = spiralPath
+    ? `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
+       <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
+       <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${spiralPath}"/>` : '';
+
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${defs}${spiral}${extra||''}${els}
+  </svg>`;
+}
+
+// ── RENDER MAP WINDOW ─────────────────────────────────────
+function renderMap() {
+  const game = allGames.find(g => g.id === activeGameId);
+  if (!game) return;
+  document.getElementById('map-window-title').textContent = game.map_name || 'your map';
+  document.getElementById('map-window-type').textContent  = (game.map_type || 'spiral') + ' map';
+  const mapData = game.map_data || {};
+  const svg = buildMapSVG(game.map_type || 'spiral', mapData.zones || []);
+  document.getElementById('map-svg-wrap').innerHTML = svg;
+}
+
 // ── PHASE COLORS (gradient from #6579e2, light → dark) ────
 const PHASE_COLORS = {
   zone_1: '#d4d9ff',
@@ -470,16 +574,11 @@ function phaseLabel(phase) {
   return PHASE_LABELS[phase] || phase.replace('_',' ');
 }
 
-// ── READINGS (score out of 24) ────────────────────────────
-const READINGS = [
-  { min:0,  max:4,  title:"its a new day",  pct:[0,   17]  },
-  { min:5,  max:9,  title:"keep going",     pct:[17,  38]  },
-  { min:10, max:14, title:"you got this",   pct:[38,  58]  },
-  { min:15, max:19, title:"almost there",   pct:[58,  80]  },
-  { min:20, max:24, title:"full heart",     pct:[80,  100] },
-];
-function getReading(score) {
-  return READINGS.find(r => score >= r.min && score <= r.max) || READINGS[0];
+// ── DIFFICULTY (easy 0-9 / medium 10-19 / hard 20-24) ────
+function getDifficulty(hearts) {
+  if (hearts <= 9)  return 'easy';
+  if (hearts <= 19) return 'medium';
+  return 'hard';
 }
 
 // ── STATE ─────────────────────────────────────────────────
@@ -517,7 +616,7 @@ function renderCharLayer(el, partId) {
 // ── GAME DROPDOWN ─────────────────────────────────────────
 async function loadGames() {
   const { data } = await sb.from('games')
-    .select('id, map_name, map_type, status, updated_at')
+    .select('id, map_name, map_type, map_data, status, updated_at')
     .eq('user_id', currentUser.id)
     .order('updated_at', { ascending:false });
   allGames = data || [];
@@ -569,6 +668,7 @@ async function loadEntries() {
 
   renderCalendar();
   renderBarGraph();
+  renderMap();
 }
 
 // ── CALENDAR ─────────────────────────────────────────────
@@ -679,39 +779,42 @@ function renderBarGraph() {
   const GRAPH_H    = 180; // px of actual bar area (220 - 36 bottom padding - 4 top)
 
   // ── Y axis ──
-  const yLabels = [
-    { value:MAX_HEARTS, label:'24 hearts', reading:null },
-    { value:20, label:'20', reading:'full heart' },
-    { value:15, label:'15', reading:'almost there' },
-    { value:10, label:'10', reading:'you got this' },
-    { value:5,  label:'5',  reading:'keep going' },
-    { value:0,  label:'0',  reading:'its a new day' },
-  ];
-  yLabels.forEach(yl => {
+  const yLabels = ['24 hearts', 'hard', 'medium', 'easy', '0'];
+  yLabels.forEach((lbl, i) => {
     const el = document.createElement('div');
-    el.className = 'y-label' + (yl.reading ? ' reading-zone' : '');
-    el.textContent = yl.reading ? yl.reading : yl.label;
+    el.className = 'y-label' + (i > 0 && i < 4 ? ' reading-zone' : '');
+    el.textContent = lbl;
     yEl.appendChild(el);
   });
 
-  // ── Reading bands ──
-  READINGS.forEach(r => {
-    const yPct = 1 - (r.max / MAX_HEARTS);
+  // ── Difficulty band fills (solid background strips) ──
+  // hard: 79.2%-100% of bar area, medium: 37.5%-79.2%, easy: 0%-37.5%
+  const diffBands = [
+    { bottom:'79.2%', height:'20.8%', color:'rgba(42,59,154,.10)',  label:'hard (20–24)'   },
+    { bottom:'37.5%', height:'41.7%', color:'rgba(101,121,226,.07)', label:'medium (10–19)' },
+    { bottom:'0%',    height:'37.5%', color:'rgba(168,180,240,.07)', label:'easy (0–9)'     },
+  ];
+  diffBands.forEach(b => {
     const band = document.createElement('div');
-    band.className = 'reading-band';
-    band.style.bottom = (r.min / MAX_HEARTS * 100) + '%';
+    band.className = 'diff-band';
+    band.style.bottom  = b.bottom;
+    band.style.height  = b.height;
+    band.style.background = b.color;
+    band.style.borderTop  = '1px solid rgba(101,121,226,.15)';
     const lbl = document.createElement('div');
-    lbl.className = 'reading-band-label';
-    lbl.textContent = r.title;
+    lbl.className = 'diff-band-label';
+    lbl.textContent = b.label;
     band.appendChild(lbl);
     barsEl.appendChild(band);
   });
 
   // ── Bars ──
   const usedPhases = new Set();
+  const xLabelsEl = document.getElementById('graph-x-labels');
+  xLabelsEl.innerHTML = '';
+
   entries.forEach(e => {
     const score = Math.min(e.energy_score ?? 0, 100);
-    // energy_score is 0-100, map to hearts 0-24
     const hearts = Math.round(score / 100 * MAX_HEARTS);
     const heightPct = hearts / MAX_HEARTS * 100;
     const color = phaseColor(e.map_phase);
@@ -732,13 +835,14 @@ function renderBarGraph() {
     scoreEl.textContent = hearts;
     fill.appendChild(scoreEl);
 
-    const xLabel = document.createElement('div');
-    xLabel.className = 'bar-x-label';
-    xLabel.textContent = formatShortDate(e.entry_date);
-
     col.appendChild(fill);
-    col.appendChild(xLabel);
     barsEl.appendChild(col);
+
+    // X-label goes in separate row below graph
+    const xLbl = document.createElement('div');
+    xLbl.className = 'bar-x-label';
+    xLbl.textContent = formatShortDate(e.entry_date);
+    xLabelsEl.appendChild(xLbl);
   });
 
   // ── Legend ──
@@ -753,32 +857,33 @@ function renderBarGraph() {
 
 // ── DETAIL POPUP ──────────────────────────────────────────
 function openDetail(entry, dateStr) {
-  const char = entry.character_data || {};
-  const score = Math.round((entry.energy_score??0) / 100 * 24);
-  const reading = getReading(score);
+  const char   = entry.character_data || {};
+  const hearts = Math.round((entry.energy_score??0) / 100 * 24);
+  const diff   = getDifficulty(hearts);
 
   document.getElementById('detail-title').textContent = formatShortDate(dateStr);
   document.getElementById('detail-date').textContent  = formatDateLabel(dateStr);
   document.getElementById('detail-char-name').textContent = char.name || '';
 
-  // Render character layers
   renderCharLayer(document.getElementById('dl-body'),  char.body);
   renderCharLayer(document.getElementById('dl-acc'),   char.acc);
   renderCharLayer(document.getElementById('dl-hair'),  char.hair);
   renderCharLayer(document.getElementById('dl-eyes'),  char.eyes);
   renderCharLayer(document.getElementById('dl-mouth'), char.mouth);
 
-  // Meta rows
   const meta = document.getElementById('detail-meta');
   meta.innerHTML = '';
 
-  const rows = [
-    { label:'location', value: entry.map_location || '—' },
-    { label:'phase',    value: phaseLabel(entry.map_phase), color: phaseColor(entry.map_phase) },
-    { label:'energy',   value: score + ' / 24 hearts' },
-    { label:'reading',  value: reading?.title || '—' },
-  ];
+  // Phase + location on same row
+  const phaseVal = entry.map_location
+    ? `${phaseLabel(entry.map_phase)} · ${entry.map_location}`
+    : phaseLabel(entry.map_phase);
 
+  const rows = [
+    { label:'phase',      value: phaseVal, color: phaseColor(entry.map_phase) },
+    { label:'energy',     value: hearts + ' / 24 hearts' },
+    { label:'difficulty', value: diff },
+  ];
   rows.forEach(r => {
     const row = document.createElement('div');
     row.className = 'detail-row';
