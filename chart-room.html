@@ -360,12 +360,29 @@ async function saveAndContinue() {
   btn.disabled = true;
   btn.textContent = 'saving...';
 
-  // Request state from iframe
   const iframe = document.getElementById('game-iframe');
   if (!iframe) { btn.disabled = false; return; }
 
-  iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
-  // Response handled in the message listener below
+  if (currentStep === 'map') {
+    // Tell treasure-map to run its save logic; response comes via map_saved postMessage
+    iframe.contentWindow.postMessage({ type: 'save_map' }, '*');
+  } else {
+    // Request current state from character builder or bingo
+    iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
+    // Fallback: re-enable if no response in 5s
+    const label = currentStep === 'character'
+      ? 'save character &amp; continue →'
+      : 'save &amp; finish →';
+    clearTimeout(window._saveFallback);
+    window._saveFallback = setTimeout(() => {
+      const b = document.getElementById('save-continue-btn');
+      if (b && b.disabled) {
+        b.disabled = false;
+        b.innerHTML = label;
+        showRoomStatus('something went wrong — try again', '#E8478B');
+      }
+    }, 5000);
+  }
 }
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
@@ -447,11 +464,11 @@ function stepInitial() {
 
 // ── STEP 2A: NEW GAME ─────────────────────────────────────
 function stepNewGame() {
-  setBubble('build your map, then save it to begin', []);
-  const src = isGuestMode
-    ? 'treasure-map.html?mode=new&loop=true'
-    : 'treasure-map.html?mode=new&loop=true';
+  currentStep = 'map';
+  setBubble('build your map, then save it to begin ♡', []);
+  const src = 'treasure-map.html?mode=new&loop=true';
   showIframe(src);
+  setSaveBtnVisible(true, 'save map &amp; continue →');
 }
 
 // ── STEP 2B: LOAD GAME ────────────────────────────────────
@@ -609,8 +626,11 @@ function stepBingo() {
 
 // ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
 function stepDone() {
-  // Fallback — bingo flow navigates directly to archive, this fires only if called manually
-  window.location.href = `archive.html?game_id=${activeGameId}`;
+  setBubble("today's entry is complete ✓", [
+    { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
+    { label: 'back to game room', secondary:true, action: () => window.location.href='game-select.html' },
+  ]);
+  hidePanel();
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
@@ -627,7 +647,16 @@ window.addEventListener('message', async e => {
     };
     activePhase = null;
     setSaveBtnVisible(false);
+    showRoomStatus('map saved ✓', '#6ab86a');
     stepPhaseSelect();
+    return;
+  }
+
+  // Map save failed — re-enable button with reason
+  if (msg.type === 'map_save_failed') {
+    const btn = document.getElementById('save-continue-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'save map &amp; continue →'; }
+    showRoomStatus(msg.reason || 'add a goal name and some terrain first', '#E8478B');
     return;
   }
 
@@ -712,9 +741,7 @@ window.addEventListener('message', async e => {
     if (saved) {
       showRoomStatus('all saved ✓', '#6ab86a');
       setSaveBtnVisible(false);
-      setTimeout(() => {
-        window.location.href = `archive.html?game_id=${activeGameId}`;
-      }, 900);
+      stepDone();
     } else {
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
