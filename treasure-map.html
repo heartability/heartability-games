@@ -513,12 +513,12 @@ const SQUARE_ZONE_PROMPTS = [
 
 // Quadrant centers within the 500×400 viewBox
 const SQUARE_ZONE_POSITIONS = [
-  { x: 150, y: 114 },   // top-left
-  { x: 350, y: 114 },   // top-right
-  { x: 150, y: 286 },   // bottom-left
-  { x: 350, y: 286 },   // bottom-right
+  { x: 150, y: 114 },   // top-left     = 1
+  { x: 350, y: 114 },   // top-right    = 2
+  { x: 350, y: 286 },   // bottom-right = 3
+  { x: 150, y: 286 },   // bottom-left  = 4
 ];
-const SQUARE_LABELS = ['I', 'II', 'III', 'IV'];
+const SQUARE_LABELS = ['1', '2', '3', '4'];
 
 // ── MODE ──────────────────────────────────────────────────────────────────
 let currentMode = 'spiral';
