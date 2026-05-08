@@ -358,6 +358,78 @@ html, body {
 
 #main-content { display: none; }
 
+/* ── LEADERBOARD ── */
+.leaderboard-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.leaderboard-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 80px 80px;
+  gap: 8px;
+  padding: 6px 10px 8px;
+  font-family: var(--font-hand);
+  font-size: clamp(10px, 1vw, 12px);
+  color: #aaa;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #e0dbd0;
+}
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 80px 80px;
+  gap: 8px;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #333;
+  transition: background 0.1s;
+  align-items: center;
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-row:hover { background: rgba(101,121,226,0.04); }
+.leaderboard-row.is-me {
+  background: rgba(101,121,226,0.08);
+  border-left: 3px solid var(--purple);
+  padding-left: 7px;
+}
+.lb-rank {
+  font-family: var(--font-game, monospace);
+  font-size: clamp(12px, 1.2vw, 15px);
+  color: #aaa;
+  text-align: center;
+}
+.lb-rank.top3 { color: var(--purple); font-weight: bold; }
+.lb-username { font-family: var(--font-hand); font-weight: 600; word-break: break-all; }
+.lb-username.is-me::after { content: ' (you)'; color: var(--purple); font-size: 11px; font-weight: normal; }
+.lb-saves { text-align: right; font-family: var(--font-hand); color: #555; }
+.lb-words { text-align: right; font-family: var(--font-hand); color: #aaa; font-size: clamp(11px, 1vw, 12px); }
+.lb-divider {
+  padding: 8px 10px;
+  text-align: center;
+  color: #ccc;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.lb-empty {
+  padding: 30px 20px;
+  text-align: center;
+  font-family: var(--font-hand);
+  color: #bbb;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.lb-loading {
+  padding: 24px; text-align: center;
+  font-family: var(--font-hand); color: #aaa; font-size: 14px;
+}
+.lb-refresh {
+  font-size: 11px; color: #aaa; cursor: pointer;
+  margin-left: auto; padding: 0 4px;
+}
+.lb-refresh:hover { color: var(--purple); }
+
   </style>
 </head>
 <body>
@@ -452,6 +524,20 @@ html, body {
     </div>
 
   </div>
+
+  <!-- Leaderboard — full width below settings + saved data -->
+  <div class="window" id="leaderboard-window">
+    <div class="window-titlebar">
+      weekly leaderboard
+      <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
+    </div>
+    <div class="window-body" style="padding:0;">
+      <div id="leaderboard-content">
+        <div class="lb-loading">loading this week's rankings...</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -564,7 +650,62 @@ html, body {
     window.location.href = 'login.html';
   });
 
+  // ── Leaderboard ───────────────────────────────────────────
+  window.loadLeaderboard = async function () {
+    const el = document.getElementById('leaderboard-content');
+    el.innerHTML = '<div class="lb-loading">loading rankings...</div>';
+
+    const { data, error } = await sb.rpc('get_weekly_leaderboard');
+
+    if (error || !data?.length) {
+      el.innerHTML = `<div class="lb-empty">
+        no entries this week yet — make a save today to get on the board ♡<br>
+        <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span>
+      </div>`;
+      return;
+    }
+
+    // Find current user's row (may not be in top results)
+    const myRow   = data.find(r => r.is_me);
+    const topRows = data.slice(0, 20);
+    const myInTop = topRows.some(r => r.is_me);
+
+    let html = `<div class="leaderboard-header">
+      <span>#</span>
+      <span>player</span>
+      <span style="text-align:right">saves</span>
+      <span style="text-align:right">words</span>
+    </div>`;
+
+    topRows.forEach(r => {
+      const rankLabel = r.rank <= 3
+        ? ['🥇','🥈','🥉'][r.rank - 1]
+        : r.rank;
+      html += `<div class="leaderboard-row${r.is_me ? ' is-me' : ''}">
+        <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
+        <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
+        <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
+        <span class="lb-words">${r.weekly_words > 0 ? r.weekly_words + ' words' : '—'}</span>
+      </div>`;
+    });
+
+    // If user exists but isn't in top 20, show them below a divider
+    if (!myInTop && myRow) {
+      html += `<div class="lb-divider">· · ·</div>`;
+      html += `<div class="leaderboard-row is-me">
+        <span class="lb-rank">${myRow.rank}</span>
+        <span class="lb-username is-me">${myRow.username}</span>
+        <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
+        <span class="lb-words">${myRow.weekly_words > 0 ? myRow.weekly_words + ' words' : '—'}</span>
+      </div>`;
+    }
+
+    el.innerHTML = html;
+  };
+
   init();
+  // Load leaderboard after a short delay so profile loads first
+  setTimeout(window.loadLeaderboard, 600);
 })();
 </script>
 
