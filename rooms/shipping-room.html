@@ -8,11 +8,11 @@
 
 @font-face {
   font-family: "ZoesHandwriting";
-  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "PFPixelscript";
-  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,10 +103,10 @@ html, body {
   position: relative;
 }
 .poster-list li::before {
-  content: '♡';
+  content: '•';
   position: absolute; left: 0;
-  font-size: 10px; color: #6579e2;
-  top: 2px;
+  font-size: 12px; color: #6579e2;
+  top: 1px;
 }
 
 /* Recent updates — left side of back wall */
@@ -207,9 +207,9 @@ html, body {
 
 <!-- NAV -->
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='game-select.html'">← game room</span>
+  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">← game room</span>
   <span style="font-family:var(--font-pixel);">shipping room</span>
-  <span class="nav-btn" onclick="window.location.href='index.html'">home →</span>
+  <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
 </nav>
 
 <!-- ROOM LINES -->
@@ -250,10 +250,10 @@ html, body {
 
 <!-- FLOOR BOXES (swap src for your PNGs) -->
 <div class="floor-box box-1">
-  <img src="assets/elements/box-large.png" alt="shipping box">
+  <img src="../assets/elements/box-large.png" alt="shipping box">
 </div>
 <div class="floor-box box-2">
-  <img src="assets/elements/box-small.png" alt="shipping box">
+  <img src="../assets/elements/box-small.png" alt="shipping box">
 </div>
 
 <!-- HEART CHARACTER -->
@@ -261,7 +261,7 @@ html, body {
   <div class="thought-bubble" id="heart-bubble">
     fresh out of the oven — here's what's new ♡
   </div>
-  <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
+  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
 <script>
