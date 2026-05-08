@@ -124,7 +124,7 @@ html, body {
   color: #fff;
   text-shadow: 0 0 40px rgba(131,210,230,0.55), 0 2px 12px rgba(0,0,0,0.5);
   text-align: center;
-  padding: 12px 0 4px;
+  padding: 4px 0 2px;
   letter-spacing: 1px;
   line-height: 1.15;
 }
@@ -615,20 +615,22 @@ html, body {
     const membershipEl  = document.getElementById('settings-membership');
     const upgradeBtn    = document.getElementById('btn-upgrade-settings');
 
-    if (status === 'basic') {
-      membershipEl.textContent = 'basic member';
-      membershipEl.style.color = 'var(--purple)';
-      upgradeBtn.style.display = 'none';
-
-    } else if (status === 'founding') {
+    if (status === 'founding') {
       membershipEl.textContent = '✦ founding member';
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
+
+    } else if (status === 'basic') {
+      membershipEl.textContent = 'basic member';
+      membershipEl.style.color = 'var(--purple)';
+      upgradeBtn.textContent   = 'upgrade to founding member';
+      upgradeBtn.style.display = 'inline-block';
 
     } else {
       // free
       membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
+      upgradeBtn.textContent   = 'upgrade membership';
       upgradeBtn.style.display = 'inline-block';
     }
   }
