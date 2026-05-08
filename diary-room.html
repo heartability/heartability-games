@@ -61,78 +61,100 @@ html, body {
 }
 .nav-btn { cursor:pointer; padding:4px 8px; transition:background .15s; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
+.nav-title { font-family:var(--font-hand); font-size:clamp(16px,2vw,24px); }
 
 /* ─────────────────────────────────────────────────
-   NOTEBOOK  z:4
-   Centered on the back wall — open spread.
+   OUTSIDE-JOURNAL CONTROLS  z:4
+   Map selector label + dropdown sit above the notebook.
+───────────────────────────────────────────────── */
+.journal-controls {
+  position: fixed;
+  top: calc(var(--bw-top) + 1.5%);
+  left: calc(var(--bw-left) + 7%);
+  width: calc(var(--bw-width) - 14%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.map-prompt-label {
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 18px);
+  color: #5a4a2a;
+}
+.journal-controls-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.game-selector {
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 16px);
+  border: 1.5px solid #c8b88a; background: #fdf6e3;
+  color: #5a4a2a; padding: 4px 8px; cursor: pointer; outline: none;
+  max-width: clamp(140px, 18vw, 240px);
+}
+.game-selector:focus { border-color: var(--blue); }
+.save-btn {
+  padding: 5px 16px;
+  background: var(--blue);
+  border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: clamp(12px, 1.3vw, 16px);
+  color: #fff; cursor: pointer; transition: all .05s; white-space: nowrap;
+}
+.save-btn:hover { background: #4a5bc4; }
+.save-btn:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ─────────────────────────────────────────────────
+   NOTEBOOK  z:4  — now single page only (right side)
 ───────────────────────────────────────────────── */
 .notebook {
   position: fixed;
-  top: calc(var(--bw-top) + 4%);
+  top: calc(var(--bw-top) + 10%);
   left: calc(var(--bw-left) + 7%);
   width: calc(var(--bw-width) - 14%);
-  height: calc(var(--bw-height) - 10%);
+  height: calc(var(--bw-height) - 16%);
   z-index: 4;
   display: flex;
   filter: drop-shadow(4px 8px 18px rgba(0,0,0,.28));
 }
 
-/* Left page — decorative / info side */
-.notebook-left {
-  flex: 0 0 38%;
-  background: #fdf8f0;
+/* Spiral binding — left edge of single page */
+.notebook-spine {
+  flex: 0 0 20px;
+  background: #e8e3da;
   border: 1.5px solid #c8b88a;
   border-right: none;
   border-radius: 3px 0 0 3px;
-  padding: 28px 20px 20px 24px;
-  display: flex; flex-direction: column; gap: 14px;
-  position: relative;
-  /* Ruled lines via background */
-  background-image:
-    linear-gradient(to bottom, transparent calc(100% - 1px), rgba(101,121,226,.12) 1px);
-  background-size: 100% 32px;
-  background-position: 0 48px;
-}
-
-/* Spiral binding — sits between pages */
-.notebook-spine {
-  flex: 0 0 22px;
-  background: #e8e3da;
-  border-top: 1.5px solid #c8b88a;
-  border-bottom: 1.5px solid #c8b88a;
-  position: relative;
   display: flex; flex-direction: column;
   justify-content: space-around; align-items: center;
   padding: 12px 0;
   overflow: hidden;
 }
 .spine-ring {
-  width: 18px; height: 18px;
+  width: 16px; height: 16px;
   border: 2.5px solid #8a7a5a;
   border-radius: 50%;
   background: var(--side-col);
   flex-shrink: 0;
 }
 
-/* Right page — writing area */
+/* Single writing page */
 .notebook-right {
   flex: 1;
   background: #fff9f0;
   border: 1.5px solid #c8b88a;
-  border-left: none;
   border-radius: 0 3px 3px 0;
-  padding: 28px 24px 20px 20px;
-  display: flex; flex-direction: column; gap: 12px;
+  padding: 22px 24px 16px 20px;
+  display: flex; flex-direction: column; gap: 10px;
   background-image:
     linear-gradient(to bottom, transparent calc(100% - 1px), rgba(101,121,226,.1) 1px);
   background-size: 100% 32px;
-  background-position: 0 72px;
+  background-position: 0 60px;
 }
 
-/* Date and game selector row */
+/* Date header row — just the date, no internal selector */
 .notebook-header {
   display: flex; align-items: baseline;
-  justify-content: space-between;
   border-bottom: 1px solid rgba(101,121,226,.2);
   padding-bottom: 8px; flex-shrink: 0;
 }
@@ -141,32 +163,12 @@ html, body {
   font-size: clamp(13px, 1.5vw, 18px);
   color: #5a4a2a;
 }
-.game-selector {
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 14px);
-  border: 1px solid #c8b88a; background: transparent;
-  color: #8a7a5a; padding: 2px 6px; cursor: pointer; outline: none;
-  max-width: clamp(100px, 14vw, 180px);
-}
-.game-selector:focus { border-color: var(--blue); }
 
-/* Left page content */
-.left-page-title {
-  font-family: var(--font-pixel);
-  font-size: clamp(14px, 1.8vw, 22px);
-  color: #2a1e14; line-height: 1.2;
-}
-.left-page-body {
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 14px);
-  color: #8a7a5a; line-height: 1.8; flex: 1;
-}
 .privacy-note {
   font-family: var(--font-hand);
-  font-size: clamp(9px, 0.9vw, 12px);
-  color: #bbb; line-height: 1.5;
-  border-top: 1px solid #e8e0d0;
-  padding-top: 10px; margin-top: auto;
+  font-size: clamp(9px, 0.85vw, 11px);
+  color: #ccc; line-height: 1.5; flex-shrink: 0;
+  border-top: 1px solid #e8e0d0; padding-top: 8px;
 }
 
 /* The textarea */
@@ -180,18 +182,20 @@ html, body {
   caret-color: var(--blue);
 }
 .diary-area::placeholder {
-  color: rgba(138,122,90,.45);
+  color: rgba(138,122,90,.35);
   font-style: italic;
 }
 .diary-area:focus { outline: none; }
 
-/* Save status */
+/* Save status — below the journal controls */
 .save-status {
+  position: fixed;
+  top: calc(var(--bw-top) + 1.5%);
+  right: calc(100% - var(--bw-left) - var(--bw-width) + 1%);
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 13px);
-  color: var(--blue); text-align: right;
-  height: 16px; flex-shrink: 0;
-  transition: opacity .3s;
+  color: var(--blue);
+  z-index: 5;
 }
 
 /* ── Heart character ── */
@@ -262,7 +266,7 @@ html, body {
 <!-- NAV -->
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='game-select.html'">← game room</span>
-  <span style="font-family:var(--font-pixel);">diary room</span>
+  <span class="nav-title">diary room</span>
   <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
 </nav>
 
@@ -279,35 +283,31 @@ html, body {
 <!-- BACK WALL -->
 <div class="back-wall"></div>
 
-<!-- NOTEBOOK -->
+<!-- CONTROLS ABOVE NOTEBOOK -->
+<div class="journal-controls" id="journal-controls" style="display:none;">
+  <span class="map-prompt-label">what map are you exploring?</span>
+  <div class="journal-controls-right">
+    <select class="game-selector" id="game-selector" onchange="onGameChange()">
+      <option value="">select a map...</option>
+    </select>
+    <button class="save-btn" onclick="saveEntry()">♥ save</button>
+  </div>
+</div>
+
+<!-- SAVE STATUS -->
+<div class="save-status" id="save-status"></div>
+
+<!-- NOTEBOOK — single page with spine -->
 <div class="notebook">
 
-  <!-- LEFT PAGE -->
-  <div class="notebook-left">
-    <div class="left-page-title">diary</div>
-    <div class="left-page-body">
-      anything you want to put on the record about today?
-      <br><br>
-      wins, losses, learning moments — it all counts.
-    </div>
-    <div class="privacy-note">
-      ♡ your entries are private and only visible to you. we never read or share your diary.
-    </div>
-  </div>
-
   <!-- SPINE -->
-  <div class="notebook-spine" id="spine-rings">
-    <!-- rings generated by JS -->
-  </div>
+  <div class="notebook-spine" id="spine-rings"></div>
 
-  <!-- RIGHT PAGE -->
+  <!-- WRITING PAGE -->
   <div class="notebook-right" style="position:relative;">
 
     <div class="notebook-header">
       <div class="notebook-date" id="notebook-date"></div>
-      <select class="game-selector" id="game-selector" onchange="onGameChange()">
-        <option value="">select a map...</option>
-      </select>
     </div>
 
     <textarea
@@ -317,7 +317,9 @@ html, body {
       maxlength="4000"
     ></textarea>
 
-    <div class="save-status" id="save-status"></div>
+    <div class="privacy-note">
+      ♡ your entries are private and only visible to you. we never read or share your diary.
+    </div>
 
     <!-- Locked overlay for non-logged-in users -->
     <div class="locked-overlay" id="locked-overlay">
@@ -330,7 +332,7 @@ html, body {
 
 <!-- HEART CHARACTER -->
 <div class="char-heart" id="char-heart">
-  <div class="thought-bubble">write it down — it happened, it matters ♡</div>
+  <div class="thought-bubble">anything you want to put on the record about today? wins, losses, learning moments — it all counts ♡</div>
   <img class="char-img" src="assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
@@ -425,25 +427,23 @@ async function loadEntry() {
   area.focus();
 }
 
-// ── AUTO-SAVE (debounced 1.5s after last keystroke) ───────
-function onType() {
-  showStatus('writing...', '#aaa');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveEntry, 1500);
-}
+// ── AUTO-SAVE removed — now manual via save button ────────
 
 async function saveEntry() {
   if (!currentUser || !activeGameId) return;
-  const text = document.getElementById('diary-area').value;
-  const today = localToday();
+  const text = document.getElementById('diary-area').value.trim();
+  const btn  = document.querySelector('.save-btn');
+  if (btn) { btn.textContent = '♥ saving...'; btn.disabled = true; }
 
   const { error } = await sb.from('diary_entries').upsert({
     game_id:    activeGameId,
     user_id:    currentUser.id,
-    entry_date: today,
+    entry_date: localToday(),
     diary_text: text,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'game_id,entry_date' });
+
+  if (btn) { btn.disabled = false; btn.textContent = '♥ save'; }
 
   if (error) {
     showStatus('save failed', '#E8478B');
@@ -483,8 +483,8 @@ async function init() {
     return;
   }
 
-  // Wire up auto-save
-  document.getElementById('diary-area').addEventListener('input', onType);
+  // Show controls above notebook
+  document.getElementById('journal-controls').style.display = 'flex';
 
   await loadGames();
 }
