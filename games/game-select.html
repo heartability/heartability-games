@@ -575,11 +575,11 @@ html, body {
   const bubble = document.getElementById('heart-bubble');
 
   const messages = {
-    'art-map':    'life is confusing. if you feel lost, make yourself a map',
+    'art-map':    'life is confusing... if you feel lost, make a map',
     'art-bingo':  'take a minute to celebrate the care you give yourself',
     'art-mirror': 'who do you want to be today? the options are endless',
-    'art-door':   'what if you could create a personal video game world?...',
-    'art-about':  'click to read a message from the creator of Heartability'
+    'art-door':   'they say life is a game, now you can track your progress.',
+    'art-about':  'a message from the creator of Heartability'
   };
 
   function triggerWiggle(el) {
@@ -604,7 +604,7 @@ html, body {
 
   /* Navigation — nav bar buttons */
   document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../index.html'; });
-  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../rooms/garden.html'; });
+  document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../rooms/garden'; });
 
   /* Modal */
   const modalOverlay = document.getElementById('modal-overlay');
