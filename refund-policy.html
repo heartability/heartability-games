@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Refund & Cancellation Policy — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+}
+
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+.page-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 20px 60px;
+}
+
+.window {
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #555;
+}
+
+.window-body { padding: 28px 32px 36px; }
+
+.doc-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(20px, 2.5vw, 28px);
+  color: #222;
+  margin-bottom: 6px;
+}
+
+.doc-updated {
+  font-size: clamp(11px, 1vw, 13px);
+  color: #aaa;
+  margin-bottom: 28px;
+}
+
+.doc-intro {
+  font-size: clamp(13px, 1.3vw, 15px);
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.section:last-child { border-bottom: none; margin-bottom: 0; }
+
+.section-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(14px, 1.5vw, 18px);
+  color: var(--purple);
+  margin-bottom: 10px;
+}
+
+.section p, .section li {
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #444;
+  line-height: 1.75;
+}
+
+.section ul { padding-left: 20px; margin-top: 8px; }
+.section li { margin-bottom: 4px; }
+.section p + p { margin-top: 10px; }
+
+.highlight-box {
+  background: rgba(101,121,226,0.07);
+  border: 1.5px solid rgba(101,121,226,0.2);
+  padding: 16px 20px;
+  margin-top: 12px;
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #444;
+  line-height: 1.7;
+}
+
+.contact-block {
+  background: var(--cream-dark);
+  padding: 16px 20px;
+  margin-top: 12px;
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #555;
+  line-height: 1.7;
+}
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="history.back()">back</span>
+  <span>refund & cancellation policy</span>
+  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+</nav>
+
+<div class="page-wrap">
+  <div class="window">
+    <div class="window-titlebar">legal</div>
+    <div class="window-body">
+
+      <div class="doc-title">Refund & Cancellation Policy</div>
+      <div class="doc-updated">Last updated: May 2026</div>
+
+      <div class="doc-intro">
+        We want you to feel good about your Heartability membership. This policy explains how cancellations and refunds work. If you have any questions, email us at hello@heartability.com — we're a small team and we'll always do our best to make things right.
+      </div>
+
+      <div class="section">
+        <div class="section-title">Cancellation</div>
+        <p>You can cancel your membership at any time — no hoops, no guilt.</p>
+        <p>To cancel, email us at hello@heartability.com with the subject line "Cancel membership." We will process your cancellation within 1 business day.</p>
+        <p>When you cancel:</p>
+        <ul>
+          <li>You will not be charged again</li>
+          <li>You retain full membership access until the end of your current billing period</li>
+          <li>Your saved game data is preserved for 90 days in case you want to resubscribe</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Refunds — Monthly (Basic) Membership</div>
+        <p>Monthly memberships are billed at the start of each billing cycle. We do not offer refunds for the current billing period once it has begun.</p>
+        <p>If you were charged unexpectedly or believe there was an error, contact us within 14 days of the charge and we will review it.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Refunds — Annual (Founding) Membership</div>
+        <p>We offer a 7-day refund window for Founding Memberships. If you purchased a Founding Membership and would like a full refund:</p>
+        <ul>
+          <li>Contact us within 7 days of your purchase date</li>
+          <li>Email hello@heartability.com with subject "Founding Member refund request"</li>
+          <li>Refunds are issued to your original payment method within 5–10 business days</li>
+        </ul>
+        <p>After 7 days, annual memberships are non-refundable but you may cancel to stop future renewals.</p>
+        <div class="highlight-box">
+          ✦ Founding Members lock in their rate permanently — if you cancel and resubscribe later, the Founding Member price may no longer be available.
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Exceptions</div>
+        <p>We handle exceptions on a case-by-case basis. If you experienced a technical issue that prevented you from accessing the Service during your billing period, or if there were other extenuating circumstances, please reach out and we will work with you.</p>
+        <p>We're a small, independent studio and we care about treating our members fairly. ♡</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Contact</div>
+        <div class="contact-block">
+          Untold Until Media LLC<br>
+          New York, NY<br>
+          hello@heartability.com<br><br>
+          Response time: within 1–2 business days
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

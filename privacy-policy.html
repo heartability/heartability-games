@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+}
+
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+.page-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 20px 60px;
+}
+
+.window {
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #555;
+}
+
+.window-body {
+  padding: 28px 32px 36px;
+}
+
+.doc-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(20px, 2.5vw, 28px);
+  color: #222;
+  margin-bottom: 6px;
+}
+
+.doc-updated {
+  font-size: clamp(11px, 1vw, 13px);
+  color: #aaa;
+  margin-bottom: 28px;
+}
+
+.doc-intro {
+  font-size: clamp(13px, 1.3vw, 15px);
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.section:last-child { border-bottom: none; margin-bottom: 0; }
+
+.section-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(14px, 1.5vw, 18px);
+  color: var(--purple);
+  margin-bottom: 10px;
+}
+
+.section p, .section li {
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #444;
+  line-height: 1.75;
+}
+
+.section ul {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+.section li { margin-bottom: 4px; }
+
+.contact-block {
+  background: var(--cream-dark);
+  padding: 16px 20px;
+  margin-top: 12px;
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #555;
+  line-height: 1.7;
+}
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="history.back()">back</span>
+  <span>privacy policy</span>
+  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+</nav>
+
+<div class="page-wrap">
+  <div class="window">
+    <div class="window-titlebar">legal</div>
+    <div class="window-body">
+
+      <div class="doc-title">Privacy Policy</div>
+      <div class="doc-updated">Last updated: May 2026</div>
+
+      <div class="doc-intro">
+        Heartability is operated by Untold Until Media LLC ("we," "us," or "our"), a Delaware LLC registered in New York. This Privacy Policy explains how we collect, use, and protect information when you use Heartability at heartability-games.vercel.app and related pages. By using Heartability, you agree to the practices described here.
+      </div>
+
+      <div class="section">
+        <div class="section-title">1. Information We Collect</div>
+        <p>We collect information you provide directly and information generated through your use of the platform:</p>
+        <ul>
+          <li><strong>Account information:</strong> email address, username, and password when you create an account</li>
+          <li><strong>Payment information:</strong> billing is handled entirely by Stripe. We do not store your credit card number or payment details — only a Stripe customer ID linked to your account</li>
+          <li><strong>Game data:</strong> saved game progress (bingo cards, character builds, treasure map progress) for members</li>
+          <li><strong>Usage data:</strong> pages visited, features used, and general interaction with the platform</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <div class="section-title">2. How We Use Your Information</div>
+        <p>We use the information we collect to:</p>
+        <ul>
+          <li>Create and manage your account</li>
+          <li>Process membership payments through Stripe</li>
+          <li>Save and restore your game progress (members only)</li>
+          <li>Send transactional emails (receipts, password resets, membership renewal notices)</li>
+          <li>Improve the platform and fix bugs</li>
+          <li>Respond to your questions and support requests</li>
+        </ul>
+        <p style="margin-top:10px;">We do not sell your personal information to third parties. We do not use your data for advertising.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">3. Third-Party Services</div>
+        <p>Heartability uses the following third-party services that may process your data:</p>
+        <ul>
+          <li><strong>Supabase</strong> — database and authentication (supabase.com)</li>
+          <li><strong>Stripe</strong> — payment processing (stripe.com)</li>
+          <li><strong>Vercel</strong> — website hosting (vercel.com)</li>
+          <li><strong>Flodesk</strong> — email communications (flodesk.com)</li>
+        </ul>
+        <p style="margin-top:10px;">Each of these services has its own privacy policy governing how they handle data.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">4. Data Retention</div>
+        <p>We retain your account information for as long as your account is active. If you delete your account, we will delete your personal data within 30 days, except where we are required by law to retain it (such as billing records, which Stripe retains per their legal obligations).</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">5. Your Rights (California Residents)</div>
+        <p>If you are a California resident, the California Consumer Privacy Act (CCPA) gives you the right to:</p>
+        <ul>
+          <li>Know what personal information we collect about you</li>
+          <li>Request deletion of your personal information</li>
+          <li>Opt out of the sale of your personal information (we do not sell personal information)</li>
+          <li>Non-discrimination for exercising your rights</li>
+        </ul>
+        <p style="margin-top:10px;">To exercise any of these rights, contact us at the address below.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">6. Cookies</div>
+        <p>Heartability uses session cookies to keep you logged in. We do not use advertising or tracking cookies. You can disable cookies in your browser settings, but this may affect your ability to stay logged in.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">7. Children's Privacy</div>
+        <p>Heartability is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal information, please contact us and we will delete it.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">8. Changes to This Policy</div>
+        <p>We may update this Privacy Policy from time to time. We will notify you of material changes by updating the date at the top of this page. Continued use of Heartability after changes constitutes acceptance of the updated policy.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">9. Contact Us</div>
+        <div class="contact-block">
+          Untold Until Media LLC<br>
+          New York, NY<br>
+          hello@heartability.com
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

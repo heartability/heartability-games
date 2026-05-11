@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Support — Heartability</title>
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  background-image: url('assets/elements/stars.gif');
+  background-size: auto;
+  background-position: center;
+  background-repeat: repeat;
+  font-family: var(--font-hand);
+  user-select: none;
+}
+
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--mint);
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #111;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+.page-wrap {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px 48px;
+  gap: 20px;
+}
+
+/* ── WINDOW ── */
+.window {
+  background: var(--cream);
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  width: 100%;
+  max-width: 520px;
+  animation: windowIn 0.35s ease both;
+}
+.window:nth-child(2) { animation-delay: 0.05s; }
+.window:nth-child(3) { animation-delay: 0.1s; }
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #555;
+}
+
+.window-body {
+  padding: 22px 24px 26px;
+}
+
+/* ── CONTACT SECTION ── */
+.contact-intro {
+  font-size: clamp(13px, 1.3vw, 15px);
+  color: #666;
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+.email-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--cream-dark);
+  padding: 14px 18px;
+  border: 1.5px solid #ccc;
+}
+
+.email-address {
+  font-family: var(--font-pixel);
+  font-size: clamp(14px, 1.5vw, 17px);
+  color: var(--purple);
+  letter-spacing: 0.3px;
+}
+
+.btn-copy {
+  padding: 6px 14px;
+  background: none;
+  border: 1.5px solid var(--purple);
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1vw, 13px);
+  color: var(--purple);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-copy:hover { background: var(--purple); color: #fff; }
+.btn-copy.copied { background: var(--purple); color: #fff; }
+
+.response-note {
+  margin-top: 10px;
+  font-size: clamp(11px, 1vw, 12px);
+  color: #aaa;
+}
+
+/* ── LEGAL LINKS ── */
+.legal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legal-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: 12px;
+}
+.legal-link:last-child { border-bottom: none; }
+.legal-link:hover .legal-link-name { color: var(--purple); }
+.legal-link:hover .legal-link-arrow { color: var(--purple); }
+
+.legal-link-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legal-link-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.legal-link-name {
+  font-size: clamp(13px, 1.3vw, 15px);
+  color: #333;
+  transition: color 0.12s;
+}
+
+.legal-link-desc {
+  font-size: clamp(10px, 0.95vw, 12px);
+  color: #aaa;
+  margin-top: 1px;
+}
+
+.legal-link-arrow {
+  font-size: 16px;
+  color: #ccc;
+  transition: color 0.12s;
+  flex-shrink: 0;
+}
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="history.back()">back</span>
+  <span>support</span>
+  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Contact -->
+  <div class="window">
+    <div class="window-titlebar">contact us</div>
+    <div class="window-body">
+      <div class="contact-intro">
+        Have a question about your membership, a bug to report, or just want to say hi? We'd love to hear from you ♡
+      </div>
+      <div class="email-block">
+        <div class="email-address">hello@heartability.com</div>
+        <button class="btn-copy" id="copy-btn" onclick="copyEmail()">copy</button>
+      </div>
+      <div class="response-note">we respond within 1–2 business days</div>
+    </div>
+  </div>
+
+  <!-- Legal docs -->
+  <div class="window">
+    <div class="window-titlebar">legal & policies</div>
+    <div class="window-body">
+      <div class="legal-links">
+
+        <a class="legal-link" href="privacy-policy.html">
+          <div class="legal-link-left">
+            <div class="legal-link-icon">🔒</div>
+            <div>
+              <div class="legal-link-name">privacy policy</div>
+              <div class="legal-link-desc">how we collect and use your data</div>
+            </div>
+          </div>
+          <div class="legal-link-arrow">›</div>
+        </a>
+
+        <a class="legal-link" href="terms-of-service.html">
+          <div class="legal-link-left">
+            <div class="legal-link-icon">📋</div>
+            <div>
+              <div class="legal-link-name">terms of service</div>
+              <div class="legal-link-desc">the rules and agreement for using heartability</div>
+            </div>
+          </div>
+          <div class="legal-link-arrow">›</div>
+        </a>
+
+        <a class="legal-link" href="refund-policy.html">
+          <div class="legal-link-left">
+            <div class="legal-link-icon">↩️</div>
+            <div>
+              <div class="legal-link-name">refund & cancellation policy</div>
+              <div class="legal-link-desc">how cancellations and refunds work</div>
+            </div>
+          </div>
+          <div class="legal-link-arrow">›</div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  window.copyEmail = function () {
+    navigator.clipboard.writeText('hello@heartability.com').then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+</script>
+
+</body>
+</html>
