@@ -265,14 +265,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-game); font-size:9px; color:#aaa;
 }
 
-/* Center bars in graph area */
-.graph-area {
-  padding:0 20px 20px;
-  display:flex; justify-content:center;
-}
-.graph-wrap {
-  display:flex; gap:0; align-items:stretch;
-}
+/* Center bars in graph area — bars-inner centers its children */
+.graph-bars-inner { justify-content:center; min-width:200px; }
+
+/* Stop graph window from stretching to match map window height */
+#graph-window { align-self:start; }
 
 /* ── DETAIL POPUP ── */
 .detail-overlay {
@@ -343,6 +340,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 #map-selector {
   display:none; position:fixed; inset:0;
   padding-top:44px; background:#e8e3da; z-index:50; overflow-y:auto;
+  align-items:center; justify-content:center;
 }
 .map-sel-inner {
   max-width:900px; margin:0 auto;
@@ -732,7 +730,7 @@ function handleBack() {
 // ── MAP SELECTOR ──────────────────────────────────────────
 function showMapSelector() {
   viewingSelector = true;
-  document.getElementById('map-selector').style.display = 'block';
+  document.getElementById('map-selector').style.display = 'flex';
   document.getElementById('main-content').style.display = 'none';
   renderMapSelectorGrid();
 }
@@ -1049,22 +1047,16 @@ function openDetail(entry, dateStr) {
 
   const prompt = PHASE_PROMPTS[entry.map_phase] || '';
 
-  // Phase row
+  // Phase row — zone name + prompt as sub-text
   const phaseRow = document.createElement('div');
   phaseRow.className = 'detail-row';
+  phaseRow.style.alignItems = 'flex-start';
   phaseRow.innerHTML = `<span class="detail-row-label">phase</span>
-    <span class="detail-row-value" style="color:${phaseColor(entry.map_phase)}">${phaseLabel(entry.map_phase)}</span>`;
+    <span style="text-align:right;">
+      <span class="detail-row-value" style="color:${phaseColor(entry.map_phase)};display:block;">${phaseLabel(entry.map_phase)}</span>
+      ${prompt ? `<span style="font-family:var(--font-hand);font-size:11px;color:#aaa;font-style:italic;display:block;margin-top:3px;">${prompt}</span>` : ''}
+    </span>`;
   meta.appendChild(phaseRow);
-
-  // Prompt row
-  if (prompt) {
-    const promptRow = document.createElement('div');
-    promptRow.className = 'detail-row';
-    promptRow.style.cssText = 'font-style:italic;';
-    promptRow.innerHTML = `<span class="detail-row-label">prompt</span>
-      <span class="detail-row-value" style="font-size:12px;color:#999;text-align:right;max-width:70%;">${prompt}</span>`;
-    meta.appendChild(promptRow);
-  }
 
   // Location row
   if (entry.map_location) {
