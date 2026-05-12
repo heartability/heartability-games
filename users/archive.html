@@ -243,10 +243,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   display:flex; gap:6px; padding-left:0; padding-top:4px;
 }
 .bar-x-label {
-  font-family:var(--font-game); font-size:9px; color:#aaa;
-  text-align:center; line-height:1.2; flex:1;
+  font-family:var(--font-game); font-size:9px; color:#ccc;
+  text-align:center; line-height:1.4; flex:1;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
+.bar-x-label--active { color:var(--purple); }
 
 .bar-col {
   flex:1;
@@ -263,6 +264,12 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-game); font-size:10px; color:rgba(255,255,255,.85);
   position:absolute; top:-14px; left:50%; transform:translateX(-50%);
   white-space:nowrap;
+}
+
+/* Week navigation row inside graph area */
+.graph-week-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:8px; flex-shrink:0;
 }
 
 /* Week navigation buttons in graph titlebar */
@@ -477,14 +484,15 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <div class="window" id="graph-window">
         <div class="window-titlebar">
           <span>energy over time</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button class="week-nav-btn" id="graph-prev-week" onclick="changeWeekPage(1)" title="older">◄</button>
-            <span id="week-label" style="font-family:var(--font-game);font-size:10px;color:#aaa;min-width:70px;text-align:center;"></span>
-            <button class="week-nav-btn" id="graph-next-week" onclick="changeWeekPage(-1)" title="newer">►</button>
-          </div>
           <span style="font-size:12px;color:#aaa;">hearts / session</span>
         </div>
         <div class="graph-area">
+          <!-- Week navigation row -->
+          <div class="graph-week-nav">
+            <button class="week-nav-btn" id="graph-prev-week" onclick="changeWeekPage(1)" title="previous week">◄</button>
+            <span id="week-label" style="font-family:var(--font-game);font-size:11px;color:#aaa;"></span>
+            <button class="week-nav-btn" id="graph-next-week" onclick="changeWeekPage(-1)" title="next week">►</button>
+          </div>
           <div class="graph-wrap">
             <div class="graph-y" id="graph-y"></div>
             <div class="graph-bars-scroll">
@@ -990,11 +998,18 @@ function changeMonth(dir) {
 }
 
 // ── BAR GRAPH ─────────────────────────────────────────────
-let weekPage = 0; // 0 = most recent 7, 1 = previous 7, etc.
+let weekPage = 0;
 
 function changeWeekPage(dir) {
   weekPage += dir;
   renderBarGraph();
+}
+
+function getWeekSunday(weekOffset) {
+  const now = new Date();
+  const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  local.setDate(local.getDate() - local.getDay() - weekOffset * 7);
+  return local;
 }
 
 function renderBarGraph() {
@@ -1005,35 +1020,51 @@ function renderBarGraph() {
   barsEl.innerHTML = ''; yEl.innerHTML = ''; legEl.innerHTML = '';
 
   const allWithEnergy = allEntries.filter(e => e.energy_score != null);
-  if (!allWithEnergy.length) {
-    emptyEl.style.display = 'block';
-    document.getElementById('week-label').textContent = '';
-    return;
-  }
-  emptyEl.style.display = 'none';
 
-  // Clamp weekPage so we don't go beyond available data
-  const totalPages = Math.ceil(allWithEnergy.length / 7);
-  weekPage = Math.max(0, Math.min(weekPage, totalPages - 1));
-
-  // Slice 7 entries for current page (working backwards from most recent)
-  const end   = allWithEnergy.length - weekPage * 7;
-  const start = Math.max(0, end - 7);
-  const entries = allWithEnergy.slice(start, end);
-
-  // Week label
-  const weekLabelEl = document.getElementById('week-label');
-  if (totalPages > 1) {
-    weekLabelEl.textContent = `${start + 1}–${end} of ${allWithEnergy.length}`;
+  // Clamp weekPage: don't go further back than the earliest entry's week
+  if (allWithEnergy.length) {
+    const earliest = new Date(allWithEnergy[0].entry_date + 'T00:00:00');
+    const earliestSunday = new Date(earliest);
+    earliestSunday.setDate(earliest.getDate() - earliest.getDay());
+    const todaySunday = getWeekSunday(0);
+    const maxPage = Math.round((todaySunday - earliestSunday) / (7 * 86400000));
+    weekPage = Math.max(0, Math.min(weekPage, maxPage));
   } else {
-    weekLabelEl.textContent = '';
+    weekPage = 0;
   }
 
-  // Prev/next button state
+  // Build the 7 days of this week
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const sunday = getWeekSunday(weekPage);
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    const dateStr = d.toLocaleDateString('en-CA');
+    weekDays.push({ dateStr, name: DAY_NAMES[i], num: d.getDate(), month: d.getMonth(), entry: entryMap[dateStr] || null });
+  }
+
+  // Week label: e.g. "May 4 – 10"
+  const first = weekDays[0], last = weekDays[6];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const weekLabel = first.month === last.month
+    ? `${monthNames[first.month]} ${first.num} – ${last.num}`
+    : `${monthNames[first.month]} ${first.num} – ${monthNames[last.month]} ${last.num}`;
+  document.getElementById('week-label').textContent = weekLabel;
+
+  // Button state
   const prevBtn = document.getElementById('graph-prev-week');
   const nextBtn = document.getElementById('graph-next-week');
-  if (prevBtn) prevBtn.disabled = (weekPage >= totalPages - 1);
-  if (nextBtn) nextBtn.disabled = (weekPage <= 0);
+  if (prevBtn) prevBtn.disabled = allWithEnergy.length === 0 || weekPage >= Math.round((getWeekSunday(0) - getWeekSunday(weekPage + 1 > 0 ? weekPage : 0)) / (7*86400000));
+  if (nextBtn) nextBtn.disabled = weekPage <= 0;
+
+  // Check if any entries exist this week
+  const hasAnyEntry = weekDays.some(d => d.entry?.energy_score != null);
+  if (!allWithEnergy.length) {
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+  }
 
   const MAX_HEARTS = 24;
 
@@ -1046,8 +1077,7 @@ function renderBarGraph() {
     yEl.appendChild(el);
   });
 
-  // ── Difficulty band fills (solid background strips) ──
-  // hard: 79.2%-100% of bar area, medium: 37.5%-79.2%, easy: 0%-37.5%
+  // ── Difficulty bands ──
   const diffBands = [
     { bottom:'79.2%', height:'20.8%', color:'rgba(42,59,154,.10)',  label:'easy (20–24)'   },
     { bottom:'37.5%', height:'41.7%', color:'rgba(101,121,226,.07)', label:'medium (10–19)' },
@@ -1056,55 +1086,54 @@ function renderBarGraph() {
   diffBands.forEach(b => {
     const band = document.createElement('div');
     band.className = 'diff-band';
-    band.style.bottom  = b.bottom;
-    band.style.height  = b.height;
+    band.style.bottom = b.bottom; band.style.height = b.height;
     band.style.background = b.color;
-    band.style.borderTop  = '1px solid rgba(101,121,226,.15)';
+    band.style.borderTop = '1px solid rgba(101,121,226,.15)';
     const lbl = document.createElement('div');
-    lbl.className = 'diff-band-label';
-    lbl.textContent = b.label;
-    band.appendChild(lbl);
-    barsEl.appendChild(band);
+    lbl.className = 'diff-band-label'; lbl.textContent = b.label;
+    band.appendChild(lbl); barsEl.appendChild(band);
   });
 
-  // ── Bars ──
+  // ── 7 columns (one per day) ──
   const usedPhases = new Set();
   const xLabelsEl = document.getElementById('graph-x-labels');
   xLabelsEl.innerHTML = '';
 
-  entries.forEach(e => {
-    const score = Math.min(e.energy_score ?? 0, 100);
-    const hearts = Math.round(score / 100 * MAX_HEARTS);
-    const heightPct = hearts / MAX_HEARTS * 100;
-    const color = phaseColor(e.map_phase);
-    usedPhases.add(e.map_phase);
-
+  weekDays.forEach(day => {
     const col = document.createElement('div');
     col.className = 'bar-col';
 
-    const fill = document.createElement('div');
-    fill.className = 'bar-fill';
-    fill.style.height = heightPct + '%';
-    fill.style.background = color;
-    fill.title = phaseLabel(e.map_phase) + ' · ' + hearts + ' hearts · ' + (e.map_location||'');
-    fill.onclick = () => openDetail(e, e.entry_date);
+    if (day.entry && day.entry.energy_score != null) {
+      const score  = Math.min(day.entry.energy_score, 100);
+      const hearts = Math.round(score / 100 * MAX_HEARTS);
+      const heightPct = hearts / MAX_HEARTS * 100;
+      const color = phaseColor(day.entry.map_phase);
+      usedPhases.add(day.entry.map_phase);
 
-    const scoreEl = document.createElement('div');
-    scoreEl.className = 'bar-score';
-    scoreEl.textContent = hearts;
-    fill.appendChild(scoreEl);
+      const fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      fill.style.height = heightPct + '%';
+      fill.style.background = color;
+      fill.title = `${day.name} ${day.num} · ${phaseLabel(day.entry.map_phase)} · ${hearts} hearts`;
+      fill.onclick = () => openDetail(day.entry, day.dateStr);
 
-    col.appendChild(fill);
+      const scoreEl = document.createElement('div');
+      scoreEl.className = 'bar-score';
+      scoreEl.textContent = hearts;
+      fill.appendChild(scoreEl);
+      col.appendChild(fill);
+    }
+
     barsEl.appendChild(col);
 
-    // X-label goes in separate row below graph
+    // X label: day name + date number
     const xLbl = document.createElement('div');
-    xLbl.className = 'bar-x-label';
-    xLbl.textContent = formatShortDate(e.entry_date);
+    xLbl.className = 'bar-x-label' + (day.entry ? ' bar-x-label--active' : '');
+    xLbl.innerHTML = `${day.name}<br>${day.num}`;
     xLabelsEl.appendChild(xLbl);
   });
 
-  // ── Legend — gradient bar ──
+  // ── Legend ──
   legEl.innerHTML = `
     <div class="legend-gradient-bar"></div>
     <div class="legend-gradient-labels">
