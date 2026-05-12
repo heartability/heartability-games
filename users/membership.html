@@ -54,8 +54,8 @@ html, body {
   position: fixed;
   top: 9%; left: 15%;
   width: 70%; height: 70%;
-  background: #ffffff;
-  border: 2px solid var(--line-col);
+  background: #f0ece4;
+  border: 3px solid var(--line-col);
   z-index: 1;
   pointer-events: none;
 }
@@ -84,17 +84,13 @@ html, body {
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 
 .page-wrap {
-  position: fixed;
-  top: 9%; left: 15%;
-  width: 70%; height: 70%;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
-  gap: 20px;
-  overflow-y: auto;
-  position: fixed;
+  padding: 64px 20px 48px;
+  gap: 24px;
+  position: relative;
   z-index: 10;
 }
 
@@ -110,6 +106,23 @@ html, body {
 }
 .banner.success  { display: block; background: rgba(45,122,79,0.1); border: 1.5px solid rgba(45,122,79,0.35); color: #2d7a4f; }
 .banner.cancelled { display: block; background: rgba(192,57,43,0.08); border: 1.5px solid rgba(192,57,43,0.2); color: #c0392b; }
+
+.intro {
+  text-align: center;
+  max-width: 520px;
+  animation: windowIn 0.35s ease both;
+}
+.intro-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(24px, 3vw, 36px);
+  color: var(--purple-dark);
+  margin-bottom: 10px;
+}
+.intro-sub {
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #555;
+  line-height: 1.6;
+}
 
 .tier-grid {
   display: grid;
@@ -259,29 +272,6 @@ html, body {
 }
 #main-content { display: none; }
 
-/* ── LEGAL FOOTER ── */
-.legal-footer {
-  position: fixed;
-  bottom: 12px;
-  left: 0; right: 0;
-  text-align: center;
-  font-family: var(--font-hand);
-  font-size: clamp(10px, 1vw, 12px);
-  color: #aaa;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-}
-.legal-footer a {
-  color: #aaa;
-  text-decoration: none;
-  transition: color 0.15s;
-}
-.legal-footer a:hover { color: var(--purple); }
-.legal-footer span { color: #ccc; }
-
   </style>
 </head>
 <body>
@@ -298,8 +288,8 @@ html, body {
 <div class="room-back-wall" aria-hidden="true"></div>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='profile.html'">back</span>
-  <span class="nav-title">membership</span>
+  <span class="nav-btn" onclick="window.location.href='profile.html'">back</span>
+  <span class="nav-title">membership options</span>
   <span class="nav-btn" onclick="window.location.href='../index.html'">home</span>
 </nav>
 
@@ -359,14 +349,6 @@ html, body {
   </div>
 
 </div>
-
-<footer class="legal-footer">
-  <a href="../legal/privacy-policy.html">privacy policy</a>
-  <span>·</span>
-  <a href="../legal/refund-policy.html">refund policy</a>
-  <span>·</span>
-  <a href="../legal/support.html">support</a>
-</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
