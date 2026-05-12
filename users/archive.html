@@ -1142,12 +1142,18 @@ function renderBarGraph() {
 }
 
 // ── PHASE PROMPTS (placeholders) ─────────────────────────
-const PHASE_PROMPTS = {
-  zone_1: '[zone 1 prompt — what does it feel like to imagine your goal coming true?]',
-  zone_2: '[zone 2 prompt — what does it feel like to begin?]',
-  zone_3: '[zone 3 prompt — what does it feel like when you get into a good rhythm?]',
-  zone_4: '[zone 4 prompt — what does it feel like when you take a big step forward?]',
-  zone_5: '[zone 5 prompt — what does it feel like when you are tested?]',
+const SPIRAL_PROMPTS = {
+  zone_1: 'zone one — what does it feel like to imagine your goal coming true?',
+  zone_2: 'zone two — what does it feel like to begin?',
+  zone_3: 'zone three — what does it feel like when you get into a good rhythm?',
+  zone_4: 'zone four — what does it feel like when you take a big step forward?',
+  zone_5: 'zone five — what does it feel like when you are tested?',
+};
+const SQUARE_PROMPTS = {
+  zone_1: 'corner one — what does it feel like to be a beginner',
+  zone_2: 'corner two — what does it feel like to fail',
+  zone_3: 'corner three — what does it feel like to recommit',
+  zone_4: 'corner four — what does it feel like to improve your skill',
 };
 
 // ── DETAIL POPUP ──────────────────────────────────────────
@@ -1169,7 +1175,12 @@ function openDetail(entry, dateStr) {
   const meta = document.getElementById('detail-meta');
   meta.innerHTML = '';
 
-  const prompt = PHASE_PROMPTS[entry.map_phase] || '';
+  const detailZoneIdx  = entry.map_phase ? parseInt(entry.map_phase.replace('zone_', '')) - 1 : -1;
+  const detailGame     = allGames.find(g => g.id === activeGameId);
+  const detailZone     = (detailGame?.map_data?.zones || [])[detailZoneIdx] || {};
+  const mapType        = detailGame?.map_type || 'spiral';
+  const promptSet      = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
+  const prompt         = promptSet[entry.map_phase] || '';
 
   // Phase row — prompt only, no zone label
   const phaseRow = document.createElement('div');
@@ -1184,10 +1195,7 @@ function openDetail(entry, dateStr) {
     </span>`;
   meta.appendChild(phaseRow);
 
-  // Location row — pull terrain + feeling from game zone data (same source as calendar)
-  const detailZoneIdx  = entry.map_phase ? parseInt(entry.map_phase.replace('zone_', '')) - 1 : -1;
-  const detailGame     = allGames.find(g => g.id === activeGameId);
-  const detailZone     = (detailGame?.map_data?.zones || [])[detailZoneIdx] || {};
+  // Location row — terrain · feeling from game zone data
   const detailLocation = detailZone.terrain && detailZone.feeling
     ? `${detailZone.terrain} of ${detailZone.feeling}`
     : detailZone.terrain || detailZone.feeling || entry.map_location || '—';
