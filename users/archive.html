@@ -340,11 +340,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .detail-close:hover { color:var(--purple); }
 .detail-body { padding:20px 24px; display:flex; flex-direction:column; align-items:center; gap:14px; }
 
-/* Character mirror — extra height so feet aren't clipped */
+/* Character mirror — tall enough for feet/rollerblades */
 .detail-mirror {
-  width:200px; height:270px; position:relative;
+  width:220px; height:310px; position:relative;
   border:2px solid var(--purple); background:#fff;
-  border-radius:50% / 40%; overflow:hidden;
+  border-radius:50% / 42%; overflow:hidden;
   box-shadow:0 0 0 3px var(--aqua);
 }
 .detail-layer {
@@ -377,6 +377,25 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   border:1px solid rgba(101,121,226,.2); overflow:hidden;
 }
 .detail-energy-bar { height:100%; transition:width .4s ease; }
+
+/* ── JOURNAL VIEW (inside detail window) ── */
+#journal-view { display:none; flex-direction:column; }
+.journal-back-btn {
+  cursor:pointer; font-family:var(--font-hand); font-size:14px; color:#888;
+  padding:2px 4px; transition:color .15s;
+}
+.journal-back-btn:hover { color:var(--purple); }
+.journal-body {
+  padding:24px 28px; flex:1; overflow-y:auto;
+}
+.journal-text {
+  font-family:var(--font-hand); font-size:clamp(14px,1.5vw,17px);
+  color:#333; line-height:1.8; white-space:pre-wrap; user-select:text;
+}
+.journal-empty {
+  font-family:var(--font-hand); font-size:15px; color:#bbb;
+  font-style:italic; text-align:center; padding:32px 0;
+}
 
 /* ── MAP WINDOW — fills its row height ── */
 #map-window { display:flex; flex-direction:column; }
@@ -553,22 +572,39 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <!-- DETAIL POPUP -->
 <div class="detail-overlay" id="detail-overlay" onclick="handleOverlayClick(event)">
   <div class="detail-window" id="detail-window">
-    <div class="detail-titlebar">
-      <span id="detail-title">entry</span>
-      <span class="detail-close" onclick="closeDetail()">✕</span>
-    </div>
-    <div class="detail-body">
-      <div class="detail-mirror" id="detail-mirror">
-        <div class="detail-layer" id="dl-body"></div>
-        <div class="detail-layer" id="dl-acc"></div>
-        <div class="detail-layer" id="dl-hair"></div>
-        <div class="detail-layer" id="dl-eyes"></div>
-        <div class="detail-layer" id="dl-mouth"></div>
+
+    <!-- VIEW 1: Entry detail -->
+    <div id="detail-view">
+      <div class="detail-titlebar">
+        <span id="detail-title">entry</span>
+        <span class="detail-close" onclick="closeDetail()">✕</span>
       </div>
-      <div class="detail-char-name" id="detail-char-name"></div>
-      <div class="detail-date" id="detail-date"></div>
-      <div class="detail-meta" id="detail-meta"></div>
+      <div class="detail-body">
+        <div class="detail-mirror" id="detail-mirror">
+          <div class="detail-layer" id="dl-body"></div>
+          <div class="detail-layer" id="dl-acc"></div>
+          <div class="detail-layer" id="dl-hair"></div>
+          <div class="detail-layer" id="dl-eyes"></div>
+          <div class="detail-layer" id="dl-mouth"></div>
+        </div>
+        <div class="detail-char-name" id="detail-char-name"></div>
+        <div class="detail-date" id="detail-date"></div>
+        <div class="detail-meta" id="detail-meta"></div>
+      </div>
     </div>
+
+    <!-- VIEW 2: Journal -->
+    <div id="journal-view" style="display:none;flex-direction:column;">
+      <div class="detail-titlebar">
+        <span class="journal-back-btn" onclick="showDetailView()">← back</span>
+        <span>adventure notes</span>
+        <span class="detail-close" onclick="closeDetail()">✕</span>
+      </div>
+      <div class="journal-body">
+        <div id="journal-content"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1205,35 +1241,58 @@ function openDetail(entry, dateStr) {
     <span class="detail-row-value">${detailLocation}</span>`;
   meta.appendChild(locRow);
 
-  // Energy + difficulty
-  const rows = [
-    { label:'energy',     value: hearts + ' / 24 hearts' },
-    { label:'difficulty', value: diff },
-  ];
-  rows.forEach(r => {
-    const row = document.createElement('div');
-    row.className = 'detail-row';
-    row.innerHTML = `<span class="detail-row-label">${r.label}</span>
-      <span class="detail-row-value">${r.value}</span>`;
-    meta.appendChild(row);
-  });
+  // Energy only (difficulty removed)
+  const energyRow = document.createElement('div');
+  energyRow.className = 'detail-row';
+  energyRow.innerHTML = `<span class="detail-row-label">energy</span>
+    <span class="detail-row-value">${hearts} / 24 hearts</span>`;
+  meta.appendChild(energyRow);
 
-  // Energy bar
-  const barWrap = document.createElement('div');
-  barWrap.className = 'detail-energy-bar-wrap';
-  const bar = document.createElement('div');
-  bar.className = 'detail-energy-bar';
-  bar.style.width = (entry.energy_score??0) + '%';
-  bar.style.background = phaseColor(entry.map_phase);
-  barWrap.appendChild(bar);
-  meta.appendChild(barWrap);
+  // Adventure notes — opens journal view
+  const notesRow = document.createElement('div');
+  notesRow.className = 'detail-row';
+  notesRow.style.cursor = 'pointer';
+  notesRow.innerHTML = `<span class="detail-row-label">adventure notes</span>
+    <span class="detail-row-value" style="color:var(--purple);">read →</span>`;
+  notesRow.onclick = () => openJournal(dateStr, activeGameId);
+  meta.appendChild(notesRow);
 
+  document.getElementById('detail-view').style.display = 'block';
+  document.getElementById('journal-view').style.display = 'none';
   document.getElementById('detail-overlay').classList.add('open');
 }
 
-function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+}
 function handleOverlayClick(e) { if (e.target === document.getElementById('detail-overlay')) closeDetail(); }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeDetail(); });
+
+// ── JOURNAL ───────────────────────────────────────────────
+function showDetailView() {
+  document.getElementById('journal-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'block';
+}
+
+async function openJournal(dateStr, gameId) {
+  const contentEl = document.getElementById('journal-content');
+  contentEl.innerHTML = '<div class="journal-empty">loading...</div>';
+
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('journal-view').style.display = 'flex';
+
+  const { data, error } = await sb.from('diary_entries')
+    .select('diary_text')
+    .eq('game_id', gameId)
+    .eq('entry_date', dateStr)
+    .maybeSingle();
+
+  if (error || !data?.diary_text) {
+    contentEl.innerHTML = '<div class="journal-empty">no adventure notes for this day yet ✦</div>';
+  } else {
+    contentEl.innerHTML = `<div class="journal-text">${data.diary_text}</div>`;
+  }
+}
 
 // ── ENTRY LOADING ─────────────────────────────────────────
 async function loadEntries() {
