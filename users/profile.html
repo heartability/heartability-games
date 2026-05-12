@@ -311,103 +311,6 @@ html, body {
 .btn-upgrade-inline:hover  { background: var(--purple-dark); }
 .btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
 
-.saved-link {
-  font-family: var(--font-hand);
-  font-size: clamp(9px, 0.9vw, 11px);
-  padding: 3px 8px;
-  background: rgba(101,121,226,0.1);
-  border: 1px solid var(--purple);
-  color: var(--purple);
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.saved-link:hover { background: var(--purple); color: #fff; }
-
-/* ── MINI ARCHIVE ── */
-.mini-archive-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.mini-game-dropdown {
-  font-family: var(--font-hand);
-  font-size: clamp(12px, 1.2vw, 14px);
-  border: 1.5px solid var(--purple);
-  background: var(--cream);
-  color: #333;
-  padding: 5px 10px;
-  cursor: pointer;
-  outline: none;
-  flex: 1;
-  min-width: 160px;
-  max-width: 300px;
-}
-.mini-game-dropdown:focus { border-color: var(--blue-glow); }
-.mini-month-nav { display: flex; align-items: center; gap: 10px; }
-.mini-month-btn {
-  font-family: monospace;
-  font-size: 14px;
-  background: none;
-  border: 1.5px solid var(--purple);
-  color: var(--purple);
-  width: 28px; height: 28px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, color 0.15s;
-}
-.mini-month-btn:hover { background: var(--purple); color: #fff; }
-.mini-month-label {
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.3vw, 15px);
-  color: #555;
-  min-width: 130px;
-  text-align: center;
-}
-.mini-cal-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
-  margin-bottom: 3px;
-}
-.mini-cal-day-label {
-  text-align: center;
-  font-family: monospace;
-  font-size: 10px;
-  color: #bbb;
-  padding: 2px 0;
-}
-.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.mini-cal-cell {
-  height: 32px;
-  border: 1px solid rgba(101,121,226,.12);
-  background: rgba(255,255,255,.35);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mini-cal-cell.filler { background: transparent; border-color: transparent; }
-.mini-cal-cell.has-entry { border-color: var(--purple); background: rgba(101,121,226,.05); cursor: pointer; }
-.mini-cal-cell.has-entry:hover { border-color: var(--blue-glow); background: rgba(101,121,226,.1); }
-.mini-cal-cell.is-today { border-color: var(--blue-glow); box-shadow: 0 0 0 1px var(--blue-glow); }
-.mini-cal-date {
-  font-family: monospace;
-  font-size: 9px;
-  color: #ccc;
-  position: absolute;
-  top: 3px; left: 4px;
-  line-height: 1;
-}
-.mini-cal-cell.has-entry .mini-cal-date { color: var(--purple); }
-.mini-cal-cell.is-today .mini-cal-date  { color: var(--blue-glow); }
-.mini-cal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-left: 10px; }
-.mini-archive-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
-.mini-entry-count { font-family: var(--font-hand); font-size: clamp(11px, 1vw, 12px); color: #bbb; }
-
 /* ── LEADERBOARD ── */
 .leaderboard-header {
   display: grid;
@@ -511,7 +414,7 @@ html, body {
   <div class="room-icon" id="icon-leaderboard" onclick="openModal('leaderboard')">
     <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
   </div>
-  <div class="room-icon" id="icon-calendar" onclick="openModal('archive')">
+  <div class="room-icon" id="icon-calendar" onclick="window.location.href='/users/archive.html'">
     <img src="../assets/elements/calendar.png" alt="map archive" />
   </div>
 </div>
@@ -573,44 +476,6 @@ html, body {
   </div>
 </div>
 
-<!-- MODAL: MAP ARCHIVE -->
-<div class="modal-overlay" id="modal-archive" onclick="closeOnOverlay(event,'archive')">
-  <div class="modal-window wide" id="mini-archive-window">
-    <div class="modal-titlebar">
-      <div style="display:flex;gap:10px;align-items:center;">
-        <span>map archive</span>
-        <span id="mini-archive-subtitle" style="font-size:12px;color:#aaa;"></span>
-      </div>
-      <span class="modal-close" onclick="closeModal('archive')">×</span>
-    </div>
-    <div class="modal-body">
-      <div class="mini-archive-header">
-        <select class="mini-game-dropdown" id="mini-game-dropdown" onchange="onMiniGameChange()">
-          <option value="">loading maps...</option>
-        </select>
-        <div class="mini-month-nav">
-          <button class="mini-month-btn" onclick="miniChangeMonth(-1)">◄</button>
-          <div class="mini-month-label" id="mini-month-label"></div>
-          <button class="mini-month-btn" onclick="miniChangeMonth(1)">►</button>
-        </div>
-      </div>
-      <div class="mini-cal-header">
-        <div class="mini-cal-day-label">SUN</div>
-        <div class="mini-cal-day-label">MON</div>
-        <div class="mini-cal-day-label">TUE</div>
-        <div class="mini-cal-day-label">WED</div>
-        <div class="mini-cal-day-label">THU</div>
-        <div class="mini-cal-day-label">FRI</div>
-        <div class="mini-cal-day-label">SAT</div>
-      </div>
-      <div class="mini-cal-grid" id="mini-cal-grid"></div>
-      <div class="mini-archive-footer">
-        <span class="mini-entry-count" id="mini-entry-count"></span>
-        <a class="saved-link" id="mini-archive-link" href="/users/archive.html">view full archive</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- LEGAL FOOTER -->
 <footer class="legal-footer">
@@ -668,8 +533,6 @@ html, body {
 
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').classList.add('active');
-
-    loadMiniGames(user.id);
   }
 
   // ── Membership UI ─────────────────────────────────────────
@@ -754,112 +617,6 @@ html, body {
         </div>`;
     }
     el.innerHTML = html;
-  };
-
-  // ── Mini Archive ──────────────────────────────────────────
-  const MINI_PHASE_COLORS = {
-    zone_1: '#d4d9ff', zone_2: '#a8b4f0',
-    zone_3: '#6579e2', zone_4: '#4a5bc4', zone_5: '#2a3b9a',
-  };
-  let miniAllGames   = [];
-  let miniActiveId   = null;
-  let miniAllEntries = [];
-  let miniEntryMap   = {};
-  let miniViewYear   = new Date().getFullYear();
-  let miniViewMonth  = new Date().getMonth();
-
-  function miniLocalToday() { return new Date().toLocaleDateString('en-CA'); }
-
-  async function loadMiniGames(userId) {
-    const { data } = await sb.from('games')
-      .select('id, map_name, map_type, status')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
-    miniAllGames = data || [];
-    const dd = document.getElementById('mini-game-dropdown');
-    dd.innerHTML = '';
-    if (!miniAllGames.length) {
-      dd.innerHTML = '<option value="">no maps yet</option>';
-      return;
-    }
-    miniAllGames.forEach(g => {
-      const opt = document.createElement('option');
-      opt.value = g.id;
-      opt.textContent = (g.map_name || 'untitled') + ' (' + (g.map_type || 'spiral') + ')';
-      dd.appendChild(opt);
-    });
-    miniActiveId = miniAllGames[0]?.id || null;
-    if (miniActiveId) dd.value = miniActiveId;
-    await loadMiniEntries(userId);
-  }
-
-  window.onMiniGameChange = async function () {
-    miniActiveId = document.getElementById('mini-game-dropdown').value;
-    const { data: { session } } = await sb.auth.getSession();
-    await loadMiniEntries(session.user.id);
-  };
-
-  async function loadMiniEntries(userId) {
-    if (!miniActiveId) return;
-    const { data } = await sb.from('daily_entries')
-      .select('entry_date, map_phase')
-      .eq('game_id', miniActiveId)
-      .eq('user_id', userId)
-      .order('entry_date', { ascending: true });
-    miniAllEntries = data || [];
-    miniEntryMap   = {};
-    miniAllEntries.forEach(e => { miniEntryMap[e.entry_date] = e; });
-    const game = miniAllGames.find(g => g.id === miniActiveId);
-    document.getElementById('mini-archive-subtitle').textContent = game?.map_name || '';
-    document.getElementById('mini-entry-count').textContent =
-      miniAllEntries.length + ' entr' + (miniAllEntries.length === 1 ? 'y' : 'ies') + ' total';
-    document.getElementById('mini-archive-link').href = '/users/archive.html?game_id=' + miniActiveId;
-    renderMiniCalendar();
-  }
-
-  function renderMiniCalendar() {
-    const months = ['January','February','March','April','May','June',
-                    'July','August','September','October','November','December'];
-    document.getElementById('mini-month-label').textContent = months[miniViewMonth] + ' ' + miniViewYear;
-    const firstDay    = new Date(miniViewYear, miniViewMonth, 1).getDay();
-    const daysInMonth = new Date(miniViewYear, miniViewMonth + 1, 0).getDate();
-    const today       = miniLocalToday();
-    const grid        = document.getElementById('mini-cal-grid');
-    grid.innerHTML    = '';
-    for (let i = 0; i < firstDay; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'mini-cal-cell filler';
-      grid.appendChild(cell);
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = miniViewYear + '-'
-        + String(miniViewMonth + 1).padStart(2, '0') + '-'
-        + String(d).padStart(2, '0');
-      const entry = miniEntryMap[dateStr];
-      const cell  = document.createElement('div');
-      cell.className = 'mini-cal-cell'
-        + (entry   ? ' has-entry' : '')
-        + (dateStr === today ? ' is-today' : '');
-      const dateEl = document.createElement('div');
-      dateEl.className = 'mini-cal-date';
-      dateEl.textContent = d;
-      cell.appendChild(dateEl);
-      if (entry) {
-        const dot = document.createElement('div');
-        dot.className = 'mini-cal-dot';
-        dot.style.background = MINI_PHASE_COLORS[entry.map_phase] || '#6579e2';
-        cell.appendChild(dot);
-        cell.onclick = () => { window.location.href = '/users/archive.html?game_id=' + miniActiveId; };
-      }
-      grid.appendChild(cell);
-    }
-  }
-
-  window.miniChangeMonth = function (dir) {
-    miniViewMonth += dir;
-    if (miniViewMonth > 11) { miniViewMonth = 0; miniViewYear++; }
-    if (miniViewMonth < 0)  { miniViewMonth = 11; miniViewYear--; }
-    renderMiniCalendar();
   };
 
   // ── Thought bubble ────────────────────────────────────────
