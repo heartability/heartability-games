@@ -329,7 +329,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   /* Hide perspective lines on mobile — no side walls */
   .room-lines { display:none; }
   .back-wall { border-left:none; border-right:none; border-top:none; }
-  .char-heart { left:2vw; bottom:2vh; width:clamp(70px,22vw,160px); }
+  .char-heart { display:none; }
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
   .phase-key { width:180px; font-size:12px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
@@ -341,7 +341,44 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   }
 }
 
-/* ── LOGIN MODAL ── */
+/* ── IFRAME TITLE COVER — hides game titles on mobile ── */
+.iframe-title-cover {
+  position:absolute; top:0; left:0; right:0;
+  height:0; overflow:hidden; pointer-events:none; z-index:5;
+}
+@media (max-width:768px) {
+  .iframe-title-cover { height:clamp(80px, 18vw, 140px); background:var(--side-col); }
+}
+
+/* ── MOBILE PHASE SELECT ── */
+.phase-key-drawer {
+  position:absolute; bottom:0; left:0; right:0;
+  background:#f5f0ea; border-top:2px solid #bbb;
+  max-height:0; overflow:hidden;
+  transition:max-height .35s ease;
+  z-index:5;
+}
+.phase-key-drawer.open { max-height:80vh; overflow-y:auto; }
+.phase-select-btn {
+  position:absolute; bottom:12px; right:12px; z-index:6;
+  padding:10px 16px;
+  background:var(--blue); border:2px solid #4a5bc4;
+  box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:14px; color:#fff;
+  cursor:pointer; transition:all .05s;
+}
+.phase-select-btn:hover { background:#4a5bc4; }
+.phase-select-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.phase-drawer-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; border-bottom:1px solid #ddd;
+  font-family:var(--font-hand); font-size:13px; color:#aaa;
+}
+.phase-drawer-close {
+  cursor:pointer; font-size:18px; color:#bbb;
+  padding:2px 4px; transition:color .15s;
+}
+.phase-drawer-close:hover { color:#444; }
 .login-modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.5);
   z-index:300; display:none; align-items:center; justify-content:center;
@@ -757,9 +794,26 @@ function hidePanel() {
 }
 function showIframe(src) {
   const panel = document.getElementById('content-panel');
-  panel.innerHTML = `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+  panel.innerHTML = `
+    <div class="iframe-title-cover"></div>
+    <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
   document.getElementById('wall-btns').classList.remove('active');
+
+  // Inject CSS to hide title section inside iframe (same-origin)
+  const iframe = document.getElementById('game-iframe');
+  iframe.addEventListener('load', () => {
+    try {
+      const s = iframe.contentDocument.createElement('style');
+      s.textContent = `
+        .game-title, .game-header, .page-title, .title-wrap,
+        [class*="title-bar"], [class*="game-name"],
+        body > section:first-child h1,
+        body > header { display:none !important; }
+      `;
+      iframe.contentDocument.head.appendChild(s);
+    } catch(e){}
+  });
 }
 
 // ── ADD NEW BUTTON visibility ─────────────────────────────
@@ -919,12 +973,10 @@ function stepPhaseSelect() {
   setBubble(`where are you on the map today?`, []);
   setSaveBtnVisible(false);
 
-  // Build SVG inline
   const svgContent = mapType === 'square'
     ? buildSquareSVG(zones)
     : buildSpiralSVG(zones);
 
-  // Build key items
   let keyItems = '';
   for (let i=0; i<zoneCount; i++) {
     const label = mapType === 'square' ? SQUARE_LABELS[i] : (i+1);
@@ -934,24 +986,51 @@ function stepPhaseSelect() {
     </div>`;
   }
 
+  const isMobile = window.innerWidth <= 768;
+
   const html = `<div class="step-panel" style="padding:12px;">
     <div class="step-header">
       <span class="step-back" onclick="stepLoadGame()">← back</span>
       <span class="step-header-title">${activeGameData.map_name||'your map'}</span>
       <span></span>
     </div>
-    <div class="phase-wrap">
-      <div class="phase-map-area" id="phase-map-area">
+    <div class="phase-wrap" style="position:relative;">
+      <div class="phase-map-area" id="phase-map-area" style="${isMobile ? 'flex:1;' : ''}">
         ${svgContent}
       </div>
-      <div class="phase-key">
-        <div class="phase-key-title">where are you today?</div>
-        ${keyItems}
-        <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
-      </div>
+      ${isMobile ? `
+        <!-- Mobile: floating button + bottom drawer -->
+        <button class="phase-select-btn" id="phase-select-btn" onclick="openPhaseDrawer()">
+          select phase →
+        </button>
+        <div class="phase-key-drawer" id="phase-key-drawer">
+          <div class="phase-drawer-header">
+            <span>where are you today?</span>
+            <span class="phase-drawer-close" onclick="closePhaseDrawer()">×</span>
+          </div>
+          <div style="padding:10px 12px;">
+            ${keyItems}
+            <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
+          </div>
+        </div>
+      ` : `
+        <!-- Desktop: side-by-side key -->
+        <div class="phase-key">
+          <div class="phase-key-title">where are you today?</div>
+          ${keyItems}
+          <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
+        </div>
+      `}
     </div>
   </div>`;
   showPanel(html);
+}
+
+function openPhaseDrawer() {
+  document.getElementById('phase-key-drawer')?.classList.add('open');
+}
+function closePhaseDrawer() {
+  document.getElementById('phase-key-drawer')?.classList.remove('open');
 }
 
 function selectPhase(idx) {
@@ -966,6 +1045,8 @@ function selectPhase(idx) {
     if (bg) bg.setAttribute('fill', i===idx ? 'rgba(101,121,226,0.25)' : 'rgba(200,196,180,0)');
   });
   document.getElementById('begin-btn').disabled = false;
+  // On mobile, keep drawer open so user can tap begin
+  if (window.innerWidth <= 768) openPhaseDrawer();
 }
 
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
