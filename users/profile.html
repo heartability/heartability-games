@@ -82,49 +82,71 @@ html, body {
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 
-/* ── ROOM ICONS — overlays back wall ── */
+/* ── ROOM ICONS — absolute positions within back wall ── */
 .room-icons {
   position: fixed;
   top: 9%; left: 15%;
   width: 70%; height: 70%;
   z-index: 10;
   display: none;
-  align-items: center;
-  justify-content: space-evenly;
-  padding: 0 6%;
 }
-.room-icons.active { display: flex; }
+.room-icons.active { display: block; }
 
 .room-icon {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
-  padding: 12px;
+  padding: 10px;
   border-radius: 4px;
   transition: transform 0.15s;
+  transform-origin: bottom center;
 }
 .room-icon:hover { transform: translateY(-5px); }
 .room-icon:active { transform: translateY(-2px); }
 
+/* ── PER-ICON POSITION & SIZE — adjust these ── */
+
+/* SETTINGS — top left */
+#icon-settings {
+  top:  8%;
+  left: 6%;
+}
+#icon-settings img { width: clamp(55px, 7vw, 95px); }
+
+/* LEADERBOARD — top right, largest */
+#icon-leaderboard {
+  top:  4%;
+  right: 6%;
+}
+#icon-leaderboard img { width: clamp(130px, 18vw, 230px); }
+
+/* CALENDAR — center bottom */
+#icon-calendar {
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+#icon-calendar:hover { transform: translateX(-50%) translateY(-5px); }
+#icon-calendar:active { transform: translateX(-50%) translateY(-2px); }
+#icon-calendar img { width: clamp(80px, 11vw, 140px); }
+
 .room-icon img {
-  width: clamp(60px, 10vw, 120px);
   height: auto;
   filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
   transition: filter 0.15s;
-}
-.room-icon.large img {
-  width: clamp(120px, 20vw, 240px);
 }
 .room-icon:hover img { filter: drop-shadow(2px 6px 14px rgba(101,121,226,0.4)); }
 
 .room-icon-label {
   font-family: var(--font-hand);
-  font-size: clamp(11px, 1.2vw, 14px);
+  font-size: clamp(10px, 1.1vw, 13px);
   color: #555;
   text-align: center;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 /* ── THOUGHT BUBBLE ── */
@@ -483,14 +505,17 @@ html, body {
 
 <!-- ROOM ICONS -->
 <div class="room-icons" id="main-content">
-  <div class="room-icon" onclick="openModal('settings')">
+  <div class="room-icon" id="icon-settings" onclick="openModal('settings')">
     <img src="../assets/elements/settings.png" alt="account settings" />
+    <span class="room-icon-label">account settings</span>
   </div>
-  <div class="room-icon large" onclick="openModal('leaderboard')">
+  <div class="room-icon" id="icon-leaderboard" onclick="openModal('leaderboard')">
     <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
+    <span class="room-icon-label">leaderboard</span>
   </div>
-  <div class="room-icon" onclick="openModal('archive')">
+  <div class="room-icon" id="icon-calendar" onclick="openModal('archive')">
     <img src="../assets/elements/calendar.png" alt="map archive" />
+    <span class="room-icon-label">map archive</span>
   </div>
 </div>
 
@@ -843,15 +868,14 @@ html, body {
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
   const bubbleMessages = {
-    settings:    'let\'s check your account ♡',
-    leaderboard: 'see how you rank this week!',
-    archive:     'your journey so far ✦',
+    'icon-settings':    "let's check your account ♡",
+    'icon-leaderboard': 'see how you rank this week!',
+    'icon-calendar':    'your journey so far ✦',
   };
 
   document.querySelectorAll('.room-icon').forEach(icon => {
-    const modalId = icon.getAttribute('onclick').match(/'(\w+)'/)[1];
     icon.addEventListener('mouseenter', () => {
-      bubble.textContent = bubbleMessages[modalId] || '♡';
+      bubble.textContent = bubbleMessages[icon.id] || '♡';
       bubble.classList.add('visible');
     });
     icon.addEventListener('mouseleave', () => {
