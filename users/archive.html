@@ -265,16 +265,12 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-game); font-size:9px; color:#aaa;
 }
 
-/* Graph column — dropdown above, window fills remaining height */
+/* Graph column — dropdown above, window stays compact */
 .graph-col {
-  display:flex; flex-direction:column; gap:8px; min-height:0;
+  display:flex; flex-direction:column; gap:8px;
 }
-#graph-window {
-  flex:1; display:flex; flex-direction:column;
-}
-.graph-area {
-  flex:1; padding:0 20px 0; overflow-x:auto; display:flex; align-items:flex-start;
-}
+#graph-window { align-self:start; }
+.graph-area { padding:0 20px 20px; overflow-x:auto; }
 .graph-wrap { display:flex; gap:0; align-items:stretch; min-width:max-content; }
 
 /* ── DETAIL POPUP ── */
@@ -910,12 +906,13 @@ function renderCalendar() {
         cell.appendChild(charWrap);
       }
 
-      // Location as background watermark — always render
-      const locText = entry.map_location || phaseLabel(entry.map_phase);
-      const locBg = document.createElement('div');
-      locBg.className = 'cal-location-bg';
-      locBg.textContent = locText;
-      cell.appendChild(locBg);
+      // Location watermark — only if user set a location for this entry
+      if (entry.map_location) {
+        const locBg = document.createElement('div');
+        locBg.className = 'cal-location-bg';
+        locBg.textContent = entry.map_location;
+        cell.appendChild(locBg);
+      }
 
       cell.onclick = () => openDetail(entry, dateStr);
     }
@@ -1065,12 +1062,11 @@ function openDetail(entry, dateStr) {
     </span>`;
   meta.appendChild(phaseRow);
 
-  // Location row — always show, fall back to zone label if no location stored
-  const locationVal = entry.map_location || phaseLabel(entry.map_phase);
+  // Location row — only the user-set location, no zone fallback
   const locRow = document.createElement('div');
   locRow.className = 'detail-row';
   locRow.innerHTML = `<span class="detail-row-label">location</span>
-    <span class="detail-row-value">${locationVal}</span>`;
+    <span class="detail-row-value">${entry.map_location || '—'}</span>`;
   meta.appendChild(locRow);
 
   // Energy + difficulty
