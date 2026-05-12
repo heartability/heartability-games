@@ -413,15 +413,15 @@ html, body {
   left: 0; right: 0;
   text-align: center;
   font-family: var(--font-hand);
-  font-size: clamp(10px, 1vw, 12px);
-  color: #aaa;
+  font-size: clamp(12px, 1vw, 15px);
+  color: #111;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
 }
-.legal-footer a { color: #aaa; text-decoration: none; transition: color 0.15s; }
+.legal-footer a { color: #111; text-decoration: none; transition: color 0.15s; }
 .legal-footer a:hover { color: var(--purple); }
 .legal-footer span { color: #ccc; }
 
@@ -443,12 +443,12 @@ html, body {
 <!-- NAV -->
 <nav class="room-nav">
   <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='../games/game-select.html'">back</span>
-  <span id="display-username" style="font-family:var(--font-pixel);font-size:clamp(13px,1.5vw,18px);"></span>
+  <span id="display-username" style="font-family:var(--font-pixel);font-size:clamp(13px,1.5vw,15px);"></span>
   <span class="nav-btn" id="btn-signout">sign out</span>
 </nav>
 
 <!-- LOADING -->
-<div id="loading-state">loading your space ♡</div>
+<div id="loading-state">loading your space</div>
 
 <!-- ROOM ICONS -->
 <div class="room-icons" id="main-content">
