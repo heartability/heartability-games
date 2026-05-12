@@ -326,6 +326,66 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   .map-grid { grid-template-columns:repeat(2,1fr); }
   .save-continue-bar { height: 18%; }
 }
+
+/* ── LOGIN MODAL ── */
+.login-modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  z-index:300; display:none; align-items:center; justify-content:center;
+}
+.login-modal-overlay.open { display:flex; }
+.login-modal-window {
+  width:min(92vw,480px);
+  box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.35);
+  overflow:hidden; border-radius:4px; background:#f5f0ea;
+}
+.login-modal-titlebar {
+  height:38px; background:#e8e3da; border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; font-family:var(--font-hand); font-size:15px; color:#555;
+}
+.login-modal-close {
+  cursor:pointer; font-size:18px; color:#bbb; padding:2px 4px; transition:color .15s;
+}
+.login-modal-close:hover { color:#444; }
+.login-modal-iframe {
+  width:100%; height:520px; border:none; display:block;
+}
+
+/* ── JOURNAL INLINE (step panel) ── */
+.journal-inline {
+  width:100%; height:100%; display:flex; overflow:hidden;
+}
+.journal-spine-inline {
+  flex-shrink:0; width:18px; background:#e8e3da;
+  border-right:1.5px solid #c8b88a;
+  display:flex; flex-direction:column; justify-content:space-around;
+  align-items:center; padding:12px 0;
+}
+.journal-spine-ring {
+  width:14px; height:14px; border:2.5px solid #8a7a5a;
+  border-radius:50%; background:#e8e4dc; flex-shrink:0;
+}
+.journal-page {
+  flex:1; background:#fff9f0; padding:16px 20px 12px 16px;
+  display:flex; flex-direction:column; gap:8px;
+  background-image:linear-gradient(to bottom,transparent calc(100% - 1px),rgba(101,121,226,.1) 1px);
+  background-size:100% 32px; background-position:0 52px; overflow:hidden;
+}
+.journal-page-header {
+  border-bottom:1px solid rgba(101,121,226,.2); padding-bottom:6px; flex-shrink:0;
+  font-family:var(--font-hand); font-size:clamp(12px,1.4vw,16px); color:#5a4a2a;
+}
+.journal-textarea {
+  flex:1; resize:none; border:none; outline:none; background:transparent;
+  font-family:var(--font-hand); font-size:clamp(13px,1.4vw,17px);
+  color:#2a1e14; line-height:2; overflow-y:auto; user-select:text;
+  caret-color:var(--blue);
+}
+.journal-textarea::placeholder { color:rgba(138,122,90,.35); font-style:italic; }
+.journal-privacy {
+  font-family:var(--font-hand); font-size:clamp(9px,.85vw,11px);
+  color:#ccc; border-top:1px solid #e8e0d0; padding-top:6px; flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -378,6 +438,17 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <!-- ADD NEW BUTTON — shown on map selector screen -->
 <button class="add-new-btn" id="add-new-btn" onclick="stepNewGame()">+ add new</button>
 
+<!-- LOGIN MODAL -->
+<div class="login-modal-overlay" id="login-modal">
+  <div class="login-modal-window">
+    <div class="login-modal-titlebar">
+      <span>log in to play</span>
+      <span class="login-modal-close" onclick="closeLoginModal()">×</span>
+    </div>
+    <iframe class="login-modal-iframe" id="login-iframe" src="../users/login.html"></iframe>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
@@ -390,8 +461,24 @@ let currentUser = null;
 let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
-let isGuestMode    = false;
-let currentStep    = null; // 'character' | 'bingo'
+let currentStep    = null; // 'character' | 'bingo' | 'journal'
+
+// ── LOGIN MODAL ───────────────────────────────────────────
+function showLoginModal() {
+  document.getElementById('login-modal').classList.add('open');
+}
+function closeLoginModal() {
+  document.getElementById('login-modal').classList.remove('open');
+}
+
+// Listen for auth changes from the login iframe
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session && !currentUser) {
+    currentUser = session.user;
+    closeLoginModal();
+    stepLoadGame();
+  }
+});
 
 // ── STATUS BAR ────────────────────────────────────────────
 function showRoomStatus(msg, color, duration=3000) {
@@ -414,6 +501,12 @@ async function saveAndContinue() {
   const btn = document.getElementById('save-continue-btn');
   btn.disabled = true;
   btn.textContent = 'saving...';
+
+  // Journal step — save notes directly
+  if (currentStep === 'journal') {
+    await saveJournalEntry();
+    return;
+  }
 
   const iframe = document.getElementById('game-iframe');
   if (!iframe) { btn.disabled = false; return; }
@@ -521,16 +614,8 @@ function stepInitial() {
 // ── DELETE MAP ────────────────────────────────────────────
 async function deleteMap(gameId, mapName) {
   if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
-  if (currentUser && !isGuestMode) {
-    await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
-  } else {
-    try {
-      let games = JSON.parse(localStorage.getItem('hb_games')||'[]');
-      games = games.filter(g => g.id !== gameId);
-      localStorage.setItem('hb_games', JSON.stringify(games));
-    } catch(e){}
-  }
-  stepLoadGame(); // refresh the grid
+  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  stepLoadGame();
 }
 
 // ── STEP 2A: NEW GAME ─────────────────────────────────────
@@ -545,12 +630,10 @@ function stepNewGame() {
 
 // ── STEP 2B: LOAD GAME ────────────────────────────────────
 async function stepLoadGame() {
-  if (!currentUser && !isGuestMode) {
-    setBubble('you need to log in to load a saved game', [
-      { label: 'go to game room to log in', action: () => window.location.href='../games/game-select.html' },
-      { label: 'play as guest instead', secondary:true, action: () => { isGuestMode=true; stepLoadGame(); } },
-    ]);
+  if (!currentUser) {
+    setBubble('log in to load your maps', []);
     showAddNew(false);
+    showLoginModal();
     return;
   }
   setBubble('choose your map for today', []);
@@ -558,16 +641,12 @@ async function stepLoadGame() {
   showAddNew(true);
 
   let games = [];
-  if (isGuestMode || !currentUser) {
-    try { games = JSON.parse(localStorage.getItem('hb_games')||'[]').filter(g=>g.status==='active').slice(0,8); } catch(e){}
-  } else {
-    try {
-      const { data } = await sb.from('games').select('*')
-        .eq('user_id', currentUser.id).eq('status','active')
-        .order('updated_at',{ascending:false}).limit(8);
-      games = data || [];
-    } catch(e){}
-  }
+  try {
+    const { data } = await sb.from('games').select('*')
+      .eq('user_id', currentUser.id).eq('status','active')
+      .order('updated_at',{ascending:false}).limit(8);
+    games = data || [];
+  } catch(e){}
   renderMapGrid(games);
 }
 
@@ -656,14 +735,10 @@ function renderMapGrid(games) {
 // ── STEP 3: SELECT MAP → PHASE SELECT ────────────────────
 async function selectMap(gameId) {
   let game = null;
-  if (isGuestMode || !currentUser) {
-    try { game = JSON.parse(localStorage.getItem('hb_games')||'[]').find(g=>g.id===gameId); } catch(e){}
-  } else {
-    try {
-      const { data } = await sb.from('games').select('*').eq('id',gameId).single();
-      game = data;
-    } catch(e){}
-  }
+  try {
+    const { data } = await sb.from('games').select('*').eq('id',gameId).single();
+    game = data;
+  } catch(e){}
   if (!game) return;
   activeGameId   = gameId;
   activeGameData = game;
@@ -737,10 +812,8 @@ function stepBegin() {
   if (!activePhase) return;
   currentStep = 'character';
   setBubble('build your character for today ♡', []);
-  const mode = isGuestMode ? 'guest' : 'cloud';
-  const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
-  // Show button as loading — enabled only when iframe signals ready
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
@@ -749,17 +822,69 @@ function stepBegin() {
 function stepBingo() {
   currentStep = 'bingo';
   setBubble('check in with your heart meter', []);
-  const mode = isGuestMode ? 'guest' : 'cloud';
-  const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=${mode}`;
+  const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'save &amp; finish →');
 }
 
-// ── STEP 6: BINGO DONE → ARCHIVE ─────────────────────────
+// ── STEP 6: BINGO DONE → JOURNAL ─────────────────────────
+function stepJournal() {
+  currentStep = 'journal';
+  setBubble('write your adventure notes ♡', []);
+  setSaveBtnVisible(false);
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday:'long', month:'long', day:'numeric', year:'numeric'
+  });
+
+  const html = `<div class="journal-inline">
+    <div class="journal-spine-inline" id="journal-spine"></div>
+    <div class="journal-page">
+      <div class="journal-page-header">${today}</div>
+      <textarea class="journal-textarea" id="journal-textarea"
+        placeholder="anything you want to put on the record about today? wins, losses, learning moments..."
+        maxlength="4000"></textarea>
+      <div class="journal-privacy">your entries are private and only visible to you ✦</div>
+    </div>
+  </div>`;
+  showPanel(html);
+  document.getElementById('journal-textarea').focus();
+
+  // Build spine rings
+  const spine = document.getElementById('journal-spine');
+  for (let i = 0; i < 10; i++) {
+    const ring = document.createElement('div');
+    ring.className = 'journal-spine-ring';
+    spine.appendChild(ring);
+  }
+
+  setSaveBtnVisible(true, 'save notes &amp; finish →');
+}
+
+async function saveJournalEntry() {
+  const text = (document.getElementById('journal-textarea')?.value || '').trim();
+  const btn  = document.getElementById('save-continue-btn');
+  btn.disabled = true; btn.textContent = 'saving...';
+
+  if (text && currentUser && activeGameId) {
+    await sb.from('diary_entries').upsert({
+      game_id:    activeGameId,
+      user_id:    currentUser.id,
+      entry_date: new Date().toLocaleDateString('en-CA'),
+      diary_text: text,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'game_id,entry_date' });
+  }
+
+  setSaveBtnVisible(false);
+  stepDone();
+}
+
+// ── STEP 7: DONE ──────────────────────────────────────────
 function stepDone() {
   setBubble("today's entry is complete ✓", [
     { label: 'view archive →', action: () => window.location.href=`archive.html?game_id=${activeGameId}` },
-    { label: 'back to game room', secondary:true, action: () => window.location.href='../games/game-select.html' },
+    { label: 'explore the castle', secondary:true, action: () => window.location.href='../games/game-select.html' },
   ]);
   hidePanel();
 }
@@ -813,26 +938,13 @@ window.addEventListener('message', async e => {
     const today = new Date().toLocaleDateString('en-CA');
     let saved = false;
 
-    if (currentUser && activeGameId && !isGuestMode) {
-      const { error } = await sb.from('daily_entries').upsert({
-        game_id: activeGameId, user_id: currentUser.id,
-        entry_date: today, map_phase: activePhase,
-        character_data: charState,
-      }, { onConflict: 'game_id,entry_date' });
-      saved = !error;
-      if (error) showRoomStatus('save failed', '#E8478B');
-    } else {
-      try {
-        let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
-        const idx = entries.findIndex(e => e.game_id === activeGameId && e.entry_date === today);
-        const entry = { game_id: activeGameId || 'guest', entry_date: today,
-          map_phase: activePhase, character_data: charState };
-        if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
-        else entries.push(entry);
-        localStorage.setItem('hb_entries', JSON.stringify(entries));
-        saved = true;
-      } catch(e) { showRoomStatus('save failed', '#E8478B'); }
-    }
+    const { error } = await sb.from('daily_entries').upsert({
+      game_id: activeGameId, user_id: currentUser.id,
+      entry_date: today, map_phase: activePhase,
+      character_data: charState,
+    }, { onConflict: 'game_id,entry_date' });
+    saved = !error;
+    if (error) showRoomStatus('save failed', '#E8478B');
 
     if (saved) {
       showRoomStatus('character saved ✓', '#6ab86a');
@@ -857,33 +969,18 @@ window.addEventListener('message', async e => {
     const today        = new Date().toLocaleDateString('en-CA');
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
-    let saved = false;
 
-    if (currentUser && activeGameId && !isGuestMode) {
-      const { error } = await sb.from('daily_entries').upsert({
-        game_id: activeGameId, user_id: currentUser.id,
-        entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
-      }, { onConflict: 'game_id,entry_date' });
-      saved = !error;
-      if (error) showRoomStatus('save failed', '#E8478B');
-    } else {
-      try {
-        let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
-        const idx = entries.findIndex(e => e.game_id === activeGameId && e.entry_date === today);
-        const entry = { game_id: activeGameId || 'guest', entry_date: today,
-          bingo_data: bingoPayload, energy_score: energyScore };
-        if (idx >= 0) entries[idx] = { ...entries[idx], ...entry };
-        else entries.push(entry);
-        localStorage.setItem('hb_entries', JSON.stringify(entries));
-        saved = true;
-      } catch(e) { showRoomStatus('save failed', '#E8478B'); }
-    }
+    const { error } = await sb.from('daily_entries').upsert({
+      game_id: activeGameId, user_id: currentUser.id,
+      entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
+    }, { onConflict: 'game_id,entry_date' });
 
-    if (saved) {
+    if (!error) {
       showRoomStatus('all saved ✓', '#6ab86a');
       setSaveBtnVisible(false);
-      stepDone();
+      stepJournal();
     } else {
+      showRoomStatus('save failed', '#E8478B');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
     }
@@ -1015,10 +1112,6 @@ async function init() {
     const { data:{ session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
   } catch(e) {}
-
-  // Check if arrived as guest from index
-  const p = new URLSearchParams(window.location.search);
-  if (p.get('guest') === 'true') isGuestMode = true;
 
   stepInitial();
 }
