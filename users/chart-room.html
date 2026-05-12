@@ -341,15 +341,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   }
 }
 
-/* ── IFRAME TITLE COVER — hides game titles on mobile ── */
-.iframe-title-cover {
-  position:absolute; top:0; left:0; right:0;
-  height:0; overflow:hidden; pointer-events:none; z-index:5;
-}
-@media (max-width:768px) {
-  .iframe-title-cover { height:clamp(80px, 18vw, 140px); background:var(--side-col); }
-}
-
 /* ── MOBILE PHASE SELECT ── */
 .phase-key-drawer {
   position:absolute; bottom:0; left:0; right:0;
@@ -794,26 +785,9 @@ function hidePanel() {
 }
 function showIframe(src) {
   const panel = document.getElementById('content-panel');
-  panel.innerHTML = `
-    <div class="iframe-title-cover"></div>
-    <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+  panel.innerHTML = `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
   document.getElementById('wall-btns').classList.remove('active');
-
-  // Inject CSS to hide title section inside iframe (same-origin)
-  const iframe = document.getElementById('game-iframe');
-  iframe.addEventListener('load', () => {
-    try {
-      const s = iframe.contentDocument.createElement('style');
-      s.textContent = `
-        .game-title, .game-header, .page-title, .title-wrap,
-        [class*="title-bar"], [class*="game-name"],
-        body > section:first-child h1,
-        body > header { display:none !important; }
-      `;
-      iframe.contentDocument.head.appendChild(s);
-    } catch(e){}
-  });
 }
 
 // ── ADD NEW BUTTON visibility ─────────────────────────────
@@ -1028,9 +1002,13 @@ function stepPhaseSelect() {
 
 function openPhaseDrawer() {
   document.getElementById('phase-key-drawer')?.classList.add('open');
+  const btn = document.getElementById('phase-select-btn');
+  if (btn) btn.style.display = 'none';
 }
 function closePhaseDrawer() {
   document.getElementById('phase-key-drawer')?.classList.remove('open');
+  const btn = document.getElementById('phase-select-btn');
+  if (btn) btn.style.display = '';
 }
 
 function selectPhase(idx) {
