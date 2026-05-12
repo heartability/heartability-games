@@ -145,15 +145,31 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .cal-cell.has-entry .cal-date { color:var(--purple); }
 .cal-cell.is-today .cal-date  { color:var(--aqua); }
 
-/* Location as background watermark behind character */
-.cal-location-bg {
+/* Zone visual inside calendar cell */
+.cal-zone-circle {
+  position:absolute;
+  width:78%; aspect-ratio:1;
+  border-radius:50%;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:2px;
+  z-index:1;
+}
+.cal-terrain-img {
   position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-hand); font-size:clamp(8px,1vw,11px);
-  color:rgba(101,121,226,.35); text-align:center;
-  line-height:1.3; padding:2px 4px;
-  word-break:break-word; z-index:1;
-  pointer-events:none;
+  width:100%; height:100%;
+  object-fit:cover; opacity:0.75;
+}
+.cal-feeling-label {
+  position:relative; z-index:2;
+  font-family:var(--font-hand);
+  font-size:clamp(7px, 1.1vw, 12px);
+  color:#2a1e14; text-align:center;
+  line-height:1.2; padding:0 4px;
+  text-shadow:0 0 6px rgba(255,255,255,0.8);
 }
 
 /* Phase tint strip at top */
@@ -878,13 +894,36 @@ function renderCalendar() {
     cell.appendChild(dateEl);
 
     if (entry) {
-      // Phase color strip
-      const strip = document.createElement('div');
-      strip.className = 'cal-phase-strip';
-      strip.style.background = phaseColor(entry.map_phase);
-      cell.appendChild(strip);
+      // Look up zone data from the active game's map_data
+      const zoneIndex = entry.map_phase
+        ? parseInt(entry.map_phase.replace('zone_', '')) - 1
+        : -1;
+      const game     = allGames.find(g => g.id === activeGameId);
+      const zoneData = (game?.map_data?.zones || [])[zoneIndex] || {};
 
-      // Tiny character
+      // Zone circle: tint bg + terrain PNG + feeling label
+      const circle = document.createElement('div');
+      circle.className = 'cal-zone-circle';
+      circle.style.background = zoneData.tint || phaseColor(entry.map_phase);
+
+      if (zoneData.terrain && TERRAIN_IMGS[zoneData.terrain]) {
+        const terrainImg = document.createElement('img');
+        terrainImg.className = 'cal-terrain-img';
+        terrainImg.src = TERRAIN_IMGS[zoneData.terrain];
+        terrainImg.alt = '';
+        circle.appendChild(terrainImg);
+      }
+
+      if (zoneData.feeling) {
+        const feelEl = document.createElement('div');
+        feelEl.className = 'cal-feeling-label';
+        feelEl.textContent = zoneData.feeling;
+        circle.appendChild(feelEl);
+      }
+
+      cell.appendChild(circle);
+
+      // Character — sits on top of zone circle
       const char = entry.character_data;
       if (char?.body) {
         const charWrap = document.createElement('div');
@@ -904,14 +943,6 @@ function renderCalendar() {
           charWrap.appendChild(layer);
         });
         cell.appendChild(charWrap);
-      }
-
-      // Location watermark — only if user set a location for this entry
-      if (entry.map_location) {
-        const locBg = document.createElement('div');
-        locBg.className = 'cal-location-bg';
-        locBg.textContent = entry.map_location;
-        cell.appendChild(locBg);
       }
 
       cell.onclick = () => openDetail(entry, dateStr);
@@ -1062,11 +1093,15 @@ function openDetail(entry, dateStr) {
     </span>`;
   meta.appendChild(phaseRow);
 
-  // Location row — only the user-set location, no zone fallback
+  // Location row — pull terrain + feeling from game zone data (same source as calendar)
+  const detailZoneIdx  = entry.map_phase ? parseInt(entry.map_phase.replace('zone_', '')) - 1 : -1;
+  const detailGame     = allGames.find(g => g.id === activeGameId);
+  const detailZone     = (detailGame?.map_data?.zones || [])[detailZoneIdx] || {};
+  const detailLocation = [detailZone.terrain, detailZone.feeling].filter(Boolean).join(' · ') || entry.map_location || '—';
   const locRow = document.createElement('div');
   locRow.className = 'detail-row';
   locRow.innerHTML = `<span class="detail-row-label">location</span>
-    <span class="detail-row-value">${entry.map_location || '—'}</span>`;
+    <span class="detail-row-value">${detailLocation}</span>`;
   meta.appendChild(locRow);
 
   // Energy + difficulty
