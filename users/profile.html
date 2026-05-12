@@ -33,7 +33,8 @@
 
 html, body {
   width: 100vw;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--side-col);
   font-family: var(--font-hand);
   user-select: none;
@@ -81,81 +82,136 @@ html, body {
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 
-/* ── PAGE BODY ── */
-.page-wrap {
-  min-height: 100dvh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 52px 20px 48px;
-  position: relative;
+/* ── ROOM ICONS — overlays back wall ── */
+.room-icons {
+  position: fixed;
+  top: 9%; left: 15%;
+  width: 70%; height: 70%;
   z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 0 6%;
 }
+.room-icons.active { display: flex; }
 
-.page-body {
-  width: 100%;
-  max-width: 860px;
+.room-icon {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 4px;
+  transition: transform 0.15s;
+}
+.room-icon:hover { transform: translateY(-5px); }
+.room-icon:active { transform: translateY(-2px); }
+
+.room-icon img {
+  width: clamp(60px, 10vw, 120px);
+  height: auto;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
+  transition: filter 0.15s;
+}
+.room-icon:hover img { filter: drop-shadow(2px 6px 14px rgba(101,121,226,0.4)); }
+
+.room-icon-label {
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.2vw, 14px);
+  color: #555;
+  text-align: center;
+  line-height: 1.3;
 }
 
-/* ── WINDOW SHELL (shared) ── */
-.window {
+/* ── HEART CHARACTER ── */
+@keyframes idle-pulse {
+  0%,100% { transform: translateY(0) rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px) rotate(2deg) scale(1.03); }
+}
+.char-heart {
+  position: fixed;
+  left: 3vw;
+  bottom: 4vh;
+  width: clamp(80px, 11vw, 180px);
+  z-index: 20;
+  pointer-events: none;
+}
+.char-heart img {
+  display: block;
+  width: 100%; height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+  animation: idle-pulse 3.6s ease-in-out 1s infinite;
+}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open {
+  display: flex;
+  animation: fadeIn 0.2s ease both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── MODAL WINDOW ── */
+.modal-window {
   background: var(--cream);
   border-radius: 4px;
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35);
   overflow: hidden;
-  animation: windowIn 0.35s ease both;
+  width: min(92vw, 520px);
+  max-height: 82dvh;
+  display: flex;
+  flex-direction: column;
+  animation: windowIn 0.25s ease both;
 }
-.window:nth-child(2) { animation-delay: 0.05s; }
-.window:nth-child(3) { animation-delay: 0.1s;  }
-.window:nth-child(4) { animation-delay: 0.15s; }
-.window:nth-child(5) { animation-delay: 0.2s;  }
+.modal-window.wide { width: min(92vw, 680px); }
 
 @keyframes windowIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.window-titlebar {
+.modal-titlebar {
   height: 38px;
   background: var(--cream-dark);
   border-bottom: 2px solid #bbb;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 16px;
   font-family: var(--font-hand);
   font-size: clamp(13px, 1.4vw, 16px);
   color: #555;
-  gap: 10px;
+  flex-shrink: 0;
 }
+.modal-close {
+  cursor: pointer;
+  font-size: 20px;
+  color: #bbb;
+  line-height: 1;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: #444; }
 
-.window-body {
+.modal-body {
   padding: 20px 22px;
+  overflow-y: auto;
+  flex: 1;
 }
-
-/* ── WELCOME HEADING ── */
-.welcome-heading {
-  font-family: var(--font-pixel);
-  font-size: clamp(20px, 5vw, 40px);
-  color: var(--purple-dark);
-  text-align: center;
-  padding: 30px 0 18px;
-  letter-spacing: 1px;
-  line-height: 1.15;
-}
-
-/* ── SECTION GRID ── */
-.section-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-@media (max-width: 580px) {
-  .section-grid { grid-template-columns: 1fr; }
-}
+.modal-body.no-pad { padding: 0; overflow-y: auto; }
 
 /* ── SETTINGS ROWS ── */
 .setting-row {
@@ -172,12 +228,7 @@ html, body {
 .setting-label { color: #888; white-space: nowrap; }
 .setting-value { font-weight: 600; font-size: clamp(12px, 1.2vw, 14px); text-align: right; word-break: break-all; }
 
-.btn-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 
 .btn-action {
   padding: 7px 14px;
@@ -190,40 +241,6 @@ html, body {
   transition: background 0.15s, color 0.15s;
 }
 .btn-action:hover { background: var(--purple); color: white; }
-
-/* ── SAVED DATA ── */
-.saved-data-wrap {
-  position: relative;
-}
-
-/* locked overlay for free users */
-.saved-lock-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(245,240,234,0.88);
-  backdrop-filter: blur(2px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px;
-  text-align: center;
-  z-index: 10;
-}
-
-.lock-icon {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.lock-msg {
-  font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 15px);
-  color: #666;
-  line-height: 1.5;
-  max-width: 200px;
-}
 
 .btn-upgrade-inline {
   padding: 8px 16px;
@@ -241,19 +258,6 @@ html, body {
 .btn-upgrade-inline:hover  { background: var(--purple-dark); }
 .btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
 
-/* saved items */
-.saved-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.07);
-  font-size: clamp(12px, 1.3vw, 15px);
-}
-.saved-item:last-child { border-bottom: none; }
-.saved-icon { font-size: 20px; }
-.saved-name { flex: 1; color: #333; }
-
 .saved-link {
   font-family: var(--font-hand);
   font-size: clamp(9px, 0.9vw, 11px);
@@ -265,21 +269,9 @@ html, body {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.saved-link:hover {
-  background: var(--purple);
-  color: #fff;
-}
+.saved-link:hover { background: var(--purple); color: #fff; }
 
-.saved-tag {
-  font-family: var(--font-hand);
-  font-size: clamp(9px, 0.9vw, 11px);
-  padding: 3px 8px;
-  background: var(--cream-dark);
-  border: 1px solid #ccc;
-  color: #aaa;
-}
-
-/* ── MINI ARCHIVE PANEL ── */
+/* ── MINI ARCHIVE ── */
 .mini-archive-header {
   display: flex;
   align-items: center;
@@ -288,7 +280,6 @@ html, body {
   gap: 10px;
   margin-bottom: 14px;
 }
-
 .mini-game-dropdown {
   font-family: var(--font-hand);
   font-size: clamp(12px, 1.2vw, 14px);
@@ -303,12 +294,7 @@ html, body {
   max-width: 300px;
 }
 .mini-game-dropdown:focus { border-color: var(--blue-glow); }
-
-.mini-month-nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.mini-month-nav { display: flex; align-items: center; gap: 10px; }
 .mini-month-btn {
   font-family: monospace;
   font-size: 14px;
@@ -328,8 +314,6 @@ html, body {
   min-width: 130px;
   text-align: center;
 }
-
-/* Mini calendar grid */
 .mini-cal-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -343,11 +327,7 @@ html, body {
   color: #bbb;
   padding: 2px 0;
 }
-.mini-cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
-}
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .mini-cal-cell {
   height: 32px;
   border: 1px solid rgba(101,121,226,.12);
@@ -358,14 +338,9 @@ html, body {
   justify-content: center;
 }
 .mini-cal-cell.filler { background: transparent; border-color: transparent; }
-.mini-cal-cell.has-entry {
-  border-color: var(--purple);
-  background: rgba(101,121,226,.05);
-  cursor: pointer;
-}
+.mini-cal-cell.has-entry { border-color: var(--purple); background: rgba(101,121,226,.05); cursor: pointer; }
 .mini-cal-cell.has-entry:hover { border-color: var(--blue-glow); background: rgba(101,121,226,.1); }
 .mini-cal-cell.is-today { border-color: var(--blue-glow); box-shadow: 0 0 0 1px var(--blue-glow); }
-
 .mini-cal-date {
   font-family: monospace;
   font-size: 9px;
@@ -376,47 +351,11 @@ html, body {
 }
 .mini-cal-cell.has-entry .mini-cal-date { color: var(--purple); }
 .mini-cal-cell.is-today .mini-cal-date  { color: var(--blue-glow); }
-
-.mini-cal-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-left: 10px; /* nudge right of the date number */
-}
-
-.mini-archive-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-}
-.mini-entry-count {
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1vw, 12px);
-  color: #bbb;
-}
-
-/* ── LOADING ── */
-#loading-state {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-pixel);
-  font-size: clamp(18px, 2vw, 24px);
-  color: var(--blue-glow);
-  text-shadow: 0 0 20px rgba(131,210,230,0.6);
-}
-
-#main-content { display: none; }
+.mini-cal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-left: 10px; }
+.mini-archive-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.mini-entry-count { font-family: var(--font-hand); font-size: clamp(11px, 1vw, 12px); color: #bbb; }
 
 /* ── LEADERBOARD ── */
-.leaderboard-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
 .leaderboard-header {
   display: grid;
   grid-template-columns: 36px 1fr 100px;
@@ -441,47 +380,50 @@ html, body {
 }
 .leaderboard-row:last-child { border-bottom: none; }
 .leaderboard-row:hover { background: rgba(101,121,226,0.04); }
-.leaderboard-row.is-me {
-  background: rgba(101,121,226,0.08);
-  border-left: 3px solid var(--purple);
-  padding-left: 7px;
-}
-.lb-rank {
-  font-family: var(--font-game, monospace);
-  font-size: clamp(12px, 1.2vw, 15px);
-  color: #aaa;
-  text-align: center;
-}
+.leaderboard-row.is-me { background: rgba(101,121,226,0.08); border-left: 3px solid var(--purple); padding-left: 7px; }
+.lb-rank { font-family: monospace; font-size: clamp(12px, 1.2vw, 15px); color: #aaa; text-align: center; }
 .lb-rank.top3 { color: var(--purple); font-weight: bold; }
 .lb-username { font-family: var(--font-hand); font-weight: 600; word-break: break-all; }
 .lb-username.is-me::after { content: ' (you)'; color: var(--purple); font-size: 11px; font-weight: normal; }
 .lb-saves { text-align: right; font-family: var(--font-hand); color: #555; }
-.lb-words { text-align: right; font-family: var(--font-hand); color: #aaa; font-size: clamp(11px, 1vw, 12px); }
-.lb-divider {
-  padding: 8px 10px;
-  text-align: center;
-  color: #ccc;
-  font-size: 12px;
-  letter-spacing: 1px;
+.lb-divider { padding: 8px 10px; text-align: center; color: #ccc; font-size: 12px; letter-spacing: 1px; }
+.lb-empty { padding: 30px 20px; text-align: center; font-family: var(--font-hand); color: #bbb; font-style: italic; font-size: 14px; line-height: 1.7; }
+.lb-loading { padding: 24px; text-align: center; font-family: var(--font-hand); color: #aaa; font-size: 14px; }
+.lb-refresh { font-size: 11px; color: #aaa; cursor: pointer; margin-left: auto; padding: 0 4px; }
+.lb-refresh:hover { color: var(--purple); }
+
+/* ── LOADING ── */
+#loading-state {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 2vw, 24px);
+  color: var(--blue-glow);
+  text-shadow: 0 0 20px rgba(131,210,230,0.6);
+  z-index: 50;
 }
-.lb-empty {
-  padding: 30px 20px;
+
+/* ── LEGAL FOOTER ── */
+.legal-footer {
+  position: fixed;
+  bottom: 12px;
+  left: 0; right: 0;
   text-align: center;
   font-family: var(--font-hand);
-  color: #bbb;
-  font-style: italic;
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: clamp(10px, 1vw, 12px);
+  color: #aaa;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
-.lb-loading {
-  padding: 24px; text-align: center;
-  font-family: var(--font-hand); color: #aaa; font-size: 14px;
-}
-.lb-refresh {
-  font-size: 11px; color: #aaa; cursor: pointer;
-  margin-left: auto; padding: 0 4px;
-}
-.lb-refresh:hover { color: var(--purple); }
+.legal-footer a { color: #aaa; text-decoration: none; transition: color 0.15s; }
+.legal-footer a:hover { color: var(--purple); }
+.legal-footer span { color: #ccc; }
 
   </style>
 </head>
@@ -498,74 +440,99 @@ html, body {
 </div>
 <div class="room-back-wall" aria-hidden="true"></div>
 
+<!-- NAV -->
 <nav class="room-nav">
   <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='../games/game-select.html'">back</span>
-  <span class="nav-title">my profile</span>
+  <span id="display-username" style="font-family:var(--font-pixel);font-size:clamp(13px,1.5vw,18px);"></span>
   <span class="nav-btn" id="btn-signout">sign out</span>
 </nav>
 
+<!-- LOADING -->
 <div id="loading-state">loading your space ♡</div>
 
-<div class="page-wrap">
-<div class="page-body" id="main-content">
-
-  <!-- Welcome heading -->
-  <div class="welcome-heading">Welcome, <span id="display-username">loading...</span></div>
-
-  <!-- Section grid -->
-  <div class="section-grid">
-
-    <!-- Account Settings -->
-    <div class="window">
-      <div class="window-titlebar">account settings</div>
-      <div class="window-body">
-        <div class="setting-row">
-          <span class="setting-label">username</span>
-          <span class="setting-value" id="settings-username">—</span>
-        </div>
-        <div class="setting-row">
-          <span class="setting-label">email</span>
-          <span class="setting-value" id="settings-email">—</span>
-        </div>
-        <div class="setting-row">
-          <span class="setting-label">password</span>
-          <span class="setting-value">••••••••</span>
-        </div>
-        <div class="setting-row">
-          <span class="setting-label">membership</span>
-          <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
-        </div>
-        <div class="btn-row">
-          <button class="btn-action" onclick="editUsername()">edit username</button>
-          <button class="btn-action" onclick="changePassword()">change password</button>
-          <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade membership</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Leaderboard (right column) -->
-    <div class="window" id="leaderboard-window">
-      <div class="window-titlebar">
-        weekly leaderboard
-        <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
-      </div>
-      <div class="window-body" style="padding:0;">
-        <div id="leaderboard-content">
-          <div class="lb-loading">loading this week's rankings...</div>
-        </div>
-      </div>
-    </div>
-
+<!-- ROOM ICONS -->
+<div class="room-icons" id="main-content">
+  <div class="room-icon" onclick="openModal('settings')">
+    <img src="../assets/elements/settings.png" alt="account settings" />
+    <span class="room-icon-label">account settings</span>
   </div>
+  <div class="room-icon" onclick="openModal('leaderboard')">
+    <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
+    <span class="room-icon-label">leaderboard</span>
+  </div>
+  <div class="room-icon" onclick="openModal('archive')">
+    <img src="../assets/elements/calendar.png" alt="map archive" />
+    <span class="room-icon-label">map archive</span>
+  </div>
+</div>
 
-  <!-- Mini Archive Panel -->
-  <div class="window" id="mini-archive-window">
-    <div class="window-titlebar">
-      <span>map archive</span>
-      <span id="mini-archive-subtitle" style="font-size:12px;color:#aaa;"></span>
+<!-- HEART CHARACTER -->
+<div class="char-heart" aria-hidden="true">
+  <img src="../assets/elements/guides/heart.png" alt="" />
+</div>
+
+<!-- MODAL: ACCOUNT SETTINGS -->
+<div class="modal-overlay" id="modal-settings" onclick="closeOnOverlay(event,'settings')">
+  <div class="modal-window">
+    <div class="modal-titlebar">
+      account settings
+      <span class="modal-close" onclick="closeModal('settings')">×</span>
     </div>
-    <div class="window-body">
+    <div class="modal-body">
+      <div class="setting-row">
+        <span class="setting-label">username</span>
+        <span class="setting-value" id="settings-username">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">email</span>
+        <span class="setting-value" id="settings-email">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">password</span>
+        <span class="setting-value">••••••••</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">membership</span>
+        <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-action" onclick="editUsername()">edit username</button>
+        <button class="btn-action" onclick="changePassword()">change password</button>
+        <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade membership</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- MODAL: LEADERBOARD -->
+<div class="modal-overlay" id="modal-leaderboard" onclick="closeOnOverlay(event,'leaderboard')">
+  <div class="modal-window">
+    <div class="modal-titlebar">
+      weekly leaderboard
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
+        <span class="modal-close" onclick="closeModal('leaderboard')">×</span>
+      </div>
+    </div>
+    <div class="modal-body no-pad">
+      <div id="leaderboard-content">
+        <div class="lb-loading">loading this week's rankings...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MAP ARCHIVE -->
+<div class="modal-overlay" id="modal-archive" onclick="closeOnOverlay(event,'archive')">
+  <div class="modal-window wide" id="mini-archive-window">
+    <div class="modal-titlebar">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span>map archive</span>
+        <span id="mini-archive-subtitle" style="font-size:12px;color:#aaa;"></span>
+      </div>
+      <span class="modal-close" onclick="closeModal('archive')">×</span>
+    </div>
+    <div class="modal-body">
       <div class="mini-archive-header">
         <select class="mini-game-dropdown" id="mini-game-dropdown" onchange="onMiniGameChange()">
           <option value="">loading maps...</option>
@@ -576,7 +543,6 @@ html, body {
           <button class="mini-month-btn" onclick="miniChangeMonth(1)">►</button>
         </div>
       </div>
-
       <div class="mini-cal-header">
         <div class="mini-cal-day-label">SUN</div>
         <div class="mini-cal-day-label">MON</div>
@@ -587,17 +553,22 @@ html, body {
         <div class="mini-cal-day-label">SAT</div>
       </div>
       <div class="mini-cal-grid" id="mini-cal-grid"></div>
-
       <div class="mini-archive-footer">
         <span class="mini-entry-count" id="mini-entry-count"></span>
         <a class="saved-link" id="mini-archive-link" href="/users/archive.html">view full archive</a>
       </div>
-
     </div>
   </div>
+</div>
 
-</div>
-</div>
+<!-- LEGAL FOOTER -->
+<footer class="legal-footer">
+  <a href="../legal/privacy-policy.html">privacy policy</a>
+  <span>·</span>
+  <a href="../legal/refund-policy.html">refund policy</a>
+  <span>·</span>
+  <a href="../legal/support.html">support</a>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -606,6 +577,21 @@ html, body {
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Modal helpers ─────────────────────────────────────────
+  window.openModal = function (id) {
+    document.getElementById('modal-' + id).classList.add('open');
+  };
+  window.closeModal = function (id) {
+    document.getElementById('modal-' + id).classList.remove('open');
+  };
+  window.closeOnOverlay = function (e, id) {
+    if (e.target === e.currentTarget) closeModal(id);
+  };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape')
+      document.querySelectorAll('.modal-overlay.open').forEach(el => el.classList.remove('open'));
+  });
 
   // ── Auth check ───────────────────────────────────────────
   async function init() {
@@ -622,40 +608,33 @@ html, body {
       .single();
 
     const username = profile?.username || 'explorer';
-
     document.getElementById('display-username').textContent  = username;
     document.getElementById('settings-username').textContent = username;
     document.getElementById('settings-email').textContent    = user.email;
 
-    // ── MEMBERSHIP STATUS ─────────────────────────────────
     const membershipStatus = profile?.membership_status || 'free';
     applyMembershipUI(membershipStatus);
 
     document.getElementById('loading-state').style.display = 'none';
-    document.getElementById('main-content').style.display  = 'flex';
+    document.getElementById('main-content').classList.add('active');
 
-    // Load mini archive panel
     loadMiniGames(user.id);
   }
 
   // ── Membership UI ─────────────────────────────────────────
   function applyMembershipUI(status) {
-    const membershipEl  = document.getElementById('settings-membership');
-    const upgradeBtn    = document.getElementById('btn-upgrade-settings');
-
+    const membershipEl = document.getElementById('settings-membership');
+    const upgradeBtn   = document.getElementById('btn-upgrade-settings');
     if (status === 'founding') {
       membershipEl.textContent = '✦ founding member';
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
-
     } else if (status === 'basic') {
       membershipEl.textContent = 'basic member';
       membershipEl.style.color = 'var(--purple)';
       upgradeBtn.textContent   = 'upgrade to founding member';
       upgradeBtn.style.display = 'inline-block';
-
     } else {
-      // free
       membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
       upgradeBtn.textContent   = 'upgrade membership';
@@ -663,10 +642,7 @@ html, body {
     }
   }
 
-  // ── Upgrade redirect ──────────────────────────────────────
-  window.goToUpgrade = function () {
-    window.location.href = '/users/membership.html';
-  };
+  window.goToUpgrade = function () { window.location.href = '/users/membership.html'; };
 
   // ── Edit username ─────────────────────────────────────────
   window.editUsername = async function () {
@@ -679,9 +655,7 @@ html, body {
     if (!error) {
       document.getElementById('display-username').textContent  = newName.trim();
       document.getElementById('settings-username').textContent = newName.trim();
-    } else {
-      alert('error: ' + error.message);
-    }
+    } else { alert('error: ' + error.message); }
   };
 
   // ── Change password ───────────────────────────────────────
@@ -702,49 +676,32 @@ html, body {
   window.loadLeaderboard = async function () {
     const el = document.getElementById('leaderboard-content');
     el.innerHTML = '<div class="lb-loading">loading rankings...</div>';
-
     const { data, error } = await sb.rpc('get_weekly_leaderboard');
-
     if (error || !data?.length) {
-      el.innerHTML = `<div class="lb-empty">
-        no entries this week yet — make a save today to get on the board ♡<br>
-        <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span>
-      </div>`;
+      el.innerHTML = `<div class="lb-empty">no entries this week yet — make a save today to get on the board ♡<br>
+        <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span></div>`;
       return;
     }
-
-    // Find current user's row (may not be in top results)
     const myRow   = data.find(r => r.is_me);
     const topRows = data.slice(0, 20);
     const myInTop = topRows.some(r => r.is_me);
-
-    let html = `<div class="leaderboard-header">
-      <span>#</span>
-      <span>player</span>
-      <span style="text-align:right">saves</span>
-    </div>`;
-
+    let html = `<div class="leaderboard-header"><span>#</span><span>player</span><span style="text-align:right">saves</span></div>`;
     topRows.forEach(r => {
-      const rankLabel = r.rank <= 3
-        ? ['🥇','🥈','🥉'][r.rank - 1]
-        : r.rank;
+      const rankLabel = r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank - 1] : r.rank;
       html += `<div class="leaderboard-row${r.is_me ? ' is-me' : ''}">
         <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
         <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
         <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
       </div>`;
     });
-
-    // If user exists but isn't in top 20, show them below a divider
     if (!myInTop && myRow) {
-      html += `<div class="lb-divider">· · ·</div>`;
-      html += `<div class="leaderboard-row is-me">
-        <span class="lb-rank">${myRow.rank}</span>
-        <span class="lb-username is-me">${myRow.username}</span>
-        <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
-      </div>`;
+      html += `<div class="lb-divider">· · ·</div>
+        <div class="leaderboard-row is-me">
+          <span class="lb-rank">${myRow.rank}</span>
+          <span class="lb-username is-me">${myRow.username}</span>
+          <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
+        </div>`;
     }
-
     el.innerHTML = html;
   };
 
@@ -753,13 +710,12 @@ html, body {
     zone_1: '#d4d9ff', zone_2: '#a8b4f0',
     zone_3: '#6579e2', zone_4: '#4a5bc4', zone_5: '#2a3b9a',
   };
-
-  let miniAllGames    = [];
-  let miniActiveId    = null;
-  let miniAllEntries  = [];
-  let miniEntryMap    = {};
-  let miniViewYear    = new Date().getFullYear();
-  let miniViewMonth   = new Date().getMonth();
+  let miniAllGames   = [];
+  let miniActiveId   = null;
+  let miniAllEntries = [];
+  let miniEntryMap   = {};
+  let miniViewYear   = new Date().getFullYear();
+  let miniViewMonth  = new Date().getMonth();
 
   function miniLocalToday() { return new Date().toLocaleDateString('en-CA'); }
 
@@ -769,12 +725,10 @@ html, body {
       .eq('user_id', userId)
       .order('updated_at', { ascending: false });
     miniAllGames = data || [];
-
     const dd = document.getElementById('mini-game-dropdown');
     dd.innerHTML = '';
     if (!miniAllGames.length) {
       dd.innerHTML = '<option value="">no maps yet</option>';
-      document.getElementById('mini-archive-window').style.display = 'none';
       return;
     }
     miniAllGames.forEach(g => {
@@ -804,35 +758,28 @@ html, body {
     miniAllEntries = data || [];
     miniEntryMap   = {};
     miniAllEntries.forEach(e => { miniEntryMap[e.entry_date] = e; });
-
     const game = miniAllGames.find(g => g.id === miniActiveId);
     document.getElementById('mini-archive-subtitle').textContent = game?.map_name || '';
     document.getElementById('mini-entry-count').textContent =
       miniAllEntries.length + ' entr' + (miniAllEntries.length === 1 ? 'y' : 'ies') + ' total';
-    document.getElementById('mini-archive-link').href =
-      '/users/archive.html?game_id=' + miniActiveId;
-
+    document.getElementById('mini-archive-link').href = '/users/archive.html?game_id=' + miniActiveId;
     renderMiniCalendar();
   }
 
   function renderMiniCalendar() {
     const months = ['January','February','March','April','May','June',
                     'July','August','September','October','November','December'];
-    document.getElementById('mini-month-label').textContent =
-      months[miniViewMonth] + ' ' + miniViewYear;
-
+    document.getElementById('mini-month-label').textContent = months[miniViewMonth] + ' ' + miniViewYear;
     const firstDay    = new Date(miniViewYear, miniViewMonth, 1).getDay();
     const daysInMonth = new Date(miniViewYear, miniViewMonth + 1, 0).getDate();
     const today       = miniLocalToday();
     const grid        = document.getElementById('mini-cal-grid');
     grid.innerHTML    = '';
-
     for (let i = 0; i < firstDay; i++) {
       const cell = document.createElement('div');
       cell.className = 'mini-cal-cell filler';
       grid.appendChild(cell);
     }
-
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = miniViewYear + '-'
         + String(miniViewMonth + 1).padStart(2, '0') + '-'
@@ -840,24 +787,19 @@ html, body {
       const entry = miniEntryMap[dateStr];
       const cell  = document.createElement('div');
       cell.className = 'mini-cal-cell'
-        + (entry    ? ' has-entry' : '')
-        + (dateStr === today ? ' is-today'  : '');
-
+        + (entry   ? ' has-entry' : '')
+        + (dateStr === today ? ' is-today' : '');
       const dateEl = document.createElement('div');
       dateEl.className = 'mini-cal-date';
       dateEl.textContent = d;
       cell.appendChild(dateEl);
-
       if (entry) {
         const dot = document.createElement('div');
         dot.className = 'mini-cal-dot';
         dot.style.background = MINI_PHASE_COLORS[entry.map_phase] || '#6579e2';
         cell.appendChild(dot);
-        cell.onclick = () => {
-          window.location.href = '/users/archive.html?game_id=' + miniActiveId;
-        };
+        cell.onclick = () => { window.location.href = '/users/archive.html?game_id=' + miniActiveId; };
       }
-
       grid.appendChild(cell);
     }
   }
@@ -870,7 +812,6 @@ html, body {
   };
 
   init();
-  // Load leaderboard after a short delay so profile loads first
   setTimeout(window.loadLeaderboard, 600);
 })();
 </script>
