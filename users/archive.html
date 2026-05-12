@@ -244,12 +244,12 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 }
 .bar-x-label {
   font-family:var(--font-game); font-size:9px; color:#aaa;
-  text-align:center; line-height:1.2; width:36px; flex-shrink:0;
+  text-align:center; line-height:1.2; flex:1;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
 .bar-col {
-  flex-shrink:0; width:36px;
+  flex:1;
   height:100%;
   display:flex; align-items:flex-end;
 }
@@ -264,6 +264,17 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   position:absolute; top:-14px; left:50%; transform:translateX(-50%);
   white-space:nowrap;
 }
+
+/* Week navigation buttons in graph titlebar */
+.week-nav-btn {
+  background:none; border:1.5px solid rgba(101,121,226,.35);
+  color:var(--purple); font-family:var(--font-game); font-size:14px;
+  width:26px; height:26px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s, color .15s; padding:0;
+}
+.week-nav-btn:hover:not(:disabled) { background:var(--purple); color:#fff; }
+.week-nav-btn:disabled { opacity:0.25; cursor:default; }
 
 /* Taller calendar titlebar for month label */
 #cal-window .window-titlebar {
@@ -293,7 +304,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   display:flex; flex-direction:column; flex:1;
 }
 .graph-area {
-  flex:1; padding:0 20px 20px; overflow-x:auto;
+  flex:1; padding:16px 20px 20px; overflow-x:auto;
   display:flex; flex-direction:column;
 }
 .graph-wrap {
@@ -466,6 +477,11 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <div class="window" id="graph-window">
         <div class="window-titlebar">
           <span>energy over time</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="week-nav-btn" id="graph-prev-week" onclick="changeWeekPage(1)" title="older">◄</button>
+            <span id="week-label" style="font-family:var(--font-game);font-size:10px;color:#aaa;min-width:70px;text-align:center;"></span>
+            <button class="week-nav-btn" id="graph-next-week" onclick="changeWeekPage(-1)" title="newer">►</button>
+          </div>
           <span style="font-size:12px;color:#aaa;">hearts / session</span>
         </div>
         <div class="graph-area">
@@ -974,6 +990,13 @@ function changeMonth(dir) {
 }
 
 // ── BAR GRAPH ─────────────────────────────────────────────
+let weekPage = 0; // 0 = most recent 7, 1 = previous 7, etc.
+
+function changeWeekPage(dir) {
+  weekPage += dir;
+  renderBarGraph();
+}
+
 function renderBarGraph() {
   const barsEl  = document.getElementById('graph-bars');
   const yEl     = document.getElementById('graph-y');
@@ -981,15 +1004,38 @@ function renderBarGraph() {
   const legEl   = document.getElementById('phase-legend');
   barsEl.innerHTML = ''; yEl.innerHTML = ''; legEl.innerHTML = '';
 
-  const entries = allEntries.filter(e => e.energy_score != null);
-  if (!entries.length) {
+  const allWithEnergy = allEntries.filter(e => e.energy_score != null);
+  if (!allWithEnergy.length) {
     emptyEl.style.display = 'block';
+    document.getElementById('week-label').textContent = '';
     return;
   }
   emptyEl.style.display = 'none';
 
+  // Clamp weekPage so we don't go beyond available data
+  const totalPages = Math.ceil(allWithEnergy.length / 7);
+  weekPage = Math.max(0, Math.min(weekPage, totalPages - 1));
+
+  // Slice 7 entries for current page (working backwards from most recent)
+  const end   = allWithEnergy.length - weekPage * 7;
+  const start = Math.max(0, end - 7);
+  const entries = allWithEnergy.slice(start, end);
+
+  // Week label
+  const weekLabelEl = document.getElementById('week-label');
+  if (totalPages > 1) {
+    weekLabelEl.textContent = `${start + 1}–${end} of ${allWithEnergy.length}`;
+  } else {
+    weekLabelEl.textContent = '';
+  }
+
+  // Prev/next button state
+  const prevBtn = document.getElementById('graph-prev-week');
+  const nextBtn = document.getElementById('graph-next-week');
+  if (prevBtn) prevBtn.disabled = (weekPage >= totalPages - 1);
+  if (nextBtn) nextBtn.disabled = (weekPage <= 0);
+
   const MAX_HEARTS = 24;
-  const GRAPH_H    = 180; // px of actual bar area (220 - 36 bottom padding - 4 top)
 
   // ── Y axis ──
   const yLabels = ['easy', 'medium', 'hard'];
@@ -1162,6 +1208,7 @@ async function loadEntries() {
     .order('entry_date', { ascending:true });
   allEntries = data || [];
   entryMap   = buildEntryMap(allEntries);
+  weekPage   = 0; // reset to most recent week on map switch
   const game = allGames.find(g => g.id === activeGameId);
   document.getElementById('cal-entry-count').textContent = allEntries.length + ' entries';
   // Update dropdown to reflect active game
