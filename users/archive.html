@@ -1189,7 +1189,7 @@ function openDetail(entry, dateStr) {
   phaseRow.innerHTML = `<span class="detail-row-label">phase</span>
     <span style="text-align:right;max-width:72%;">
       ${prompt
-        ? `<span style="font-family:var(--font-hand);font-size:12px;color:#aaa;font-style:italic;display:block;">${prompt}</span>`
+        ? `<span style="font-family:var(--font-hand);font-size:12px;color:#333;display:block;">${prompt}</span>`
         : `<span class="detail-row-value" style="color:${phaseColor(entry.map_phase)}">${phaseLabel(entry.map_phase)}</span>`
       }
     </span>`;
