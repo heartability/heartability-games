@@ -159,17 +159,18 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   z-index:1;
 }
 .cal-terrain-img {
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover; opacity:0.75;
+  position:absolute;
+  width:72%; height:72%;
+  top:50%; left:50%; transform:translate(-50%,-52%);
+  object-fit:contain; opacity:0.85;
 }
 .cal-feeling-label {
-  position:relative; z-index:2;
+  position:absolute; bottom:10%; z-index:2;
+  width:100%; text-align:center;
   font-family:var(--font-hand);
   font-size:clamp(7px, 1.1vw, 12px);
-  color:#2a1e14; text-align:center;
-  line-height:1.2; padding:0 4px;
-  text-shadow:0 0 6px rgba(255,255,255,0.8);
+  color:#2a1e14; line-height:1.2;
+  text-shadow:0 0 6px rgba(255,255,255,0.9);
 }
 
 /* Phase tint strip at top */
@@ -179,8 +180,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* Tiny character inside calendar cell */
 .cal-char {
-  position:absolute; top:14px; left:50%; transform:translateX(-50%);
-  width:34px; height:42px; z-index:2;
+  position:absolute; bottom:4px; left:5px;
+  width:34px; height:42px; z-index:3;
 }
 .cal-char-layer {
   position:absolute; inset:0;
@@ -901,10 +902,12 @@ function renderCalendar() {
       const game     = allGames.find(g => g.id === activeGameId);
       const zoneData = (game?.map_data?.zones || [])[zoneIndex] || {};
 
-      // Zone circle: tint bg + terrain PNG + feeling label
+      // Zone circle: radial gradient fade (opaque center → transparent edge) + terrain PNG + feeling
       const circle = document.createElement('div');
       circle.className = 'cal-zone-circle';
-      circle.style.background = zoneData.tint || phaseColor(entry.map_phase);
+      const tint     = zoneData.tint || phaseColor(entry.map_phase);
+      const tintFade = tint.replace(/,\s*[\d.]+\)$/, ', 0)');
+      circle.style.background = `radial-gradient(circle, ${tint} 0%, ${tintFade} 100%)`;
 
       if (zoneData.terrain && TERRAIN_IMGS[zoneData.terrain]) {
         const terrainImg = document.createElement('img');
@@ -1082,14 +1085,16 @@ function openDetail(entry, dateStr) {
 
   const prompt = PHASE_PROMPTS[entry.map_phase] || '';
 
-  // Phase row — zone name + prompt as sub-text
+  // Phase row — prompt only, no zone label
   const phaseRow = document.createElement('div');
   phaseRow.className = 'detail-row';
   phaseRow.style.alignItems = 'flex-start';
   phaseRow.innerHTML = `<span class="detail-row-label">phase</span>
-    <span style="text-align:right;">
-      <span class="detail-row-value" style="color:${phaseColor(entry.map_phase)};display:block;">${phaseLabel(entry.map_phase)}</span>
-      ${prompt ? `<span style="font-family:var(--font-hand);font-size:11px;color:#aaa;font-style:italic;display:block;margin-top:3px;">${prompt}</span>` : ''}
+    <span style="text-align:right;max-width:72%;">
+      ${prompt
+        ? `<span style="font-family:var(--font-hand);font-size:12px;color:#aaa;font-style:italic;display:block;">${prompt}</span>`
+        : `<span class="detail-row-value" style="color:${phaseColor(entry.map_phase)}">${phaseLabel(entry.map_phase)}</span>`
+      }
     </span>`;
   meta.appendChild(phaseRow);
 
@@ -1097,7 +1102,9 @@ function openDetail(entry, dateStr) {
   const detailZoneIdx  = entry.map_phase ? parseInt(entry.map_phase.replace('zone_', '')) - 1 : -1;
   const detailGame     = allGames.find(g => g.id === activeGameId);
   const detailZone     = (detailGame?.map_data?.zones || [])[detailZoneIdx] || {};
-  const detailLocation = [detailZone.terrain, detailZone.feeling].filter(Boolean).join(' · ') || entry.map_location || '—';
+  const detailLocation = detailZone.terrain && detailZone.feeling
+    ? `${detailZone.terrain} of ${detailZone.feeling}`
+    : detailZone.terrain || detailZone.feeling || entry.map_location || '—';
   const locRow = document.createElement('div');
   locRow.className = 'detail-row';
   locRow.innerHTML = `<span class="detail-row-label">location</span>
