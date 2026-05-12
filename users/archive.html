@@ -316,6 +316,58 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 }
 .detail-energy-bar { height:100%; transition:width .4s ease; }
 
+/* ── MAP WINDOW — fills its row height ── */
+#map-window { display:flex; flex-direction:column; }
+.map-window-body { flex:1; display:flex; flex-direction:column; }
+.map-svg-wrap { flex:1; min-height:280px; }
+
+/* ── MAP SELECTOR SCREEN ── */
+#map-selector {
+  display:none; position:fixed; inset:0;
+  padding-top:44px; background:#e8e3da; z-index:50; overflow-y:auto;
+}
+.map-sel-inner {
+  max-width:1200px; margin:0 auto;
+  padding:28px clamp(16px,3vw,48px) 48px;
+  display:flex; flex-direction:column; gap:20px;
+}
+.map-sel-header {
+  display:flex; align-items:center; justify-content:space-between;
+}
+.map-sel-title {
+  font-family:var(--font-pixel);
+  font-size:clamp(16px,2vw,24px); color:#555;
+}
+.map-grid {
+  display:grid;
+  grid-template-columns:repeat(4, minmax(140px,1fr));
+  gap:16px;
+}
+@media (max-width:700px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
+
+.map-slot {
+  border:2px solid #ccc; background:#fdf6e3;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:stretch; padding:8px 8px 6px; gap:5px;
+  font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s;
+  position:relative; aspect-ratio:4/5;
+}
+.map-slot:hover { border-color:var(--purple); box-shadow:2px 2px 0 var(--purple); transform:translateY(-2px); }
+.map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
+.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
+.slot-name { font-size:13px; color:#333; line-height:1.2; word-break:break-word; font-weight:600; flex-shrink:0; }
+.slot-updated { font-size:10px; color:#bbb; flex-shrink:0; }
+.slot-preview { flex:1; min-height:0; overflow:hidden; background:#e8e0c8; border:1px solid #c8b88a; }
+.slot-preview svg { width:100%; height:100%; display:block; }
+.slot-delete {
+  position:absolute; top:5px; right:6px;
+  font-size:14px; color:#ccc; background:none; border:none;
+  cursor:pointer; line-height:1; padding:2px 4px;
+  transition:color .12s; z-index:2;
+}
+.slot-delete:hover { color:#E8478B; }
+
 /* ── LOADING ── */
 #loading-state {
   position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
@@ -329,11 +381,22 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">← back</span>
+  <span class="nav-btn" onclick="handleBack()">← back</span>
+  <span style="font-family:var(--font-pixel);font-size:clamp(13px,1.5vw,18px);">adventure archive</span>
   <span class="nav-btn" onclick="window.location.href='chart-room.html'">chart room →</span>
 </nav>
 
 <div id="loading-state" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-pixel);font-size:24px;color:var(--aqua);background:#e8e3da;z-index:999;">loading your archive...</div>
+
+<!-- MAP SELECTOR -->
+<div id="map-selector">
+  <div class="map-sel-inner">
+    <div class="map-sel-header">
+      <span class="map-sel-title">your maps</span>
+    </div>
+    <div class="map-grid" id="map-grid"></div>
+  </div>
+</div>
 
 <div class="page-wrap">
   <div class="page-body" id="main-content">
@@ -606,13 +669,14 @@ function getDifficulty(hearts) {
 }
 
 // ── STATE ─────────────────────────────────────────────────
-let currentUser   = null;
-let allGames      = [];
-let activeGameId  = null;
-let allEntries    = [];       // daily_entries for active game
-let entryMap      = {};       // date string → entry
-let viewYear      = new Date().getFullYear();
-let viewMonth     = new Date().getMonth();
+let currentUser     = null;
+let allGames        = [];
+let activeGameId    = null;
+let allEntries      = [];
+let entryMap        = {};
+let viewYear        = new Date().getFullYear();
+let viewMonth       = new Date().getMonth();
+let viewingSelector = true;
 
 // ── HELPERS ───────────────────────────────────────────────
 function localToday() { return new Date().toLocaleDateString('en-CA'); }
@@ -637,6 +701,101 @@ function renderCharLayer(el, partId) {
   el.innerHTML = partId && FULL[partId] ? `<img src="${FULL[partId]}" alt=""/>` : '';
 }
 
+// ── NAVIGATION ────────────────────────────────────────────
+function handleBack() {
+  if (!viewingSelector) {
+    showMapSelector();
+  } else {
+    history.length > 1 ? history.back() : window.location.href = '../users/profile.html';
+  }
+}
+
+// ── MAP SELECTOR ──────────────────────────────────────────
+function showMapSelector() {
+  viewingSelector = true;
+  document.getElementById('map-selector').style.display = 'block';
+  document.getElementById('main-content').style.display = 'none';
+  renderMapSelectorGrid();
+}
+
+function buildPreviewSVG(mapType, zones) {
+  const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
+  const SQ = [{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}];
+  const R = 22;
+  if (mapType === 'square') {
+    let c = '';
+    SQ.forEach((p,i) => {
+      const z = zones[i]||{};
+      c += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      if (z.feeling) c += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+    });
+    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>${c}</svg>`;
+  }
+  const cx=250,cy=190,b=13;
+  const pts=[];
+  for(let i=0;i<=700;i++){const t=0.1+15.4*i/700;pts.push([cx+b*t*Math.cos(t),cy-b*t*Math.sin(t)]);}
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  let c='';
+  pos.forEach((p,i)=>{
+    const z=zones[i]||{};
+    c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+    if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+  });
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>${c}</svg>`;
+}
+
+function renderMapSelectorGrid() {
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const g = allGames[i];
+    if (g) {
+      const zones   = (g.map_data||{}).zones||[];
+      const preview = buildPreviewSVG(g.map_type||'spiral', zones);
+      const updated = g.updated_at
+        ? 'last updated ' + new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+        : '';
+      const safeName = (g.map_name||'untitled').replace(/'/g, "\\'");
+      const slot = document.createElement('div');
+      slot.className = 'map-slot';
+      slot.onclick = () => selectMapForArchive(g.id);
+      slot.innerHTML = `
+        <button class="slot-delete" title="delete map"
+          onclick="event.stopPropagation();deleteMapFromArchive('${g.id}','${safeName}')">×</button>
+        <div class="slot-name">${g.map_name||'untitled'}</div>
+        <div class="slot-preview">${preview}</div>
+        ${updated ? `<div class="slot-updated">${updated}</div>` : ''}`;
+      grid.appendChild(slot);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'map-slot empty';
+      grid.appendChild(empty);
+    }
+  }
+}
+
+async function selectMapForArchive(gameId) {
+  activeGameId    = gameId;
+  viewingSelector = false;
+  document.getElementById('map-selector').style.display = 'none';
+  const ls = document.getElementById('loading-state');
+  ls.textContent   = 'loading...';
+  ls.style.display = 'flex';
+  await loadEntries();
+  ls.style.display = 'none';
+  document.getElementById('main-content').style.display = 'flex';
+  const dd = document.getElementById('game-dropdown');
+  if (dd) dd.value = gameId;
+}
+
+async function deleteMapFromArchive(gameId, mapName) {
+  if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
+  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  allGames = allGames.filter(g => g.id !== gameId);
+  renderMapSelectorGrid();
+}
+
 // ── GAME DROPDOWN ─────────────────────────────────────────
 async function loadGames() {
   const { data } = await sb.from('games')
@@ -644,30 +803,15 @@ async function loadGames() {
     .eq('user_id', currentUser.id)
     .order('updated_at', { ascending:false });
   allGames = data || [];
-
   const dd = document.getElementById('game-dropdown');
   dd.innerHTML = '';
-  if (!allGames.length) {
-    dd.innerHTML = '<option value="">no maps yet</option>';
-    return;
-  }
+  if (!allGames.length) { dd.innerHTML = '<option value="">no maps yet</option>'; return; }
   allGames.forEach(g => {
     const opt = document.createElement('option');
     opt.value = g.id;
-    opt.textContent = (g.map_name || 'untitled') + ' (' + (g.map_type||'spiral') + ')';
+    opt.textContent = (g.map_name||'untitled') + ' (' + (g.map_type||'spiral') + ')';
     dd.appendChild(opt);
   });
-
-  // Auto-select from URL param, otherwise first
-  const params = new URLSearchParams(window.location.search);
-  const urlId  = params.get('game_id');
-  if (urlId && allGames.find(g => g.id === urlId)) {
-    dd.value = urlId;
-    activeGameId = urlId;
-  } else {
-    activeGameId = allGames[0]?.id || null;
-    if (activeGameId) dd.value = activeGameId;
-  }
 }
 
 function onGameChange() {
@@ -685,254 +829,14 @@ async function loadEntries() {
     .order('entry_date', { ascending:true });
   allEntries = data || [];
   entryMap   = buildEntryMap(allEntries);
-
   const game = allGames.find(g => g.id === activeGameId);
   document.getElementById('cal-entry-count').textContent = allEntries.length + ' entries';
   const titleEl = document.getElementById('page-game-title');
   if (titleEl) titleEl.textContent = game?.map_name || 'archive';
-
   renderCalendar();
   renderBarGraph();
   renderMap();
 }
-
-// ── CALENDAR ─────────────────────────────────────────────
-function renderCalendar() {
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('month-label').textContent = monthNames[viewMonth] + ' ' + viewYear;
-
-  const firstDay  = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
-  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
-  const today     = localToday();
-  const grid      = document.getElementById('cal-grid');
-  grid.innerHTML  = '';
-
-  // Check if any entries this month
-  const monthStr  = viewYear + '-' + String(viewMonth+1).padStart(2,'0');
-  const hasMonth  = allEntries.some(e => e.entry_date.startsWith(monthStr));
-  document.getElementById('cal-empty').style.display = hasMonth ? 'none' : 'block';
-  if (!hasMonth && allEntries.length === 0) {
-    document.getElementById('cal-empty').style.display = 'block';
-  }
-
-  // Filler cells
-  for (let i=0; i<firstDay; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'cal-cell filler';
-    grid.appendChild(cell);
-  }
-
-  for (let d=1; d<=daysInMonth; d++) {
-    const dateStr = viewYear + '-' + String(viewMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const entry   = entryMap[dateStr];
-    const cell    = document.createElement('div');
-    cell.className = 'cal-cell' + (entry ? ' has-entry' : '') + (dateStr===today ? ' is-today' : '');
-
-    // Date number
-    const dateEl = document.createElement('div');
-    dateEl.className = 'cal-date';
-    dateEl.textContent = d;
-    cell.appendChild(dateEl);
-
-    if (entry) {
-      // Phase color strip
-      const strip = document.createElement('div');
-      strip.className = 'cal-phase-strip';
-      strip.style.background = phaseColor(entry.map_phase);
-      cell.appendChild(strip);
-
-      // Tiny character
-      const char = entry.character_data;
-      if (char?.body) {
-        const charWrap = document.createElement('div');
-        charWrap.className = 'cal-char';
-        const layers = [
-          {key:'body', id:char.body},
-          {key:'acc',  id:char.acc},
-          {key:'hair', id:char.hair},
-          {key:'eyes', id:char.eyes},
-          {key:'mouth',id:char.mouth},
-        ];
-        layers.forEach(l => {
-          if (!l.id) return;
-          const layer = document.createElement('div');
-          layer.className = 'cal-char-layer';
-          layer.innerHTML = `<img src="${FULL[l.id]||''}" alt=""/>`;
-          charWrap.appendChild(layer);
-        });
-        cell.appendChild(charWrap);
-      }
-
-      // Location label
-      if (entry.map_location) {
-        const loc = document.createElement('div');
-        loc.className = 'cal-location';
-        loc.textContent = entry.map_location;
-        cell.appendChild(loc);
-      }
-
-      cell.onclick = () => openDetail(entry, dateStr);
-    }
-
-    grid.appendChild(cell);
-  }
-}
-
-function changeMonth(dir) {
-  viewMonth += dir;
-  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
-  if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
-  renderCalendar();
-}
-
-// ── BAR GRAPH ─────────────────────────────────────────────
-function renderBarGraph() {
-  const barsEl  = document.getElementById('graph-bars');
-  const yEl     = document.getElementById('graph-y');
-  const emptyEl = document.getElementById('graph-empty');
-  const legEl   = document.getElementById('phase-legend');
-  barsEl.innerHTML = ''; yEl.innerHTML = ''; legEl.innerHTML = '';
-
-  const entries = allEntries.filter(e => e.energy_score != null);
-  if (!entries.length) {
-    emptyEl.style.display = 'block';
-    return;
-  }
-  emptyEl.style.display = 'none';
-
-  const MAX_HEARTS = 24;
-  const GRAPH_H    = 180; // px of actual bar area (220 - 36 bottom padding - 4 top)
-
-  // ── Y axis ──
-  const yLabels = ['easy', 'medium', 'hard'];
-  yLabels.forEach((lbl, i) => {
-    const el = document.createElement('div');
-    el.className = 'y-label' + (i > 0 && i < 4 ? ' reading-zone' : '');
-    el.textContent = lbl;
-    yEl.appendChild(el);
-  });
-
-  // ── Difficulty band fills (solid background strips) ──
-  // hard: 79.2%-100% of bar area, medium: 37.5%-79.2%, easy: 0%-37.5%
-  const diffBands = [
-    { bottom:'79.2%', height:'20.8%', color:'rgba(42,59,154,.10)',  label:'easy (20–24)'   },
-    { bottom:'37.5%', height:'41.7%', color:'rgba(101,121,226,.07)', label:'medium (10–19)' },
-    { bottom:'0%',    height:'37.5%', color:'rgba(168,180,240,.07)', label:'hard (0–9)'     },
-  ];
-  diffBands.forEach(b => {
-    const band = document.createElement('div');
-    band.className = 'diff-band';
-    band.style.bottom  = b.bottom;
-    band.style.height  = b.height;
-    band.style.background = b.color;
-    band.style.borderTop  = '1px solid rgba(101,121,226,.15)';
-    const lbl = document.createElement('div');
-    lbl.className = 'diff-band-label';
-    lbl.textContent = b.label;
-    band.appendChild(lbl);
-    barsEl.appendChild(band);
-  });
-
-  // ── Bars ──
-  const usedPhases = new Set();
-  const xLabelsEl = document.getElementById('graph-x-labels');
-  xLabelsEl.innerHTML = '';
-
-  entries.forEach(e => {
-    const score = Math.min(e.energy_score ?? 0, 100);
-    const hearts = Math.round(score / 100 * MAX_HEARTS);
-    const heightPct = hearts / MAX_HEARTS * 100;
-    const color = phaseColor(e.map_phase);
-    usedPhases.add(e.map_phase);
-
-    const col = document.createElement('div');
-    col.className = 'bar-col';
-
-    const fill = document.createElement('div');
-    fill.className = 'bar-fill';
-    fill.style.height = heightPct + '%';
-    fill.style.background = color;
-    fill.title = phaseLabel(e.map_phase) + ' · ' + hearts + ' hearts · ' + (e.map_location||'');
-    fill.onclick = () => openDetail(e, e.entry_date);
-
-    const scoreEl = document.createElement('div');
-    scoreEl.className = 'bar-score';
-    scoreEl.textContent = hearts;
-    fill.appendChild(scoreEl);
-
-    col.appendChild(fill);
-    barsEl.appendChild(col);
-
-    // X-label goes in separate row below graph
-    const xLbl = document.createElement('div');
-    xLbl.className = 'bar-x-label';
-    xLbl.textContent = formatShortDate(e.entry_date);
-    xLabelsEl.appendChild(xLbl);
-  });
-
-  // ── Legend ──
-  const phasesToShow = Object.entries(PHASE_COLORS).filter(([k]) => usedPhases.has(k));
-  phasesToShow.forEach(([k, color]) => {
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    item.innerHTML = `<div class="legend-swatch" style="background:${color}"></div><span class="legend-label">${phaseLabel(k)}</span>`;
-    legEl.appendChild(item);
-  });
-}
-
-// ── DETAIL POPUP ──────────────────────────────────────────
-function openDetail(entry, dateStr) {
-  const char   = entry.character_data || {};
-  const hearts = Math.round((entry.energy_score??0) / 100 * 24);
-  const diff   = getDifficulty(hearts);
-
-  document.getElementById('detail-title').textContent = formatShortDate(dateStr);
-  document.getElementById('detail-date').textContent  = formatDateLabel(dateStr);
-  document.getElementById('detail-char-name').textContent = char.name || '';
-
-  renderCharLayer(document.getElementById('dl-body'),  char.body);
-  renderCharLayer(document.getElementById('dl-acc'),   char.acc);
-  renderCharLayer(document.getElementById('dl-hair'),  char.hair);
-  renderCharLayer(document.getElementById('dl-eyes'),  char.eyes);
-  renderCharLayer(document.getElementById('dl-mouth'), char.mouth);
-
-  const meta = document.getElementById('detail-meta');
-  meta.innerHTML = '';
-
-  // Phase + location on same row
-  const phaseVal = entry.map_location
-    ? `${phaseLabel(entry.map_phase)} · ${entry.map_location}`
-    : phaseLabel(entry.map_phase);
-
-  const rows = [
-    { label:'phase',      value: phaseVal, color: phaseColor(entry.map_phase) },
-    { label:'energy',     value: hearts + ' / 24 hearts' },
-    { label:'difficulty', value: diff },
-  ];
-  rows.forEach(r => {
-    const row = document.createElement('div');
-    row.className = 'detail-row';
-    row.innerHTML = `<span class="detail-row-label">${r.label}</span>
-      <span class="detail-row-value" ${r.color ? `style="color:${r.color}"` : ''}>${r.value}</span>`;
-    meta.appendChild(row);
-  });
-
-  // Energy bar
-  const barWrap = document.createElement('div');
-  barWrap.className = 'detail-energy-bar-wrap';
-  const bar = document.createElement('div');
-  bar.className = 'detail-energy-bar';
-  bar.style.width = (entry.energy_score??0) + '%';
-  bar.style.background = phaseColor(entry.map_phase);
-  barWrap.appendChild(bar);
-  meta.appendChild(barWrap);
-
-  document.getElementById('detail-overlay').classList.add('open');
-}
-
-function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
-function handleOverlayClick(e) { if (e.target === document.getElementById('detail-overlay')) closeDetail(); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeDetail(); });
 
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
@@ -940,17 +844,19 @@ async function init() {
     const { data:{ session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
   } catch(e) {}
-
   if (!currentUser) {
     document.getElementById('loading-state').textContent = 'please log in to view your archive';
     return;
   }
-
   await loadGames();
-  await loadEntries();
-
-  document.getElementById('loading-state').style.display = 'none';
-  document.getElementById('main-content').style.display  = 'flex';
+  const params = new URLSearchParams(window.location.search);
+  const urlId  = params.get('game_id');
+  if (urlId && allGames.find(g => g.id === urlId)) {
+    await selectMapForArchive(urlId);
+  } else {
+    document.getElementById('loading-state').style.display = 'none';
+    showMapSelector();
+  }
 }
 
 init();
