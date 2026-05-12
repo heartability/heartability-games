@@ -241,7 +241,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   padding:14px 20px; font-family:var(--font-hand);
   font-size:clamp(11px,1.3vw,15px); color:#000; text-align:center;
   line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2));
-  z-index:100;
+  z-index:21;
 }
 .bubble-btns { display:none; } /* buttons moved to back wall */
 
@@ -320,11 +320,25 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 
 /* ── MOBILE ── */
 @media (max-width:768px) {
+  :root {
+    --bw-top:    44px; /* flush under nav */
+    --bw-left:   0%;
+    --bw-width:  100%;
+    --bw-height: calc(100dvh - 44px);
+  }
+  /* Hide perspective lines on mobile — no side walls */
+  .room-lines { display:none; }
+  .back-wall { border-left:none; border-right:none; border-top:none; }
   .char-heart { left:2vw; bottom:2vh; width:clamp(70px,22vw,160px); }
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
   .phase-key { width:180px; font-size:12px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
-  .save-continue-bar { height: 18%; }
+  .save-continue-bar { height:auto; padding:10px 0; bottom:0; }
+  .add-new-btn { bottom:12px; right:12px; }
+  .journal-wall-overlay {
+    top:44px; left:0; width:100%; height:calc(100dvh - 44px);
+    border-radius:0;
+  }
 }
 
 /* ── LOGIN MODAL ── */
