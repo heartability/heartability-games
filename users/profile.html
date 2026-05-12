@@ -184,8 +184,8 @@ html, body {
 }
 .char-heart {
   position: fixed;
-  left: 3vw;
-  bottom: 4vh;
+  left: 5vw;
+  bottom: 8vh;
   width: clamp(80px, 11vw, 180px);
   z-index: 20;
   pointer-events: none;
@@ -868,9 +868,9 @@ html, body {
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
   const bubbleMessages = {
-    'icon-settings':    "let's check your account ♡",
-    'icon-leaderboard': 'see how you rank this week!',
-    'icon-calendar':    'your journey so far ✦',
+    'icon-settings':    "manage your membership settings, update your password or username.",
+    'icon-leaderboard': 'see where you rank this week!',
+    'icon-calendar':    'reflect on your journey so far <3',
   };
 
   document.querySelectorAll('.room-icon').forEach(icon => {
