@@ -149,8 +149,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .cal-location-bg {
   position:absolute; inset:0;
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-hand); font-size:clamp(7px,0.9vw,10px);
-  color:rgba(101,121,226,.22); text-align:center;
+  font-family:var(--font-hand); font-size:clamp(8px,1vw,11px);
+  color:rgba(101,121,226,.35); text-align:center;
   line-height:1.3; padding:2px 4px;
   word-break:break-word; z-index:1;
   pointer-events:none;
@@ -203,9 +203,9 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 /* Bars area */
 .graph-bars-scroll { flex:1; position:relative; }
 .graph-bars-inner {
-  display:flex; align-items:flex-end; gap:6px;
+  display:flex; align-items:flex-end; gap:6px; justify-content:center;
   height:220px; padding-bottom:0; padding-top:4px;
-  position:relative;
+  position:relative; min-width:200px;
   border-left:1.5px solid rgba(101,121,226,.25);
   border-bottom:1.5px solid rgba(101,121,226,.25);
 }
@@ -265,11 +265,17 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   font-family:var(--font-game); font-size:9px; color:#aaa;
 }
 
-/* Center bars in graph area — bars-inner centers its children */
-.graph-bars-inner { justify-content:center; min-width:200px; }
-
-/* Stop graph window from stretching to match map window height */
-#graph-window { align-self:start; }
+/* Graph column — dropdown above, window fills remaining height */
+.graph-col {
+  display:flex; flex-direction:column; gap:8px; min-height:0;
+}
+#graph-window {
+  flex:1; display:flex; flex-direction:column;
+}
+.graph-area {
+  flex:1; padding:0 20px 0; overflow-x:auto; display:flex; align-items:flex-start;
+}
+.graph-wrap { display:flex; gap:0; align-items:stretch; min-width:max-content; }
 
 /* ── DETAIL POPUP ── */
 .detail-overlay {
@@ -421,19 +427,20 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <div class="page-wrap">
   <div class="page-body" id="main-content">
 
-    <!-- MAP DROPDOWN — compact, no big title -->
-    <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;width:100%;">
-      <span style="font-size:13px;color:#777;font-family:var(--font-hand);">viewing:</span>
-      <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()">
-        <option value="">loading maps...</option>
-      </select>
-    </div>
-
     <!-- TOP ROW: bar chart + map -->
     <div class="top-row">
 
-      <!-- BAR GRAPH WINDOW -->
-      <div class="window" id="graph-window">
+      <!-- GRAPH COLUMN: dropdown + bar graph -->
+      <div class="graph-col">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:13px;color:#777;font-family:var(--font-hand);">viewing:</span>
+          <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()">
+            <option value="">loading maps...</option>
+          </select>
+        </div>
+
+        <!-- BAR GRAPH WINDOW -->
+        <div class="window" id="graph-window">
         <div class="window-titlebar">
           <span>energy over time</span>
           <span style="font-size:12px;color:#aaa;">hearts / session</span>
@@ -451,7 +458,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <div class="empty-month" id="graph-empty" style="display:none;">
           no energy data yet — complete the daily loop to build your graph
         </div>
-      </div>
+      </div><!-- /graph-window -->
+      </div><!-- /graph-col -->
 
       <!-- MAP WINDOW -->
       <div class="window" id="map-window">
@@ -902,13 +910,12 @@ function renderCalendar() {
         cell.appendChild(charWrap);
       }
 
-      // Location as background watermark
-      if (entry.map_location) {
-        const locBg = document.createElement('div');
-        locBg.className = 'cal-location-bg';
-        locBg.textContent = entry.map_location;
-        cell.appendChild(locBg);
-      }
+      // Location as background watermark — always render
+      const locText = entry.map_location || phaseLabel(entry.map_phase);
+      const locBg = document.createElement('div');
+      locBg.className = 'cal-location-bg';
+      locBg.textContent = locText;
+      cell.appendChild(locBg);
 
       cell.onclick = () => openDetail(entry, dateStr);
     }
@@ -1058,14 +1065,13 @@ function openDetail(entry, dateStr) {
     </span>`;
   meta.appendChild(phaseRow);
 
-  // Location row
-  if (entry.map_location) {
-    const locRow = document.createElement('div');
-    locRow.className = 'detail-row';
-    locRow.innerHTML = `<span class="detail-row-label">location</span>
-      <span class="detail-row-value">${entry.map_location}</span>`;
-    meta.appendChild(locRow);
-  }
+  // Location row — always show, fall back to zone label if no location stored
+  const locationVal = entry.map_location || phaseLabel(entry.map_phase);
+  const locRow = document.createElement('div');
+  locRow.className = 'detail-row';
+  locRow.innerHTML = `<span class="detail-row-label">location</span>
+    <span class="detail-row-value">${locationVal}</span>`;
+  meta.appendChild(locRow);
 
   // Energy + difficulty
   const rows = [
