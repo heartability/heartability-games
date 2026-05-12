@@ -537,7 +537,7 @@ async function deleteMap(gameId, mapName) {
 function stepNewGame() {
   showAddNew(false);
   currentStep = 'map';
-  setBubble('build your map, then save it to begin ♡', []);
+  setBubble('build your map, then save it to begin', []);
   const src = '../games/treasure-map.html?mode=new&loop=true';
   showIframe(src);
   setSaveBtnVisible(true, 'save map &amp; continue →');
