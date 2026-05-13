@@ -64,7 +64,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   width: 100%; max-width: 960px;
   border: 3px solid var(--panel-border);
   outline: 3px solid var(--panel-border-light); outline-offset: -6px;
-  box-shadow: 0 0 0 6px var(--wall-mid), 4px 6px 0 6px rgba(0,0,0,0.4);
   padding: 18px; display: flex; flex-direction: column; gap: 14px;
 }
 .rpg-panel::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--panel-border-light); pointer-events: none; }
@@ -85,6 +84,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+  align-items: end;
 }
 
 /* On mobile: stack with controls ABOVE map */
@@ -202,13 +202,13 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   border-left-color: #c8b88a; border-top-color: #c8b88a;
 }
 .weather-category.sunny { background: #d289c0; ; border-color: #966089; }
-.weather-category.rainy { background: #c8c8c7; border-color: #90908f; }
+.weather-category.rainy { background: #8090a8; border-color: #5a6a80; }
 .weather-category.windy { background: #b4e76b; border-color: #90c544; }
 .weather-category.snowy { background: #83d2e6; border-color: #5fa3b4; }
 
 .weather-cat-header { font-family: var(--font-hand); font-size: 20px; margin-bottom: 6px; }
 .sunny .weather-cat-header { color: #690a24; }
-.rainy .weather-cat-header { color: #3d4656; }
+.rainy .weather-cat-header { color: #e8ecf4; }
 .windy .weather-cat-header { color: #395d07; }
 .snowy .weather-cat-header { color: #2a4a6a; }
 
@@ -222,7 +222,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .feeling-chip.active { outline: 2px solid var(--text-dark); outline-offset: 1px; }
 
 .sunny .feeling-chip { background: #d289c0; border-color: #966089; color: #690a24; }
-.rainy .feeling-chip { background: #c8c8c7; border-color: #90908f; color: #3d4656; }
+.rainy .feeling-chip { background: #8090a8; border-color: #5a6a80; color: #e8ecf4; }
 .windy .feeling-chip { background: #b4e76b; border-color: #90c544; color: #395d07; }
 .snowy .feeling-chip { background: #83d2e6; border-color: #5fa3b4; color: #2a4a6a; }
 
@@ -231,12 +231,11 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .rpg-btn {
   background: var(--wall-mid); border: 3px solid var(--panel-border);
   outline: 2px solid var(--panel-border-light); outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
   padding: 7px 16px; font-family: var(--font-game); font-size: 15px;
   color: #a8cce8; cursor: pointer; letter-spacing: 1px;
 }
 .rpg-btn:hover { filter: brightness(1.15); }
-.rpg-btn:active { transform: translate(2px,3px); box-shadow: none; }
+.rpg-btn:active { transform: translate(1px,1px); }
 .rpg-btn.primary { background: var(--aqua); color: #0a1a2e; }
 
 /* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
@@ -320,13 +319,22 @@ body, .wall { background: #e8e4dc; }
 }
 .map-shape-sub:hover { text-decoration: underline; color: #6579e2; }
 
+/* Clear map button — small, inside map canvas */
+.clear-map-btn {
+  position: absolute; bottom: 8px; right: 8px; z-index: 10;
+  background: rgba(138,122,90,0.18); border: 1px solid rgba(138,122,90,0.4);
+  font-family: var(--font-game); font-size: 11px; color: #8a7a5a;
+  padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px;
+  transition: background 0.15s;
+}
+.clear-map-btn:hover { background: rgba(138,122,90,0.32); }
+
 /* ── BOTTOM ACTION BAR ────────────────────────────── */
 .panel-action-bar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--panel-border);
 }
@@ -363,8 +371,6 @@ body, .wall { background: #e8e4dc; }
 <body>
 <div class="room">
   <div class="wall">
-    <h1 class="room-title">treasure map</h1>
-
     <!-- GAME CONTEXT BANNER — shown when playing an existing game -->
     <div class="game-context-banner" id="game-context"></div>
 
@@ -410,7 +416,7 @@ body, .wall { background: #e8e4dc; }
           </div>
 
           <!-- Spiral canvas (default) -->
-          <div class="spiral-canvas" id="spiralCanvas" style="display:block;">
+          <div class="spiral-canvas" id="spiralCanvas" style="display:block;position:relative;">
             <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="spiralDefs"></defs>
               <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,0.15)" stroke-width="1"/>
@@ -418,10 +424,11 @@ body, .wall { background: #e8e4dc; }
               <path id="spiralPath" fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round"/>
               <g id="zoneGroup"></g>
             </svg>
+            <button class="clear-map-btn" onclick="clearMap()">clear map</button>
           </div>
 
           <!-- Square canvas -->
-          <div class="square-canvas" id="squareCanvas" style="display:none;">
+          <div class="square-canvas" id="squareCanvas" style="display:none;position:relative;">
             <svg id="squareSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="squareDefs"></defs>
               <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
@@ -437,15 +444,15 @@ body, .wall { background: #e8e4dc; }
               <line x1="450" y1="372" x2="450" y2="342" stroke="#8a7a5a" stroke-width="1.5"/>
               <g id="squareZoneGroup"></g>
             </svg>
+            <button class="clear-map-btn" onclick="clearMap()">clear map</button>
           </div>
 
-          <!-- Zone prompt + clear map button in a flex row below the canvas -->
-          <div style="display:flex;align-items:flex-end;gap:8px;margin-top:8px;">
-            <div class="status-bar" id="zonePrompt" style="flex:1;display:none;padding:8px 12px;">
+          <!-- Zone prompt below canvas -->
+          <div style="margin-top:8px;">
+            <div class="status-bar" id="zonePrompt" style="display:none;padding:8px 12px;">
               <div class="prompt-title" id="promptTitle"></div>
               <span id="promptText"></span>
             </div>
-            <button class="rpg-btn" onclick="clearMap()" style="flex-shrink:0;align-self:flex-end;">CLEAR MAP</button>
           </div>
 
         </div>
@@ -490,7 +497,7 @@ const TERRAIN = [
 
 const WEATHER_CATS = [
   { id:"sunny", label:"sunny", cls:"sunny", tint:"rgba(210,137,192,1)", feelings:["trust","peace","joy","hope","confidence"]          },
-  { id:"rainy", label:"rainy", cls:"rainy", tint:"rgba(154,154,152,1)", feelings:["shadows","worry","fear","depression","regret"]      },
+  { id:"rainy", label:"rainy", cls:"rainy", tint:"rgba(80,90,115,1)",  feelings:["shadows","worry","fear","depression","regret"]      },
   { id:"windy", label:"windy", cls:"windy", tint:"rgba(180,231,107,1)", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
   { id:"snowy", label:"snowy", cls:"snowy", tint:"rgba(131,210,230,1)", feelings:["anger","avoidance","bitterness","apathy","shock"]   },
 ];
