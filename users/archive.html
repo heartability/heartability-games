@@ -66,14 +66,25 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   min-height:100dvh; padding:80px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
-.page-body { width:100%; max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+.page-body { width:100%; max-width:1200px; display:flex; flex-direction:column; gap:24px; }
 
-/* Top row: bar + map side by side */
+/* Three-window grid: graph | map | calendar */
 .top-row {
-  display:grid; grid-template-columns:1fr 1fr; gap:24px;
+  display:grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  grid-template-rows: auto;
+  align-items:start;
+  gap:20px;
+}
+.top-row > * { min-height:0; }
+
+@media (max-width:900px) {
+  .top-row { grid-template-columns:1fr 1fr; }
+  #cal-window { grid-column:1 / -1; }
 }
 @media (max-width:700px) {
   .top-row { grid-template-columns:1fr; }
+  #cal-window { grid-column:auto; }
   .page-body { padding:0 8px; }
   .graph-col { width:100%; }
   .graph-area { padding:12px 8px 12px; }
@@ -187,8 +198,9 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* Tiny character inside calendar cell */
 .cal-char {
-  position:absolute; bottom:3px; left:4px;
+  position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
   width:22px; height:28px; z-index:3;
+  opacity:0.6;
 }
 .cal-char-layer {
   position:absolute; inset:0;
@@ -548,35 +560,37 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
     </div>
 
-    <!-- CALENDAR WINDOW (full width) -->
-    <div class="window" id="cal-window">
-      <div class="window-titlebar" style="justify-content:center;gap:20px;position:relative;">
-        <button class="month-btn" onclick="changeMonth(-1)">◄</button>
-        <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
-        <button class="month-btn" onclick="changeMonth(1)">►</button>
+      <!-- CALENDAR WINDOW -->
+      <div class="window" id="cal-window">
+        <div class="window-titlebar" style="justify-content:center;gap:20px;position:relative;">
+          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+          <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
+          <button class="month-btn" onclick="changeMonth(1)">►</button>
+        </div>
+        <div class="window-body">
+          <div class="cal-header">
+            <div class="cal-day-label">SUN</div>
+            <div class="cal-day-label">MON</div>
+            <div class="cal-day-label">TUE</div>
+            <div class="cal-day-label">WED</div>
+            <div class="cal-day-label">THU</div>
+            <div class="cal-day-label">FRI</div>
+            <div class="cal-day-label">SAT</div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+            <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
+          </div>
+          <div class="empty-month" id="cal-empty" style="display:none;">
+            no entries for this map this month
+          </div>
+        </div>
       </div>
-      <div class="window-body">
-        <div class="cal-header">
-          <div class="cal-day-label">SUN</div>
-          <div class="cal-day-label">MON</div>
-          <div class="cal-day-label">TUE</div>
-          <div class="cal-day-label">WED</div>
-          <div class="cal-day-label">THU</div>
-          <div class="cal-day-label">FRI</div>
-          <div class="cal-day-label">SAT</div>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
-        <div style="display:flex;justify-content:flex-end;padding-top:8px;">
-          <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
-        </div>
-        <div class="empty-month" id="cal-empty" style="display:none;">
-          no entries for this map this month
-        </div>
-      </div>
-    </div>
 
-  </div>
-</div>
+    </div><!-- /top-row -->
+
+  </div><!-- /page-body -->
+</div><!-- /page-wrap -->
 
 <!-- DETAIL POPUP -->
 <div class="detail-overlay" id="detail-overlay" onclick="handleOverlayClick(event)">
