@@ -269,14 +269,14 @@ html, body {
   pointer-events: all;
 }
 .modal-close {
-  position: absolute; right: 10px;
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   width: 26px; height: 26px; z-index: 6;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; color: #999; background: none;
-  border: 1.5px solid #ccc; border-radius: 2px;
+  font-size: 15px; color: #777; background: none;
+  border: 1.5px solid #aaa; border-radius: 2px;
   cursor: pointer; transition: color 0.15s, border-color 0.15s;
 }
-.modal-close:hover { color: #444; border-color: #888; background: none; transform: none; }
+.modal-close:hover { color: #333; border-color: #666; background: none; transform: translateY(-50%); }
 .modal-frame { width: 100%; border: none; display: block; height: calc(100% - 38px); margin-top: 38px; }
 .modal-titlebar {
   position: absolute; top: 0; left: 0; right: 0; height: 38px;
