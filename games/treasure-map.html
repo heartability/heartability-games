@@ -319,25 +319,19 @@ body, .wall { background: #e8e4dc; }
 }
 .map-shape-sub:hover { text-decoration: underline; color: #6579e2; }
 
-/* Save map button — inside map canvas, bottom right */
-.save-map-btn {
-  position: absolute; bottom: 8px; right: 8px; z-index: 10;
-  background: var(--panel-border); border: 2px solid #4a5bc4;
-  font-family: var(--font-game); font-size: 13px; color: #fff;
-  padding: 5px 14px; cursor: pointer; letter-spacing: 0.5px;
-  transition: background 0.15s;
-}
-.save-map-btn:hover { background: #4a5bc4; }
-
-/* Clear map button — small, inside map canvas, bottom left */
+/* Buttons above map canvas */
 .clear-map-btn {
-  position: absolute; bottom: 8px; left: 8px; z-index: 10;
-  background: rgba(138,122,90,0.18); border: 1px solid rgba(138,122,90,0.4);
-  font-family: var(--font-game); font-size: 11px; color: #8a7a5a;
-  padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px;
+  background: rgba(138,122,90,0.18); border: 1px solid rgba(138,122,90,0.5);
+  font-family: var(--font-game); font-size: 12px; color: #8a7a5a;
+  padding: 5px 12px; cursor: pointer; letter-spacing: 0.5px;
   transition: background 0.15s;
 }
 .clear-map-btn:hover { background: rgba(138,122,90,0.32); }
+.clear-map-btn.save-map-btn {
+  background: rgba(101,121,226,0.15); border-color: rgba(101,121,226,0.45);
+  color: #4a5bc4;
+}
+.clear-map-btn.save-map-btn:hover { background: rgba(101,121,226,0.3); }
 
 /* ── BOTTOM ACTION BAR ────────────────────────────── */
 .panel-action-bar {
@@ -394,7 +388,6 @@ body, .wall { background: #e8e4dc; }
     <div class="game-context-banner" id="game-context"></div>
 
     <div class="rpg-panel">
-      <div class="rpg-panel-titlebar">treasure map</div>
 
       <div class="two-col">
 
@@ -435,6 +428,12 @@ body, .wall { background: #e8e4dc; }
             <div class="section-header" style="margin-bottom:0;">your map</div>
           </div>
 
+          <!-- Button row above map -->
+          <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:5px;">
+            <button class="clear-map-btn" onclick="clearMap()">clear map</button>
+            <button class="clear-map-btn save-map-btn" id="btn-save-spiral" onclick="saveToday()">♥ save map</button>
+          </div>
+
           <!-- Spiral canvas (default) -->
           <div class="spiral-canvas" id="spiralCanvas" style="display:block;position:relative;">
             <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
@@ -444,8 +443,6 @@ body, .wall { background: #e8e4dc; }
               <path id="spiralPath" fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round"/>
               <g id="zoneGroup"></g>
             </svg>
-            <button class="clear-map-btn" onclick="clearMap()">clear map</button>
-            <button class="save-map-btn" id="btn-save-spiral" onclick="saveToday()">♥ SAVE MAP</button>
           </div>
           <div class="square-canvas" id="squareCanvas" style="display:none;position:relative;">
             <svg id="squareSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
@@ -463,8 +460,6 @@ body, .wall { background: #e8e4dc; }
               <line x1="450" y1="372" x2="450" y2="342" stroke="#8a7a5a" stroke-width="1.5"/>
               <g id="squareZoneGroup"></g>
             </svg>
-            <button class="clear-map-btn" onclick="clearMap()">clear map</button>
-            <button class="save-map-btn" id="btn-save-square" onclick="saveToday()">♥ SAVE MAP</button>
           </div>
 
           <!-- Zone prompt below canvas -->
