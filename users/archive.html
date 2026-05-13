@@ -66,27 +66,24 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   min-height:100dvh; padding:80px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
-.page-body { width:100%; max-width:1200px; display:flex; flex-direction:column; gap:24px; }
+.page-body {
+  width:100%; max-width:1200px;
+  display:flex; flex-direction:column; gap:24px;
+  overflow-x:hidden;
+}
 
-/* Three-window grid: graph | map | calendar */
+/* Top row: graph + map side by side, tops aligned */
 .top-row {
   display:grid;
-  grid-template-columns: 1fr 1fr 1.4fr;
-  grid-template-rows: auto;
+  grid-template-columns:1fr 1fr;
   align-items:start;
   gap:20px;
 }
-.top-row > * { min-height:0; }
+.top-row > * { min-width:0; min-height:0; }
 
-@media (max-width:900px) {
-  .top-row { grid-template-columns:1fr 1fr; }
-  #cal-window { grid-column:1 / -1; }
-}
 @media (max-width:700px) {
-  .top-row { grid-template-columns:1fr; }
-  #cal-window { grid-column:auto; }
   .page-body { padding:0 8px; }
-  .graph-col { width:100%; }
+  .top-row { grid-template-columns:1fr; }
   .graph-area { padding:12px 8px 12px; }
   .graph-y { width:56px; padding-right:6px; }
   .graph-right-pad { width:56px; }
@@ -324,10 +321,10 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* Graph column — dropdown above, window stays compact */
 .graph-col {
-  display:flex; flex-direction:column; gap:8px;
+  display:flex; flex-direction:column; gap:8px; min-width:0;
 }
 #graph-window {
-  display:flex; flex-direction:column; flex:1;
+  display:flex; flex-direction:column; flex:1; min-width:0;
 }
 .graph-area {
   flex:1; padding:16px 20px 20px; overflow-x:auto;
@@ -558,36 +555,34 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         </div>
       </div>
 
-    </div>
+    </div><!-- /top-row -->
 
-      <!-- CALENDAR WINDOW -->
-      <div class="window" id="cal-window">
-        <div class="window-titlebar" style="justify-content:center;gap:20px;position:relative;">
-          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
-          <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
-          <button class="month-btn" onclick="changeMonth(1)">►</button>
+    <!-- CALENDAR WINDOW: full width below -->
+    <div class="window" id="cal-window">
+      <div class="window-titlebar" style="justify-content:center;gap:20px;">
+        <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+        <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
+        <button class="month-btn" onclick="changeMonth(1)">►</button>
+      </div>
+      <div class="window-body">
+        <div class="cal-header">
+          <div class="cal-day-label">SUN</div>
+          <div class="cal-day-label">MON</div>
+          <div class="cal-day-label">TUE</div>
+          <div class="cal-day-label">WED</div>
+          <div class="cal-day-label">THU</div>
+          <div class="cal-day-label">FRI</div>
+          <div class="cal-day-label">SAT</div>
         </div>
-        <div class="window-body">
-          <div class="cal-header">
-            <div class="cal-day-label">SUN</div>
-            <div class="cal-day-label">MON</div>
-            <div class="cal-day-label">TUE</div>
-            <div class="cal-day-label">WED</div>
-            <div class="cal-day-label">THU</div>
-            <div class="cal-day-label">FRI</div>
-            <div class="cal-day-label">SAT</div>
-          </div>
-          <div class="cal-grid" id="cal-grid"></div>
-          <div style="display:flex;justify-content:flex-end;padding-top:8px;">
-            <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
-          </div>
-          <div class="empty-month" id="cal-empty" style="display:none;">
-            no entries for this map this month
-          </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+          <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
+        </div>
+        <div class="empty-month" id="cal-empty" style="display:none;">
+          no entries for this map this month
         </div>
       </div>
-
-    </div><!-- /top-row -->
+    </div>
 
   </div><!-- /page-body -->
 </div><!-- /page-wrap -->
