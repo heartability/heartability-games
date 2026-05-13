@@ -84,7 +84,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  align-items: end;
+  align-items: start;
 }
 
 /* On mobile: stack with controls ABOVE map */
@@ -319,9 +319,19 @@ body, .wall { background: #e8e4dc; }
 }
 .map-shape-sub:hover { text-decoration: underline; color: #6579e2; }
 
-/* Clear map button — small, inside map canvas */
-.clear-map-btn {
+/* Save map button — inside map canvas, bottom right */
+.save-map-btn {
   position: absolute; bottom: 8px; right: 8px; z-index: 10;
+  background: var(--panel-border); border: 2px solid #4a5bc4;
+  font-family: var(--font-game); font-size: 13px; color: #fff;
+  padding: 5px 14px; cursor: pointer; letter-spacing: 0.5px;
+  transition: background 0.15s;
+}
+.save-map-btn:hover { background: #4a5bc4; }
+
+/* Clear map button — small, inside map canvas, bottom left */
+.clear-map-btn {
+  position: absolute; bottom: 8px; left: 8px; z-index: 10;
   background: rgba(138,122,90,0.18); border: 1px solid rgba(138,122,90,0.4);
   font-family: var(--font-game); font-size: 11px; color: #8a7a5a;
   padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px;
@@ -363,6 +373,15 @@ body, .wall { background: #e8e4dc; }
   display: none;
 }
 
+/* ── PANEL TITLEBAR ───────────────────────────────── */
+.rpg-panel-titlebar {
+  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hand); font-size: 16px; color: #555;
+  margin: -18px -18px 0; /* bleed to panel edges */
+  letter-spacing: 0.3px; flex-shrink: 0;
+}
+
 /* Mode toggle disabled state */
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 
@@ -375,6 +394,7 @@ body, .wall { background: #e8e4dc; }
     <div class="game-context-banner" id="game-context"></div>
 
     <div class="rpg-panel">
+      <div class="rpg-panel-titlebar">treasure map</div>
 
       <div class="two-col">
 
@@ -425,9 +445,8 @@ body, .wall { background: #e8e4dc; }
               <g id="zoneGroup"></g>
             </svg>
             <button class="clear-map-btn" onclick="clearMap()">clear map</button>
+            <button class="save-map-btn" id="btn-save-spiral" onclick="saveToday()">♥ SAVE MAP</button>
           </div>
-
-          <!-- Square canvas -->
           <div class="square-canvas" id="squareCanvas" style="display:none;position:relative;">
             <svg id="squareSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
               <defs id="squareDefs"></defs>
@@ -445,6 +464,7 @@ body, .wall { background: #e8e4dc; }
               <g id="squareZoneGroup"></g>
             </svg>
             <button class="clear-map-btn" onclick="clearMap()">clear map</button>
+            <button class="save-map-btn" id="btn-save-square" onclick="saveToday()">♥ SAVE MAP</button>
           </div>
 
           <!-- Zone prompt below canvas -->
@@ -458,13 +478,6 @@ body, .wall { background: #e8e4dc; }
         </div>
 
       </div>
-
-      <!-- Bottom action bar — save only -->
-      <div class="panel-action-bar">
-        <span id="save-status" style="font-family:var(--font-game);font-size:14px;color:#83d2e6;"></span>
-        <button class="rpg-btn primary" id="btn-save-today" onclick="saveToday()">SAVE MAP</button>
-      </div>
-
     </div>
   </div>
 </div>
@@ -943,7 +956,7 @@ async function loadGameContext() {
   currentPhase  = params.get('phase');
   const urlMode = params.get('mode'); // 'cloud' | 'guest' | 'new'
 
-  const saveBtn = document.getElementById('btn-save-today');
+  const saveBtn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
 
   if (!currentGameId || urlMode === 'new') {
     saveBtn.textContent = '♥ SAVE MAP';
@@ -1023,7 +1036,7 @@ async function saveToday() {
     return;
   }
 
-  const btn = document.getElementById('btn-save-today');
+  const btn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
   if (btn) btn.textContent = '♥ SAVING...';
 
   // Guest / not logged in
@@ -1124,7 +1137,7 @@ initSupabase();
 // ── Loop mode — hide save button, let chart-room drive it ──
 const _loopMode = new URLSearchParams(window.location.search).get('loop') === 'true';
 if (_loopMode) {
-  const saveBtn = document.getElementById('btn-save-today');
+  const saveBtn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
   if (saveBtn) saveBtn.style.display = 'none';
   const saveStatus = document.getElementById('save-status');
   if (saveStatus) saveStatus.style.display = 'none';
