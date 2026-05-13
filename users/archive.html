@@ -69,7 +69,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .page-body {
   width:100%; max-width:1200px;
   display:flex; flex-direction:column; gap:24px;
-  overflow-x:hidden;
+  overflow-x:clip;
 }
 
 /* Top row: graph + map side by side, tops aligned */
@@ -506,20 +506,19 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     <!-- TOP ROW: bar chart + map -->
     <div class="top-row">
 
-      <!-- GRAPH COLUMN: dropdown + bar graph -->
+      <!-- GRAPH COLUMN: bar graph window with dropdown in titlebar -->
       <div class="graph-col">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:13px;color:#777;font-family:var(--font-hand);">viewing:</span>
-          <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()">
-            <option value="">loading maps...</option>
-          </select>
-        </div>
 
         <!-- BAR GRAPH WINDOW -->
         <div class="window" id="graph-window">
         <div class="window-titlebar">
           <span>energy over time</span>
-          <span style="font-size:12px;color:#aaa;">hearts / session</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:#aaa;font-family:var(--font-hand);">viewing:</span>
+            <select class="game-dropdown" id="game-dropdown" onchange="onGameChange()" style="font-size:11px;padding:3px 6px;">
+              <option value="">loading...</option>
+            </select>
+          </div>
         </div>
         <div class="graph-area">
           <!-- Week navigation row -->
