@@ -153,7 +153,7 @@ h1.room-title {
 
 .two-col {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 380px;
   gap: 16px;
 }
 @media(max-width: 700px) {
@@ -332,8 +332,6 @@ body, .wall { background: #e8e4dc; }
 <body>
 <div class="room">
   <div class="wall">
-    <h1 class="room-title">infinity mirror</h1>
-
     <div class="main-panel">
       <div class="name-row">
         <div class="section-label">name this archetype</div>
@@ -357,6 +355,10 @@ body, .wall { background: #e8e4dc; }
           <div class="category-section">
             <div class="category-title">Mouth</div>
             <div class="parts-grid" id="grid-mouth"></div>
+          </div>
+          <div class="category-section">
+            <div class="category-title">Shoes</div>
+            <div class="parts-grid" id="grid-shoes"></div>
           </div>
           <div class="category-section">
             <div class="category-title">Accessories</div>
@@ -538,11 +540,13 @@ const MOUTHS = [
   { id:"mouth_grin",     label:"Grin" },
   { id:"mouth_smooch",   label:"Smooch" },
 ];
-const ACCS = [
-  { id:"acc_rollerblades", label:"Rollerblades" },
+const SHOES = [
+  { id:"acc_rollerblades", label:"Blades" },
   { id:"acc_sneakers",     label:"Sneakers" },
   { id:"acc_heels",        label:"Heels" },
   { id:"acc_sandals",      label:"Sandals" },
+];
+const ACCS = [
   { id:"acc_devil",        label:"Devil" },
   { id:"acc_angel",        label:"Angel" },
   { id:"acc_birthday",     label:"Birthday" },
@@ -551,7 +555,7 @@ const ACCS = [
   { id:"acc_rainbow",      label:"Rainbow" },
 ];
 
-let state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
+let state = { name:"", body:null, hair:null, eyes:null, mouth:null, shoes:null, acc:null };
 
 // ── localStorage (fallback for logged-out users) ─────────
 function saveLocal() {
@@ -575,7 +579,8 @@ function render() {
   renderLayer("layerHair",  state.hair);
   renderLayer("layerEyes",  state.eyes);
   renderLayer("layerMouth", state.mouth);
-  renderLayer("layerAcc",   state.acc);
+  // shoes on same layer as acc — shoes take priority if both set
+  renderLayer("layerAcc",   state.shoes || state.acc);
 
   // summary
   const find = (arr, id) => arr.find(x => x.id === id);
@@ -584,6 +589,7 @@ function render() {
     state.hair  ? `hair: <span>${find(HAIRS,state.hair)?.label}</span>` : null,
     state.eyes  ? `eyes: <span>${find(EYES,state.eyes)?.label}</span>` : null,
     state.mouth ? `mouth: <span>${find(MOUTHS,state.mouth)?.label}</span>` : null,
+    state.shoes ? `shoes: <span>${find(SHOES,state.shoes)?.label}</span>` : null,
     state.acc   ? `accessory: <span>${find(ACCS,state.acc)?.label}</span>` : null,
   ].filter(Boolean);
   document.getElementById("summaryBox").innerHTML = parts.length ? parts.join(" · ") : "nothing selected yet";
@@ -591,7 +597,7 @@ function render() {
 
   // active states
   document.querySelectorAll(".part-btn").forEach(b => b.classList.remove("active"));
-  ["body","hair","eyes","mouth","acc"].forEach(key => {
+  ["body","hair","eyes","mouth","shoes","acc"].forEach(key => {
     if(state[key]) document.querySelector(`[data-id="${state[key]}"]`)?.classList.add("active");
   });
 }
@@ -624,7 +630,7 @@ function onNameChange() {
 }
 
 function resetCharacter() {
-  state = { name:"", body:null, hair:null, eyes:null, mouth:null, acc:null };
+  state = { name:"", body:null, hair:null, eyes:null, mouth:null, shoes:null, acc:null };
   document.getElementById("charName").value = "";
   save(); render();
 }
@@ -648,7 +654,8 @@ async function init() {
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
   makeGrid("grid-eyes",  EYES,   "eyes",  false);
   makeGrid("grid-mouth", MOUTHS, "mouth", false);
-  makeGrid("grid-acc",   ACCS,   "acc",   false);
+  makeGrid("grid-shoes", SHOES,  "shoes", true);
+  makeGrid("grid-acc",   ACCS,   "acc",   true);
   document.getElementById("charName").value = state.name || "";
   render();
 
