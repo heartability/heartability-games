@@ -183,8 +183,8 @@ h1.room-title {
 }
 
 .parts-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
@@ -202,7 +202,7 @@ h1.room-title {
   border-top-color: #c8b88a;
   cursor: pointer;
   transition: filter 0.1s;
-  min-width: 64px;
+  width: 100%;
 }
 .part-btn:hover { filter: brightness(0.94); }
 .part-btn.active {
@@ -654,8 +654,8 @@ async function init() {
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
   makeGrid("grid-eyes",  EYES,   "eyes",  false);
   makeGrid("grid-mouth", MOUTHS, "mouth", false);
-  makeGrid("grid-shoes", SHOES,  "shoes", true);
-  makeGrid("grid-acc",   ACCS,   "acc",   true);
+  makeGrid("grid-shoes", SHOES,  "shoes", false);
+  makeGrid("grid-acc",   ACCS,   "acc",   false);
   document.getElementById("charName").value = state.name || "";
   render();
 
