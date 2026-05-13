@@ -76,7 +76,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .top-row {
   display:grid;
   grid-template-columns:1fr 1fr;
-  align-items:start;
+  align-items:stretch;
   gap:20px;
 }
 .top-row > * { min-width:0; min-height:0; }
@@ -506,7 +506,18 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     <!-- TOP ROW: bar chart + map -->
     <div class="top-row">
 
-      <!-- GRAPH COLUMN -->
+      <!-- MAP WINDOW (left) -->
+      <div class="window" id="map-window">
+        <div class="window-titlebar">
+          <span>Map of: <span id="map-window-title">your map</span></span>
+          <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
+        </div>
+        <div class="map-window-body">
+          <div class="map-svg-wrap" id="map-svg-wrap"></div>
+        </div>
+      </div>
+
+      <!-- GRAPH COLUMN (right) -->
       <div class="graph-col">
         <select id="game-dropdown" onchange="onGameChange()" style="display:none;"></select>
         <div class="window" id="graph-window">
@@ -536,17 +547,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         </div>
       </div><!-- /graph-window -->
       </div><!-- /graph-col -->
-
-      <!-- MAP WINDOW -->
-      <div class="window" id="map-window">
-        <div class="window-titlebar">
-          <span id="map-window-title">your map</span>
-          <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
-        </div>
-        <div class="map-window-body">
-          <div class="map-svg-wrap" id="map-svg-wrap"></div>
-        </div>
-      </div>
 
     </div><!-- /top-row -->
 
