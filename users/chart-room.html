@@ -687,7 +687,10 @@ function setSaveBtnVisible(visible, label='save &amp; continue →') {
   const bar = document.getElementById('save-continue-bar');
   const btn = document.getElementById('save-continue-btn');
   bar.classList.toggle('visible', visible);
-  if (btn) btn.innerHTML = label;
+  if (btn) {
+    btn.innerHTML = label;
+    btn.disabled = false;
+  }
 }
 
 // ── SAVE & CONTINUE — chart-room owns all saving ─────────
