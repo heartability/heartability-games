@@ -952,12 +952,12 @@ async function loadGameContext() {
   const saveBtn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
 
   if (!currentGameId || urlMode === 'new') {
-    saveBtn.textContent = 'SAVE';
+    saveBtn.textContent = 'save';
     return;
   }
 
   // Existing game — load it
-  saveBtn.textContent = 'SAVE';
+  saveBtn.textContent = 'save';
   showSaveStatus('loading...', '#83d2e6');
 
   let gameData = null;
@@ -1039,7 +1039,7 @@ async function saveToday() {
   if (!currentGameId) {
     if (!mapName) {
       showSaveStatus('name your goal first!', '#ff6b6b');
-      if (btn) btn.textContent = 'SAVE';
+      if (btn) btn.textContent = 'save';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your goal first' }, '*'); } catch(e) {}
       return;
     }
@@ -1048,13 +1048,13 @@ async function saveToday() {
     }).select().single();
     if (error) {
       showSaveStatus('save failed', '#ff6b6b');
-      if (btn) btn.textContent = 'SAVE';
+      if (btn) btn.textContent = 'save';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'save failed' }, '*'); } catch(e) {}
       return;
     }
     currentGameId = newGame.id;
     showSaveStatus('map created ✓', '#83d2e6');
-    if (btn) { btn.textContent = 'SAVED'; btn.style.opacity = '0.6'; }
+    if (btn) { btn.textContent = 'saved'; btn.style.opacity = '0.6'; }
     // Notify chart-room to advance to phase select
     try { window.parent.postMessage({ type: 'map_saved', game_id: newGame.id, map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
     return;
@@ -1073,8 +1073,8 @@ async function saveToday() {
     entry_date: today, map_location: mapLocation, map_phase: mapPhase,
   }, { onConflict: 'game_id,entry_date' });
 
-  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = 'SAVE'; }
-  else { showSaveStatus("entry saved ✓", '#83d2e6'); btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6'; }
+  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = 'save'; }
+  else { showSaveStatus("saved", '#83d2e6'); btn.textContent = 'saved'; btn.style.opacity = '0.6'; }
 }
 
 // ── GUEST SAVE ────────────────────────────────────────────────────────────
@@ -1083,14 +1083,14 @@ function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
     let games   = JSON.parse(localStorage.getItem('hb_games')   || '[]');
     let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
     if (!currentGameId) {
-      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = 'SAVE'; return; }
+      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = 'save'; return; }
       const newId = 'guest_' + Date.now();
       games.push({ id: newId, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active',
         created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
       currentGameId = newId;
       localStorage.setItem('hb_games', JSON.stringify(games));
       showSaveStatus('map saved locally ✓', '#83d2e6');
-      btn.textContent = '♥ SAVED ✓'; btn.style.opacity = '0.6';
+      btn.textContent = 'saved'; btn.style.opacity = '0.6';
       return;
     }
     games = games.map(g => g.id === currentGameId
@@ -1103,8 +1103,8 @@ function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
     entries.push(entry);
     localStorage.setItem('hb_entries', JSON.stringify(entries));
     showSaveStatus('saved locally ✓', '#83d2e6');
-    btn.textContent = '♥ SAVED TODAY ✓'; btn.style.opacity = '0.6';
-  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = 'SAVE'; }
+    btn.textContent = 'saved'; btn.style.opacity = '0.6';
+  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = 'save'; }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
