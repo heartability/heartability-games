@@ -66,13 +66,20 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   min-height:100dvh; padding:80px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
-.page-body { width:100%; max-width:1200px; display:flex; flex-direction:column; gap:24px; }
+.page-body { width:100%; max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
 
 /* Top row: bar + map side by side */
 .top-row {
   display:grid; grid-template-columns:1fr 1fr; gap:24px;
 }
-@media (max-width:700px) { .top-row { grid-template-columns:1fr; } }
+@media (max-width:700px) {
+  .top-row { grid-template-columns:1fr; }
+  .page-body { padding:0 8px; }
+  .graph-col { width:100%; }
+  .graph-area { padding:12px 8px 12px; }
+  .graph-y { width:56px; padding-right:6px; }
+  .graph-right-pad { width:56px; }
+}
 
 /* Map window SVG */
 .map-window-body { padding:16px; display:flex; flex-direction:column; gap:8px; }
@@ -180,8 +187,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* Tiny character inside calendar cell */
 .cal-char {
-  position:absolute; bottom:4px; left:5px;
-  width:34px; height:42px; z-index:3;
+  position:absolute; bottom:3px; left:4px;
+  width:22px; height:28px; z-index:3;
 }
 .cal-char-layer {
   position:absolute; inset:0;
@@ -547,7 +554,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <button class="month-btn" onclick="changeMonth(-1)">◄</button>
         <div class="month-label" id="month-label" style="min-width:180px;font-size:clamp(15px,1.8vw,22px);"></div>
         <button class="month-btn" onclick="changeMonth(1)">►</button>
-        <span id="cal-entry-count" style="position:absolute;right:16px;font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
       </div>
       <div class="window-body">
         <div class="cal-header">
@@ -560,6 +566,9 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
           <div class="cal-day-label">SAT</div>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
+        <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+          <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
+        </div>
         <div class="empty-month" id="cal-empty" style="display:none;">
           no entries for this map this month
         </div>
