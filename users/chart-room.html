@@ -333,15 +333,16 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
   .phase-key { width:180px; font-size:12px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
-  .save-continue-bar { height:auto; padding:10px 0; bottom:0; }
+  .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
   .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
-    top: 44px !important;
-    left: 0 !important;
-    width: 100% !important;
+    top: 80px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
     height: auto !important;
-    bottom: 60px !important;
-    border-radius: 0;
+    bottom: 80px !important;
+    border-radius: 4px !important;
   }
 }
 
