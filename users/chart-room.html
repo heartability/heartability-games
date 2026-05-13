@@ -336,9 +336,12 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   .save-continue-bar { height:auto; padding:10px 0; bottom:0; }
   .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
-    top:44px; left:0; width:100%;
-    height:calc(100dvh - 44px - 84px); /* leave room for save button bar */
-    border-radius:0;
+    top: 44px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    bottom: 60px !important;
+    border-radius: 0;
   }
 }
 
@@ -1051,6 +1054,7 @@ function stepBingo() {
 // ── STEP 6: BINGO DONE → JOURNAL ─────────────────────────
 function stepJournal() {
   currentStep = 'journal';
+  clearTimeout(window._saveFallback); // cancel any stale bingo timeout
   setBubble('write your adventure notes ♡', []);
   hidePanel();
 
