@@ -617,7 +617,7 @@ html, body {
   const modalFrame   = document.getElementById('modal-frame');
   const modalClose   = document.getElementById('modal-close');
 
-  const GAME_TITLES = { 'treasure-map': 'treasure map', 'bingo': 'heart meter', 'infinity-mirror': 'infinity mirror' };
+  const GAME_TITLES = { 'treasure-map': 'treasure map', 'bingo': 'heart meter bingo', 'infinity-mirror': 'infinity mirror' };
   function openModal(page) {
     modalFrame.src = page + '.html';
     document.getElementById('modal-titlebar').textContent = GAME_TITLES[page] || page;
