@@ -87,29 +87,20 @@ body {
 }
 
 .reset-btn {
-  background: var(--wall-mid);
-  border: 3px solid var(--panel-border-dark);
-  outline: 2px solid var(--panel-border-light);
-  outline-offset: -4px;
-  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
-  padding: 6px 14px;
+  background: rgba(138,122,90,0.18);
+  border: 1px solid rgba(138,122,90,0.5);
   font-family: var(--font-game);
-  font-size: 16px;
-  color: #6578e2;
+  font-size: 12px;
+  color: #8a7a5a;
+  padding: 5px 12px;
   cursor: pointer;
-  letter-spacing: 1px;
-  transition: transform 0.1s, box-shadow 0.1s;
+  letter-spacing: 0.5px;
+  transition: background 0.15s;
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
-
-.reset-btn:hover {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 2px 0 2px rgba(0,0,0,0.4);
-}
-
-.reset-btn:active {
-  transform: translate(2px, 3px);
-  box-shadow: none;
-}
+.reset-btn:hover { background: rgba(138,122,90,0.32); }
 
 /* GRID */
 .bingo-grid {
@@ -279,7 +270,7 @@ body {
 
 /* READING */
 .reading-panel {
-  display: none;
+  display: block;
   background: #e8e0c8;
   border: 2px solid #8a7a5a;
   border-right-color: #5a4a2a;
@@ -288,6 +279,7 @@ body {
   border-top-color: #c8b88a;
   padding: 12px 16px;
   flex: 1;
+  position: relative;
 }
 
 .reading-panel.show { display: block; }
@@ -372,16 +364,15 @@ body {
         </div>
       </div>
 
-      <!-- Bottom row: reading panel (narrower) + reset button right -->
       <div class="bottom-row">
         <div class="reading-panel" id="readingPanel">
+          <button class="reset-btn" onclick="resetGame()">reset</button>
           <div class="reading-header">
             <div class="reading-title" id="readingTitle"></div>
             <div class="reading-score" id="readingScore"></div>
           </div>
           <div class="reading-text" id="readingText"></div>
         </div>
-        <button class="reset-btn" onclick="resetGame()">&#x25BA; RESET</button>
       </div>
 
     </div>
