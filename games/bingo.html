@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --wall-dark: #e8e4dc;
+  --wall-dark: #fdf6e3;
   --wall-mid: #fdf6e3;
   --panel-bg: #fdf6e3;
   --panel-border: #6578e2;
@@ -66,19 +66,6 @@ body {
   min-height: 0;
 }
 
-/* Room title */
-.room-title {
-  font-family: "PFPixelscript", cursive;
-  font-size: clamp(36px, 6vw, 64px);
-  color: #6579e2;
-  text-shadow: 1px 2px 0 rgba(0,0,0,0.14);
-  text-align: center;
-  margin-bottom: 6px;
-  letter-spacing: 1px;
-  position: relative;
-  z-index: 1;
-}
-
 
 /* RPG PANEL */
 .rpg-panel {
@@ -87,12 +74,6 @@ body {
   background: var(--panel-bg);
   width: 100%;
   max-width: 760px;
-  border: 3px solid var(--panel-border-dark);
-  outline: 3px solid var(--panel-border-light);
-  outline-offset: -6px;
-  box-shadow:
-    0 0 0 6px var(--panel-border),
-    4px 6px 0 6px rgba(0,0,0,0.4);
   padding: 20px;
   overflow-y: auto;
   margin-bottom: 22vh;
@@ -102,34 +83,7 @@ body {
 .rpg-panel::before {
   content: "";
   position: absolute;
-  inset: 6px;
-  border: 1px solid var(--panel-border-light);
   pointer-events: none;
-}
-
-/* Instruction bar above panel */
-.instruction-bar {
-  width: 100%;
-  max-width: 760px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 1;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.instruction-text {
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 2vw, 18px);
-  color: #6ab86a;
-  line-height: 1.5;
-}
-
-.instruction-text .step {
-  color: var(--heart-pink);
 }
 
 .reset-btn {
@@ -378,7 +332,6 @@ body {
 @media (max-width: 500px) {
   .wall { padding: 16px 10px 0; }
   .rpg-panel { padding: 12px; }
-  .room-title { font-size: 30px; }
 }
 
 @keyframes gr-intro-wiggle {
@@ -398,11 +351,6 @@ body {
 <body>
 <div class="room">
   <div class="wall">
-    <h1 class="room-title">heart meter</h1>
-
-    <div class="instruction-bar">
-      <div class="instruction-text"></div>
-    </div>
 
     <div class="bingo-alert" id="bingoAlert">&#x2605; BINGO! &#x2605;</div>
 
