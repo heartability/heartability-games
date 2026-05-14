@@ -116,17 +116,27 @@ html, body {
 }
 #icon-settings img { width: clamp(45px, 7vw, 75px); }
 
-/* LEADERBOARD — top right, largest */
+/* LEADERBOARD — top center */
 #icon-leaderboard {
-  top:  15%;
-  right: 11%;
+  top:  8%;
+  left: 50%;
+  transform: translateX(-50%);
 }
+#icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
+#icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
 #icon-leaderboard img { width: clamp(130px, 18vw, 333px); }
 
-/* CALENDAR — center bottom */
+/* CHATROOM — top right */
+#icon-chatroom {
+  top:  8%;
+  right: 5%;
+}
+#icon-chatroom img { width: clamp(100px, 13vw, 220px); }
+
+/* CALENDAR — center left, mid-wall */
 #icon-calendar {
-  bottom: 18%;
-  left: 40%;
+  top: 38%;
+  left: 30%;
   transform: translateX(-50%);
 }
 #icon-calendar:hover { transform: translateX(-50%) translateY(-5px); }
@@ -414,6 +424,9 @@ html, body {
   <div class="room-icon" id="icon-leaderboard" onclick="openModal('leaderboard')">
     <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
   </div>
+  <div class="room-icon" id="icon-chatroom" onclick="window.location.href='../users/chatroom.html'">
+    <img src="../assets/elements/chatroom.png" alt="chat room" />
+  </div>
   <div class="room-icon" id="icon-calendar" onclick="window.location.href='/users/archive.html'">
     <img src="../assets/elements/calendar.png" alt="map archive" />
   </div>
@@ -625,6 +638,7 @@ html, body {
     'icon-settings':    "manage your membership settings, update your password or username.",
     'icon-leaderboard': 'see where you rank this week!',
     'icon-calendar':    'reflect on your journey so far <3',
+    'icon-chatroom':    'hang out with other players ♡',
   };
 
   document.querySelectorAll('.room-icon').forEach(icon => {
