@@ -140,6 +140,43 @@ html, body {
 }
 #icon-calendar img { width: clamp(120px, 11vw, 180px); }
 
+/* ── MOBILE: stack center icons into a column ── */
+@media (max-width: 600px) {
+  #icon-leaderboard {
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
+  #icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
+  #icon-leaderboard img { width: clamp(120px, 45vw, 200px); }
+
+  #icon-calendar {
+    top: 38%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #icon-calendar:hover { transform: translateX(-50%) translateY(-5px); }
+  #icon-calendar:active { transform: translateX(-50%) translateY(-2px); }
+  #icon-calendar img { width: clamp(100px, 38vw, 160px); }
+
+  #icon-chatroom {
+    top: 64%;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  #icon-chatroom:hover { transform: translateX(-50%) translateY(-5px); }
+  #icon-chatroom:active { transform: translateX(-50%) translateY(-2px); }
+  #icon-chatroom img { width: clamp(90px, 35vw, 150px); }
+
+  .char-heart {
+    left: 4vw;
+    bottom: 10vh;
+    width: clamp(80px, 22vw, 130px);
+  }
+}
+
 .room-icon img {
   height: auto;
   filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.18));
