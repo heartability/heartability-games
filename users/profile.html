@@ -142,23 +142,24 @@ html, body {
 
 /* ── MOBILE: stack center icons into a column ── */
 @media (max-width: 600px) {
-  #icon-leaderboard {
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  #icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
-  #icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
-  #icon-leaderboard img { width: clamp(100px, 35vw, 200px); }
 
   #icon-calendar {
-    top: 38%;
+    top: 10%;
     left: 50%;
     transform: translateX(-50%);
   }
   #icon-calendar:hover { transform: translateX(-50%) translateY(-5px); }
   #icon-calendar:active { transform: translateX(-50%) translateY(-2px); }
   #icon-calendar img { width: clamp(80px, 28vw, 160px); }
+
+  #icon-leaderboard {
+    top: 38%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
+  #icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
+  #icon-leaderboard img { width: clamp(100px, 35vw, 200px); }
 
   #icon-chatroom {
     top: 64%;
@@ -172,7 +173,7 @@ html, body {
 
   .char-heart {
     left: 4vw;
-    bottom: 10vh;
+    bottom: 7vh;
     width: clamp(80px, 22vw, 130px);
   }
 }
