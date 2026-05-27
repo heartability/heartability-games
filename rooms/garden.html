@@ -74,6 +74,7 @@ html, body {
 }
 
 .el-grass      { bottom: 0;   left: 0;      width: 100vw; z-index: 2; }
+.el-sky        {top: 0;       left: 0       width: 100vw; z-index: 1; }
 .el-fountain   { left: 35vw;  bottom: 18vh; width: 30vw;  z-index: 3; }
 .el-phonebooth { left: 8vw;   bottom: 11vh; width: 15vw;  z-index: 3; }
 .el-mailbox    { right: 8vw; bottom: 11vh; width: 13vw;   z-index: 3; }
@@ -167,9 +168,15 @@ html, body {
 <div class="scene">
 
   <!-- Grass ground -->
+  <div class="garden-el el-sky">
+    <img src="../assets/elements/sky.png" alt="">
+  </div>
+
   <div class="garden-el el-grass">
     <img src="../assets/elements/grass.png" alt="">
   </div>
+
+ 
 
   <!-- Fountain (swap to .gif when ready) -->
   <div class="garden-el el-fountain">
