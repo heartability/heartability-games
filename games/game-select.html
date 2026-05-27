@@ -619,7 +619,7 @@ body.game-mode .char-heart {
 .popup-msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.15); }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 655px) {
   :root { --bw-top: 44px; --bw-left: 0%; --bw-width: 100%; --bw-height: calc(100dvh - 44px); }
   .room-lines { display: none; }
   .back-wall { border-left: none; border-right: none; border-top: none; }
@@ -1176,7 +1176,7 @@ function stepPhaseSelect() {
   setBubble('where are you on the map today?');
   setContinueVisible(false);
   const svgContent=mapType==='square'?buildSquareSVG(zones):buildSpiralSVG(zones);
-  const isMobile=window.innerWidth<=768;
+  const isMobile=window.innerWidth<=655;
   let keyItems='';
   for(let i=0;i<count;i++){
     const label=mapType==='square'?SQUARE_LABELS[i]:(i+1);
@@ -1223,7 +1223,7 @@ function selectPhase(idx) {
     if(bg) bg.setAttribute('fill',i===idx?'rgba(101,121,226,0.25)':'rgba(200,196,180,0)');
   });
   const btn=document.getElementById('begin-btn'); if(btn) btn.disabled=false;
-  if(window.innerWidth<=768) openPhaseDrawer();
+  if(window.innerWidth<=655) openPhaseDrawer();
 }
 
 // ── Step 4: character ──────────────────────────────────────
