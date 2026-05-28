@@ -620,15 +620,13 @@ body.game-mode .char-heart {
 
 /* ── Mobile ── */
 @media (max-width: 655px) {
-  :root { --bw-top: 44px; --bw-left: 0%; --bw-width: 100%; --bw-height: calc(100dvh - 44px); }
-  .room-lines { display: none; }
-  .back-wall { border-left: none; border-right: none; border-top: none; }
+  /* Room structure preserved — only reposition art elements */
   body.track-mode .char-heart, body.game-mode .char-heart { display: none; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .art-map      { left: 20vw; top: 20vh; width: 32vw; }
-  .art-mirror   { left: 20vw; top: 42vh; width: 28vw; }
-  .art-bingo    { right: 4vw; top: 20vh; width: 28vw; }
-  .art-about    { left: 1vw; top: 30vh; width: 14vw; }
+  .art-mirror   { left: 20vw; top: 40vh; width: 28vw; }
+  .art-bingo    { left: 55vw; top: 20vh; width: 28vw; }
+  .art-about    { left: 1vw;  top: 30vh; width: 14vw; }
   .art-calendar { right: 1vw; top: 30vh; width: 14vw; }
   .map-grid { grid-template-columns: repeat(2, 1fr); }
   .continue-bar { height: auto; padding: 10px 0; }
@@ -636,6 +634,15 @@ body.game-mode .char-heart {
   .ov-board { grid-template-columns: 1fr; }
   .phase-key { width: 180px; }
   .journal-left-page { font-size: clamp(10px, 3vw, 13px); }
+}
+
+/* When a game or track panel is open on mobile, go full-bleed */
+@media (max-width: 655px) {
+  body.game-mode .game-panel,
+  body.track-mode .track-panel {
+    top: 44px !important; left: 0 !important;
+    width: 100% !important; height: calc(100dvh - 44px) !important;
+  }
 }
 
 </style>
