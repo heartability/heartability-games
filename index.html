@@ -27,40 +27,34 @@
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
-/* ══════════════════════════════════════════════════
-   TUNABLE KNOBS — adjust these, nothing else needed
-══════════════════════════════════════════════════ */
-:root {
-  /* Where the castle's BUILDING MASS sits, as % down its own image.
-     This is the shared optical center for the logo<->castle swap.
-     Higher % = castle sits lower (more spire above center).
-     Lower  % = castle sits higher. */
-  --castle-anchor: 64%;
-
-  --toggle-loop: 14s;   /* full logo->castle->logo breathing cycle */
-  --orbit-loop: 14s;    /* glow's lap around the rainbow */
-  --pulse-loop: 5s;     /* glow brightness oscillation */
-  --ease-breath: cubic-bezier(0.37, 0, 0.63, 1); /* gentle sine-like in/out */
-}
-
-/* Registered so the glow's angle can animate smoothly around the loop */
-@property --glow-angle {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 0deg;
-}
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   width: 100vw;
   height: 100vh;
-  /* Gradient sky image; current blue kept as fallback underneath */
-  background: #6578e2 url("assets/elements/sky.png") center / cover no-repeat;
+  background: #6578e2;
   font-family: "ZoesHandwriting", cursive;
   overflow: hidden;
   position: relative;
   user-select: none;
+}
+
+/* ── STARFIELD ── */
+#stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.star {
+  position: absolute;
+  background: #fff;
+  clip-path: polygon(50% 0%,54% 43%,100% 50%,54% 57%,50% 100%,46% 57%,0% 50%,46% 43%);
+  animation: twinkle var(--d, 2s) ease-in-out infinite var(--del, 0s);
+}
+@keyframes twinkle {
+  0%,100% { opacity: 0.9; transform: scale(1) rotate(0deg); }
+  50%      { opacity: 0.05; transform: scale(0.2) rotate(45deg); }
 }
 
 /* ── SCENE ── */
@@ -69,45 +63,6 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: 1;
-}
-
-/* ── CORNER SPIRALS ──────────────────────────────────
-   Wrapper handles position + mouse parallax (JS sets transform).
-   Inner img handles a slow continuous float.
-   Positions are rough — nudge top/left/right/bottom to taste.
-─────────────────────────────────────────────────── */
-.spiral {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-  will-change: transform;
-  transition: transform 0.6s ease-out;   /* eases the parallax follow */
-}
-.spiral img {
-  display: block;
-  width: 100%;
-  height: auto;
-  opacity: 0.85;
-}
-.spiral-1 { top: 12vh; left: 4vw;  width: clamp(70px, 9vw, 130px); }
-.spiral-2 { top: 27vh; left: 14vw; width: clamp(45px, 6vw, 85px); }
-.spiral-3 { bottom: 8vh; right: 5vw; width: clamp(80px, 10vw, 150px); }
-
-.spiral-1 img { animation: float1 15s ease-in-out infinite; }
-.spiral-2 img { animation: float2 18s ease-in-out infinite; }
-.spiral-3 img { animation: float3 16s ease-in-out infinite; }
-
-@keyframes float1 {
-  0%,100% { transform: translateY(0)    rotate(0deg); }
-  50%      { transform: translateY(-9px) rotate(2deg); }
-}
-@keyframes float2 {
-  0%,100% { transform: translateY(0)    rotate(0deg); }
-  50%      { transform: translateY(7px)  rotate(-2deg); }
-}
-@keyframes float3 {
-  0%,100% { transform: translateY(0)     rotate(0deg); }
-  50%      { transform: translateY(-11px) rotate(2deg); }
 }
 
 /* ── TITLE TEXT IMAGES ── */
@@ -131,12 +86,11 @@ body {
 }
 
 /* ── PORTAL ──────────────────────────────────────────
-   portal-wrap     — positions the portal on the page
-   portal-inner    — real-height container (rainbow defines height)
-   castle-link     — fills portal-inner, whole oval is clickable
-   rainbow-portal  — sits on top, pointer-events:none lets clicks through
-   rainbow-shimmer — white sheen masked to the rainbow's exact shape
-   castle-img / portal-logo — share ONE optical center, breathing swap
+   portal-wrap  — positions the portal on the page
+   portal-inner — real-height container (rainbow defines height)
+   castle-link  — fills portal-inner, whole oval is clickable
+   rainbow      — sits on top, pointer-events:none lets clicks through
+   castle-img / portal-logo — centered, crossfade between each other
 ─────────────────────────────────────────────────── */
 .portal-wrap {
   position: absolute;
@@ -149,9 +103,7 @@ body {
 .portal-inner {
   position: relative;
   width: 100%;
-  animation: glowOrbit var(--orbit-loop) linear infinite;
 }
-@keyframes glowOrbit { to { --glow-angle: 360deg; } }
 .rainbow-portal {
   display: block;
   width: 100%;
@@ -160,139 +112,48 @@ body {
   position: relative;
   z-index: 2;
 }
-
-/* ── RAINBOW GLOW ────────────────────────────────────
-   A soft luminous arc that ORBITS the rainbow like a racetrack
-   (conic gradient rotated via --glow-angle), masked to the band.
-   Two layers: a contained core + a fainter outer halo that bleeds
-   past the oval edge. Brightness oscillates on its own rhythm.
-   White on 'screen' => brightens the existing colors, no new hues.
-─────────────────────────────────────────────────── */
-.rainbow-shimmer,
-.rainbow-halo-inner {
-  -webkit-mask-image: url("assets/elements/circle-rainbow.png");
-          mask-image: url("assets/elements/circle-rainbow.png");
-  -webkit-mask-size: 100% 100%;   mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
-}
-
-/* Core glow — stays within the rainbow band */
-.rainbow-shimmer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  filter: blur(5px);
-  background: conic-gradient(
-    from var(--glow-angle),
-    rgba(255,255,255,0)    0deg,
-    rgba(255,255,255,0.50) 26deg,
-    rgba(255,255,255,0)    66deg,
-    rgba(255,255,255,0)    360deg
-  );
-  animation: glowPulse var(--pulse-loop) ease-in-out infinite;
-}
-
-/* Outer halo — sits BEHIND the rainbow (z1). Blur is applied on this
-   wrapper (i.e. AFTER the inner mask) so the glow bleeds past the oval
-   edge. The opaque rainbow band hides the inward side, leaving only a
-   faint outer halo on the sky. */
-.rainbow-halo {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  filter: blur(22px);
-  animation: glowPulseHalo var(--pulse-loop) ease-in-out infinite;
-  animation-delay: -1.6s;   /* offset from the core for an organic feel */
-}
-.rainbow-halo-inner {
-  position: absolute;
-  inset: 0;
-  background: conic-gradient(
-    from var(--glow-angle),
-    rgba(255,255,255,0)    0deg,
-    rgba(255,255,255,0.70) 26deg,
-    rgba(255,255,255,0)    72deg,
-    rgba(255,255,255,0)    360deg
-  );
-}
-
-@keyframes glowPulse {       /* core brightness breathes */
-  0%, 100% { opacity: 0.40; }
-  50%      { opacity: 0.95; }
-}
-@keyframes glowPulseHalo {   /* halo, fainter */
-  0%, 100% { opacity: 0.16; }
-  50%      { opacity: 0.48; }
-}
-
 .castle-link {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   text-decoration: none;
-  z-index: 4;
+  z-index: 3;
 }
-
 .castle-img,
 .portal-logo {
   position: absolute;
-  top: 50%;
-  left: 50%;
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
-
-/* Logo: centered on its own middle = the shared optical center */
+.castle-img {
+  width: clamp(150px, 20vw, 250px);
+  height: auto;
+  animation: castleFade 13s ease-in-out infinite;
+}
 .portal-logo {
   width: clamp(140px, 18vw, 260px);
   height: auto;
-  transform-origin: 50% 50%;
-  transform: translate(-50%, -50%) scale(1);
-  animation: logoBreathe var(--toggle-loop) var(--ease-breath) infinite;
+  animation: logoFade 13s ease-in-out infinite;
 }
+.castle-link:hover .castle-img  { animation: none; opacity: 1; }
+.castle-link:hover .portal-logo { animation: none; opacity: 0; }
 
-/* Castle: scaled + anchored on its BUILDING MASS (var --castle-anchor),
-   not the spire tip, so the swap doesn't lurch upward. */
-.castle-img {
-  width: clamp(190px, 26vw, 330px);
-  height: auto;
-  transform-origin: 50% var(--castle-anchor);
-  transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1);
-  animation: castleBreathe var(--toggle-loop) var(--ease-breath) infinite;
+/* ── CROSSFADE KEYFRAMES ── */
+@keyframes logoFade {
+  0%         { opacity: 0; }
+  10%        { opacity: 1; }
+  30%        { opacity: 1; }
+  42%        { opacity: 0; }
+  100%       { opacity: 0; }
 }
-
-/* Hover the portal => FREEZE the swap in place so it reads as clickable */
-.castle-link:hover .castle-img,
-.castle-link:hover .portal-logo { animation-play-state: paused; }
-
-/* ── BREATHING SWAP KEYFRAMES ────────────────────────
-   One continuous soft cycle: the visible element keeps a gentle scale
-   "breath" so nothing ever fully stops, and the crossfade overlaps —
-   wordmark recedes (shrink + fade) as the castle advances (grow + fade),
-   reading as slow forward motion through the name into the castle.
-─────────────────────────────────────────────────── */
-@keyframes logoBreathe {
-  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }
-  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }  /* inhale */
-  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }  /* begin recede */
-  43%  { opacity: 0; transform: translate(-50%, -50%) scale(0.90); }  /* receded */
-  57%  { opacity: 0; transform: translate(-50%, -50%) scale(0.90); }
-  70%  { opacity: 0; transform: translate(-50%, -50%) scale(0.93); }
-  85%  { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }  /* advance back */
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }
-}
-@keyframes castleBreathe {
-  0%   { opacity: 0; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(0.91); }
-  30%  { opacity: 0; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(0.91); }
-  43%  { opacity: 1; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1.00); }  /* advance in */
-  55%  { opacity: 1; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1.03); }  /* breathe */
-  70%  { opacity: 1; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1.00); }
-  85%  { opacity: 0; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(0.92); }  /* recede */
-  100% { opacity: 0; transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(0.91); }
+@keyframes castleFade {
+  0%, 52%    { opacity: 0; }
+  64%        { opacity: 1; }
+  90%        { opacity: 1; }
+  100%       { opacity: 0; }
 }
 
 /* ── HEART CHARACTER ── */
@@ -300,7 +161,7 @@ body {
   position: absolute;
   bottom: 8vh;
   left: 4vw;
-  z-index: 5;
+  z-index: 4;
   cursor: pointer;
   pointer-events: all;
 }
@@ -386,13 +247,8 @@ body {
     width: 90vw;
   }
 
-  .castle-img  { width: clamp(120px, 34vw, 210px); }
+  .castle-img  { width: clamp(90px, 25vw, 160px); }
   .portal-logo { width: clamp(90px, 26vw, 200px); }
-
-  /* spirals smaller + tucked in on phones */
-  .spiral-1 { top: 6vh;  left: 3vw;  width: clamp(50px, 16vw, 90px); }
-  .spiral-2 { top: 17vh; left: 12vw; width: clamp(34px, 11vw, 60px); }
-  .spiral-3 { bottom: 4vh; right: 4vw; width: clamp(56px, 18vw, 100px); }
 
   .heart-guide-wrap {
     bottom: 2vh;
@@ -417,45 +273,15 @@ body {
 
 }
 
-/* ══════════════════════════════════════════════════
-   REDUCED MOTION — static fallback
-   Freeze every loop, show the wordmark, hide the castle,
-   turn off the shimmer. (Hover-to-reveal-castle still works.)
-══════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: reduce) {
-  .portal-inner,
-  .portal-logo,
-  .castle-img,
-  .heart-guide-img,
-  .spiral img,
-  .rainbow-shimmer,
-  .rainbow-halo { animation: none !important; }
-
-  .portal-logo { opacity: 1; }
-  .castle-img  { opacity: 0; }
-  .rainbow-shimmer,
-  .rainbow-halo { opacity: 0; }
-  .spiral { transition: none; }
-}
-
 </style>
 </head>
 <body>
 
 <h1 class="sr-only">Heartability</h1>
 
-<div class="scene">
+<div id="stars"></div>
 
-  <!-- Corner spirals (rough placement — adjust freely) -->
-  <div class="spiral spiral-1" data-depth="1.0">
-    <img src="assets/elements/spiral-1.png" alt="" aria-hidden="true">
-  </div>
-  <div class="spiral spiral-2" data-depth="0.6">
-    <img src="assets/elements/spiral-2.png" alt="" aria-hidden="true">
-  </div>
-  <div class="spiral spiral-3" data-depth="1.3">
-    <img src="assets/elements/spiral-3.png" alt="" aria-hidden="true">
-  </div>
+<div class="scene">
 
   <!-- "stop spiraling" — top left -->
   <img class="title-heart"
@@ -487,14 +313,6 @@ body {
            src="assets/elements/circle-rainbow.png"
            alt="" aria-hidden="true">
 
-      <!-- Iridescent glow that orbits the rainbow band -->
-      <div class="rainbow-shimmer" id="rainbowShimmer" aria-hidden="true"></div>
-
-      <!-- Faint outer halo (sits behind the rainbow; only the bleed shows) -->
-      <div class="rainbow-halo" id="rainbowHalo" aria-hidden="true">
-        <div class="rainbow-halo-inner" id="rainbowHaloInner"></div>
-      </div>
-
     </div>
   </div>
 
@@ -514,46 +332,34 @@ body {
 
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
-<script>
-(function () {
+<style>
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* ── Starfield ── */
+  const field = document.getElementById('stars');
+  for (let i = 0; i < 90; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = (Math.random() * 5 + 2).toFixed(1);
+    s.style.cssText = [
+      `width:${sz}px`, `height:${sz}px`,
+      `left:${(Math.random() * 100).toFixed(1)}%`,
+      `top:${(Math.random() * 100).toFixed(1)}%`,
+      `--d:${(1.4 + Math.random() * 3.2).toFixed(2)}s`,
+      `--del:${(-Math.random() * 4).toFixed(2)}s`
+    ].join(';');
+    field.appendChild(s);
+  }
 
-  /* ── Swap rainbow image + shimmer mask for mobile ── */
+  /* ── Swap rainbow image for mobile ── */
   function swapRainbow() {
     const img = document.getElementById('rainbowPortal');
-    const shimmer = document.getElementById('rainbowShimmer');
-    const haloInner = document.getElementById('rainbowHaloInner');
     if (!img) return;
-    const src = window.innerWidth <= 768
+    img.src = window.innerWidth <= 768
       ? 'assets/elements/circle-rainbow-m.png'
       : 'assets/elements/circle-rainbow.png';
-    img.src = src;
-    [shimmer, haloInner].forEach((el) => {
-      if (el) {
-        el.style.webkitMaskImage = `url("${src}")`;
-        el.style.maskImage = `url("${src}")`;
-      }
-    });
   }
   swapRainbow();
   window.addEventListener('resize', swapRainbow);
-
-  /* ── Gentle corner-spiral parallax (skipped if reduced motion) ── */
-  if (!reduceMotion) {
-    const spirals = Array.from(document.querySelectorAll('.spiral'));
-    const MAX = 10; // px of travel at depth 1.0
-    window.addEventListener('mousemove', (e) => {
-      const nx = (e.clientX / window.innerWidth)  * 2 - 1;  // -1..1
-      const ny = (e.clientY / window.innerHeight) * 2 - 1;
-      spirals.forEach((el) => {
-        const depth = parseFloat(el.dataset.depth || '1');
-        const x = (-nx * MAX * depth).toFixed(1);
-        const y = (-ny * MAX * depth).toFixed(1);
-        el.style.transform = `translate(${x}px, ${y}px)`;
-      });
-    });
-  }
 
   /* ── Mobile: tap heart to toggle speech bubble ── */
   const heartGuide = document.getElementById('heartGuideWrap');
