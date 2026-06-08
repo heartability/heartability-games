@@ -265,16 +265,11 @@ body {
   animation: castleBreathe var(--toggle-loop) var(--ease-breath) infinite;
 }
 
-/* Hover the portal => FREEZE the swap in place so it reads as clickable */
-.castle-link:hover .castle-img,
-.castle-link:hover .portal-logo { animation-play-state: paused; }
+/* Reveal castle on hover */
+.castle-link:hover .castle-img  { animation: none; opacity: 1; }
+.castle-link:hover .portal-logo { animation: none; opacity: 0; }
 
-/* ── BREATHING SWAP KEYFRAMES ────────────────────────
-   One continuous soft cycle: the visible element keeps a gentle scale
-   "breath" so nothing ever fully stops, and the crossfade overlaps —
-   wordmark recedes (shrink + fade) as the castle advances (grow + fade),
-   reading as slow forward motion through the name into the castle.
-─────────────────────────────────────────────────── */
+/* ── BREATHING SWAP KEYFRAMES ──────────────────────── */
 
 @keyframes logoBreathe {
   0%         { opacity: 1; }
