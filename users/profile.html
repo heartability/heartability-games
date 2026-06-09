@@ -591,12 +591,18 @@ html, body {
       </div>
       <div class="setting-row">
         <span class="setting-label">membership</span>
-        <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
+          <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade</button>
+        </div>
       </div>
       <div class="btn-row">
         <button class="btn-action" onclick="editUsername()">edit username</button>
         <button class="btn-action" onclick="changePassword()">change password</button>
-        <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade membership</button>
+        <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()" style="display:none;">manage payments</button>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.07);text-align:center;">
+        <span id="btn-delete-account" style="font-family:var(--font-hand);font-size:clamp(10px,1vw,12px);color:#ccc;cursor:pointer;text-decoration:underline;" onclick="deleteAccount()">delete my data</span>
       </div>
     </div>
   </div>
@@ -682,26 +688,77 @@ html, body {
 
   // ── Membership UI ─────────────────────────────────────────
   function applyMembershipUI(status) {
-    const membershipEl = document.getElementById('settings-membership');
-    const upgradeBtn   = document.getElementById('btn-upgrade-settings');
+    const membershipEl  = document.getElementById('settings-membership');
+    const upgradeBtn    = document.getElementById('btn-upgrade-settings');
+    const manageBtn     = document.getElementById('btn-manage-payments');
     if (status === 'founding') {
       membershipEl.textContent = '✦ founding member';
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
+      manageBtn.style.display  = 'inline-block';
     } else if (status === 'basic') {
       membershipEl.textContent = 'basic member';
       membershipEl.style.color = 'var(--purple)';
-      upgradeBtn.textContent   = 'upgrade to founding member';
+      upgradeBtn.textContent   = 'upgrade';
       upgradeBtn.style.display = 'inline-block';
+      manageBtn.style.display  = 'inline-block';
     } else {
       membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
-      upgradeBtn.textContent   = 'upgrade membership';
+      upgradeBtn.textContent   = 'upgrade';
       upgradeBtn.style.display = 'inline-block';
+      manageBtn.style.display  = 'none';
     }
   }
 
   window.goToUpgrade = function () { window.location.href = '/users/membership.html'; };
+
+  window.goToPortal = async function () {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch(`https://rrdfltqnrnvmqemyrfaj.supabase.co/functions/v1/create-portal-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      const { url, error } = await res.json();
+      if (error) { alert('error: ' + error); return; }
+      window.location.href = url;
+    } catch (err) {
+      alert('something went wrong, please try again');
+    }
+  };
+
+  window.deleteAccount = async function () {
+    const confirmed = confirm('are you sure? this will permanently delete all your heartability data and cannot be undone.');
+    if (!confirmed) return;
+    const doubleConfirm = confirm('last chance — delete everything?');
+    if (!doubleConfirm) return;
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+
+      // Anonymize chatroom messages
+      const { data: profileData } = await sb.from('user-profiles').select('username').eq('id', session.user.id).single();
+      if (profileData?.username) {
+        await sb.from('chatroom').update({ name: 'deleted account' }).eq('name', profileData.username);
+      }
+
+      // Delete user profile data
+      await sb.from('user-profiles').delete().eq('id', session.user.id);
+      await sb.from('games').delete().eq('user_id', session.user.id);
+      await sb.from('daily_entries').delete().eq('user_id', session.user.id);
+      await sb.from('diary_entries').delete().eq('user_id', session.user.id);
+
+      // Sign out and delete auth user
+      await sb.auth.signOut();
+      window.location.href = '/index.html';
+    } catch (err) {
+      alert('error deleting account: ' + err.message);
+    }
+  };
 
   // ── Edit username ─────────────────────────────────────────
   window.editUsername = async function () {
