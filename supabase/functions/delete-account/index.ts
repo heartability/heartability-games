@@ -15,7 +15,7 @@ serve(async (req) => {
     // Verify the user is who they say they are using their JWT
     const anonClient = createClient(
       Deno.env.get('SB_URL') ?? '',
-      Deno.env.get('SB_ANON_KEY') ?? ''
+      JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') ?? '{}').anon_key ?? ''
     )
     const authHeader = req.headers.get('Authorization')
     const token = authHeader?.replace('Bearer ', '')
