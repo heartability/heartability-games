@@ -31,23 +31,13 @@
    TUNABLE KNOBS — adjust these, nothing else needed
 ══════════════════════════════════════════════════ */
 :root {
-  /* Where the castle's BUILDING MASS sits, as % down its own image.
-     This is the shared optical center for the logo<->castle swap.
-     Higher % = castle sits lower (more spire above center).
-     Lower  % = castle sits higher. */
-  --castle-anchor: 64%;
+  /* The point on the castle (as % down its own image) that lands at the
+     rainbow's center. ~98% = the castle's BASE sits on the centerline.
+     Lower the % to drop the castle; raise it to lift it further. */
+  --castle-anchor: 96%;
 
-  --toggle-loop: 14s;   /* full logo->castle->logo breathing cycle */
-  --orbit-loop: 14s;    /* glow's lap around the rainbow */
-  --pulse-loop: 5s;     /* glow brightness oscillation */
+  --toggle-loop: 14s;   /* full logo<->castle crossfade cycle */
   --ease-breath: cubic-bezier(0.37, 0, 0.63, 1); /* gentle sine-like in/out */
-}
-
-/* Registered so the glow's angle can animate smoothly around the loop */
-@property --glow-angle {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 0deg;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -55,8 +45,12 @@
 body {
   width: 100vw;
   height: 100vh;
-  /* Gradient sky image; current blue kept as fallback underneath */
-  background: #6578e2 url("assets/elements/sky.png") center / cover no-repeat;
+  /* Sky gradient locked to the viewport edges, stretched to fill any size
+     (fixed attachment + 100% 100% => no cropping or bottom cut-off). */
+  background: #6578e2 url("assets/elements/sky.png") no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  background-attachment: fixed;
   font-family: "ZoesHandwriting", cursive;
   overflow: hidden;
   position: relative;
@@ -73,7 +67,7 @@ body {
 
 /* ── CORNER SPIRALS ──────────────────────────────────
    Wrapper handles position + mouse parallax (JS sets transform).
-   Inner img handles a slow continuous float.
+   Inner img handles a slow continuous clockwise rotation.
    Positions are rough — nudge top/left/right/bottom to taste.
 ─────────────────────────────────────────────────── */
 .spiral {
@@ -93,21 +87,14 @@ body {
 .spiral-2 { top: 27vh; left: 14vw; width: clamp(45px, 6vw, 85px); }
 .spiral-3 { bottom: 8vh; right: 5vw; width: clamp(80px, 10vw, 150px); }
 
-.spiral-1 img { animation: float1 15s ease-in-out infinite; }
-.spiral-2 img { animation: float2 18s ease-in-out infinite; }
-.spiral-3 img { animation: float3 16s ease-in-out infinite; }
+/* Slow clockwise spin — vary the durations so they don't lock-step */
+.spiral-1 img { animation: spinCW 40s linear infinite; }
+.spiral-2 img { animation: spinCW 52s linear infinite; }
+.spiral-3 img { animation: spinCW 46s linear infinite; }
 
-@keyframes float1 {
-  0%,100% { transform: translateY(0)    rotate(0deg); }
-  50%      { transform: translateY(-9px) rotate(2deg); }
-}
-@keyframes float2 {
-  0%,100% { transform: translateY(0)    rotate(0deg); }
-  50%      { transform: translateY(7px)  rotate(-2deg); }
-}
-@keyframes float3 {
-  0%,100% { transform: translateY(0)     rotate(0deg); }
-  50%      { transform: translateY(-11px) rotate(2deg); }
+@keyframes spinCW {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }   /* clockwise */
 }
 
 /* ── TITLE TEXT IMAGES ── */
@@ -135,7 +122,6 @@ body {
    portal-inner    — real-height container (rainbow defines height)
    castle-link     — fills portal-inner, whole oval is clickable
    rainbow-portal  — sits on top, pointer-events:none lets clicks through
-   rainbow-shimmer — white sheen masked to the rainbow's exact shape
    castle-img / portal-logo — share ONE optical center, breathing swap
 ─────────────────────────────────────────────────── */
 .portal-wrap {
@@ -149,9 +135,7 @@ body {
 .portal-inner {
   position: relative;
   width: 100%;
-  animation: glowOrbit var(--orbit-loop) linear infinite;
 }
-@keyframes glowOrbit { to { --glow-angle: 360deg; } }
 .rainbow-portal {
   display: block;
   width: 100%;
@@ -159,74 +143,6 @@ body {
   pointer-events: none;
   position: relative;
   z-index: 2;
-}
-
-/* ── RAINBOW GLOW ────────────────────────────────────
-   A soft luminous arc that ORBITS the rainbow like a racetrack
-   (conic gradient rotated via --glow-angle), masked to the band.
-   Two layers: a contained core + a fainter outer halo that bleeds
-   past the oval edge. Brightness oscillates on its own rhythm.
-   White on 'screen' => brightens the existing colors, no new hues.
-─────────────────────────────────────────────────── */
-.rainbow-shimmer,
-.rainbow-halo-inner {
-  -webkit-mask-image: url("assets/elements/circle-rainbow.png");
-          mask-image: url("assets/elements/circle-rainbow.png");
-  -webkit-mask-size: 100% 100%;   mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
-}
-
-/* Core glow — stays within the rainbow band */
-.rainbow-shimmer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  filter: blur(5px);
-  background: conic-gradient(
-    from var(--glow-angle),
-    rgba(255,255,255,0)    0deg,
-    rgba(255,255,255,0.50) 26deg,
-    rgba(255,255,255,0)    66deg,
-    rgba(255,255,255,0)    360deg
-  );
-  animation: glowPulse var(--pulse-loop) ease-in-out infinite;
-}
-
-/* Outer halo — sits BEHIND the rainbow (z1). Blur is applied on this
-   wrapper (i.e. AFTER the inner mask) so the glow bleeds past the oval
-   edge. The opaque rainbow band hides the inward side, leaving only a
-   faint outer halo on the sky. */
-.rainbow-halo {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  filter: blur(22px);
-  animation: glowPulseHalo var(--pulse-loop) ease-in-out infinite;
-  animation-delay: -1.6s;   /* offset from the core for an organic feel */
-}
-.rainbow-halo-inner {
-  position: absolute;
-  inset: 0;
-  background: conic-gradient(
-    from var(--glow-angle),
-    rgba(255,255,255,0)    0deg,
-    rgba(255,255,255,0.70) 26deg,
-    rgba(255,255,255,0)    72deg,
-    rgba(255,255,255,0)    360deg
-  );
-}
-
-@keyframes glowPulse {       /* core brightness breathes */
-  0%, 100% { opacity: 0.40; }
-  50%      { opacity: 0.95; }
-}
-@keyframes glowPulseHalo {   /* halo, fainter */
-  0%, 100% { opacity: 0.16; }
-  50%      { opacity: 0.48; }
 }
 
 .castle-link {
@@ -255,8 +171,8 @@ body {
   animation: logoBreathe var(--toggle-loop) var(--ease-breath) infinite;
 }
 
-/* Castle: scaled + anchored on its BUILDING MASS (var --castle-anchor),
-   not the spire tip, so the swap doesn't lurch upward. */
+/* Castle: positioned so the point at var(--castle-anchor) down its image
+   lands on the rainbow's center (~96% => the castle base sits at center). */
 .castle-img {
   width: clamp(190px, 26vw, 330px);
   height: auto;
@@ -410,22 +326,17 @@ body {
 
 /* ══════════════════════════════════════════════════
    REDUCED MOTION — static fallback
-   Freeze every loop, show the wordmark, hide the castle,
-   turn off the shimmer. (Hover-to-reveal-castle still works.)
+   Freeze every loop, show the wordmark, hide the castle.
+   (Hover-to-reveal-castle still works.)
 ══════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .portal-inner,
   .portal-logo,
   .castle-img,
   .heart-guide-img,
-  .spiral img,
-  .rainbow-shimmer,
-  .rainbow-halo { animation: none !important; }
+  .spiral img { animation: none !important; }
 
   .portal-logo { opacity: 1; }
   .castle-img  { opacity: 0; }
-  .rainbow-shimmer,
-  .rainbow-halo { opacity: 0; }
   .spiral { transition: none; }
 }
 
@@ -478,14 +389,6 @@ body {
            src="assets/elements/circle-rainbow.png"
            alt="" aria-hidden="true">
 
-      <!-- Iridescent glow that orbits the rainbow band -->
-      <div class="rainbow-shimmer" id="rainbowShimmer" aria-hidden="true"></div>
-
-      <!-- Faint outer halo (sits behind the rainbow; only the bleed shows) -->
-      <div class="rainbow-halo" id="rainbowHalo" aria-hidden="true">
-        <div class="rainbow-halo-inner" id="rainbowHaloInner"></div>
-      </div>
-
     </div>
   </div>
 
@@ -510,22 +413,13 @@ body {
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ── Swap rainbow image + shimmer mask for mobile ── */
+  /* ── Swap rainbow image for mobile ── */
   function swapRainbow() {
     const img = document.getElementById('rainbowPortal');
-    const shimmer = document.getElementById('rainbowShimmer');
-    const haloInner = document.getElementById('rainbowHaloInner');
     if (!img) return;
-    const src = window.innerWidth <= 768
+    img.src = window.innerWidth <= 768
       ? 'assets/elements/circle-rainbow-m.png'
       : 'assets/elements/circle-rainbow.png';
-    img.src = src;
-    [shimmer, haloInner].forEach((el) => {
-      if (el) {
-        el.style.webkitMaskImage = `url("${src}")`;
-        el.style.maskImage = `url("${src}")`;
-      }
-    });
   }
   swapRainbow();
   window.addEventListener('resize', swapRainbow);
