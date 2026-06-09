@@ -739,22 +739,19 @@ html, body {
 
     try {
       const { data: { session } } = await sb.auth.getSession();
-
-      // Anonymize chatroom messages
-      const { data: profileData } = await sb.from('user-profiles').select('username').eq('id', session.user.id).single();
-      if (profileData?.username) {
-        await sb.from('chatroom').update({ name: 'deleted account' }).eq('name', profileData.username);
+      const res = await fetch('https://rrdfltqnrnvmqemyrfaj.supabase.co/functions/v1/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      const { success, error } = await res.json();
+      if (error) { alert('error: ' + error); return; }
+      if (success) {
+        await sb.auth.signOut();
+        window.location.href = '/index.html';
       }
-
-      // Delete user profile data
-      await sb.from('user-profiles').delete().eq('id', session.user.id);
-      await sb.from('games').delete().eq('user_id', session.user.id);
-      await sb.from('daily_entries').delete().eq('user_id', session.user.id);
-      await sb.from('diary_entries').delete().eq('user_id', session.user.id);
-
-      // Sign out and delete auth user
-      await sb.auth.signOut();
-      window.location.href = '/index.html';
     } catch (err) {
       alert('error deleting account: ' + err.message);
     }
