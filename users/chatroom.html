@@ -53,14 +53,36 @@ html, body {
   font-size: clamp(14px, 1.6vw, 20px);
   color: #111;
 }
-.nav-btn {
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 2px;
-  transition: background 0.15s;
+.nav-title {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  pointer-events: none; white-space: nowrap;
+  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px);
 }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { text-align: center; }
+
+/* ── Gear dropdown ── */
+.gear-wrap { position: relative; }
+.gear-btn {
+  width: 30px; height: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; transition: background 0.15s; padding: 3px;
+}
+.gear-btn:hover { background: rgba(0,0,0,0.08); }
+.gear-btn img { width: 22px; height: 22px; display: block; }
+.gear-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px;
+  background: #c9fff5; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.gear-dropdown.open { display: flex; }
+.gear-item {
+  font-family: var(--font-hand); font-size: clamp(13px, 1.3vw, 16px); color: #333;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+}
+.gear-item:hover { background: rgba(0,0,0,0.07); }
 
 /* ─────────────────────────────────────────────────
    PAGE LAYOUT
@@ -299,9 +321,20 @@ html, body {
 
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
-  <span class="nav-btn" id="nav-back">back</span>
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
   <span class="nav-title">the turret</span>
-  <span class="nav-btn" id="nav-next">next</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" id="nav-back">← back</span>
+    <span class="nav-btn" id="nav-next">next →</span>
+  </div>
 </nav>
 
 <div class="page-body">
@@ -332,6 +365,7 @@ html, body {
   </div>
 </div>
 
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
@@ -341,8 +375,20 @@ html, body {
 
   const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-  let currentUserId   = null;
-  let currentUsername = null;
+  /* ─── LocalStorage name persistence ─── */
+  const NAME_KEY = 'hb_chat_name';
+
+  function initNameField() {
+    const nameEl   = document.getElementById('chat-name');
+    const statusEl = document.getElementById('chat-status');
+    const saved    = localStorage.getItem(NAME_KEY);
+    if (saved) {
+      nameEl.value    = saved;
+      nameEl.readOnly = true;
+      nameEl.style.color = '#888';
+      statusEl.textContent = 'chatting as ' + saved + ' · not you? clear your browser data';
+    }
+  }
 
   /* ─── Helpers ─── */
   function escapeHtml(str) {
@@ -356,11 +402,18 @@ html, body {
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
+  function myName() {
+    return localStorage.getItem(NAME_KEY) ||
+           document.getElementById('chat-name').value.trim() ||
+           null;
+  }
+
   function renderMessage(msg) {
-    const isMine = currentUserId && msg.user_id === currentUserId;
-    const el     = document.createElement('div');
-    el.className = 'chat-message ' + (isMine ? 'mine' : 'theirs');
-    el.dataset.id = msg.id;
+    const savedName = localStorage.getItem(NAME_KEY);
+    const isMine    = savedName && msg.name === savedName;
+    const el        = document.createElement('div');
+    el.className    = 'chat-message ' + (isMine ? 'mine' : 'theirs');
+    el.dataset.id   = msg.id;
     el.innerHTML = `
       <div class="chat-bubble">${escapeHtml(msg.message)}</div>
       <div class="chat-meta">${escapeHtml(msg.name || 'anonymous')} · ${formatTime(msg.created_at)}</div>
@@ -409,29 +462,32 @@ html, body {
 
   /* ─── Send message ─── */
   window.sendMessage = async function () {
+    const nameEl   = document.getElementById('chat-name');
     const msgEl    = document.getElementById('chat-msg');
     const statusEl = document.getElementById('chat-status');
     const sendBtn  = document.getElementById('chat-send');
 
     const message = msgEl.value.trim();
     if (!message) return;
-    if (!currentUserId) {
-      statusEl.textContent = 'you must be logged in to chat';
-      return;
-    }
+
+    const name = nameEl.value.trim() || null;
 
     sendBtn.disabled = true;
 
-    const { error } = await supa.from(TABLE).insert({
-      name:    currentUsername,
-      message: message,
-      user_id: currentUserId,
-    });
+    const { error } = await supa.from(TABLE).insert({ name, message });
 
     if (error) {
       statusEl.textContent = 'something went wrong, try again';
       sendBtn.disabled = false;
       return;
+    }
+
+    // Lock name on first successful send
+    if (name && !localStorage.getItem(NAME_KEY)) {
+      localStorage.setItem(NAME_KEY, name);
+      nameEl.readOnly    = true;
+      nameEl.style.color = '#888';
+      statusEl.textContent = 'chatting as ' + name + ' · not you? clear your browser data';
     }
 
     msgEl.value      = '';
@@ -460,40 +516,25 @@ html, body {
     .subscribe();
 
   /* ─── Nav ─── */
+  window.toggleGear = function () {
+    document.getElementById('gear-dropdown').classList.toggle('open');
+  };
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('gear-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('gear-dropdown').classList.remove('open');
+    }
+  });
   document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../users/profile.html'; });
   document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../index.html'; });
+  document.getElementById('gear-logout').addEventListener('click', async () => {
+    await supa.auth.signOut();
+    window.location.href = '../users/login.html';
+  });
 
   /* ─── Init ─── */
-  async function init() {
-    const { data: { session } } = await supa.auth.getSession();
-    if (!session) {
-      window.location.href = '../users/login.html';
-      return;
-    }
-
-    currentUserId = session.user.id;
-
-    // Get username from profile
-    const { data: profile } = await supa
-      .from('user-profiles')
-      .select('username')
-      .eq('id', currentUserId)
-      .single();
-
-    currentUsername = profile?.username || session.user.email;
-
-    // Show name in input as readonly
-    const nameEl    = document.getElementById('chat-name');
-    const statusEl  = document.getElementById('chat-status');
-    nameEl.value    = currentUsername;
-    nameEl.readOnly = true;
-    nameEl.style.color = '#888';
-    statusEl.textContent = 'chatting as ' + currentUsername;
-
-    loadMessages();
-  }
-
-  init();
+  initNameField();
+  loadMessages();
 
 })();
 </script>
