@@ -332,7 +332,6 @@ html, body {
   </div>
 </div>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
@@ -342,20 +341,8 @@ html, body {
 
   const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-  /* ─── LocalStorage name persistence ─── */
-  const NAME_KEY = 'hb_chat_name';
-
-  function initNameField() {
-    const nameEl   = document.getElementById('chat-name');
-    const statusEl = document.getElementById('chat-status');
-    const saved    = localStorage.getItem(NAME_KEY);
-    if (saved) {
-      nameEl.value    = saved;
-      nameEl.readOnly = true;
-      nameEl.style.color = '#888';
-      statusEl.textContent = 'chatting as ' + saved + ' · not you? clear your browser data';
-    }
-  }
+  let currentUserId   = null;
+  let currentUsername = null;
 
   /* ─── Helpers ─── */
   function escapeHtml(str) {
@@ -369,18 +356,11 @@ html, body {
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  function myName() {
-    return localStorage.getItem(NAME_KEY) ||
-           document.getElementById('chat-name').value.trim() ||
-           null;
-  }
-
   function renderMessage(msg) {
-    const savedName = localStorage.getItem(NAME_KEY);
-    const isMine    = savedName && msg.name === savedName;
-    const el        = document.createElement('div');
-    el.className    = 'chat-message ' + (isMine ? 'mine' : 'theirs');
-    el.dataset.id   = msg.id;
+    const isMine = currentUserId && msg.user_id === currentUserId;
+    const el     = document.createElement('div');
+    el.className = 'chat-message ' + (isMine ? 'mine' : 'theirs');
+    el.dataset.id = msg.id;
     el.innerHTML = `
       <div class="chat-bubble">${escapeHtml(msg.message)}</div>
       <div class="chat-meta">${escapeHtml(msg.name || 'anonymous')} · ${formatTime(msg.created_at)}</div>
@@ -429,32 +409,29 @@ html, body {
 
   /* ─── Send message ─── */
   window.sendMessage = async function () {
-    const nameEl   = document.getElementById('chat-name');
     const msgEl    = document.getElementById('chat-msg');
     const statusEl = document.getElementById('chat-status');
     const sendBtn  = document.getElementById('chat-send');
 
     const message = msgEl.value.trim();
     if (!message) return;
-
-    const name = nameEl.value.trim() || null;
+    if (!currentUserId) {
+      statusEl.textContent = 'you must be logged in to chat';
+      return;
+    }
 
     sendBtn.disabled = true;
 
-    const { error } = await supa.from(TABLE).insert({ name, message });
+    const { error } = await supa.from(TABLE).insert({
+      name:    currentUsername,
+      message: message,
+      user_id: currentUserId,
+    });
 
     if (error) {
       statusEl.textContent = 'something went wrong, try again';
       sendBtn.disabled = false;
       return;
-    }
-
-    // Lock name on first successful send
-    if (name && !localStorage.getItem(NAME_KEY)) {
-      localStorage.setItem(NAME_KEY, name);
-      nameEl.readOnly    = true;
-      nameEl.style.color = '#888';
-      statusEl.textContent = 'chatting as ' + name + ' · not you? clear your browser data';
     }
 
     msgEl.value      = '';
@@ -483,12 +460,40 @@ html, body {
     .subscribe();
 
   /* ─── Nav ─── */
-  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../games/game-select.html'; });
+  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../users/profile.html'; });
   document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../index.html'; });
 
   /* ─── Init ─── */
-  initNameField();
-  loadMessages();
+  async function init() {
+    const { data: { session } } = await supa.auth.getSession();
+    if (!session) {
+      window.location.href = '../users/login.html';
+      return;
+    }
+
+    currentUserId = session.user.id;
+
+    // Get username from profile
+    const { data: profile } = await supa
+      .from('user-profiles')
+      .select('username')
+      .eq('id', currentUserId)
+      .single();
+
+    currentUsername = profile?.username || session.user.email;
+
+    // Show name in input as readonly
+    const nameEl    = document.getElementById('chat-name');
+    const statusEl  = document.getElementById('chat-status');
+    nameEl.value    = currentUsername;
+    nameEl.readOnly = true;
+    nameEl.style.color = '#888';
+    statusEl.textContent = 'chatting as ' + currentUsername;
+
+    loadMessages();
+  }
+
+  init();
 
 })();
 </script>
