@@ -291,7 +291,19 @@ html, body {
 }
 #tour-bubble-text {
   margin-bottom: 12px;
+  padding-right: 18px;
 }
+.tour-x {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  font-family: sans-serif;
+}
+.tour-x:hover { color: #000; }
 #tour-bubble-nav {
   display: flex;
   align-items: center;
@@ -306,26 +318,15 @@ html, body {
 }
 .tour-dot.active { background: var(--purple); }
 .tour-dots { display: flex; gap: 4px; align-items: center; flex: 1; }
-.tour-btn {
-  background: none;
-  border: 1.5px solid #999;
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: #666;
+.tour-arrow {
+  font-size: 16px;
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 4px;
-  transition: background 0.15s;
-  white-space: nowrap;
+  color: #000;
+  line-height: 1;
+  padding: 2px 4px;
+  font-family: sans-serif;
 }
-.tour-btn:hover { background: rgba(0,0,0,0.06); }
-.tour-btn-next {
-  background: var(--purple);
-  border-color: var(--purple);
-  color: #fff;
-  padding: 4px 12px;
-}
-.tour-btn-next:hover { background: var(--purple-dark); }
+.tour-arrow:hover { color: var(--purple); }
 .char-heart img {
   display: block;
   width: 100%; height: auto;
@@ -561,6 +562,7 @@ html, body {
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="thought-bubble">hello!</div>
   <div id="tour-bubble">
+    <span class="tour-x" onclick="endTour()">✕</span>
     <div id="tour-bubble-text"></div>
     <div id="tour-bubble-nav"></div>
   </div>
@@ -805,7 +807,6 @@ html, body {
 
   function startTour() {
     tourStep = 0;
-    heartEl.classList.add('tour-active');
     showTourStep();
   }
 
@@ -813,10 +814,12 @@ html, body {
     const step   = tourSteps[tourStep];
     const isLast = tourStep === tourSteps.length - 1;
 
-    // Move heart
+    // Move heart — only shrink when visiting icons, not on welcome step
     if (step.target) {
+      heartEl.classList.add('tour-active');
       moveHeartToIcon(step.target);
     } else {
+      heartEl.classList.remove('tour-active');
       heartEl.style.left   = '18vw';
       heartEl.style.bottom = '18vh';
     }
@@ -831,10 +834,7 @@ html, body {
 
     tourNav.innerHTML = `
       <div class="tour-dots">${dots}</div>
-      ${tourStep === 0 ? `<button class="tour-btn" onclick="endTour()">skip</button>` : ''}
-      <button class="tour-btn tour-btn-next" onclick="${isLast ? 'endTour()' : 'nextTourStep()'}">
-        ${isLast ? 'done ✓' : '→'}
-      </button>
+      <span class="tour-arrow" onclick="${isLast ? 'endTour()' : 'nextTourStep()'}">${isLast ? '✓' : '→'}</span>
     `;
 
     // Show bubble (small delay so position transition fires first)
