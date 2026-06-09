@@ -237,12 +237,16 @@ html, body {
   transition: left 0.7s cubic-bezier(0.4,0,0.2,1), bottom 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* ── TOUR ACTIVE: scale heart down ── */
+.char-heart.tour-active img {
+  width: 50%;
+}
+
 /* ── TOUR BUBBLE ── */
 #tour-bubble {
   position: absolute;
-  left: 50%;
-  bottom: calc(100% + 14px);
-  transform: translateX(-20%);
+  left: calc(100% + 10px);
+  bottom: 0;
   min-width: 200px;
   max-width: 260px;
   background: #fff;
@@ -258,31 +262,31 @@ html, body {
   display: none;
   pointer-events: auto;
   opacity: 0;
-  transform: translateX(-20%) translateY(6px);
+  transform: translateY(6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 #tour-bubble.visible {
   display: block;
   opacity: 1;
-  transform: translateX(-20%) translateY(0);
+  transform: translateY(0);
 }
 #tour-bubble::after {
   content: '';
   position: absolute;
-  bottom: -10px;
-  left: 24%;
+  top: 16px;
+  left: -10px;
   border: 8px solid transparent;
-  border-top-color: #000;
-  border-bottom: none;
+  border-right-color: #000;
+  border-left: none;
 }
 #tour-bubble::before {
   content: '';
   position: absolute;
-  bottom: -7px;
-  left: calc(24% + 1px);
+  top: 17px;
+  left: -7px;
   border: 7px solid transparent;
-  border-top-color: #fff;
-  border-bottom: none;
+  border-right-color: #fff;
+  border-left: none;
   z-index: 1;
 }
 #tour-bubble-text {
@@ -801,6 +805,7 @@ html, body {
 
   function startTour() {
     tourStep = 0;
+    heartEl.classList.add('tour-active');
     showTourStep();
   }
 
@@ -859,6 +864,7 @@ html, body {
   window.endTour = function () {
     tourBubble.classList.remove('visible');
     setTimeout(() => {
+      heartEl.classList.remove('tour-active');
       heartEl.style.left   = '18vw';
       heartEl.style.bottom = '18vh';
     }, 150);
