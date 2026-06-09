@@ -275,23 +275,46 @@ body {
 ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
+  /* ── Titles: rotated to sit along the oval's edge ──────────────
+     The standalone `rotate:` property does work, but the text also
+     needs to be positioned along the oval — so it's set together here.
+     KNOB: the angle in rotate(). Negative tilts the text UP toward the
+     right; positive tilts it DOWN toward the right. */
   .title-spiraling {
-    top: 10vh;
-    left: 4vw;
-    width: 80vw;
+    top: 6vh;
+    left: 0;
+    width: 74vw;
+    transform-origin: center;
+    transform: rotate(-18deg);
   }
   .title-dreaming {
-    top: 60vh;
-    bottom: auto;
-    right: 4vw;
-    width: 80vw;
-    rotate: 10deg
+    top: auto;
+    bottom: 6vh;
+    right: 0;
+    width: 74vw;
+    transform-origin: center;
+    transform: rotate(18deg);
   }
 
-  /* Move the whole portal up — change top% to reposition */
+  /* ── Rainbow: sized by HEIGHT so the portrait oval fits the screen ──
+     ONE knob: change the height on .portal-inner to resize the whole
+     portal. Smaller vh = smaller oval. The castle/logo re-center to it
+     automatically. (Width follows the image's aspect ratio.) */
   .portal-wrap {
-    top: 45vh;
-    width: 90vw;
+    top: 48%;
+    left: 50%;
+    width: max-content;       /* shrink the box to the rainbow */
+    max-width: 96vw;
+    transform: translate(-50%, -50%);
+  }
+  .portal-inner {
+    width: auto;
+    height: 64vh;             /* <-- MOBILE PORTAL SIZE KNOB */
+  }
+  .rainbow-portal {
+    width: auto;
+    height: 100%;             /* fill the height set above */
+    max-width: 96vw;
   }
 
   .castle-img  { width: clamp(120px, 34vw, 210px); }
