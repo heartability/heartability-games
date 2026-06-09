@@ -63,6 +63,7 @@ serve(async (req) => {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
+      allow_promotion_codes: true,
       success_url: `${req.headers.get('origin')}/users/profile.html?success=true`,
       cancel_url: `${req.headers.get('origin')}/membership.html?cancelled=true`,
       metadata: {
