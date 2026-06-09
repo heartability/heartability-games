@@ -35,8 +35,36 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   padding:0 clamp(12px,2vw,28px);
   font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111;
 }
+.nav-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  pointer-events:none; white-space:nowrap;
+  font-family:var(--font-hand); font-size:clamp(18px,2.2vw,28px);
+}
 .nav-btn { cursor:pointer; padding:4px 8px; transition:background .15s; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
+
+/* ── Gear dropdown ── */
+.gear-wrap { position:relative; }
+.gear-btn {
+  width:30px; height:30px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:3px; transition:background 0.15s; padding:3px;
+}
+.gear-btn:hover { background:rgba(0,0,0,0.08); }
+.gear-btn img { width:22px; height:22px; display:block; }
+.gear-dropdown {
+  position:absolute; top:calc(100% + 4px); left:0; min-width:170px;
+  background:var(--mint); border:2px solid #111;
+  box-shadow:3px 4px 0 rgba(0,0,0,0.12);
+  z-index:201; display:none; flex-direction:column; overflow:hidden;
+}
+.gear-dropdown.open { display:flex; }
+.gear-item {
+  font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333;
+  padding:9px 14px; cursor:pointer; border:none; background:none;
+  text-align:left; white-space:nowrap; transition:background 0.12s;
+}
+.gear-item:hover { background:rgba(0,0,0,0.07); }
 
 /* Game selector dropdown */
 /* ── PAGE HEADER — title + game selector ── */
@@ -483,9 +511,20 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="handleBack()">← back</span>
-  <span style="font-family:var(--font-hand);font-size:clamp(18px,2.2vw,28px);">adventure archive</span>
-  <span class="nav-btn" onclick="window.location.href='chart-room.html'">chart room →</span>
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
+  <span class="nav-title">adventure archive</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="handleBack()">← back</span>
+    <span class="nav-btn" onclick="window.location.href='chart-room.html'">next →</span>
+  </div>
 </nav>
 
 <div id="loading-state" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-pixel);font-size:24px;color:var(--aqua);background:#e8e3da;z-index:999;">loading your archive...</div>
@@ -822,6 +861,20 @@ function renderCharLayer(el, partId) {
 }
 
 // ── NAVIGATION ────────────────────────────────────────────
+function toggleGear() {
+  document.getElementById('gear-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('gear-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('gear-dropdown').classList.remove('open');
+  }
+});
+document.getElementById('gear-logout').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = '../users/login.html';
+});
+
 function handleBack() {
   if (!viewingSelector) {
     showMapSelector();
