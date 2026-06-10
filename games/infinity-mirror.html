@@ -593,7 +593,7 @@ function makeGrid(containerId, items, stateKey, allowNone) {
     const btn = document.createElement("div");
     btn.className = "part-btn";
     btn.dataset.id = item.id;
-    btn.innerHTML = `<img src="${ASSETS[item.id]}" alt="${item.label}" /><div class="part-name">${item.label}</div>`;
+    btn.innerHTML = `<img src="${ASSETS[item.id]}" alt="${item.label}" loading="lazy"/><div class="part-name">${item.label}</div>`;
     btn.addEventListener("click", () => {
       state[stateKey] = state[stateKey] === item.id ? null : item.id;
       save(); render();
