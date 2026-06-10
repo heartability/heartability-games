@@ -888,7 +888,7 @@ async function deleteMap(gameId, mapName) {
 function stepNewGame() {
   showAddNew(false);
   currentStep = 'map';
-  setBubble('build your map, then save it to begin', []);
+  setBubble('build a map to begin!', []);
   const src = '../games/treasure-map.html?mode=new&loop=true';
   showIframe(src);
   setSaveBtnVisible(true, 'save map &amp; continue →');
@@ -902,7 +902,7 @@ async function stepLoadGame() {
     showLoginModal();
     return;
   }
-  setBubble('choose your map for today', []);
+  setBubble('which dream are we chasing?', []);
   setSaveBtnVisible(false);
   showAddNew(true);
 
@@ -1047,7 +1047,7 @@ function stepPhaseSelect() {
   const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
   const zoneCount = mapType === 'square' ? 4 : 3;
 
-  setBubble(`where are you on the map today?`, []);
+  setBubble(`what are you navigating today?`, []);
   setSaveBtnVisible(false);
 
   const svgContent = mapType === 'square'
@@ -1134,7 +1134,7 @@ function selectPhase(idx) {
 function stepBegin() {
   if (!activePhase) return;
   currentStep = 'character';
-  setBubble('build your character for today ♡', []);
+  setBubble('who do you feel like today?', []);
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'loading...');
@@ -1144,7 +1144,7 @@ function stepBegin() {
 // ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
 function stepBingo() {
   currentStep = 'bingo';
-  setBubble('check in with your heart meter', []);
+  setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'save &amp; finish →');
@@ -1294,7 +1294,7 @@ async function assembleTodayMatrixData(dateStr){
 
 async function stepDone() {
   currentStep = 'done';
-  setBubble("today's entry is complete ✓");
+  setBubble("your entry is complete!");
   const today = new Date().toLocaleDateString('en-CA');
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;">gathering your day…</div></div>');
   const data = await assembleTodayMatrixData(today);
