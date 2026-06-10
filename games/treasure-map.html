@@ -669,7 +669,7 @@ function buildSpiralSVG() {
   ZONE_POSITIONS = [
     { x: 252, y: 198 },  // center
     { x: 372, y: 288 },  // bottom right orange
-    { x: 168, y: 100 },  // upper area
+    { x: 168, y: 40 },  // upper area
   ];
   renderZoneCircles();
 }
@@ -687,14 +687,14 @@ function renderZoneCircles() {
       const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
       grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
       const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','0.5');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','1');
       const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s2.setAttribute('offset','65%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.18');
+      s2.setAttribute('offset','55%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.85');
       const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
       s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
       grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
       const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 28);
+      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 48);
       halo.setAttribute('fill', `url(#${gradId})`); halo.style.pointerEvents = 'none';
       zoneGroup.appendChild(halo);
     }
@@ -772,14 +772,14 @@ function renderSquareZones() {
       const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
       grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
       const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','0.5');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','1');
       const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s2.setAttribute('offset','65%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.18');
+      s2.setAttribute('offset','55%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.85');
       const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
       s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
       grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
       const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 28);
+      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 48);
       halo.setAttribute('fill', `url(#sq-halo-${i})`); halo.style.pointerEvents = 'none';
       zoneGroup.appendChild(halo);
     }
