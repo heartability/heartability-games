@@ -122,12 +122,12 @@ html, body {
 
 .tier-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
   width: 100%;
-  max-width: 780px;
+  max-width: 900px;
 }
-@media (max-width: 580px) { .tier-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .tier-grid { grid-template-columns: 1fr; } }
 
 .window {
   background: var(--cream);
@@ -267,7 +267,35 @@ html, body {
 }
 #main-content { display: none; }
 
-/* ── LEGAL FOOTER ── */
+/* ── BILLING TOGGLE ── */
+.billing-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--purple);
+  overflow: hidden;
+  align-self: flex-start;
+}
+.billing-opt {
+  padding: 4px 12px;
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1vw, 13px);
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--purple);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.billing-opt.active { background: var(--purple); color: #fff; }
+.billing-opt + .billing-opt { border-left: 1.5px solid var(--purple); }
+
+/* ── FREE TIER ── */
+.window.free {
+  box-shadow: 0 0 0 2px #ccc, 4px 8px 28px rgba(0,0,0,0.15);
+  animation-delay: 0s;
+}
+.free .window-titlebar { background: var(--cream-dark); }
+.free .feature-check { color: #aaa; }
 .legal-footer {
   position: fixed;
   bottom: 12px;
@@ -330,44 +358,67 @@ html, body {
 
   <div class="tier-grid">
 
-    <div class="window basic">
-      <div class="window-titlebar"><span>basic membership</span></div>
+    <!-- FREE -->
+    <div class="window free">
+      <div class="window-titlebar"><span>free</span></div>
       <div class="window-body">
         <div class="price-block">
-          <span class="price-amount">$8</span>
-          <span class="price-period">/ month</span>
+          <span class="price-amount">$0</span>
+          <span class="price-period">/ forever</span>
         </div>
-        <div class="price-note">billed monthly, cancel anytime</div>
+        <div class="price-note">no credit card required</div>
         <hr class="divider" />
         <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>track up to eight active treasure maps</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>build an archive of your travel logs</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>join the community group chat</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>save data for one goal and view archive</span></div>
         </div>
         <hr class="divider" />
-        <button class="btn-basic" id="btn-basic" onclick="checkout('basic')">become a basic member</button>
+        <button class="btn-basic" onclick="window.location.href='login.html'" style="background:#aaa;border-color:#999;box-shadow:2px 2px 0 #888;">create free account</button>
       </div>
     </div>
 
+    <!-- COMMUNITY -->
+    <div class="window basic">
+      <div class="window-titlebar"><span>community</span></div>
+      <div class="window-body">
+        <div class="billing-toggle">
+          <button class="billing-opt active" id="opt-monthly" onclick="setBilling('monthly')">monthly</button>
+          <button class="billing-opt" id="opt-yearly" onclick="setBilling('yearly')">yearly</button>
+        </div>
+        <div class="price-block">
+          <span class="price-amount" id="community-price">$8</span>
+          <span class="price-period" id="community-period">/ month</span>
+        </div>
+        <div class="price-note" id="community-note">billed monthly, cancel anytime</div>
+        <hr class="divider" />
+        <div class="features">
+          <div class="feature-item"><span class="feature-check">✦</span><span>save data for unlimited goals</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>community group chat</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>20% off in gift shop</span></div>
+        </div>
+        <hr class="divider" />
+        <button class="btn-basic" id="btn-community" onclick="checkout('community')">join the community</button>
+      </div>
+    </div>
+
+    <!-- FOUNDING -->
     <div class="window founding">
       <div class="window-titlebar">
-        <span>founding membership</span>
-        <span class="titlebar-badge">best value</span>
+        <span>founder</span>
+        <span class="titlebar-badge">100 spots</span>
       </div>
       <div class="window-body">
         <div class="price-block">
-          <span class="price-amount">$88</span>
-          <span class="price-period">/ year</span>
+          <span class="price-amount">$1,000</span>
         </div>
-        <div class="price-note">save $8 annually</div>
+        <div class="price-note">one time payment · forever access</div>
         <hr class="divider" />
         <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>everything in the basic tier</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>lock in rate so price never increases for you</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>support the future of heartability</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>only 100 spots available</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>put your name on a brick in the 2d world</span></div>
+          <div class="feature-item"><span class="feature-check">✦</span><span>be a part of our creation story</span></div>
         </div>
         <hr class="divider" />
-        <button class="btn-founding" id="btn-founding" onclick="checkout('founding')">become a founding member</button>
+        <button class="btn-founding" id="btn-founding" onclick="checkout('founding')">become a founder</button>
       </div>
     </div>
 
@@ -389,23 +440,40 @@ html, body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
+
 (function () {
   const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
-  document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
   document.getElementById('gear-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = 'login.html'; });
 
-  // ── TODO: Replace with your actual Stripe Price IDs ──
   const PRICE_IDS = {
-    basic:    'price_1TX47YA6JE5MLfPsIZAXk3QY',
-    founding: 'price_1TX47dA6JE5MLfPsrHaY0Uzu'
+    community_monthly: 'price_1TX47YA6JE5MLfPsIZAXk3QY',
+    community_yearly:  'price_1Tga4bA6JE5MLfPsJ5pzjRgo',
+    founding:          'price_1TgaQqA6JE5MLfPs5oPFirei',
   };
 
-  let currentSession = null;
+  let currentBilling  = 'monthly';
+  let currentSession  = null;
+
+  window.setBilling = function (type) {
+    currentBilling = type;
+    document.getElementById('opt-monthly').classList.toggle('active', type === 'monthly');
+    document.getElementById('opt-yearly').classList.toggle('active', type === 'yearly');
+    if (type === 'monthly') {
+      document.getElementById('community-price').textContent  = '$8';
+      document.getElementById('community-period').textContent = '/ month';
+      document.getElementById('community-note').textContent   = 'billed monthly, cancel anytime';
+    } else {
+      document.getElementById('community-price').textContent  = '$88';
+      document.getElementById('community-period').textContent = '/ year';
+      document.getElementById('community-note').textContent   = 'save $8 annually';
+    }
+  };
 
   async function init() {
     const params = new URLSearchParams(window.location.search);
@@ -431,10 +499,18 @@ html, body {
       return;
     }
 
-    const priceId = PRICE_IDS[tier];
-    const btnId   = tier === 'basic' ? 'btn-basic' : 'btn-founding';
-    const btn     = document.getElementById(btnId);
+    let priceId, btnId, paymentMode;
+    if (tier === 'community') {
+      priceId     = currentBilling === 'monthly' ? PRICE_IDS.community_monthly : PRICE_IDS.community_yearly;
+      btnId       = 'btn-community';
+      paymentMode = 'subscription';
+    } else {
+      priceId     = PRICE_IDS.founding;
+      btnId       = 'btn-founding';
+      paymentMode = 'payment';
+    }
 
+    const btn = document.getElementById(btnId);
     btn.disabled = true;
     btn.classList.add('btn-loading');
     btn.textContent = 'preparing checkout...';
@@ -448,7 +524,7 @@ html, body {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${currentSession.access_token}`
           },
-          body: JSON.stringify({ priceId, tier })
+          body: JSON.stringify({ priceId, tier, paymentMode })
         }
       );
 
@@ -460,7 +536,7 @@ html, body {
       console.error(err);
       btn.disabled = false;
       btn.classList.remove('btn-loading');
-      btn.textContent = tier === 'basic' ? 'become a basic member' : 'become a founding member ✦';
+      btn.textContent = tier === 'community' ? 'join the community' : 'become a founder';
       alert('something went wrong — please try again');
     }
   };
