@@ -208,11 +208,19 @@ body.game-mode .char-heart {
 
 .game-close-btn {
   position: absolute; top: 8px; right: 10px; z-index: 2;
-  font-family: var(--font-hand); font-size: 18px; color: #333);
+  font-family: var(--font-hand); font-size: 18px; color: #333;
   background: rgba(240,236,228,0.88); border: none; cursor: pointer;
   padding: 4px 10px; transition: color 0.12s;
 }
 .game-close-btn:hover { color: #333; }
+
+.game-howto-btn {
+  position: absolute; top: 8px; left: 10px; z-index: 2;
+  font-family: var(--font-hand); font-size: 14px; color: var(--blue);
+  background: rgba(240,236,228,0.88); border: 1.5px solid var(--blue);
+  cursor: pointer; padding: 4px 10px; transition: background 0.12s;
+}
+.game-howto-btn:hover { background: rgba(101,121,226,0.1); }
 
 .game-panel iframe {
   width: 100%; height: 100%; border: none; display: block;
@@ -756,6 +764,7 @@ body.game-mode .char-heart {
 
 <!-- GAME PANEL — back wall iframe for games  z:10 -->
 <div class="game-panel" id="game-panel">
+  <button class="game-howto-btn" id="game-howto-btn" onclick="reopenHowto()">how to play</button>
   <button class="game-close-btn" onclick="closeGame()">×</button>
 </div>
 
@@ -826,6 +835,7 @@ body.game-mode .char-heart {
 </div>
 
 <!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay" onclick="handleOverlayClick(event)">
   <div class="login-popup">
     <div class="login-popup-titlebar">
       <span id="login-popup-title">welcome</span>
@@ -993,7 +1003,6 @@ const HOWTO_CONTENT = {
   'treasure-map': {
     title: 'treasure map',
     steps: `how to play:
-
 1. think of a dream you want to pursue
 2. close your eyes and imagine it coming true. use the prompts in the map builder to build a metaphorical representation of how you feel now, how you expect this process to feel and what you are looking to discover.
 3. save this map to return to when you start to feel lost on your journey.`
@@ -1001,7 +1010,6 @@ const HOWTO_CONTENT = {
   'infinity-mirror': {
     title: 'infinity mirror',
     steps: `how to play:
-
 1. close your eyes and take a deep breath.
 2. imagine looking in a mirror and asking: how are you feeling today?
 3. try to recreate the essence of that reflection into the infinity mirror.`
@@ -1009,7 +1017,6 @@ const HOWTO_CONTENT = {
   'bingo': {
     title: 'bingo',
     steps: `how to play:
-
 1. select the true statements.
 2. read your heart meter.
 3. reflect on where you can gather resources.`
@@ -1024,6 +1031,8 @@ function openGame(slug) {
     pendingGameSlug = slug;
     document.getElementById('howto-title').textContent = content.title;
     document.getElementById('howto-steps').textContent = content.steps;
+    // Launch game behind the overlay first
+    launchGame(slug);
     document.getElementById('howto-overlay').classList.add('open');
   } else {
     launchGame(slug);
@@ -1041,10 +1050,20 @@ function handleHowtoOverlayClick(e) {
 
 function launchPendingGame() {
   document.getElementById('howto-overlay').classList.remove('open');
-  if (pendingGameSlug) launchGame(pendingGameSlug);
+  pendingGameSlug = null;
+}
+
+function reopenHowto() {
+  if (!pendingGameSlug) return;
+  const content = HOWTO_CONTENT[pendingGameSlug];
+  if (!content) return;
+  document.getElementById('howto-title').textContent = content.title;
+  document.getElementById('howto-steps').textContent = content.steps;
+  document.getElementById('howto-overlay').classList.add('open');
 }
 
 function launchGame(slug) {
+  pendingGameSlug = slug;
   document.body.classList.add('game-mode');
   const panel  = document.getElementById('game-panel');
   const iframe = document.createElement('iframe');
@@ -1065,6 +1084,8 @@ function closeGame() {
   const heart = document.getElementById('char-heart');
   heart.classList.remove('guide-mode', 'active');
   document.getElementById('heart-bubble').textContent = '';
+  document.getElementById('howto-overlay').classList.remove('open');
+  pendingGameSlug = null;
 }
 
 // ── Login popup helpers ────────────────────────────────────
