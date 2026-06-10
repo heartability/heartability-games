@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chart Room — Heartability</title>
+<title>Progress Tracker — Heartability</title>
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
@@ -484,7 +484,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <!-- NAV -->
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
-  <span>chart room</span>
+  <span>progress tracker</span>
   <span></span>
 </nav>
 
@@ -693,7 +693,7 @@ function setSaveBtnVisible(visible, label='save &amp; continue →') {
   }
 }
 
-// ── SAVE & CONTINUE — chart-room owns all saving ─────────
+// ── SAVE & CONTINUE — progress tracker owns all saving ─────────
 async function saveAndContinue() {
   const btn = document.getElementById('save-continue-btn');
   btn.disabled = true;
@@ -1060,7 +1060,7 @@ function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
   setBubble('write your adventure notes ♡', []);
-  const src = `../games/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}`;
+  const src = `../users/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}`;
   showIframe(src);
   setSaveBtnVisible(true, 'save notes &amp; finish →');
 }
