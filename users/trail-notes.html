@@ -142,11 +142,11 @@ html, body {
   font-style: italic;
 }
 
-/* ── PAST-ENTRY NAVIGATION (bottom-right of right page) ── */
+/* ── PAST-ENTRY NAVIGATION (bottom-left of left page) ── */
 .entry-nav {
   position: absolute;
-  bottom: 4%;
-  left: 9%;
+  bottom: 8%;
+  left: 3%;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -184,8 +184,8 @@ html, body {
 /* ── PAPERCLIP PHOTO UPLOAD (left page, top) ── */
 .img-upload-btn {
   position: absolute;
-  top: 0.5%;
-  left: 26%;
+  top: 0%;
+  left: 10%;
   width: clamp(30px, 5%, 56px);
   height: auto;
   background: none;
@@ -317,7 +317,7 @@ html, body {
 
     <!-- Journal entry on the RIGHT page -->
     <textarea class="note-textarea" id="note-textarea"
-      placeholder="anything you want to put on the record about today..."
+      placeholder="what needs to be put on record about today?"
       maxlength="4000"></textarea>
 
     <span class="note-entry-label" id="entry-label"></span>
@@ -334,7 +334,7 @@ html, body {
     </div>
     <input type="file" id="img-file-input" accept="image/*">
 
-    <p class="upload-note">Upload a picture of your travels today &mdash; a park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence. Add it to your moodboard of the day.</p>
+    <p class="upload-note">Upload a picture to your daily moodboard. It could be a park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence. What do you want to remember?</p>
 
     <div class="uploaded-img-wrap" id="img-preview-wrap">
       <img class="uploaded-img-preview" id="img-preview" src="" alt="uploaded">
