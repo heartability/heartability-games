@@ -392,8 +392,8 @@ body, .wall { background: #f0ead6; }
         <div class="side-panel">
 
           <div>
-            <div class="section-header">name your goal</div>
-            <input class="map-input" id="mapName" type="text" placeholder="i am working toward..." maxlength="60" oninput="onNameInput()">
+            <div class="section-header">name your dream</div>
+            <input class="map-input" id="mapName" type="text" placeholder="i dream of..." maxlength="60" oninput="onNameInput()">
           </div>
 
           <!-- Map shape selector with label -->
@@ -1032,9 +1032,9 @@ async function saveToday() {
   // ── NEW GAME — create games row only, no daily entry yet ──
   if (!currentGameId) {
     if (!mapName) {
-      showSaveStatus('name your goal first!', '#ff6b6b');
+      showSaveStatus('name your dream first!', '#ff6b6b');
       if (btn) btn.textContent = 'save';
-      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your goal first' }, '*'); } catch(e) {}
+      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your dream first' }, '*'); } catch(e) {}
       return;
     }
     const { data: newGame, error } = await sb.from('games').insert({
@@ -1077,7 +1077,7 @@ function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
     let games   = JSON.parse(localStorage.getItem('hb_games')   || '[]');
     let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
     if (!currentGameId) {
-      if (!mapName) { showSaveStatus('name your goal first!', '#ff6b6b'); btn.textContent = 'save'; return; }
+      if (!mapName) { showSaveStatus('name your dream first!', '#ff6b6b'); btn.textContent = 'save'; return; }
       const newId = 'guest_' + Date.now();
       games.push({ id: newId, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active',
         created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
