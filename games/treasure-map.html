@@ -664,12 +664,13 @@ function buildSpiralSVG() {
   // Hide old drawn path
   document.getElementById('spiralPath').setAttribute('d', '');
 
-  // 3 zone positions spread across the spiral
-  const zoneThetaValues = [9.4, 13.3, 14.9];
-  ZONE_POSITIONS = zoneThetaValues.map(t => ({
-    x: cx + b * t * Math.cos(t),
-    y: cy - b * t * Math.sin(t)
-  }));
+  // Hardcoded positions to match PNG spiral
+  // Zone 1: center, Zone 2: bottom right orange, Zone 3: outer top right
+  ZONE_POSITIONS = [
+    { x: 252, y: 198 },  // center
+    { x: 372, y: 288 },  // bottom right orange area
+    { x: 382, y: 332 },  // outer
+  ];
   renderZoneCircles();
 }
 
