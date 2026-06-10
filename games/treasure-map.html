@@ -198,13 +198,13 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
   border-left-color: #c8b88a; border-top-color: #c8b88a;
 }
-.weather-category.sunny { background: #edae7e; ; border-color: #8f4106; }
+.weather-category.sunny { background: #f2e6a8; ; border-color: #715f04; }
 .weather-category.rainy { background: #ae87e2; border-color: #260156; }
 .weather-category.windy { background: #a3eac9; border-color: #046957; }
 .weather-category.snowy { background: rgb(108, 209, 234); border-color: #033f50; }
 
 .weather-cat-header { font-family: var(--font-hand); font-size: 20px; margin-bottom: 6px; }
-.sunny .weather-cat-header { color: #8f4106; }
+.sunny .weather-cat-header { color: #715f04; }
 .rainy .weather-cat-header { color: #260156; }
 .windy .weather-cat-header { color: #046957; }
 .snowy .weather-cat-header { color: #033f50; }
@@ -218,7 +218,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .feeling-chip:hover { filter: brightness(0.92); }
 .feeling-chip.active { outline: 2px solid var(--text-dark); outline-offset: 1px; }
 
-.sunny .feeling-chip { background: #f1c7a7; border-color: #8f4106; color: #8f4106; }
+.sunny .feeling-chip { background: #f2e6a8; border-color: #715f04; color: #715f04; }
 .rainy .feeling-chip { background: #c9b3e7; border-color: #260156; color: #260156; }
 .windy .feeling-chip { background: #b6e7d0; border-color: #046957; color: #046957; }
 .snowy .feeling-chip { background: #a0d7e6; border-color: #033f50; color: #033f50; }
@@ -489,7 +489,7 @@ const TERRAIN = [
 ];
 
 const WEATHER_CATS = [
-  { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2c6a8", feelings:["trust","peace","joy","hope","confidence"]          },
+  { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"]          },
   { id:"rainy", label:"rainy", cls:"rainy", tint:"#c9b3e7",  feelings:["shadows","worry","fear","depression","regret"]      },
   { id:"windy", label:"windy", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
   { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock"]   },
