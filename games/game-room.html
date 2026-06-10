@@ -72,27 +72,8 @@ html, body {
 .art-about    { left: 2vw;  top: 28vh; width: clamp(60px, 9vw, 130px); }
 .art-calendar { right: 2vw; top: 28vh; width: clamp(60px, 9vw, 130px); }
 
-/* Fade wall art in game or track mode */
-body.game-mode .wall-art,
-body.track-mode .wall-art { opacity: 0; pointer-events: none; }
-
-/* ── Calendar overlay ── */
-.calendar-wrapper { position: relative; display: block; }
-.calendar-wrapper img {
-  display: block; width: 100%; height: auto;
-  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2)); transition: filter 0.2s;
-}
-.art-calendar:hover .calendar-wrapper img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
-.cal-month {
-  position: absolute; top: 3%; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-hand); font-size: clamp(22px, 3vw, 66px);
-  color: #fff; pointer-events: none; white-space: nowrap;
-}
-.cal-day {
-  position: absolute; top: 36%; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-hand); font-size: clamp(33px, 5vw, 66px);
-  color: #222; pointer-events: none; line-height: 1;
-}
+/* Fade wall art in game mode */
+body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 
 /* ── Nav ── */
 .room-nav {
@@ -172,7 +153,6 @@ body.track-mode .wall-art { opacity: 0; pointer-events: none; }
 .char-heart.active .char-img { animation: hover-bounce 0.55s ease-in-out infinite; }
 
 /* Guide mode: Heart moves to side area during track/game mode */
-body.track-mode .char-heart,
 body.game-mode .char-heart {
   left: 1vw;
   bottom: 8vh;
@@ -225,16 +205,6 @@ body.game-mode .char-heart {
 .game-panel iframe {
   width: 100%; height: 100%; border: none; display: block;
 }
-
-/* ── Track content panel — back wall steps  z:10 ── */
-.track-panel {
-  position: fixed;
-  top: var(--bw-top); left: var(--bw-left);
-  width: var(--bw-width); height: var(--bw-height);
-  z-index: 10; display: none; flex-direction: column; overflow: hidden;
-}
-.track-panel.active { display: flex; }
-.track-panel.iframe-mode { border: 3px solid #111; box-shadow: inset 0 0 0 2px var(--aqua); }
 
 /* ── Letter overlay  z:50 ── */
 .letter-overlay {
@@ -661,8 +631,7 @@ body.game-mode .char-heart {
 
 /* ── Mobile ── */
 @media (max-width: 655px) {
-  /* Room structure preserved — only reposition art elements */
-  body.track-mode .char-heart, body.game-mode .char-heart { display: none; }
+  body.game-mode .char-heart { display: none; }
   .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
   .art-map      { left: 20vw; top: 20vh; width: 32vw; }
   .art-mirror   { left: 20vw; top: 40vh; width: 28vw; }
@@ -677,10 +646,9 @@ body.game-mode .char-heart {
   .journal-left-page { font-size: clamp(10px, 3vw, 13px); }
 }
 
-/* When a game or track panel is open on mobile, go full-bleed */
+/* When a game panel is open on mobile, go full-bleed */
 @media (max-width: 655px) {
-  body.game-mode .game-panel,
-  body.track-mode .track-panel {
+  body.game-mode .game-panel {
     top: 44px !important; left: 0 !important;
     width: 100% !important; height: calc(100dvh - 44px) !important;
   }
@@ -724,12 +692,10 @@ body.game-mode .char-heart {
 </div>
 
 <!-- CALENDAR TRACKER -->
-<div class="art-calendar wall-art" id="art-calendar" role="button" tabindex="0">
-  <div class="calendar-wrapper">
-    <img src="../assets/elements/calendar tracker.png" alt="Track today">
-    <div class="cal-month" id="cal-month"></div>
-    <div class="cal-day"   id="cal-day"></div>
-  </div>
+<div class="art-calendar wall-art" id="art-calendar" role="button" tabindex="0" onclick="window.location.href='../games/progress-tracker.html'">
+  <img src="../assets/elements/calendar tracker.png" alt="Track today">
+  <div class="cal-month" id="cal-month"></div>
+  <div class="cal-day"   id="cal-day"></div>
 </div>
 
 <!-- ROOM LINES -->
@@ -767,9 +733,6 @@ body.game-mode .char-heart {
   <button class="game-howto-btn" id="game-howto-btn" onclick="reopenHowto()">how to play</button>
   <button class="game-close-btn" onclick="closeGame()">×</button>
 </div>
-
-<!-- TRACK PANEL — back wall steps  z:10 -->
-<div class="track-panel" id="track-panel"></div>
 
 <!-- ABOUT LETTER -->
 <div class="letter-overlay hidden" id="about-overlay">
@@ -963,14 +926,6 @@ function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime
     art.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') openGame(art.dataset.game); });
   });
 
-  // Calendar → track
-  const calArt = document.getElementById('art-calendar');
-  calArt.addEventListener('click', () => {
-    if (!currentUser) { loginAfterwards = 'track'; openLoginPopup('log in to track your day'); }
-    else              { openTrackMode(); }
-  });
-  calArt.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') calArt.click(); });
-
   // About letter
   const aboutOverlay = document.getElementById('about-overlay');
   const aboutPaper   = document.getElementById('about-paper');
@@ -983,11 +938,10 @@ function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime
   aboutClose.addEventListener('click', closeAbout);
   aboutOverlay.addEventListener('click', e => { if (e.target===aboutOverlay) closeAbout(); });
 
-  // ESC closes game or track
+  // ESC closes game
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (document.body.classList.contains('game-mode'))  closeGame();
-      else if (document.body.classList.contains('track-mode')) closeTrackMode();
+      if (document.body.classList.contains('game-mode')) closeGame();
     }
   });
 })();
@@ -1153,46 +1107,7 @@ function setBubble(text) {
   if (heart)  heart.classList.add('guide-mode');
 }
 
-// ── Track mode ─────────────────────────────────────────────
-function openTrackMode() {
-  document.body.classList.add('track-mode');
-  pendingSession = { charState: null, bingoState: null };
-  stepLoadGame();
-}
-function closeTrackMode() {
-  document.body.classList.remove('track-mode');
-  hideTrackPanel();
-  setContinueVisible(false);
-  setAddNew(false);
-  document.getElementById('journal-overlay').classList.remove('open');
-  const heart = document.getElementById('char-heart');
-  heart.classList.remove('guide-mode', 'active');
-  document.getElementById('heart-bubble').textContent = '';
-  activeGameId=null; activeGameData=null; activePhase=null;
-  pendingSession={charState:null,bingoState:null}; currentStep=null;
-}
-
 // ── Panel helpers ──────────────────────────────────────────
-function showTrackPanel(html) {
-  const panel = document.getElementById('track-panel');
-  panel.innerHTML = html; panel.classList.remove('iframe-mode'); panel.classList.add('active');
-}
-function hideTrackPanel() {
-  const panel = document.getElementById('track-panel');
-  panel.classList.remove('active','iframe-mode'); panel.innerHTML = '';
-}
-function showTrackIframe(src) {
-  const panel = document.getElementById('track-panel');
-  panel.innerHTML = `<iframe style="width:100%;height:100%;border:none;display:block;" src="${src}" id="game-iframe"></iframe>`;
-  panel.classList.add('active','iframe-mode');
-}
-function setAddNew(v) { document.getElementById('add-new-btn').classList.toggle('visible', v); }
-function setContinueVisible(v, label='continue →') {
-  const bar = document.getElementById('continue-bar');
-  const btn = document.getElementById('continue-btn');
-  bar.classList.toggle('visible', v);
-  if (btn) { btn.innerHTML = label; btn.disabled = false; }
-}
 function showStatus(msg, color, duration=3000) {
   const el = document.getElementById('status-bar');
   el.textContent = msg; el.style.color = color || '#6ab86a';
@@ -1684,8 +1599,7 @@ async function popupLogin(e) {
     showPopupMsg('popup-login-msg',`welcome back, ${username}`,'success');
     setTimeout(()=>{
       closeLoginPopup();
-      if(loginAfterwards==='track'){loginAfterwards=null;openTrackMode();}
-      else if(loginAfterwards==='save'){loginAfterwards=null;saveToday();}
+      if(loginAfterwards==='save'){loginAfterwards=null;saveToday();}
     },900);
   }
 }
@@ -1703,7 +1617,7 @@ async function popupSignup(e) {
     await sb.from('user-profiles').insert({id:data.user.id,username});
     currentUser=data.user; updateGearMenu(username);
     showPopupMsg('popup-signup-msg',`welcome, ${username}`,'success');
-    setTimeout(()=>{closeLoginPopup();if(loginAfterwards==='track'){loginAfterwards=null;openTrackMode();}},900);
+    setTimeout(()=>{closeLoginPopup();},900);
   }
 }
 
