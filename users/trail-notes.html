@@ -3,573 +3,409 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Trail Notes — Heartability</title>
+<title>Trail Notes — Heartability</title>
 <style>
-
 @font-face {
   font-family: "ZoesHandwriting";
   src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
-@font-face {
-  font-family: "PFPixelscript";
-  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
+* { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --font-hand:   "ZoesHandwriting", cursive;
-  --font-pixel:  "PFPixelscript", cursive;
-  --back-wall:   #f0ece4;
-  --side-col:    #dbd6ce;
-  --line-col:    #111;
-  --blue:        #6579e2;
-  --aqua:        #83d2e6;
-  --bw-top:    9%;
-  --bw-left:   15%;
-  --bw-width:  70%;
-  --bw-height: 70%;
+  --font-hand: "ZoesHandwriting", cursive;
+  --blue: #6579e2;
+  --aqua: #83d2e6;
+  --cream: #f5f0ea;
+  --cream-dark: #e8e3da;
+  --brown: #5a4a2a;
 }
-
 html, body {
-  width: 100vw; height: 100dvh;
-  overflow: hidden; user-select: none;
-  background: var(--side-col);
-}
-
-/* ── Room lines ── */
-.room-lines { position:fixed; inset:0; z-index:2; pointer-events:none; }
-.room-lines svg { width:100%; height:100%; display:block; overflow:visible; }
-
-/* ── Back wall ── */
-.back-wall {
-  position:fixed;
-  top:var(--bw-top); left:var(--bw-left);
-  width:var(--bw-width); height:var(--bw-height);
-  background:var(--back-wall); border:2px solid var(--line-col);
-  z-index:3; pointer-events:none;
-}
-
-/* ── Nav bar ── */
-.room-nav {
-  position:fixed; top:0; left:0; right:0; height:44px;
-  background:#c9fff5; border-bottom:2px solid var(--line-col);
-  z-index:200; display:flex; align-items:center;
-  justify-content:space-between;
-  padding:0 clamp(12px,2vw,28px);
-  font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111;
-}
-.nav-btn { cursor:pointer; padding:4px 8px; transition:background .15s; }
-.nav-btn:hover { background:rgba(0,0,0,.08); }
-.nav-title { position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; font-family:var(--font-hand); font-size:clamp(16px,2vw,24px); }
-.gear-wrap { position:relative; }
-.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background 0.15s; padding:3px; }
-.gear-btn:hover { background:rgba(0,0,0,0.08); }
-.gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,0.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
-.gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
-.gear-item:hover { background:rgba(0,0,0,0.07); }
-
-/* ─────────────────────────────────────────────────
-   OUTSIDE-JOURNAL CONTROLS  z:4
-   Map selector label + dropdown sit above the notebook.
-───────────────────────────────────────────────── */
-.journal-controls {
-  position: fixed;
-  top: calc(var(--bw-top) + 1.5%);
-  left: calc(var(--bw-left) + 7%);
-  width: calc(var(--bw-width) - 14%);
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.map-prompt-label {
-  font-family: var(--font-pixel);
-  font-size: clamp(13px, 1.4vw, 18px);
-  color: #6579e2;
-}
-.journal-controls-right {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-}
-.game-selector {
+  width:100%; height:100dvh;
+  background: var(--cream-dark);
   font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 16px);
-  border: 1.5px solid #6579e2; background: #6579e2;
-  color: #fff; padding: 4px 8px; cursor: pointer; outline: none;
-  max-width: clamp(140px, 18vw, 240px);
-}
-.game-selector:focus { border-color: #4a5bc4; }
-.game-selector option { background: #fff; color: #333; }
-.save-btn {
-  padding: 5px 16px;
-  background: var(--blue);
-  border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
-  font-family: var(--font-hand); font-size: clamp(12px, 1.3vw, 16px);
-  color: #fff; cursor: pointer; transition: all .05s; white-space: nowrap;
-}
-.save-btn:hover { background: #4a5bc4; }
-.save-btn:active { box-shadow: none; transform: translate(2px,2px); }
-
-/* ─────────────────────────────────────────────────
-   NOTEBOOK  z:4  — now single page only (right side)
-───────────────────────────────────────────────── */
-.notebook {
-  position: fixed;
-  top: calc(var(--bw-top) + 10%);
-  left: calc(var(--bw-left) + 7%);
-  width: calc(var(--bw-width) - 14%);
-  height: calc(var(--bw-height) - 16%);
-  z-index: 4;
-  display: flex;
-  filter: drop-shadow(4px 8px 18px rgba(0,0,0,.28));
-}
-
-/* Spiral binding — left edge of single page */
-.notebook-spine {
-  flex: 0 0 20px;
-  background: #e8e3da;
-  border: 1.5px solid #c8b88a;
-  border-right: none;
-  border-radius: 3px 0 0 3px;
-  display: flex; flex-direction: column;
-  justify-content: space-around; align-items: center;
-  padding: 12px 0;
   overflow: hidden;
-}
-.spine-ring {
-  width: 16px; height: 16px;
-  border: 2.5px solid #8a7a5a;
-  border-radius: 50%;
-  background: var(--side-col);
-  flex-shrink: 0;
+  user-select: none;
 }
 
-/* Single writing page */
-.notebook-right {
-  flex: 1;
-  background: #fff9f0;
-  border: 1.5px solid #c8b88a;
-  border-radius: 0 3px 3px 0;
-  padding: 22px 24px 16px 20px;
-  display: flex; flex-direction: column; gap: 10px;
-  background-image:
-    linear-gradient(to bottom, transparent calc(100% - 1px), rgba(101,121,226,.1) 1px);
-  background-size: 100% 32px;
-  background-position: 0 60px;
+/* ── NOTEPAD CANVAS ── */
+.notepad-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.notepad-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+}
+.notepad-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
 }
 
-/* Date header row — just the date, no internal selector */
-.notebook-header {
-  display: flex; align-items: baseline;
-  border-bottom: 1px solid rgba(101,121,226,.2);
-  padding-bottom: 8px; flex-shrink: 0;
-}
-.notebook-date {
+/* ── DATE HEADER ── */
+.note-date {
+  position: absolute;
+  top: 7%;
+  left: 10%;
+  right: 10%;
+  text-align: center;
   font-family: var(--font-hand);
-  font-size: clamp(13px, 1.5vw, 18px);
-  color: #5a4a2a;
+  font-size: clamp(12px, 1.4vw, 16px);
+  color: #8a7a5a;
+  pointer-events: none;
 }
 
-.privacy-note {
-  font-family: var(--font-hand);
-  font-size: clamp(9px, 0.85vw, 11px);
-  color: #ccc; line-height: 1.5; flex-shrink: 0;
-  border-top: 1px solid #e8e0d0; padding-top: 8px;
-}
-
-/* The textarea */
-.diary-area {
-  flex: 1; resize: none; border: none; outline: none;
+/* ── TEXT AREA ── */
+.note-textarea {
+  position: absolute;
+  top: 15%;
+  left: 8%;
+  right: 8%;
+  bottom: 14%;
   background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
   font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 17px);
-  color: #2a1e14; line-height: 2;
-  overflow-y: auto; user-select: text;
+  font-size: clamp(14px, 1.6vw, 19px);
+  color: var(--brown);
+  line-height: 2.1;
   caret-color: var(--blue);
-  min-height: 0; /* allows flex shrink so scroll works */
+  user-select: text;
+  overflow-y: auto;
 }
-.diary-area::placeholder {
+.note-textarea::placeholder {
   color: rgba(138,122,90,.35);
   font-style: italic;
 }
-.diary-area:focus { outline: none; }
 
-/* Save status — below the journal controls */
-.save-status {
-  position: fixed;
-  top: calc(var(--bw-top) + 1.5%);
-  right: calc(100% - var(--bw-left) - var(--bw-width) + 1%);
-  font-family: var(--font-hand);
-  font-size: clamp(10px, 1vw, 13px);
-  color: var(--blue);
-  z-index: 5;
-}
-
-/* ── Heart character ── */
-.char-heart {
-  position: fixed;
-  left: clamp(10px, 3vw, 50px);
-  bottom: clamp(4vh, 8vh, 14vh);
-  width: clamp(80px, 11vw, 180px);
-  z-index: 5;
-}
-.char-heart .char-img {
-  display: block; width: 100%; height: auto;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,.28));
-  animation: idle-float 3.8s ease-in-out infinite;
-}
-@keyframes idle-float {
-  0%,100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-8px) rotate(2deg); }
-}
-.thought-bubble {
+/* ── BOTTOM CONTROLS ── */
+.note-controls {
   position: absolute;
-  left: calc(100% + 4px); bottom: 55%;
-  min-width: clamp(140px,16vw,240px);
-  background: #fff; border: 2px solid #000; border-radius: 50%;
-  padding: 10px 16px;
-  font-family: var(--font-hand); font-size: clamp(10px,1.1vw,14px);
-  color: #000; text-align: center; line-height: 1.5;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.18));
+  bottom: 3%;
+  left: 6%;
+  right: 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Nav arrows */
+.nav-arrow {
+  background: none;
+  border: none;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: var(--blue);
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.nav-arrow:hover { opacity: 1; }
+.nav-arrow:disabled { opacity: 0.2; cursor: default; }
+
+/* Entry label */
+.note-entry-label {
+  font-family: var(--font-hand);
+  font-size: clamp(10px, 1vw, 12px);
+  color: #aaa;
+  white-space: nowrap;
+}
+
+/* Save button */
+.note-save-btn {
+  padding: 6px 18px;
+  background: var(--blue);
+  border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 15px);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.05s;
+  white-space: nowrap;
+}
+.note-save-btn:hover { background: #4a5bc4; }
+.note-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.note-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── IMAGE UPLOAD ── */
+.img-upload-btn {
+  position: absolute;
+  bottom: 10%;
+  right: 2%;
+  width: clamp(36px, 4vw, 52px);
+  height: clamp(36px, 4vw, 52px);
+  background: rgba(240,236,228,0.9);
+  border: 1.5px solid #c8b88a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  border-radius: 2px;
+}
+.img-upload-btn:hover { background: rgba(220,210,195,0.95); }
+.img-upload-btn svg { width: 20px; height: 20px; opacity: 0.6; }
+#img-file-input { display: none; }
+
+/* ── UPLOADED IMAGE PREVIEW ── */
+.uploaded-img-wrap {
+  position: absolute;
+  bottom: 15%;
+  right: 7%;
+  width: clamp(80px, 12vw, 140px);
   display: none;
 }
-.char-heart.active .thought-bubble { display: block; }
-
-/* ── Not logged in state ── */
-.locked-overlay {
-  position: absolute; inset: 0;
-  background: rgba(245,240,234,.92);
-  display: none; align-items: center; justify-content: center;
-  flex-direction: column; gap: 12px; z-index: 2;
-  border-radius: 0 3px 3px 0;
-  text-align: center; padding: 24px;
+.uploaded-img-wrap.has-img { display: block; }
+.uploaded-img-preview {
+  width: 100%;
+  border: 2px solid #c8b88a;
+  display: block;
+  object-fit: cover;
 }
-.locked-overlay.show { display: flex; }
-.locked-msg {
+.uploaded-img-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border: 1.5px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  line-height: 1;
+}
+
+/* ── STATUS ── */
+.note-status {
+  position: absolute;
+  top: 3%;
+  right: 6%;
   font-family: var(--font-hand);
-  font-size: clamp(13px,1.3vw,16px);
-  color: #5a4a2a; line-height: 1.6;
+  font-size: clamp(10px, 1vw, 12px);
+  color: #6ab86a;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
-.locked-btn {
-  padding: 8px 20px; background: var(--blue);
-  border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
-  font-family: var(--font-hand); font-size: 15px; color: #fff;
-  cursor: pointer; transition: all .05s;
-}
-.locked-btn:hover { background: #4a5bc4; }
-
-/* ── Mobile ── */
-@media (max-width: 768px) {
-  /* Switch body to scrollable on mobile */
-  html, body { overflow-y: auto; height: auto; min-height: 100dvh; }
-
-  /* Hide perspective room on mobile — too cramped */
-  .room-lines, .back-wall { display: none; }
-
-  /* Controls become normal flow at top */
-  .journal-controls {
-    position: relative;
-    top: auto; left: auto; width: 100%;
-    padding: 56px 16px 10px;
-    background: var(--side-col);
-    display: flex !important;
-  }
-  .map-prompt-label { font-size: clamp(16px, 5vw, 22px); }
-  .game-selector    { font-size: clamp(13px, 4vw, 16px); flex: 1; max-width: none; }
-  .save-btn         { font-size: clamp(13px, 4vw, 16px); }
-
-  /* Notebook becomes normal flow, auto height, scrollable textarea */
-  .notebook {
-    position: relative;
-    top: auto; left: auto;
-    width: calc(100% - 32px);
-    height: auto;
-    min-height: 70dvh;
-    margin: 0 16px 32px;
-    flex-direction: row;
-    filter: drop-shadow(2px 4px 10px rgba(0,0,0,.22));
-  }
-
-  .notebook-spine {
-    flex: 0 0 14px;
-    flex-direction: column;
-  }
-  .spine-ring { width: 12px; height: 12px; }
-
-  .notebook-right {
-    flex: 1;
-    height: auto;
-    min-height: 70dvh;
-  }
-
-  /* Textarea scrolls freely */
-  .diary-area {
-    min-height: 50dvh;
-    overflow-y: auto;
-    font-size: clamp(14px, 4vw, 17px);
-  }
-
-  .save-status {
-    position: relative;
-    top: auto; right: auto;
-    text-align: right;
-    padding: 0 16px 8px;
-    font-size: 13px;
-  }
-
-  /* Heart stays but smaller */
-  .char-heart {
-    display: none; /* too cramped on mobile */
-  }
-}
-
+.note-status.visible { opacity: 1; }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="room-nav">
-  <div class="gear-wrap" id="gear-wrap">
-    <div class="gear-btn" onclick="toggleGear()">
-      <img src="../assets/elements/gear icon.png" alt="menu">
+<div class="notepad-wrap">
+  <div class="notepad-inner">
+    <img class="notepad-bg" src="../assets/elements/open-journal.png" alt="notepad">
+
+    <div class="note-status" id="note-status"></div>
+    <div class="note-date" id="note-date"></div>
+
+    <textarea class="note-textarea" id="note-textarea"
+      placeholder="anything you want to put on the record about today..."
+      maxlength="4000"></textarea>
+
+    <!-- Image upload button -->
+    <div class="img-upload-btn" onclick="document.getElementById('img-file-input').click()" title="add a photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#5a4a2a" stroke-width="1.8" stroke-linecap="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
     </div>
-    <div class="gear-dropdown" id="gear-dropdown">
-      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
-      <button class="gear-item" id="gear-logout">sign out</button>
+    <input type="file" id="img-file-input" accept="image/*">
+
+    <div class="uploaded-img-wrap" id="img-preview-wrap">
+      <img class="uploaded-img-preview" id="img-preview" src="" alt="uploaded">
+      <div class="uploaded-img-remove" onclick="removeImage()">✕</div>
+    </div>
+
+    <div class="note-controls">
+      <button class="nav-arrow" id="btn-prev" onclick="goEntry(-1)" disabled>← prev</button>
+      <span class="note-entry-label" id="entry-label"></span>
+      <button class="nav-arrow" id="btn-next" onclick="goEntry(1)" disabled>next →</button>
+      <button class="note-save-btn" id="btn-save" onclick="saveEntry()">save notes →</button>
     </div>
   </div>
-  <span class="nav-title">adventure log</span>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <span class="nav-btn" onclick="window.location.href='game-select.html'">← back</span>
-    <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
-  </div>
-</nav>
-
-<!-- ROOM LINES -->
-<div class="room-lines" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-  </svg>
-</div>
-
-<!-- BACK WALL -->
-<div class="back-wall"></div>
-
-<!-- CONTROLS ABOVE NOTEBOOK -->
-<div class="journal-controls" id="journal-controls" style="display:none;">
-  <span class="map-prompt-label">Choose a map</span>
-  <div class="journal-controls-right">
-    <select class="game-selector" id="game-selector" onchange="onGameChange()">
-      <option value="">select a map...</option>
-    </select>
-    <span style="flex:1;"></span>
-    <button class="save-btn" onclick="saveEntry()">save</button>
-  </div>
-</div>
-
-<!-- SAVE STATUS -->
-<div class="save-status" id="save-status"></div>
-
-<!-- NOTEBOOK — single page with spine -->
-<div class="notebook">
-
-  <!-- SPINE -->
-  <div class="notebook-spine" id="spine-rings"></div>
-
-  <!-- WRITING PAGE -->
-  <div class="notebook-right" style="position:relative;">
-
-    <div class="notebook-header">
-      <div class="notebook-date" id="notebook-date"></div>
-    </div>
-
-    <textarea
-      class="diary-area"
-      id="diary-area"
-      placeholder="anything you want to put on the record about today? (wins, losses, learning moments, etc.)"
-      maxlength="4000"
-    ></textarea>
-
-    <div class="privacy-note">
-      your entries are private and only visible to you. we never read or share your diary.
-    </div>
-
-    <!-- Locked overlay for non-logged-in users -->
-    <div class="locked-overlay" id="locked-overlay">
-      <div class="locked-msg">the diary is for founding members<br>log in to access your entries</div>
-      <button class="locked-btn" onclick="window.location.href='game-select.html'">go to game room →</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- HEART CHARACTER -->
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble">what do you want to remember when this day feels far away?</div>
-  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── SUPABASE ──────────────────────────────────────────────
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPA_URL = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
-document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
-document.getElementById('gear-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '../users/login.html'; });
+const params   = new URLSearchParams(window.location.search);
+const GAME_ID  = params.get('game_id');
+const PHASE    = params.get('phase');
+const TODAY    = new Date().toLocaleDateString('en-CA');
 
-// ── STATE ─────────────────────────────────────────────────
-let currentUser   = null;
-let activeGameId  = null;
-let saveTimer     = null;
-let currentEntry  = null; // loaded diary entry for today
+let currentUser  = null;
+let entries      = [];  // sorted newest first
+let entryIndex   = 0;   // 0 = today (newest)
+let pendingImage = null; // { file, base64 }
+let isViewingOld = false;
 
-function localToday() { return new Date().toLocaleDateString('en-CA'); }
-
-function formatTodayLong() {
-  return new Date().toLocaleDateString('en-US', {
-    weekday:'long', month:'long', day:'numeric', year:'numeric'
-  });
-}
-
-// ── SPINE RINGS ───────────────────────────────────────────
-function buildSpineRings() {
-  const spine = document.getElementById('spine-rings');
-  for (let i = 0; i < 12; i++) {
-    const ring = document.createElement('div');
-    ring.className = 'spine-ring';
-    spine.appendChild(ring);
-  }
-}
-
-// ── GAME SELECTOR ─────────────────────────────────────────
-async function loadGames() {
-  const sel = document.getElementById('game-selector');
-  const { data } = await sb.from('games')
-    .select('id, map_name, map_type')
-    .eq('user_id', currentUser.id)
-    .eq('status', 'active')
-    .order('updated_at', { ascending: false });
-
-  if (!data?.length) {
-    sel.innerHTML = '<option value="">no maps yet</option>';
-    return;
-  }
-  sel.innerHTML = '';
-  data.forEach(g => {
-    const opt = document.createElement('option');
-    opt.value = g.id;
-    opt.textContent = (g.map_name || 'untitled') + ' (' + (g.map_type||'spiral') + ')';
-    sel.appendChild(opt);
-  });
-
-  // Auto-select from URL param or first game
-  const params = new URLSearchParams(window.location.search);
-  const urlId  = params.get('game_id');
-  if (urlId && data.find(g => g.id === urlId)) {
-    sel.value = urlId;
-    activeGameId = urlId;
-  } else {
-    activeGameId = data[0].id;
-    sel.value    = activeGameId;
-  }
-  await loadEntry();
-}
-
-function onGameChange() {
-  activeGameId = document.getElementById('game-selector').value;
-  loadEntry();
-}
-
-// ── LOAD TODAY'S ENTRY ────────────────────────────────────
-async function loadEntry() {
-  if (!activeGameId || !currentUser) return;
-  const area = document.getElementById('diary-area');
-  area.value = '';
-  showStatus('loading...', '#aaa');
-
-  const { data } = await sb.from('diary_entries')
-    .select('id, diary_text')
-    .eq('game_id', activeGameId)
-    .eq('user_id', currentUser.id)
-    .eq('entry_date', localToday())
-    .maybeSingle();
-
-  currentEntry = data;
-  area.value = data?.diary_text || '';
-  showStatus(data ? 'entry loaded ✓' : '', '#aaa');
-  setTimeout(() => showStatus('', ''), 1500);
-  area.focus();
-}
-
-// ── AUTO-SAVE removed — now manual via save button ────────
-
-async function saveEntry() {
-  if (!currentUser || !activeGameId) return;
-  const text = document.getElementById('diary-area').value.trim();
-  const btn  = document.querySelector('.save-btn');
-  if (btn) { btn.textContent = 'saving...'; btn.disabled = true; }
-
-  const { error } = await sb.from('diary_entries').upsert({
-    game_id:    activeGameId,
-    user_id:    currentUser.id,
-    entry_date: localToday(),
-    diary_text: text,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'game_id,entry_date' });
-
-  if (btn) { btn.disabled = false; btn.textContent = 'save'; }
-
-  if (error) {
-    showStatus('save failed', '#E8478B');
-  } else {
-    showStatus('saved', '#6ab86a');
-    setTimeout(() => showStatus('', ''), 2000);
-  }
-}
-
-function showStatus(msg, color) {
-  const el = document.getElementById('save-status');
-  el.textContent = msg;
-  el.style.color = color || '#6579e2';
-}
-
-// ── HEART CHARACTER ───────────────────────────────────────
-function initHeart() {
-  const heart = document.getElementById('char-heart');
-  heart.addEventListener('mouseenter', () => heart.classList.add('active'));
-  heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
-}
-
-// ── INIT ─────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────
 async function init() {
-  buildSpineRings();
-  document.getElementById('notebook-date').textContent = formatTodayLong();
-  initHeart();
+  // Set date display
+  document.getElementById('note-date').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
   } catch(e) {}
 
-  if (!currentUser) {
-    document.getElementById('locked-overlay').classList.add('show');
-    document.getElementById('diary-area').disabled = true;
+  await loadEntries();
+
+  // Signal ready to parent
+  try { window.parent.postMessage({ type: 'iframe_ready', game: 'journal' }, '*'); } catch(e) {}
+}
+
+// ── Load past entries ─────────────────────────────────────
+async function loadEntries() {
+  if (!currentUser || !GAME_ID) {
+    updateNav();
     return;
   }
+  try {
+    const { data } = await sb.from('diary_entries')
+      .select('*')
+      .eq('game_id', GAME_ID)
+      .eq('user_id', currentUser.id)
+      .order('entry_date', { ascending: false })
+      .limit(30);
+    entries = data || [];
+  } catch(e) {}
 
-  // Show controls above notebook
-  document.getElementById('journal-controls').style.display = 'flex';
-
-  await loadGames();
+  // Check if today already has an entry
+  const todayEntry = entries.find(e => e.entry_date === TODAY);
+  if (todayEntry) {
+    document.getElementById('note-textarea').value = todayEntry.diary_text || '';
+  }
+  entryIndex = 0;
+  updateNav();
 }
+
+// ── Navigate entries ──────────────────────────────────────
+function goEntry(dir) {
+  const newIdx = entryIndex + dir;
+  if (newIdx < 0 || newIdx >= entries.length) return;
+  entryIndex = newIdx;
+  const entry = entries[entryIndex];
+  document.getElementById('note-textarea').value = entry.diary_text || '';
+  const d = new Date(entry.entry_date + 'T12:00:00');
+  document.getElementById('note-date').textContent =
+    d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  isViewingOld = entry.entry_date !== TODAY;
+  document.getElementById('btn-save').style.opacity = isViewingOld ? '0.3' : '1';
+  document.getElementById('btn-save').disabled = isViewingOld;
+  updateNav();
+}
+
+function updateNav() {
+  const prev = document.getElementById('btn-prev');
+  const next = document.getElementById('btn-next');
+  const label = document.getElementById('entry-label');
+  prev.disabled = entryIndex >= entries.length - 1;
+  next.disabled = entryIndex <= 0;
+  if (entries.length > 1) {
+    label.textContent = `${entryIndex + 1} of ${entries.length}`;
+  } else {
+    label.textContent = '';
+  }
+}
+
+// ── Image handling ────────────────────────────────────────
+document.getElementById('img-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingImage = { file, base64: ev.target.result };
+    document.getElementById('img-preview').src = ev.target.result;
+    document.getElementById('img-preview-wrap').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeImage() {
+  pendingImage = null;
+  document.getElementById('img-preview').src = '';
+  document.getElementById('img-preview-wrap').classList.remove('has-img');
+  document.getElementById('img-file-input').value = '';
+}
+
+// ── Save ──────────────────────────────────────────────────
+async function saveEntry() {
+  if (isViewingOld) return;
+  const text = document.getElementById('note-textarea').value.trim();
+  const btn  = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'saving...';
+
+  let imageUrl = null;
+
+  // Upload image if one is attached
+  if (pendingImage && currentUser) {
+    try {
+      const ext  = pendingImage.file.name.split('.').pop();
+      const path = `${currentUser.id}/${GAME_ID}/${TODAY}.${ext}`;
+      const { error: upErr } = await sb.storage
+        .from('trail-notes-images')
+        .upload(path, pendingImage.file, { upsert: true });
+      if (!upErr) {
+        const { data: urlData } = sb.storage.from('trail-notes-images').getPublicUrl(path);
+        imageUrl = urlData?.publicUrl || null;
+      }
+    } catch(e) {}
+  }
+
+  if (currentUser && GAME_ID) {
+    const payload = {
+      game_id:    GAME_ID,
+      user_id:    currentUser.id,
+      entry_date: TODAY,
+      diary_text: text,
+      updated_at: new Date().toISOString(),
+    };
+    if (imageUrl) payload.image_url = imageUrl;
+    await sb.from('diary_entries').upsert(payload, { onConflict: 'game_id,entry_date' });
+  }
+
+  showStatus('saved ✓');
+  btn.disabled = false; btn.textContent = 'save notes →';
+
+  // Tell parent we're done
+  try { window.parent.postMessage({ type: 'journal_saved' }, '*'); } catch(e) {}
+}
+
+function showStatus(msg) {
+  const el = document.getElementById('note-status');
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 2500);
+}
+
+// ── Listen for parent requests ────────────────────────────
+window.addEventListener('message', e => {
+  if (e.data?.type === 'request_save') saveEntry();
+});
 
 init();
 </script>

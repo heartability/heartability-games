@@ -164,7 +164,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 /* Phase key — bottom right overlay */
 .phase-key {
   position:absolute; bottom:0; right:0;
-  width:200px; max-height:100%;
+  width:260px; max-height:100%;
   background:rgba(245,240,234,0.97);
   border-top:2px solid #8a7a5a; border-left:2px solid #8a7a5a;
   padding:10px 12px; overflow-y:auto;
@@ -1058,55 +1058,28 @@ function stepBingo() {
 // ── STEP 6: BINGO DONE → JOURNAL ─────────────────────────
 function stepJournal() {
   currentStep = 'journal';
-  clearTimeout(window._saveFallback); // cancel any stale bingo timeout
+  clearTimeout(window._saveFallback);
   setBubble('write your adventure notes ♡', []);
-  hidePanel();
-
-  // Set date header
-  document.getElementById('journal-date-header').textContent = new Date().toLocaleDateString('en-US', {
-    weekday:'long', month:'long', day:'numeric', year:'numeric'
-  });
-
-  // Build spine rings once
-  const spine = document.getElementById('journal-spine');
-  if (!spine.children.length) {
-    for (let i = 0; i < 10; i++) {
-      const ring = document.createElement('div');
-      ring.className = 'journal-spine-ring';
-      spine.appendChild(ring);
-    }
-  }
-
-  document.getElementById('journal-textarea').value = '';
-  document.getElementById('journal-wall').classList.add('open');
-  setTimeout(() => document.getElementById('journal-textarea').focus(), 50);
+  const src = `../games/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}`;
+  showIframe(src);
   setSaveBtnVisible(true, 'save notes &amp; finish →');
 }
 
 function skipJournal() {
-  document.getElementById('journal-wall').classList.remove('open');
+  hidePanel();
   setSaveBtnVisible(false);
   stepDone();
 }
 
 async function saveJournalEntry() {
-  const text = (document.getElementById('journal-textarea')?.value || '').trim();
-  const btn  = document.getElementById('save-continue-btn');
-  btn.disabled = true; btn.textContent = 'saving...';
-
-  if (text && currentUser && activeGameId) {
-    await sb.from('diary_entries').upsert({
-      game_id:    activeGameId,
-      user_id:    currentUser.id,
-      entry_date: new Date().toLocaleDateString('en-CA'),
-      diary_text: text,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'game_id,entry_date' });
+  // Tell the trail-notes iframe to save, then wait for journal_saved response
+  const iframe = document.getElementById('game-iframe');
+  if (iframe) {
+    iframe.contentWindow.postMessage({ type: 'request_save' }, '*');
+  } else {
+    setSaveBtnVisible(false);
+    stepDone();
   }
-
-  setSaveBtnVisible(false);
-  document.getElementById('journal-wall').classList.remove('open');
-  stepDone();
 }
 
 // ── STEP 7: DONE ──────────────────────────────────────────
@@ -1213,6 +1186,13 @@ window.addEventListener('message', async e => {
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
     }
+    return;
+  }
+
+  // ── Journal saved ────────────────────────────────────────
+  if (msg.type === 'journal_saved') {
+    setSaveBtnVisible(false);
+    stepDone();
     return;
   }
 });
