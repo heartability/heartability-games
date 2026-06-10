@@ -50,6 +50,16 @@ html, body {
 .gear-dropdown.open { display:flex; }
 .gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
 .gear-item:hover { background:rgba(0,0,0,0.07); }
+.gear-music {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 8px 14px; border-top: 1px solid rgba(0,0,0,0.1);
+}
+.music-btn {
+  cursor: pointer; background: none; border: none;
+  padding: 2px; opacity: 0.65; transition: opacity 0.15s;
+}
+.music-btn:hover { opacity: 1; }
+.music-btn img { width: 18px; height: 18px; display: block; }
 
 /* Save button in nav — matches the plain text "back" button (no pill) */
 .nav-save-btn {
@@ -132,34 +142,38 @@ html, body {
   font-style: italic;
 }
 
-/* ── PAST-ENTRY NAVIGATION (left page) ── */
-.page-nav-btn {
+/* ── PAST-ENTRY NAVIGATION (bottom-right of right page) ── */
+.entry-nav {
   position: absolute;
+  bottom: 4%;
+  left: 9%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  z-index: 5;
+}
+.entry-nav-btn {
   font-family: var(--font-hand);
   font-size: clamp(12px, 1.3vw, 16px);
   color: var(--blue);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  display: none;
+  padding: 4px 6px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
   white-space: nowrap;
-  z-index: 5;
 }
-.page-nav-btn.visible { display: block; opacity: 0.65; }
-.page-nav-btn:hover { opacity: 1; }
-.page-prev { left: 9%; top: 48%; }
-.page-next { left: 9%; top: 54%; }
+.entry-nav-btn:hover { opacity: 1; }
+#btn-newer { display: none; font-size: clamp(11px, 1.2vw, 14px); }
 
-/* ── ENTRY LABEL (under right-page text) ── */
+/* ── ENTRY LABEL (bottom-left of right page) ── */
 .note-entry-label {
   position: absolute;
-  bottom: 3.5%;
+  bottom: 4%;
   left: 55%;
-  right: 9%;
-  text-align: center;
+  text-align: left;
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 12px);
   color: #aaa;
@@ -170,27 +184,45 @@ html, body {
 /* ── PAPERCLIP PHOTO UPLOAD (left page, top) ── */
 .img-upload-btn {
   position: absolute;
-  top: 2.5%;
-  left: 32%;
+  top: 0.5%;
+  left: 26%;
   width: clamp(30px, 5%, 56px);
   height: auto;
   background: none;
   border: none;
   cursor: pointer;
   display: block;
-  transition: transform 0.15s;
   z-index: 6;
 }
-.img-upload-btn:hover { transform: translateY(-2px) rotate(-3deg); }
 .img-upload-btn img { width: 100%; height: auto; display: block; }
 #img-file-input { display: none; }
+
+/* Wiggle to signal the paperclip is clickable (matches art-wall items) */
+@keyframes paperclip-wiggle {
+  0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); }
+}
+.img-upload-btn.wiggling { animation: paperclip-wiggle 0.48s ease; }
+
+/* ── UPLOAD CAPTION (left page, under the clip) ── */
+.upload-note {
+  position: absolute;
+  top: 16%;
+  left: 13%;
+  width: 30%;
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.15vw, 15px);
+  color: #9a8a6a;
+  line-height: 1.5;
+  pointer-events: none;
+}
 
 /* ── UPLOADED IMAGE PREVIEW (left page, under the clip) ── */
 .uploaded-img-wrap {
   position: absolute;
-  top: 14%;
-  left: 20%;
-  width: clamp(70px, 20%, 150px);
+  top: 44%;
+  left: 13%;
+  width: clamp(70px, 28%, 160px);
   display: none;
   z-index: 5;
 }
@@ -223,9 +255,36 @@ html, body {
   z-index: 5;
 }
 .note-status.visible { opacity: 1; }
+
+/* ── MINI POPUP ── */
+.mini-popup-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.25);
+  display: none; align-items: center; justify-content: center; z-index: 300;
+}
+.mini-popup-overlay.open { display: flex; }
+.mini-popup {
+  background: var(--cream); border: 2px solid var(--line-col);
+  box-shadow: 4px 5px 0 rgba(0,0,0,0.15);
+  padding: 22px 26px; max-width: 300px; text-align: center;
+  font-family: var(--font-hand); color: var(--brown);
+  animation: popIn 0.25s ease;
+}
+.mini-popup p { font-size: clamp(14px,1.5vw,18px); margin-bottom: 16px; line-height: 1.5; }
+.mini-popup button {
+  font-family: var(--font-hand); font-size: clamp(13px,1.3vw,16px);
+  background: var(--mint); border: 2px solid var(--line-col);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
+  padding: 5px 18px; cursor: pointer; color: #111;
+}
+.mini-popup button:active { box-shadow: none; transform: translate(2px,2px); }
+@keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
 <body>
+
+<audio id="bg-music" loop>
+  <source src="https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3" type="audio/mpeg">
+</audio>
 
 <nav class="room-nav">
   <div class="gear-wrap" id="gear-wrap">
@@ -235,6 +294,11 @@ html, body {
     <div class="gear-dropdown" id="gear-dropdown">
       <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
       <button class="gear-item" id="gear-logout">sign out</button>
+      <div class="gear-music">
+        <button class="music-btn" onclick="seekBack()"  title="back 10s"><img src="../assets/elements/go back.png" alt="back"></button>
+        <button class="music-btn" id="play-pause-btn" onclick="toggleMusic()"><img src="../assets/elements/play.png" id="pp-icon" alt="play"></button>
+        <button class="music-btn" onclick="seekFwd()"   title="forward 10s"><img src="../assets/elements/go forward.png" alt="forward"></button>
+      </div>
     </div>
   </div>
   <span class="nav-title">trail notes</span>
@@ -251,10 +315,6 @@ html, body {
     <div class="note-status" id="note-status"></div>
     <div class="note-date" id="note-date"></div>
 
-    <!-- Past-entry navigation on the LEFT page -->
-    <button class="page-nav-btn page-prev" id="btn-prev" onclick="goEntry(1)">← older</button>
-    <button class="page-nav-btn page-next" id="btn-next" onclick="goEntry(-1)">newer →</button>
-
     <!-- Journal entry on the RIGHT page -->
     <textarea class="note-textarea" id="note-textarea"
       placeholder="anything you want to put on the record about today..."
@@ -262,16 +322,32 @@ html, body {
 
     <span class="note-entry-label" id="entry-label"></span>
 
+    <!-- Past-entry navigation, bottom-right of right page -->
+    <div class="entry-nav">
+      <button class="entry-nav-btn" id="btn-newer" onclick="goEntry(-1)">newer entry →</button>
+      <button class="entry-nav-btn" id="btn-prev" onclick="onPastEntries()">← past entries</button>
+    </div>
+
     <!-- Paperclip photo upload (left page) -->
-    <div class="img-upload-btn" onclick="document.getElementById('img-file-input').click()" title="add a photo">
+    <div class="img-upload-btn" id="img-upload-btn" onclick="document.getElementById('img-file-input').click()" title="add a photo">
       <img src="../assets/elements/paperclip.png" alt="add a photo">
     </div>
     <input type="file" id="img-file-input" accept="image/*">
+
+    <p class="upload-note">Upload a picture of your travels today &mdash; a park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence. Add it to your moodboard of the day.</p>
 
     <div class="uploaded-img-wrap" id="img-preview-wrap">
       <img class="uploaded-img-preview" id="img-preview" src="" alt="uploaded">
       <div class="uploaded-img-remove" onclick="removeImage()">✕</div>
     </div>
+  </div>
+</div>
+
+<!-- Mini popup -->
+<div class="mini-popup-overlay" id="mini-popup-overlay">
+  <div class="mini-popup">
+    <p id="mini-popup-text"></p>
+    <button onclick="closePopup()">ok</button>
   </div>
 </div>
 
@@ -364,15 +440,48 @@ function goEntry(dir) {
 }
 
 function updateNav() {
-  const prevBtn = document.getElementById('btn-prev');
-  const nextBtn = document.getElementById('btn-next');
-  const label   = document.getElementById('entry-label');
-  const hasOlder = entryIndex < entries.length - 1; // something further back to flip to
-  const hasNewer = entryIndex > 0;                  // something newer to return to
-  prevBtn.classList.toggle('visible', hasOlder);
-  nextBtn.classList.toggle('visible', hasNewer);
+  const newerBtn = document.getElementById('btn-newer');
+  const label    = document.getElementById('entry-label');
+  // "past entries" is always visible; "newer" only shows when viewing an older entry
+  newerBtn.style.display = entryIndex > 0 ? 'inline' : 'none';
   label.textContent = entries.length > 1 ? `${entryIndex + 1} of ${entries.length}` : '';
 }
+
+// "← past entries": flip to the next older entry, or tell the user there aren't any
+function onPastEntries() {
+  if (entryIndex >= entries.length - 1) {
+    showPopup('you have no past journal entries.');
+    return;
+  }
+  goEntry(1);
+}
+
+function showPopup(msg) {
+  document.getElementById('mini-popup-text').textContent = msg;
+  document.getElementById('mini-popup-overlay').classList.add('open');
+}
+function closePopup() {
+  document.getElementById('mini-popup-overlay').classList.remove('open');
+}
+
+// ── Music (copied from game room) ─────────────────────────
+let musicPlaying = false;
+function toggleMusic() {
+  const audio = document.getElementById('bg-music');
+  const icon  = document.getElementById('pp-icon');
+  if (musicPlaying) { audio.pause(); icon.src = '../assets/elements/play.png'; }
+  else              { audio.play().catch(()=>{}); icon.src = '../assets/elements/pause.png'; }
+  musicPlaying = !musicPlaying;
+}
+function seekBack() { const a=document.getElementById('bg-music'); a.currentTime=Math.max(0,a.currentTime-10); }
+function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime=Math.min(a.duration||0,a.currentTime+10); }
+
+// ── Paperclip wiggle on hover (signals it's clickable) ────
+const clipBtn = document.getElementById('img-upload-btn');
+clipBtn.addEventListener('mouseenter', () => {
+  if (!clipBtn.classList.contains('wiggling')) clipBtn.classList.add('wiggling');
+});
+clipBtn.addEventListener('animationend', () => clipBtn.classList.remove('wiggling'));
 
 // ── Image handling ────────────────────────────────────────
 document.getElementById('img-file-input').addEventListener('change', e => {
