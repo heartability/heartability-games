@@ -208,19 +208,11 @@ body.game-mode .char-heart {
 
 .game-close-btn {
   position: absolute; top: 8px; right: 10px; z-index: 2;
-  font-family: var(--font-hand); font-size: 18px; color: #333;
+  font-family: var(--font-hand); font-size: 24px; color: #333);
   background: rgba(240,236,228,0.88); border: none; cursor: pointer;
   padding: 4px 10px; transition: color 0.12s;
 }
 .game-close-btn:hover { color: #333; }
-
-.game-howto-btn {
-  position: absolute; top: 8px; left: 10px; z-index: 2;
-  font-family: var(--font-hand); font-size: 14px; color: var(--blue);
-  background: rgba(240,236,228,0.88); border: 1.5px solid var(--blue);
-  cursor: pointer; padding: 4px 10px; transition: background 0.12s;
-}
-.game-howto-btn:hover { background: rgba(101,121,226,0.1); }
 
 .game-panel iframe {
   width: 100%; height: 100%; border: none; display: block;
@@ -764,7 +756,6 @@ body.game-mode .char-heart {
 
 <!-- GAME PANEL — back wall iframe for games  z:10 -->
 <div class="game-panel" id="game-panel">
-  <button class="game-howto-btn" id="game-howto-btn" onclick="reopenHowto()">how to play</button>
   <button class="game-close-btn" onclick="closeGame()">×</button>
 </div>
 
@@ -835,7 +826,6 @@ body.game-mode .char-heart {
 </div>
 
 <!-- LOGIN OVERLAY -->
-<div class="login-overlay" id="login-overlay" onclick="handleOverlayClick(event)">
   <div class="login-popup">
     <div class="login-popup-titlebar">
       <span id="login-popup-title">welcome</span>
@@ -1031,8 +1021,6 @@ function openGame(slug) {
     pendingGameSlug = slug;
     document.getElementById('howto-title').textContent = content.title;
     document.getElementById('howto-steps').textContent = content.steps;
-    // Launch game behind the overlay first
-    launchGame(slug);
     document.getElementById('howto-overlay').classList.add('open');
   } else {
     launchGame(slug);
@@ -1041,7 +1029,6 @@ function openGame(slug) {
 
 function closeHowto() {
   document.getElementById('howto-overlay').classList.remove('open');
-  pendingGameSlug = null;
 }
 
 function handleHowtoOverlayClick(e) {
@@ -1050,20 +1037,10 @@ function handleHowtoOverlayClick(e) {
 
 function launchPendingGame() {
   document.getElementById('howto-overlay').classList.remove('open');
-  pendingGameSlug = null;
-}
-
-function reopenHowto() {
-  if (!pendingGameSlug) return;
-  const content = HOWTO_CONTENT[pendingGameSlug];
-  if (!content) return;
-  document.getElementById('howto-title').textContent = content.title;
-  document.getElementById('howto-steps').textContent = content.steps;
-  document.getElementById('howto-overlay').classList.add('open');
+  if (pendingGameSlug) launchGame(pendingGameSlug);
 }
 
 function launchGame(slug) {
-  pendingGameSlug = slug;
   document.body.classList.add('game-mode');
   const panel  = document.getElementById('game-panel');
   const iframe = document.createElement('iframe');
@@ -1084,8 +1061,6 @@ function closeGame() {
   const heart = document.getElementById('char-heart');
   heart.classList.remove('guide-mode', 'active');
   document.getElementById('heart-bubble').textContent = '';
-  document.getElementById('howto-overlay').classList.remove('open');
-  pendingGameSlug = null;
 }
 
 // ── Login popup helpers ────────────────────────────────────
