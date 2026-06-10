@@ -214,8 +214,20 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   justify-content:space-between; padding:0 clamp(12px,2vw,28px);
   font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111;
 }
+.nav-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  pointer-events:none; white-space:nowrap;
+}
 .nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
+.gear-wrap { position:relative; }
+.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background 0.15s; padding:3px; }
+.gear-btn:hover { background:rgba(0,0,0,0.08); }
+.gear-btn img { width:22px; height:22px; display:block; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,0.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown.open { display:flex; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
+.gear-item:hover { background:rgba(0,0,0,0.07); }
 
 /* ── HEART CHARACTER ── */
 @keyframes idle-pulse {
@@ -483,9 +495,20 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 
 <!-- NAV -->
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
-  <span>chart room</span>
-  <span></span>
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
+  <span class="nav-title">progress tracker</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← back</span>
+    <span class="nav-btn" onclick="window.location.href='../users/archive.html'">archive →</span>
+  </div>
 </nav>
 
 <!-- ROOM LINES -->
@@ -582,14 +605,23 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
     <span>adventure notes</span>
     <span style="cursor:pointer;font-size:20px;color:#bbb;" onclick="skipJournal()">×</span>
   </div>
-  <div class="journal-inline" style="flex:1;min-height:0;">
-    <div class="journal-spine-inline" id="journal-spine"></div>
-    <div class="journal-page">
-      <div class="journal-page-header" id="journal-date-header"></div>
-      <textarea class="journal-textarea" id="journal-textarea"
-        placeholder="anything you want to put on the record about today? wins, losses, learning moments..."
-        maxlength="4000"></textarea>
-      <div class="journal-privacy">your entries are private and only visible to you ✦</div>
+  <div style="flex:1;min-height:0;position:relative;">
+    <img src="../assets/elements/open journal.png" alt="journal" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;position:absolute;top:0;left:0;">
+    <div style="position:absolute;inset:0;display:flex;">
+      <div style="flex:1;padding:16px 12px 12px 16%;display:flex;flex-direction:column;gap:8px;">
+        <div id="journal-date-header" style="font-family:var(--font-hand);font-size:clamp(11px,1.2vw,14px);color:#5a4a2a;border-bottom:1px solid rgba(101,121,226,.2);padding-bottom:6px;flex-shrink:0;"></div>
+        <div style="font-family:var(--font-hand);font-size:clamp(10px,1vw,12px);color:#8a7a5a;line-height:1.8;flex-shrink:0;">
+          <p>what happened today?</p>
+          <p>what surprised you?</p>
+          <p>what are you carrying right now?</p>
+        </div>
+      </div>
+      <div style="flex:1;padding:16px 12px 12px 8px;display:flex;flex-direction:column;">
+        <textarea id="journal-textarea" class="journal-textarea"
+          placeholder="write here..."
+          maxlength="4000" style="flex:1;background:transparent;"></textarea>
+        <div class="journal-privacy">your entries are private and only visible to you ✦</div>
+      </div>
     </div>
   </div>
 </div>
@@ -601,6 +633,10 @@ const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
+
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
+document.getElementById('gear-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '../users/login.html'; });
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activeGameId   = null;
@@ -732,11 +768,9 @@ async function saveAndContinue() {
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
 const SPIRAL_PROMPTS = [
-  "phase one - what does it feel like to imagine your goal coming true?",
-  "phase two - what does it feel like to begin?",
-  "phase three - what does it feel like when you get into a good rhythm?",
-  "phase four - what does it feel like when you take a big step forward?",
-  "phase five - what does it feel like when you are tested?",
+  "phase one - what does it feel like to begin?",
+  "phase two - what does it feel like when you take a big step forward?",
+  "phase three - what does it feel like when you are tested?",
 ];
 const SQUARE_PROMPTS = [
   "corner one — what does it feel like to be a beginner?",
@@ -745,8 +779,12 @@ const SQUARE_PROMPTS = [
   "corner four — what does it feel like to take a step forward?",
 ];
 
-// Spiral zone polar positions (same as treasure-map)
-const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
+// Spiral zone positions (hardcoded to match spiral-3.png)
+const SPIRAL_POS = [
+  { x: 252, y: 198 },  // center
+  { x: 372, y: 288 },  // bottom right orange
+  { x: 168, y: 112 },  // upper area
+];
 const SQUARE_POS   = [ {x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286} ];
 const SQUARE_LABELS= ['1','2','3','4'];
 const TERRAIN_IMGS = {
@@ -950,7 +988,7 @@ function stepPhaseSelect() {
   const mapData = activeGameData.map_data || {};
   const zones   = mapData.zones || [];
   const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
-  const zoneCount = mapType === 'square' ? 4 : 5;
+  const zoneCount = mapType === 'square' ? 4 : 3;
 
   setBubble(`where are you on the map today?`, []);
   setSaveBtnVisible(false);
@@ -1219,38 +1257,27 @@ window.addEventListener('message', async e => {
 
 // ── SVG BUILDERS (read-only, zone click = phase select) ──
 function buildSpiralSVG(zones) {
-  const W=500, H=400, cx=W/2, cy=H/2-10, b=13;
-  const tMin=0.1, tMax=15.5, steps=700;
-  const pts=[];
-  for(let i=0;i<=steps;i++){
-    const t=tMin+(tMax-tMin)*i/steps;
-    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
-  }
-  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t), y:cy-b*t*Math.sin(t)}));
   const R=36;
-
   let defs='<defs>';
   let circles='';
   let hits='';
 
-  pos.forEach((p,i)=>{
+  SPIRAL_POS.forEach((p,i)=>{
     const z=zones[i]||{};
     const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
 
     if(z.tint){
       defs+=`<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
-        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>
+        <stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>
         <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
       </radialGradient>`;
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sg${i})" pointer-events="none"/>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sg${i})" pointer-events="none"/>`;
     }
     if(hasTerrain){
       defs+=`<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
     }
 
-    // Background circle (highlighted when selected)
     circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
       fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
 
@@ -1269,7 +1296,6 @@ function buildSpiralSVG(zones) {
         fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
         pointer-events="none">${z.feeling}</text>`;
     }
-    // Transparent hit target
     hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
       fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
   });
@@ -1277,9 +1303,7 @@ function buildSpiralSVG(zones) {
 
   return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
     ${defs}
-    <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
-    <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
-    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
+    <image href="../assets/elements/spiral-3.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>
     ${circles}${hits}
   </svg>`;
 }
