@@ -81,15 +81,6 @@ html, body {
   transition: background 0.15s;
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); }
-.gear-wrap { position:relative; }
-.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background 0.15s; padding:3px; }
-.gear-btn:hover { background:rgba(0,0,0,0.08); }
-.gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:var(--mint); border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,0.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
-.gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
-.gear-item:hover { background:rgba(0,0,0,0.07); }
 
 /* ── PAGE BODY ── */
 .page-body {
@@ -231,20 +222,9 @@ input:focus { border-color: var(--purple); }
 <div class="room-back-wall" aria-hidden="true"></div>
 
 <nav class="room-nav">
-  <div class="gear-wrap" id="gear-wrap">
-    <div class="gear-btn" onclick="toggleGear()">
-      <img src="../assets/elements/gear icon.png" alt="menu">
-    </div>
-    <div class="gear-dropdown" id="gear-dropdown">
-      <button class="gear-item" onclick="window.location.href='../index.html'">home</button>
-      <button class="gear-item" onclick="window.location.href='../users/membership.html'">membership</button>
-    </div>
-  </div>
+  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">back</span>
   <span class="nav-title">login</span>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">← back</span>
-    <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
-  </div>
+  <span class="nav-btn" onclick="window.location.href='../index.html'">home</span>
 </nav>
 
 <div class="page-body">
@@ -303,9 +283,6 @@ input:focus { border-color: var(--purple); }
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
-  document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
-
   sb.auth.getSession().then(({ data: { session } }) => {
     if (session) window.location.href = 'profile.html';
   });
@@ -357,8 +334,8 @@ input:focus { border-color: var(--purple); }
     if (data.user) {
       await sb.from('user-profiles').insert({ id: data.user.id, username });
     }
-    showMsg('signup-msg', 'account created! taking you to your profile...', 'success');
-    setTimeout(() => window.location.href = 'profile.html', 1000);
+    showMsg('signup-msg', 'account created! taking you to membership options...', 'success');
+    setTimeout(() => window.location.href = 'membership.html', 1000);
   }
 </script>
 
