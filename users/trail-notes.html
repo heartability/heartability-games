@@ -14,9 +14,11 @@
   --font-hand: "ZoesHandwriting", cursive;
   --blue: #6579e2;
   --aqua: #83d2e6;
+  --mint: #c9fff5;
   --cream: #f5f0ea;
   --cream-dark: #e8e3da;
   --brown: #5a4a2a;
+  --line-col: #111;
 }
 html, body {
   width:100%; height:100dvh;
@@ -26,10 +28,45 @@ html, body {
   user-select: none;
 }
 
+/* ── NAV ── */
+.room-nav {
+  position: fixed; top:0; left:0; right:0; height:44px;
+  background: var(--mint); border-bottom: 2px solid var(--line-col);
+  z-index: 200; display:flex; align-items:center; justify-content:space-between;
+  padding: 0 clamp(12px,2vw,28px);
+  font-family: var(--font-hand); font-size: clamp(14px,1.6vw,20px); color:#111;
+}
+.nav-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  pointer-events:none; white-space:nowrap;
+}
+.nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background 0.15s; }
+.nav-btn:hover { background:rgba(0,0,0,0.08); }
+.gear-wrap { position:relative; }
+.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background 0.15s; padding:3px; }
+.gear-btn:hover { background:rgba(0,0,0,0.08); }
+.gear-btn img { width:22px; height:22px; display:block; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:var(--mint); border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,0.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown.open { display:flex; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
+.gear-item:hover { background:rgba(0,0,0,0.07); }
+
+/* Save button in nav */
+.nav-save-btn {
+  padding: 5px 14px;
+  background: var(--blue); border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: clamp(12px,1.3vw,15px);
+  color: #fff; cursor: pointer; transition: all 0.05s; white-space: nowrap;
+}
+.nav-save-btn:hover { background:#4a5bc4; }
+.nav-save-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.nav-save-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
 /* ── NOTEPAD CANVAS ── */
 .notepad-wrap {
   position: fixed;
-  inset: 0;
+  top: 44px; left: 0; right: 0; bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,6 +88,30 @@ html, body {
   pointer-events: none;
 }
 
+/* ── LEFT PAGE BACK BUTTON ── */
+.page-back-btn {
+  position: absolute;
+  left: -48px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-family: var(--font-hand);
+  font-size: clamp(13px,1.4vw,16px);
+  color: var(--blue);
+  cursor: pointer;
+  padding: 8px 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: translateY(-50%) rotate(180deg);
+  display: none;
+}
+.page-back-btn.visible { display: block; opacity: 0.7; }
+.page-back-btn:hover { opacity: 1; }
+
 /* ── DATE HEADER ── */
 .note-date {
   position: absolute;
@@ -70,7 +131,7 @@ html, body {
   top: 15%;
   left: 8%;
   right: 8%;
-  bottom: 14%;
+  bottom: 6%;
   background: transparent;
   border: none;
   outline: none;
@@ -88,62 +149,23 @@ html, body {
   font-style: italic;
 }
 
-/* ── BOTTOM CONTROLS ── */
-.note-controls {
-  position: absolute;
-  bottom: 3%;
-  left: 6%;
-  right: 6%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-/* Nav arrows */
-.nav-arrow {
-  background: none;
-  border: none;
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: var(--blue);
-  cursor: pointer;
-  padding: 4px 8px;
-  opacity: 0.7;
-  transition: opacity 0.15s;
-}
-.nav-arrow:hover { opacity: 1; }
-.nav-arrow:disabled { opacity: 0.2; cursor: default; }
-
-/* Entry label */
+/* ── ENTRY LABEL ── */
 .note-entry-label {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  transform: translateX(-50%);
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 12px);
   color: #aaa;
   white-space: nowrap;
+  pointer-events: none;
 }
-
-/* Save button */
-.note-save-btn {
-  padding: 6px 18px;
-  background: var(--blue);
-  border: 2px solid #4a5bc4;
-  box-shadow: 2px 2px 0 #3a4aaa;
-  font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 15px);
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.05s;
-  white-space: nowrap;
-}
-.note-save-btn:hover { background: #4a5bc4; }
-.note-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
-.note-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ── IMAGE UPLOAD ── */
 .img-upload-btn {
   position: absolute;
-  bottom: 10%;
+  bottom: 8%;
   right: 2%;
   width: clamp(36px, 4vw, 52px);
   height: clamp(36px, 4vw, 52px);
@@ -163,7 +185,7 @@ html, body {
 /* ── UPLOADED IMAGE PREVIEW ── */
 .uploaded-img-wrap {
   position: absolute;
-  bottom: 15%;
+  bottom: 14%;
   right: 7%;
   width: clamp(80px, 12vw, 140px);
   display: none;
@@ -177,27 +199,24 @@ html, body {
 }
 .uploaded-img-remove {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  border: 1.5px solid #ccc;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-  line-height: 1;
+  top: -8px; right: -8px;
+  width: 18px; height: 18px;
+  background: #fff; border: 1.5px solid #ccc; border-radius: 50%;
+  cursor: pointer; font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #888; line-height: 1;
 }
 
 /* ── STATUS ── */
 .note-status {
   position: absolute;
-  top: 3%;
-  right: 6%;
+  top: 2%; right: 6%;
+  font-family: var(--font-hand);
+  font-size: clamp(10px, 1vw, 12px);
+  color: #6ab86a;
+  opacity: 0; transition: opacity 0.3s;
+}
+.note-status.visible { opacity: 1; }
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 12px);
   color: #6ab86a;
@@ -209,6 +228,23 @@ html, body {
 </head>
 <body>
 
+<nav class="room-nav">
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
+  <span class="nav-title">trail notes</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="history.back()">← back</span>
+    <button class="nav-save-btn" id="btn-save" onclick="saveEntry()">save notes →</button>
+  </div>
+</nav>
+
 <div class="notepad-wrap">
   <div class="notepad-inner">
     <img class="notepad-bg" src="../assets/elements/open-journal.png" alt="notepad">
@@ -216,9 +252,14 @@ html, body {
     <div class="note-status" id="note-status"></div>
     <div class="note-date" id="note-date"></div>
 
+    <!-- Left side back button — only shown when past entries exist -->
+    <button class="page-back-btn" id="btn-prev" onclick="goEntry(1)">← prev</button>
+
     <textarea class="note-textarea" id="note-textarea"
       placeholder="anything you want to put on the record about today..."
       maxlength="4000"></textarea>
+
+    <span class="note-entry-label" id="entry-label"></span>
 
     <!-- Image upload button -->
     <div class="img-upload-btn" onclick="document.getElementById('img-file-input').click()" title="add a photo">
@@ -234,13 +275,6 @@ html, body {
       <img class="uploaded-img-preview" id="img-preview" src="" alt="uploaded">
       <div class="uploaded-img-remove" onclick="removeImage()">✕</div>
     </div>
-
-    <div class="note-controls">
-      <button class="nav-arrow" id="btn-prev" onclick="goEntry(-1)" disabled>← prev</button>
-      <span class="note-entry-label" id="entry-label"></span>
-      <button class="nav-arrow" id="btn-next" onclick="goEntry(1)" disabled>next →</button>
-      <button class="note-save-btn" id="btn-save" onclick="saveEntry()">save notes →</button>
-    </div>
   </div>
 </div>
 
@@ -249,6 +283,10 @@ html, body {
 const SUPA_URL = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
+document.getElementById('gear-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '../users/login.html'; });
 
 const params   = new URLSearchParams(window.location.search);
 const GAME_ID  = params.get('game_id');
@@ -314,17 +352,23 @@ function goEntry(dir) {
   document.getElementById('note-date').textContent =
     d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
   isViewingOld = entry.entry_date !== TODAY;
-  document.getElementById('btn-save').style.opacity = isViewingOld ? '0.3' : '1';
-  document.getElementById('btn-save').disabled = isViewingOld;
+  const saveBtn = document.getElementById('btn-save');
+  saveBtn.style.opacity = isViewingOld ? '0.3' : '1';
+  saveBtn.disabled = isViewingOld;
   updateNav();
 }
 
 function updateNav() {
-  const prev = document.getElementById('btn-prev');
-  const next = document.getElementById('btn-next');
-  const label = document.getElementById('entry-label');
-  prev.disabled = entryIndex >= entries.length - 1;
-  next.disabled = entryIndex <= 0;
+  const prevBtn = document.getElementById('btn-prev');
+  const label   = document.getElementById('entry-label');
+  // Show left back button only if there are older entries to go back to
+  const hasOlder = entries.length > 1;
+  if (hasOlder) {
+    prevBtn.classList.add('visible');
+    prevBtn.disabled = entryIndex >= entries.length - 1;
+  } else {
+    prevBtn.classList.remove('visible');
+  }
   if (entries.length > 1) {
     label.textContent = `${entryIndex + 1} of ${entries.length}`;
   } else {
