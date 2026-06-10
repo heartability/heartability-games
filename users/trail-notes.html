@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // When loaded inside the progress-tracker iframe, hide our own nav bar
+  if (window.self !== window.top) document.documentElement.classList.add('embedded');
+</script>
 <title>Trail Notes — Heartability</title>
 <style>
 @font-face {
@@ -86,6 +90,9 @@ html, body {
   justify-content: center;
   padding: 16px;
 }
+/* When embedded in the progress-tracker iframe: hide nav, reclaim its height */
+html.embedded .room-nav { display: none; }
+html.embedded .notepad-wrap { top: 0; }
 /* The inner box is sized to the journal image's true aspect ratio (set by JS
    on load via --book-ar) and capped so it stays centered and "smaller" on the
    page. Because the box matches the image proportions, the image never distorts. */
