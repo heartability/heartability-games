@@ -51,17 +51,21 @@ html, body {
 .gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
 .gear-item:hover { background:rgba(0,0,0,0.07); }
 
-/* Save button in nav */
+/* Save button in nav — matches the plain text "back" button (no pill) */
 .nav-save-btn {
-  padding: 5px 14px;
-  background: var(--blue); border: 2px solid #4a5bc4;
-  box-shadow: 2px 2px 0 #3a4aaa;
-  font-family: var(--font-hand); font-size: clamp(12px,1.3vw,15px);
-  color: #fff; cursor: pointer; transition: all 0.05s; white-space: nowrap;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  background: none;
+  border: none;
+  font-family: var(--font-hand);
+  font-size: clamp(14px,1.6vw,20px);
+  color: #111;
+  transition: background 0.15s;
+  white-space: nowrap;
 }
-.nav-save-btn:hover { background:#4a5bc4; }
-.nav-save-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.nav-save-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.nav-save-btn:hover { background:rgba(0,0,0,0.08); }
+.nav-save-btn:disabled { opacity:0.4; cursor:not-allowed; background:none; }
 
 /* ── NOTEPAD CANVAS ── */
 .notepad-wrap {
@@ -70,76 +74,55 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 16px;
 }
+/* The inner box is sized to the journal image's true aspect ratio (set by JS
+   on load via --book-ar) and capped so it stays centered and "smaller" on the
+   page. Because the box matches the image proportions, the image never distorts. */
 .notepad-inner {
   position: relative;
-  width: 100%;
-  height: 100%;
-  max-width: 900px;
+  --book-ar: 1.06; /* fallback width/height; JS overwrites with the real PNG ratio */
+  width: min(840px, 100%, calc((100dvh - 76px) * var(--book-ar)));
+  aspect-ratio: var(--book-ar);
 }
 .notepad-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: contain;
   display: block;
   pointer-events: none;
 }
 
-/* ── LEFT PAGE BACK BUTTON ── */
-.page-back-btn {
-  position: absolute;
-  left: -48px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-family: var(--font-hand);
-  font-size: clamp(13px,1.4vw,16px);
-  color: var(--blue);
-  cursor: pointer;
-  padding: 8px 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  white-space: nowrap;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: translateY(-50%) rotate(180deg);
-  display: none;
-}
-.page-back-btn.visible { display: block; opacity: 0.7; }
-.page-back-btn:hover { opacity: 1; }
-
-/* ── DATE HEADER ── */
+/* ── DATE HEADER (right page) ── */
 .note-date {
   position: absolute;
-  top: 7%;
-  left: 10%;
-  right: 10%;
-  text-align: center;
+  top: 13%;
+  left: 55%;
+  right: 9%;
+  text-align: left;
   font-family: var(--font-hand);
   font-size: clamp(12px, 1.4vw, 16px);
   color: #8a7a5a;
   pointer-events: none;
 }
 
-/* ── TEXT AREA ── */
+/* ── TEXT AREA (right page) ── */
 .note-textarea {
   position: absolute;
-  top: 15%;
-  left: 8%;
-  right: 8%;
-  bottom: 6%;
+  top: 21%;
+  left: 55%;
+  right: 9%;
+  bottom: 9%;
   background: transparent;
   border: none;
   outline: none;
   resize: none;
   font-family: var(--font-hand);
-  font-size: clamp(14px, 1.6vw, 19px);
+  font-size: clamp(13px, 1.4vw, 18px);
   color: var(--brown);
-  line-height: 2.1;
+  line-height: 2.0;
   caret-color: var(--blue);
   user-select: text;
   overflow-y: auto;
@@ -149,12 +132,34 @@ html, body {
   font-style: italic;
 }
 
-/* ── ENTRY LABEL ── */
+/* ── PAST-ENTRY NAVIGATION (left page) ── */
+.page-nav-btn {
+  position: absolute;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 16px);
+  color: var(--blue);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+.page-nav-btn.visible { display: block; opacity: 0.65; }
+.page-nav-btn:hover { opacity: 1; }
+.page-prev { left: 9%; top: 48%; }
+.page-next { left: 9%; top: 54%; }
+
+/* ── ENTRY LABEL (under right-page text) ── */
 .note-entry-label {
   position: absolute;
-  bottom: 2%;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 3.5%;
+  left: 55%;
+  right: 9%;
+  text-align: center;
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 12px);
   color: #aaa;
@@ -162,33 +167,32 @@ html, body {
   pointer-events: none;
 }
 
-/* ── IMAGE UPLOAD ── */
+/* ── PAPERCLIP PHOTO UPLOAD (left page, top) ── */
 .img-upload-btn {
   position: absolute;
-  bottom: 8%;
-  right: 2%;
-  width: clamp(36px, 4vw, 52px);
-  height: clamp(36px, 4vw, 52px);
-  background: rgba(240,236,228,0.9);
-  border: 1.5px solid #c8b88a;
+  top: 2.5%;
+  left: 32%;
+  width: clamp(30px, 5%, 56px);
+  height: auto;
+  background: none;
+  border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-  border-radius: 2px;
+  display: block;
+  transition: transform 0.15s;
+  z-index: 6;
 }
-.img-upload-btn:hover { background: rgba(220,210,195,0.95); }
-.img-upload-btn svg { width: 20px; height: 20px; opacity: 0.6; }
+.img-upload-btn:hover { transform: translateY(-2px) rotate(-3deg); }
+.img-upload-btn img { width: 100%; height: auto; display: block; }
 #img-file-input { display: none; }
 
-/* ── UPLOADED IMAGE PREVIEW ── */
+/* ── UPLOADED IMAGE PREVIEW (left page, under the clip) ── */
 .uploaded-img-wrap {
   position: absolute;
-  bottom: 14%;
-  right: 7%;
-  width: clamp(80px, 12vw, 140px);
+  top: 14%;
+  left: 20%;
+  width: clamp(70px, 20%, 150px);
   display: none;
+  z-index: 5;
 }
 .uploaded-img-wrap.has-img { display: block; }
 .uploaded-img-preview {
@@ -214,14 +218,9 @@ html, body {
   font-family: var(--font-hand);
   font-size: clamp(10px, 1vw, 12px);
   color: #6ab86a;
-  opacity: 0; transition: opacity 0.3s;
-}
-.note-status.visible { opacity: 1; }
-  font-family: var(--font-hand);
-  font-size: clamp(10px, 1vw, 12px);
-  color: #6ab86a;
   opacity: 0;
   transition: opacity 0.3s;
+  z-index: 5;
 }
 .note-status.visible { opacity: 1; }
 </style>
@@ -247,27 +246,25 @@ html, body {
 
 <div class="notepad-wrap">
   <div class="notepad-inner">
-    <img class="notepad-bg" src="../assets/elements/open-journal.png" alt="notepad">
+    <img class="notepad-bg" id="notepad-bg" src="../assets/elements/open-journal.png" alt="notepad">
 
     <div class="note-status" id="note-status"></div>
     <div class="note-date" id="note-date"></div>
 
-    <!-- Left side back button — only shown when past entries exist -->
-    <button class="page-back-btn" id="btn-prev" onclick="goEntry(1)">← prev</button>
+    <!-- Past-entry navigation on the LEFT page -->
+    <button class="page-nav-btn page-prev" id="btn-prev" onclick="goEntry(1)">← older</button>
+    <button class="page-nav-btn page-next" id="btn-next" onclick="goEntry(-1)">newer →</button>
 
+    <!-- Journal entry on the RIGHT page -->
     <textarea class="note-textarea" id="note-textarea"
       placeholder="anything you want to put on the record about today..."
       maxlength="4000"></textarea>
 
     <span class="note-entry-label" id="entry-label"></span>
 
-    <!-- Image upload button -->
+    <!-- Paperclip photo upload (left page) -->
     <div class="img-upload-btn" onclick="document.getElementById('img-file-input').click()" title="add a photo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#5a4a2a" stroke-width="1.8" stroke-linecap="round">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <path d="M21 15l-5-5L5 21"/>
-      </svg>
+      <img src="../assets/elements/paperclip.png" alt="add a photo">
     </div>
     <input type="file" id="img-file-input" accept="image/*">
 
@@ -299,9 +296,18 @@ let entryIndex   = 0;   // 0 = today (newest)
 let pendingImage = null; // { file, base64 }
 let isViewingOld = false;
 
+// ── Keep the book at its true proportions (no distortion) ──
+const bgImg = document.getElementById('notepad-bg');
+function fitBook() {
+  if (bgImg.naturalWidth && bgImg.naturalHeight) {
+    document.querySelector('.notepad-inner').style
+      .setProperty('--book-ar', (bgImg.naturalWidth / bgImg.naturalHeight).toFixed(4));
+  }
+}
+if (bgImg.complete) fitBook(); else bgImg.addEventListener('load', fitBook);
+
 // ── Init ──────────────────────────────────────────────────
 async function init() {
-  // Set date display
   document.getElementById('note-date').textContent =
     new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
@@ -312,7 +318,6 @@ async function init() {
 
   await loadEntries();
 
-  // Signal ready to parent
   try { window.parent.postMessage({ type: 'iframe_ready', game: 'journal' }, '*'); } catch(e) {}
 }
 
@@ -332,7 +337,6 @@ async function loadEntries() {
     entries = data || [];
   } catch(e) {}
 
-  // Check if today already has an entry
   const todayEntry = entries.find(e => e.entry_date === TODAY);
   if (todayEntry) {
     document.getElementById('note-textarea').value = todayEntry.diary_text || '';
@@ -342,6 +346,7 @@ async function loadEntries() {
 }
 
 // ── Navigate entries ──────────────────────────────────────
+// dir = +1 → older (further back), dir = -1 → newer (toward today)
 function goEntry(dir) {
   const newIdx = entryIndex + dir;
   if (newIdx < 0 || newIdx >= entries.length) return;
@@ -360,20 +365,13 @@ function goEntry(dir) {
 
 function updateNav() {
   const prevBtn = document.getElementById('btn-prev');
+  const nextBtn = document.getElementById('btn-next');
   const label   = document.getElementById('entry-label');
-  // Show left back button only if there are older entries to go back to
-  const hasOlder = entries.length > 1;
-  if (hasOlder) {
-    prevBtn.classList.add('visible');
-    prevBtn.disabled = entryIndex >= entries.length - 1;
-  } else {
-    prevBtn.classList.remove('visible');
-  }
-  if (entries.length > 1) {
-    label.textContent = `${entryIndex + 1} of ${entries.length}`;
-  } else {
-    label.textContent = '';
-  }
+  const hasOlder = entryIndex < entries.length - 1; // something further back to flip to
+  const hasNewer = entryIndex > 0;                  // something newer to return to
+  prevBtn.classList.toggle('visible', hasOlder);
+  nextBtn.classList.toggle('visible', hasNewer);
+  label.textContent = entries.length > 1 ? `${entryIndex + 1} of ${entries.length}` : '';
 }
 
 // ── Image handling ────────────────────────────────────────
@@ -405,7 +403,6 @@ async function saveEntry() {
 
   let imageUrl = null;
 
-  // Upload image if one is attached
   if (pendingImage && currentUser) {
     try {
       const ext  = pendingImage.file.name.split('.').pop();
@@ -435,7 +432,6 @@ async function saveEntry() {
   showStatus('saved ✓');
   btn.disabled = false; btn.textContent = 'save notes →';
 
-  // Tell parent we're done
   try { window.parent.postMessage({ type: 'journal_saved' }, '*'); } catch(e) {}
 }
 
@@ -446,7 +442,6 @@ function showStatus(msg) {
   setTimeout(() => el.classList.remove('visible'), 2500);
 }
 
-// ── Listen for parent requests ────────────────────────────
 window.addEventListener('message', e => {
   if (e.data?.type === 'request_save') saveEntry();
 });
