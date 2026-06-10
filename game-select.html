@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Builder — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --back-wall:  #f0ece4;
+  --side-col:   #dbd6ce;
+  --line-col:   #111;
+  --blue:       #6579e2;
+  --aqua:       #83d2e6;
+  --bw-top:    9%;
+  --bw-left:   15%;
+  --bw-width:  70%;
+  --bw-height: 70%;
+}
+
+html, body {
+  width: 100vw; height: 100dvh;
+  overflow: hidden; user-select: none;
+  background: var(--side-col);
+}
+
+/* ── Room layers ── */
+.room-lines { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+.room-lines svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.back-wall {
+  position: fixed;
+  top: var(--bw-top); left: var(--bw-left);
+  width: var(--bw-width); height: var(--bw-height);
+  background: var(--back-wall);
+  border: 2px solid var(--line-col);
+  z-index: 3; pointer-events: none;
+}
+
+/* ── Wall art ── */
+.wall-art {
+  position: fixed; cursor: pointer; z-index: 4; transition: opacity 0.3s;
+}
+.wall-art img {
+  display: block; width: 100%; height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2)); transition: filter 0.2s;
+}
+.wall-art:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
+
+@keyframes art-wiggle {
+  0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); }
+}
+.wall-art.wiggling { animation: art-wiggle 0.48s ease; }
+
+.art-map      { left: 20vw; top: 24vh; width: clamp(160px, 22vw, 340px); }
+.art-mirror   { left: 45vw; top: 24vh; width: clamp(100px, 14vw, 200px); }
+.art-bingo    { right: 21vw; top: 24vh; width: clamp(120px, 16vw, 240px); }
+.art-about    { left: 2vw;  top: 28vh; width: clamp(60px, 9vw, 130px); }
+.art-calendar { right: 2vw; top: 28vh; width: clamp(60px, 9vw, 130px); }
+
+/* Fade wall art in game or track mode */
+body.game-mode .wall-art,
+body.track-mode .wall-art { opacity: 0; pointer-events: none; }
+
+/* ── Calendar overlay ── */
+.calendar-wrapper { position: relative; display: block; }
+.calendar-wrapper img {
+  display: block; width: 100%; height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2)); transition: filter 0.2s;
+}
+.art-calendar:hover .calendar-wrapper img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
+.cal-month {
+  position: absolute; top: 3%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-hand); font-size: clamp(22px, 3vw, 66px);
+  color: #fff; pointer-events: none; white-space: nowrap;
+}
+.cal-day {
+  position: absolute; top: 36%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-hand); font-size: clamp(33px, 5vw, 66px);
+  color: #222; pointer-events: none; line-height: 1;
+}
+
+/* ── Nav ── */
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: #c9fff5; border-bottom: 2px solid var(--line-col);
+  z-index: 200; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px); color: #111;
+}
+.nav-title {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  pointer-events: none; white-space: nowrap;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── Gear dropdown ── */
+.gear-wrap { position: relative; }
+.gear-btn {
+  width: 30px; height: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; transition: background 0.15s; padding: 3px;
+}
+.gear-btn:hover { background: rgba(0,0,0,0.08); }
+.gear-btn img { width: 22px; height: 22px; display: block; }
+.gear-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px;
+  background: #c9fff5; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.gear-dropdown.open { display: flex; }
+.gear-item {
+  font-family: var(--font-hand); font-size: clamp(13px, 1.3vw, 16px); color: #333;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+}
+.gear-item:hover { background: rgba(0,0,0,0.07); }
+.gear-music {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 8px 14px; border-top: 1px solid rgba(0,0,0,0.1);
+}
+.music-btn {
+  cursor: pointer; background: none; border: none;
+  padding: 2px; opacity: 0.65; transition: opacity 0.15s;
+}
+.music-btn:hover { opacity: 1; }
+.music-btn img { width: 18px; height: 18px; display: block; }
+
+/* ── Heart character ── */
+@keyframes intro-wiggle {
+  0%   { transform: rotate(0deg) scale(1); } 18% { transform: rotate(-11deg) scale(1.06); }
+  38%  { transform: rotate(11deg) scale(1.06); } 58% { transform: rotate(-6deg) scale(1.02); }
+  78%  { transform: rotate(6deg) scale(1.02); } 100% { transform: rotate(0deg) scale(1); }
+}
+@keyframes idle-pulse {
+  0%,100% { transform: translateY(0) rotate(-2deg) scale(1); }
+  50%     { transform: translateY(-8px) rotate(2deg) scale(1.03); }
+}
+@keyframes hover-bounce {
+  0%,100% { transform: translateY(0) rotate(-3deg) scale(1.07); }
+  50%     { transform: translateY(-14px) rotate(3deg) scale(1.11); }
+}
+
+.char-heart {
+  position: fixed; left: 18vw; bottom: 18vh;
+  width: clamp(120px, 16vw, 260px);
+  display: flex; align-items: flex-end; cursor: pointer;
+  z-index: 4; transition: left 0.4s ease, bottom 0.4s ease, width 0.4s ease, z-index 0s;
+}
+.char-heart .char-img {
+  display: block; width: 100%; height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
+  animation: intro-wiggle 0.85s ease-out 0.35s 1 backwards,
+             idle-pulse 3.6s ease-in-out 1.5s infinite;
+}
+.char-heart.active .char-img { animation: hover-bounce 0.55s ease-in-out infinite; }
+
+/* Guide mode: Heart moves to side area during track/game mode */
+body.track-mode .char-heart,
+body.game-mode .char-heart {
+  left: 1vw;
+  bottom: 8vh;
+  width: clamp(70px, 9vw, 140px);
+  z-index: 12;
+}
+
+.thought-bubble {
+  position: absolute; left: calc(100% - 10px); top: calc(100% - 40px);
+  min-width: clamp(160px, 20vw, 300px); max-width: clamp(200px, 24vw, 340px);
+  background: #fff; border: 2px solid #000; border-radius: 50%;
+  padding: 14px 24px; font-family: var(--font-hand); font-size: clamp(10px, 1.4vw, 16px);
+  color: #000; text-align: center; line-height: 1.4;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  opacity: 0; pointer-events: none; transition: opacity 0.22s ease; z-index: 5;
+}
+.char-heart.active .thought-bubble { opacity: 1; }
+/* Always show bubble in guide mode */
+.char-heart.guide-mode .thought-bubble { opacity: 1; }
+
+/* ── GAME PANEL — back wall iframe for games  z:10 ── */
+.game-panel {
+  position: fixed;
+  top: var(--bw-top); left: var(--bw-left);
+  width: var(--bw-width); height: var(--bw-height);
+  z-index: 10; display: none;
+}
+.game-panel.active {
+  display: block;
+  border: 3px solid #111;
+  box-shadow: inset 0 0 0 2px var(--aqua);
+}
+
+.game-close-btn {
+  position: absolute; top: 8px; right: 10px; z-index: 2;
+  font-family: var(--font-hand); font-size: 18px; color: #333);
+  background: rgba(240,236,228,0.88); border: none; cursor: pointer;
+  padding: 4px 10px; transition: color 0.12s;
+}
+.game-close-btn:hover { color: #333; }
+
+.game-panel iframe {
+  width: 100%; height: 100%; border: none; display: block;
+}
+
+/* ── Track content panel — back wall steps  z:10 ── */
+.track-panel {
+  position: fixed;
+  top: var(--bw-top); left: var(--bw-left);
+  width: var(--bw-width); height: var(--bw-height);
+  z-index: 10; display: none; flex-direction: column; overflow: hidden;
+}
+.track-panel.active { display: flex; }
+.track-panel.iframe-mode { border: 3px solid #111; box-shadow: inset 0 0 0 2px var(--aqua); }
+
+/* ── Letter overlay  z:50 ── */
+.letter-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); overflow-y: auto; padding: 20px 0;
+}
+.letter-overlay.hidden { display: none; }
+.letter-paper {
+  position: relative; width: clamp(280px, 44vw, 500px); max-height: 85vh; overflow-y: auto;
+  background: #f7f2e8; border-radius: 2px;
+  padding: clamp(24px, 4vw, 44px) clamp(20px, 3.5vw, 40px);
+  box-shadow: 2px 3px 0 1px rgba(0,0,0,.1), 4px 6px 14px rgba(0,0,0,.25);
+  transform: scaleY(0.07); opacity: 0; pointer-events: none;
+  transition: transform .6s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+}
+.letter-paper.unfolded { transform: scaleY(1) rotate(.6deg); opacity: 1; pointer-events: all; }
+.letter-close {
+  position: absolute; top: 10px; right: 12px; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #a09070; cursor: pointer; background: none; border: none;
+  transition: color .15s, transform .1s;
+}
+.letter-close:hover { color: #5a3a7a; transform: scale(1.2); }
+.letter-body { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 18px); color: #2a1e14; line-height: 1.75; }
+.letter-body p { margin-bottom: 1em; }
+.letter-body p:first-child { margin-bottom: 1.2em; font-size: clamp(15px, 1.8vw, 20px); }
+.letter-body p:last-child { margin-bottom: 0; }
+.letter-sig { margin-top: 1.2em; font-size: clamp(12px, 1.4vw, 16px); color: #000; }
+
+/* ── Step panels ── */
+.step-panel {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; padding: 20px; font-family: var(--font-hand);
+}
+.step-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; flex-shrink: 0; width: 100%;
+}
+.step-header-title { font-size: 17px; color: #333; }
+.step-back { font-size: 14px; color: var(--blue); cursor: pointer; }
+.step-back:hover { text-decoration: underline; }
+
+/* Map grid */
+.map-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(120px, 180px));
+  gap: 12px; padding: 4px; justify-content: center;
+}
+.map-slot {
+  border: 2px solid #ccc; background: #fdf6e3; cursor: pointer;
+  display: flex; flex-direction: column; align-items: stretch;
+  padding: 8px 8px 6px; gap: 5px; font-family: var(--font-hand); text-align: center;
+  transition: border-color .15s, box-shadow .12s, transform .1s;
+  position: relative; aspect-ratio: 4/5;
+}
+.map-slot:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
+.map-slot.empty { border-style: dashed; border-color: #e0e0e0; cursor: default; background: transparent; }
+.map-slot.empty:hover { transform: none; box-shadow: none; border-color: #e0e0e0; }
+.slot-name    { font-size: 12px; color: #333; line-height: 1.2; word-break: break-word; font-weight: 600; flex-shrink: 0; }
+.slot-updated { font-size: 10px; color: #bbb; flex-shrink: 0; }
+.slot-preview { flex: 1; min-height: 0; overflow: hidden; background: #e8e0c8; border: 1px solid #c8b88a; }
+.slot-preview svg { width: 100%; height: 100%; display: block; }
+.slot-delete {
+  position: absolute; top: 5px; right: 6px;
+  font-size: 13px; color: #ccc; background: none; border: none;
+  cursor: pointer; line-height: 1; padding: 2px 4px; transition: color .12s; z-index: 2;
+}
+.slot-delete:hover { color: #E8478B; }
+.wall-nav-btn {
+  background: none; border: 1.5px solid var(--blue);
+  font-family: var(--font-hand); font-size: clamp(11px, 1.1vw, 13px); color: var(--blue);
+  padding: 4px 10px; cursor: pointer; transition: background .12s, color .12s;
+}
+.wall-nav-btn:hover { background: var(--blue); color: #fff; }
+
+/* Phase select */
+.phase-wrap { flex: 1; position: relative; display: flex; align-items: stretch; overflow: hidden; }
+.phase-map-area {
+  flex: 1; position: relative; background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a; overflow: hidden;
+}
+.phase-map-area svg { width: 100%; height: 100%; display: block; }
+.phase-key {
+  position: absolute; bottom: 0; right: 0; width: 260px; max-height: 100%;
+  background: rgba(245,240,234,0.97); border-top: 2px solid #8a7a5a; border-left: 2px solid #8a7a5a;
+  padding: 10px 12px; overflow-y: auto; font-family: var(--font-hand);
+}
+.phase-key-title { font-size: 12px; color: #aaa; letter-spacing: .3px; margin-bottom: 8px; }
+.phase-key-item {
+  display: flex; gap: 8px; align-items: flex-start; padding: 7px 10px; margin-bottom: 5px;
+  border: 1.5px solid #ccc; background: #fdf6e3; cursor: pointer; font-size: 13px; color: #555; line-height: 1.4;
+  transition: all .1s;
+}
+.phase-key-item:hover { border-color: var(--blue); color: var(--blue); background: #f0edfa; }
+.phase-key-item.selected { border-color: var(--blue); background: var(--blue); color: #fff; box-shadow: 2px 2px 0 #3a4aaa; }
+.phase-key-num { font-size: 11px; opacity: .55; min-width: 14px; padding-top: 2px; }
+.begin-btn {
+  padding: 12px 18px; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 16px; color: #fff; cursor: pointer; margin-top: 10px;
+  transition: all .05s; width: 100%;
+}
+.begin-btn:hover { background: #4a5bc4; }
+.begin-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.begin-btn:disabled { opacity: .38; cursor: not-allowed; transform: none !important; }
+
+/* Mobile phase drawer */
+.phase-key-drawer {
+  position: absolute; bottom: 0; left: 0; right: 0; background: #f5f0ea;
+  border-top: 2px solid #bbb; max-height: 0; overflow: hidden; transition: max-height .35s ease; z-index: 5;
+}
+.phase-key-drawer.open { max-height: 80vh; overflow-y: auto; }
+.phase-select-btn {
+  position: absolute; bottom: 12px; right: 12px; z-index: 6; padding: 10px 16px;
+  background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 14px; color: #fff; cursor: pointer; transition: all .05s;
+}
+.phase-select-btn:hover { background: #4a5bc4; }
+.phase-drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid #ddd;
+  font-family: var(--font-hand); font-size: 13px; color: #aaa;
+}
+.phase-drawer-close { cursor: pointer; font-size: 18px; color: #bbb; padding: 2px 4px; }
+.phase-drawer-close:hover { color: #444; }
+
+/* ── Add new / continue bar / status ── */
+.add-new-btn {
+  position: fixed; bottom: calc(21% + 12px); right: calc(15% + 12px);
+  z-index: 20; padding: 10px 18px; background: var(--blue);
+  border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: clamp(13px, 1.4vw, 16px); color: #fff;
+  cursor: pointer; transition: all .05s; display: none;
+}
+.add-new-btn.visible { display: block; }
+.add-new-btn:hover { background: #4a5bc4; }
+.add-new-btn:active { box-shadow: none; transform: translate(3px,3px); }
+
+.continue-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: calc(21% - 44px);
+  display: none; align-items: center; justify-content: center; z-index: 15; pointer-events: none;
+}
+.continue-bar.visible { display: flex; }
+.continue-btn {
+  pointer-events: all; padding: 14px 40px; background: var(--blue);
+  border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.8vw, 20px); color: #fff;
+  cursor: pointer; transition: all .05s; letter-spacing: .3px;
+}
+.continue-btn:hover { background: #4a5bc4; }
+.continue-btn:active { box-shadow: none; transform: translate(3px,3px); }
+.continue-btn:disabled { opacity: .38; cursor: not-allowed; transform: none !important; box-shadow: 3px 3px 0 #3a4aaa; }
+
+.status-bar {
+  position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-hand); font-size: 14px; color: #6ab86a; z-index: 16; pointer-events: none;
+}
+
+/* ── OVERVIEW: mood board — no boxes ── */
+.overview-panel {
+  padding: 16px 20px !important;
+  align-items: stretch !important;
+  overflow-y: auto;
+}
+.ov-board {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 10px 18px;
+  flex: 1; min-height: 0;
+}
+/* All cols: no background, no border — elements float on wall */
+.ov-col { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: visible; }
+.ov-col-center { align-items: center; }
+.ov-col-right { align-items: flex-start; }
+
+.ov-map-name {
+  font-family: var(--font-hand); font-size: clamp(14px, 1.4vw, 18px); color: #333;
+}
+.ov-map-svg { width: 100%; max-height: 180px; overflow: hidden; }
+.ov-map-svg svg { width: 100%; height: 100%; display: block; }
+.ov-label {
+  font-family: var(--font-hand); font-size: clamp(10px, 0.9vw, 12px); color: #aaa; letter-spacing: .3px;
+}
+.ov-past-list { display: flex; flex-direction: column; gap: 2px; }
+.ov-past-item {
+  font-family: var(--font-hand); font-size: clamp(11px, 1.1vw, 14px); color: var(--blue); cursor: pointer;
+}
+.ov-past-item:hover { text-decoration: underline; }
+
+.ov-date {
+  font-family: var(--font-hand); font-size: clamp(13px, 1.4vw, 17px); color: #333; text-align: center;
+}
+
+/* Terrain as tinted circle — no box */
+.ov-terrain-circle {
+  width: clamp(70px, 9vw, 120px);
+  height: clamp(70px, 9vw, 120px);
+  border-radius: 50%; overflow: hidden; position: relative; flex-shrink: 0;
+}
+.ov-terrain-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ov-terrain-tint {
+  position: absolute; inset: 0; border-radius: 50%;
+  /* tint set via inline style */
+}
+.ov-terrain-placeholder {
+  width: clamp(70px, 9vw, 120px); height: clamp(70px, 9vw, 120px);
+  border-radius: 50%; background: #e8e0c8; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hand); font-size: 13px; color: #8a7a6a; flex-shrink: 0;
+}
+.ov-feeling {
+  font-family: var(--font-hand); font-size: clamp(12px, 1.2vw, 16px); color: #5a4a2a;
+  text-align: center; margin-top: 4px;
+}
+
+/* Journal button — just the image, no box */
+.ov-journal-btn {
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform 0.15s; margin-top: 8px;
+}
+.ov-journal-btn:hover { transform: scale(1.05) rotate(-1deg); }
+.ov-journal-btn img { width: clamp(60px, 9vw, 120px); height: auto; display: block; }
+.ov-journal-label {
+  font-family: var(--font-hand); font-size: clamp(10px, 0.9vw, 12px); color: #888; text-align: center;
+}
+
+/* Character stack — no box */
+.ov-char-stack {
+  position: relative;
+  width: clamp(60px, 10vw, 140px);
+  aspect-ratio: 777/1155;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+.ov-char-layer {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+}
+.ov-char-placeholder {
+  width: clamp(60px, 10vw, 140px); aspect-ratio: 777/1155;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hand); font-size: 12px; color: #bbb;
+}
+
+/* Heart meter — no box */
+.ov-meter-label {
+  font-family: var(--font-hand); font-size: clamp(10px, 0.9vw, 12px); color: #aaa; letter-spacing: .3px;
+}
+.ov-meter-track {
+  width: 100%; background: #c8b88a; border: 2px solid var(--blue);
+  height: 16px; position: relative; overflow: hidden;
+}
+.ov-meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #e8478b 0px, #e8478b 18px, #ff6ba8 18px, #ff6ba8 20px);
+  transition: width 0.6s ease; min-width: 0;
+}
+.ov-meter-stages {
+  display: flex; justify-content: space-between; margin-top: 2px;
+  font-family: var(--font-hand); font-size: 10px; color: #8a7a6a;
+}
+.ov-mode-label {
+  font-family: var(--font-hand); font-size: clamp(11px, 1.1vw, 14px); color: var(--blue);
+}
+.ov-spacer { flex: 1; min-height: 8px; }
+.ov-saved-msg {
+  font-family: var(--font-hand); font-size: clamp(12px, 1.1vw, 14px); color: #6ab86a; display: none;
+}
+.ov-saved-msg.show { display: block; }
+.ov-save-btn {
+  padding: 12px 18px; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: clamp(13px, 1.4vw, 17px); color: #fff;
+  cursor: pointer; transition: all .05s; width: 100%;
+}
+.ov-save-btn:hover { background: #4a5bc4; }
+.ov-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.ov-save-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.ov-archive-btn {
+  padding: 7px 18px; background: none; border: 1.5px solid #ccc;
+  font-family: var(--font-hand); font-size: clamp(11px, 1.1vw, 14px); color: #888;
+  cursor: pointer; transition: all .1s; width: 100%;
+}
+.ov-archive-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── JOURNAL — open journal image as canvas ── */
+.journal-overlay {
+  position: fixed;
+  top: var(--bw-top); left: var(--bw-left);
+  width: var(--bw-width); height: var(--bw-height);
+  z-index: 20; display: none; align-items: center; justify-content: center;
+  background: rgba(240,236,228,0.92);
+}
+.journal-overlay.open { display: flex; }
+
+.journal-img-wrap {
+  position: relative; width: 90%; max-width: 740px; max-height: 92%;
+}
+.journal-bg-img { width: 100%; display: block; pointer-events: none; }
+
+/* Left page: date + prompts */
+.journal-left-page {
+  position: absolute; top: 10%; left: 5%; width: 38%; height: 76%;
+  display: flex; flex-direction: column; gap: 10px;
+  font-family: var(--font-hand);
+}
+.journal-date-hdr {
+  font-size: clamp(11px, 1.2vw, 15px); color: #5a4a2a;
+  border-bottom: 1px solid rgba(101,121,226,.2); padding-bottom: 6px;
+}
+.journal-prompts {
+  display: flex; flex-direction: column; gap: 8px;
+  font-size: clamp(10px, 1.1vw, 14px); color: #8a7a6a;
+}
+.journal-prompts p { line-height: 1.4; }
+
+/* Right page: textarea */
+.journal-right-page {
+  position: absolute; top: 10%; right: 5%; width: 42%; height: 76%;
+}
+.journal-textarea {
+  width: 100%; height: 100%; resize: none; border: none; outline: none;
+  background: transparent; font-family: var(--font-hand);
+  font-size: clamp(12px, 1.3vw, 16px); color: #2a1e14;
+  line-height: 1.9; overflow-y: auto; user-select: text; caret-color: var(--blue);
+}
+.journal-textarea::placeholder { color: rgba(138,122,90,.35); font-style: italic; }
+
+/* Controls below image */
+.journal-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 10px; padding: 0 2px;
+}
+.journal-close-link {
+  font-family: var(--font-hand); font-size: 14px; color: var(--blue);
+  cursor: pointer; background: none; border: none;
+}
+.journal-close-link:hover { text-decoration: underline; }
+.journal-save-btn {
+  padding: 8px 20px; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 14px; color: #fff; cursor: pointer; transition: all .05s;
+}
+.journal-save-btn:hover { background: #4a5bc4; }
+
+/* ── Login popup ── */
+.login-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300;
+  display: none; align-items: flex-start; justify-content: flex-start;
+  padding-top: 46px; padding-left: clamp(12px, 2vw, 28px);
+}
+.login-overlay.open { display: flex; }
+.login-popup {
+  background: #f5f0ea;
+  box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35);
+  width: clamp(280px, 88vw, 360px); overflow: hidden; animation: popIn 0.2s ease both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); }
+}
+.login-popup-titlebar {
+  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555;
+}
+.popup-close { cursor: pointer; color: #aaa; font-size: 16px; padding: 4px; line-height: 1; }
+.popup-close:hover { color: var(--blue); }
+.login-popup-tabs { display: flex; border-bottom: 2px solid #ccc; background: #e8e3da; }
+.popup-tab {
+  flex: 1; padding: 8px; font-family: var(--font-hand); font-size: 14px;
+  text-align: center; cursor: pointer; color: #888; background: none; border: none;
+  border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s;
+}
+.popup-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.login-popup-body { padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.popup-form { display: none; flex-direction: column; gap: 12px; }
+.popup-form.active { display: flex; }
+.popup-field { display: flex; flex-direction: column; gap: 4px; }
+.popup-label { font-family: var(--font-hand); font-size: 12px; color: #aaa; }
+.popup-input {
+  font-family: var(--font-hand); font-size: 15px; color: #222; background: #f5f0ea;
+  border: 1.5px solid #bbb; padding: 7px 10px; outline: none; transition: border-color 0.2s; user-select: text;
+}
+.popup-input:focus { border-color: var(--blue); }
+.popup-btn {
+  padding: 9px; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 15px; color: white; cursor: pointer; transition: all 0.05s; margin-top: 2px;
+}
+.popup-btn:hover { background: #4a5bc4; }
+.popup-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.popup-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.popup-msg { font-size: 12px; font-family: var(--font-hand); padding: 6px 10px; display: none; }
+.popup-msg.error   { display: block; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.15); }
+.popup-msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.15); }
+
+/* ── Mobile ── */
+@media (max-width: 655px) {
+  /* Room structure preserved — only reposition art elements */
+  body.track-mode .char-heart, body.game-mode .char-heart { display: none; }
+  .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
+  .art-map      { left: 20vw; top: 20vh; width: 32vw; }
+  .art-mirror   { left: 20vw; top: 40vh; width: 28vw; }
+  .art-bingo    { left: 55vw; top: 20vh; width: 28vw; }
+  .art-about    { left: 1vw;  top: 30vh; width: 14vw; }
+  .art-calendar { right: 1vw; top: 30vh; width: 14vw; }
+  .map-grid { grid-template-columns: repeat(2, 1fr); }
+  .continue-bar { height: auto; padding: 10px 0; }
+  .add-new-btn { bottom: 12px; right: 12px; }
+  .ov-board { grid-template-columns: 1fr; }
+  .phase-key { width: 180px; }
+  .journal-left-page { font-size: clamp(10px, 3vw, 13px); }
+}
+
+/* When a game or track panel is open on mobile, go full-bleed */
+@media (max-width: 655px) {
+  body.game-mode .game-panel,
+  body.track-mode .track-panel {
+    top: 44px !important; left: 0 !important;
+    width: 100% !important; height: calc(100dvh - 44px) !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<audio id="bg-music" loop>
+  <source src="https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3" type="audio/mpeg">
+</audio>
+
+<!-- NAV -->
+<nav class="room-nav">
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" id="gear-auth"    onclick="gearLogin()">login</button>
+      <button class="gear-item" id="gear-profile" style="display:none" onclick="gearProfile()">view profile</button>
+      <button class="gear-item" id="gear-logout"  style="display:none" onclick="gearLogout()">logout</button>
+      <div class="gear-music">
+        <button class="music-btn" onclick="seekBack()"  title="back 10s"><img src="../assets/elements/go back.png" alt="back"></button>
+        <button class="music-btn" id="play-pause-btn" onclick="toggleMusic()"><img src="../assets/elements/play.png" id="pp-icon" alt="play"></button>
+        <button class="music-btn" onclick="seekFwd()"   title="forward 10s"><img src="../assets/elements/go forward.png" alt="forward"></button>
+      </div>
+    </div>
+  </div>
+  <span class="nav-title">game room</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" id="nav-back">← back</span>
+    <span class="nav-btn" id="nav-next">next →</span>
+  </div>
+</nav>
+
+<!-- ABOUT POSTER -->
+<div class="art-about wall-art" id="art-about" role="button" tabindex="0">
+  <img src="../assets/elements/about-poster.png" alt="About Heartability">
+</div>
+
+<!-- CALENDAR TRACKER -->
+<div class="art-calendar wall-art" id="art-calendar" role="button" tabindex="0">
+  <div class="calendar-wrapper">
+    <img src="../assets/elements/calendar tracker.png" alt="Track today">
+    <div class="cal-month" id="cal-month"></div>
+    <div class="cal-day"   id="cal-day"></div>
+  </div>
+</div>
+
+<!-- ROOM LINES -->
+<div class="room-lines" aria-hidden="true">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+  </svg>
+</div>
+
+<!-- BACK WALL -->
+<div class="back-wall"></div>
+
+<!-- WALL ART — games -->
+<div class="wall-art art-map" id="art-map" data-game="treasure-map" role="button" tabindex="0">
+  <img src="../assets/elements/map.png" alt="Treasure Map">
+</div>
+<div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror" role="button" tabindex="0">
+  <img src="../assets/elements/mirror.png" alt="Infinity Mirror">
+</div>
+<div class="wall-art art-bingo" id="art-bingo" data-game="bingo" role="button" tabindex="0">
+  <img src="../assets/elements/bingo.png" alt="Heart Meter Bingo">
+</div>
+
+<!-- HEART GUIDE -->
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="heart-bubble"></div>
+  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
+</div>
+
+<!-- GAME PANEL — back wall iframe for games  z:10 -->
+<div class="game-panel" id="game-panel">
+  <button class="game-close-btn" onclick="closeGame()">×</button>
+</div>
+
+<!-- TRACK PANEL — back wall steps  z:10 -->
+<div class="track-panel" id="track-panel"></div>
+
+<!-- ABOUT LETTER -->
+<div class="letter-overlay hidden" id="about-overlay">
+  <div class="letter-paper" id="about-paper">
+    <button class="letter-close" id="about-close">&#x2715;</button>
+    <div class="letter-body">
+      <p>Dear visitor,</p>
+      <p>Welcome to Heartability. I have played this game in my journals for years. It helped me make so many of my dreams come true. Now I offer it to you. I believe this way of approaching life has the power to change the world, to create a world where people trust their intuition and following your own path is considered normal, not alternative.</p>
+      <p>The games on this page take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Play bingo to check in on your energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next. There&#39;s no wrong way to play. Nothing to optimize. Just endless possibilities for you to explore.</p>
+      <p>You don&#39;t have to figure it out alone anymore. Now you can figure it out with Heartability.</p>
+      <div class="letter-sig"><p>I believe in you,</p><p>Zoe Tinnes, founder of Heartability</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTINUE BAR -->
+<div class="continue-bar" id="continue-bar">
+  <button class="continue-btn" id="continue-btn" onclick="handleContinue()">continue →</button>
+</div>
+<div class="status-bar" id="status-bar"></div>
+
+<!-- ADD NEW MAP -->
+<button class="add-new-btn" id="add-new-btn" onclick="stepNewGame()">+ add new</button>
+
+<!-- JOURNAL OVERLAY — open journal image as canvas -->
+<div class="journal-overlay" id="journal-overlay">
+  <div class="journal-img-wrap">
+    <img class="journal-bg-img" src="../assets/elements/open journal.png" alt="journal">
+    <div class="journal-left-page">
+      <div class="journal-date-hdr" id="journal-date-hdr"></div>
+      <div class="journal-prompts">
+        <p>what happened today?</p>
+        <p>what surprised you?</p>
+        <p>what are you carrying right now?</p>
+        <p>what do you want to remember?</p>
+      </div>
+    </div>
+    <div class="journal-right-page">
+      <textarea class="journal-textarea" id="journal-textarea"
+        placeholder="write here..."
+        maxlength="4000"></textarea>
+    </div>
+  </div>
+  <div class="journal-controls" style="width:90%;max-width:740px;">
+    <button class="journal-close-link" onclick="closeJournal()">× close</button>
+    <button class="journal-save-btn" onclick="saveJournalEntry()">save notes →</button>
+  </div>
+</div>
+
+<!-- LOGIN POPUP -->
+<div class="login-overlay" id="login-overlay" onclick="handleOverlayClick(event)">
+  <div class="login-popup">
+    <div class="login-popup-titlebar">
+      <span id="login-popup-title">welcome</span>
+      <span class="popup-close" onclick="closeLoginPopup()">&#x2715;</span>
+    </div>
+    <div class="login-popup-tabs">
+      <button class="popup-tab active" onclick="switchPopupTab('login', this)">log in</button>
+      <button class="popup-tab" onclick="switchPopupTab('signup', this)">sign up</button>
+    </div>
+    <div class="login-popup-body">
+      <form class="popup-form active" id="popup-form-login" onsubmit="popupLogin(event)">
+        <div class="popup-field">
+          <div class="popup-label">email</div>
+          <input class="popup-input" type="email" id="popup-login-email" placeholder="your@email.com" required autocomplete="email">
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">password</div>
+          <input class="popup-input" type="password" id="popup-login-password" placeholder="••••••••" required>
+        </div>
+        <div class="popup-msg" id="popup-login-msg"></div>
+        <button type="submit" class="popup-btn" id="popup-login-btn">enter</button>
+      </form>
+      <form class="popup-form" id="popup-form-signup" onsubmit="popupSignup(event)">
+        <div class="popup-field">
+          <div class="popup-label">username</div>
+          <input class="popup-input" type="text" id="popup-signup-username" placeholder="choose a name" required maxlength="40" autocomplete="off">
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">email</div>
+          <input class="popup-input" type="email" id="popup-signup-email" placeholder="your@email.com" required autocomplete="email">
+        </div>
+        <div class="popup-field">
+          <div class="popup-label">password</div>
+          <input class="popup-input" type="password" id="popup-signup-password" placeholder="at least 6 characters" required minlength="6">
+        </div>
+        <div class="popup-msg" id="popup-signup-msg"></div>
+        <button type="submit" class="popup-btn" id="popup-signup-btn">create account</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Global state ───────────────────────────────────────────
+let currentUser     = null;
+let loginAfterwards = null;
+
+// ── Calendar ───────────────────────────────────────────────
+(function() {
+  const now    = new Date();
+  const months = ['january','february','march','april','may','june',
+                  'july','august','september','october','november','december'];
+  document.getElementById('cal-month').textContent = months[now.getMonth()];
+  document.getElementById('cal-day').textContent   = now.getDate();
+})();
+
+// ── Gear ───────────────────────────────────────────────────
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const gw = document.getElementById('gear-wrap');
+  if (gw && !gw.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
+});
+function gearLogin()   { document.getElementById('gear-dropdown').classList.remove('open'); openLoginPopup('welcome'); }
+function gearProfile() { document.getElementById('gear-dropdown').classList.remove('open'); window.location.href = '../users/profile.html'; }
+function gearLogout()  {
+  document.getElementById('gear-dropdown').classList.remove('open');
+  if (typeof sb !== 'undefined') sb.auth.signOut().then(() => { currentUser = null; updateGearMenu(null); });
+}
+function updateGearMenu(username) {
+  const auth = document.getElementById('gear-auth');
+  const prof = document.getElementById('gear-profile');
+  const out  = document.getElementById('gear-logout');
+  if (username) { auth.style.display='none'; prof.style.display=''; out.style.display=''; }
+  else          { auth.style.display='';    prof.style.display='none'; out.style.display='none'; }
+}
+
+// ── Music ──────────────────────────────────────────────────
+let musicPlaying = false;
+function toggleMusic() {
+  const audio = document.getElementById('bg-music');
+  const icon  = document.getElementById('pp-icon');
+  if (musicPlaying) { audio.pause(); icon.src = '../assets/elements/play.png'; }
+  else              { audio.play().catch(()=>{}); icon.src = '../assets/elements/pause.png'; }
+  musicPlaying = !musicPlaying;
+}
+function seekBack() { const a=document.getElementById('bg-music'); a.currentTime=Math.max(0,a.currentTime-10); }
+function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime=Math.min(a.duration||0,a.currentTime+10); }
+
+// ── Room interactions ──────────────────────────────────────
+(function() {
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+
+  const messages = {
+    'art-map':      'life is confusing... if you feel lost, make a map',
+    'art-bingo':    'take a minute to celebrate the care you give yourself',
+    'art-mirror':   'who do you want to be today? the options are endless',
+    'art-calendar': 'track your emotional journey over time',
+    'art-about':    'a message from the creator of Heartability',
+  };
+
+  function triggerWiggle(el) {
+    el.classList.remove('wiggling'); void el.offsetWidth; el.classList.add('wiggling');
+    el.addEventListener('animationend', () => el.classList.remove('wiggling'), { once: true });
+  }
+  function activate(id)  { bubble.textContent = messages[id] || ''; heart.classList.add('active'); }
+  function deactivate()  { heart.classList.remove('active'); }
+
+  Object.keys(messages).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('mouseenter', () => { activate(id); triggerWiggle(el); });
+    el.addEventListener('mouseleave', deactivate);
+  });
+  heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
+  heart.addEventListener('mouseleave', deactivate);
+
+  // Nav
+  document.getElementById('nav-back').addEventListener('click', () => window.location.href = '../index.html');
+  document.getElementById('nav-next').addEventListener('click', () => window.location.href = '../rooms/garden.html');
+
+  // Games → back wall
+  document.querySelectorAll('.wall-art[data-game]').forEach(art => {
+    art.addEventListener('click',   () => openGame(art.dataset.game));
+    art.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') openGame(art.dataset.game); });
+  });
+
+  // Calendar → track
+  const calArt = document.getElementById('art-calendar');
+  calArt.addEventListener('click', () => {
+    if (!currentUser) { loginAfterwards = 'track'; openLoginPopup('log in to track your day'); }
+    else              { openTrackMode(); }
+  });
+  calArt.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') calArt.click(); });
+
+  // About letter
+  const aboutOverlay = document.getElementById('about-overlay');
+  const aboutPaper   = document.getElementById('about-paper');
+  const aboutClose   = document.getElementById('about-close');
+  const artAbout     = document.getElementById('art-about');
+  function openAbout()  { aboutOverlay.classList.remove('hidden'); setTimeout(() => aboutPaper.classList.add('unfolded'), 30); }
+  function closeAbout() { aboutPaper.classList.remove('unfolded'); setTimeout(() => aboutOverlay.classList.add('hidden'), 400); }
+  artAbout.addEventListener('click',   openAbout);
+  artAbout.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') openAbout(); });
+  aboutClose.addEventListener('click', closeAbout);
+  aboutOverlay.addEventListener('click', e => { if (e.target===aboutOverlay) closeAbout(); });
+
+  // ESC closes game or track
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.body.classList.contains('game-mode'))  closeGame();
+      else if (document.body.classList.contains('track-mode')) closeTrackMode();
+    }
+  });
+})();
+
+// ── Game panel (back wall) ─────────────────────────────────
+const GAME_MESSAGES = {
+  'treasure-map':   'explore the map... take your time',
+  'bingo':          'check in with your heart meter',
+  'infinity-mirror':'who do you want to be?',
+};
+function openGame(slug) {
+  document.body.classList.add('game-mode');
+  const panel  = document.getElementById('game-panel');
+  const iframe = document.createElement('iframe');
+  iframe.src   = slug + '.html';
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  panel.appendChild(iframe);
+  panel.classList.add('active');
+  const heart = document.getElementById('char-heart');
+  heart.classList.add('guide-mode');
+  document.getElementById('heart-bubble').textContent = GAME_MESSAGES[slug] || 'take your time';
+}
+function closeGame() {
+  document.body.classList.remove('game-mode');
+  const panel  = document.getElementById('game-panel');
+  panel.classList.remove('active');
+  const iframe = panel.querySelector('iframe');
+  if (iframe) iframe.remove();
+  const heart = document.getElementById('char-heart');
+  heart.classList.remove('guide-mode', 'active');
+  document.getElementById('heart-bubble').textContent = '';
+}
+
+// ── Login popup helpers ────────────────────────────────────
+function openLoginPopup(title) {
+  document.getElementById('login-popup-title').textContent = title || 'welcome';
+  document.getElementById('login-overlay').classList.add('open');
+}
+function closeLoginPopup() { document.getElementById('login-overlay').classList.remove('open'); clearPopupMsgs(); }
+function handleOverlayClick(e) { if (e.target===document.getElementById('login-overlay')) closeLoginPopup(); }
+function switchPopupTab(tab, btn) {
+  document.querySelectorAll('.popup-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.popup-form').forEach(f => f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('popup-form-'+tab).classList.add('active');
+  clearPopupMsgs();
+}
+function clearPopupMsgs() { document.querySelectorAll('.popup-msg').forEach(m => { m.className='popup-msg'; m.textContent=''; }); }
+function showPopupMsg(id, text, type) { const el=document.getElementById(id); el.textContent=text; el.className='popup-msg '+type; }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Track session state ────────────────────────────────────
+let activeGameId   = null;
+let activeGameData = null;
+let activePhase    = null;
+let currentStep    = null;
+let pendingSession = { charState: null, bingoState: null };
+
+const TERRAIN_IMGS = {
+  dunes:'../assets/elements/maps/dunes.png', forest:'../assets/elements/maps/forest.png',
+  meadow:'../assets/elements/maps/meadow.png', mountains:'../assets/elements/maps/mountains.png',
+  ocean:'../assets/elements/maps/ocean.png', orchard:'../assets/elements/maps/orchard.png',
+  plateu:'../assets/elements/maps/plateu.png', pond:'../assets/elements/maps/pond.png',
+  river:'../assets/elements/maps/river.png', spring:'../assets/elements/maps/spring.png',
+  waterfall:'../assets/elements/maps/waterfall.png',
+};
+
+const SPIRAL_PROMPTS = [
+  'phase one - what does it feel like to imagine your goal coming true?',
+  'phase two - what does it feel like to begin?',
+  'phase three - what does it feel like when you get into a good rhythm?',
+  'phase four - what does it feel like when you take a big step forward?',
+  'phase five - what does it feel like when you are tested?',
+];
+const SQUARE_PROMPTS = [
+  'corner one — what does it feel like to be a beginner?',
+  'corner two — what does it feel like to make a mistake?',
+  'corner three — what does it feel like to recommit?',
+  'corner four — what does it feel like to take a step forward?',
+];
+const SPIRAL_THETA  = [0.5, 9.4, 11.5, 13.3, 14.9];
+const SQUARE_POS    = [{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}];
+const SQUARE_LABELS = ['1','2','3','4'];
+
+// ── Guide bubble ───────────────────────────────────────────
+function setBubble(text) {
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
+  if (bubble) bubble.textContent = text;
+  if (heart)  heart.classList.add('guide-mode');
+}
+
+// ── Track mode ─────────────────────────────────────────────
+function openTrackMode() {
+  document.body.classList.add('track-mode');
+  pendingSession = { charState: null, bingoState: null };
+  stepLoadGame();
+}
+function closeTrackMode() {
+  document.body.classList.remove('track-mode');
+  hideTrackPanel();
+  setContinueVisible(false);
+  setAddNew(false);
+  document.getElementById('journal-overlay').classList.remove('open');
+  const heart = document.getElementById('char-heart');
+  heart.classList.remove('guide-mode', 'active');
+  document.getElementById('heart-bubble').textContent = '';
+  activeGameId=null; activeGameData=null; activePhase=null;
+  pendingSession={charState:null,bingoState:null}; currentStep=null;
+}
+
+// ── Panel helpers ──────────────────────────────────────────
+function showTrackPanel(html) {
+  const panel = document.getElementById('track-panel');
+  panel.innerHTML = html; panel.classList.remove('iframe-mode'); panel.classList.add('active');
+}
+function hideTrackPanel() {
+  const panel = document.getElementById('track-panel');
+  panel.classList.remove('active','iframe-mode'); panel.innerHTML = '';
+}
+function showTrackIframe(src) {
+  const panel = document.getElementById('track-panel');
+  panel.innerHTML = `<iframe style="width:100%;height:100%;border:none;display:block;" src="${src}" id="game-iframe"></iframe>`;
+  panel.classList.add('active','iframe-mode');
+}
+function setAddNew(v) { document.getElementById('add-new-btn').classList.toggle('visible', v); }
+function setContinueVisible(v, label='continue →') {
+  const bar = document.getElementById('continue-bar');
+  const btn = document.getElementById('continue-btn');
+  bar.classList.toggle('visible', v);
+  if (btn) { btn.innerHTML = label; btn.disabled = false; }
+}
+function showStatus(msg, color, duration=3000) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg; el.style.color = color || '#6ab86a';
+  clearTimeout(el._t); el._t = setTimeout(() => { el.textContent=''; }, duration);
+}
+
+// ── Step 1: map selector ───────────────────────────────────
+async function stepLoadGame() {
+  currentStep = null;
+  setBubble('choose your map for today');
+  setContinueVisible(false); setAddNew(true);
+  let games = [];
+  try {
+    const { data } = await sb.from('games').select('*')
+      .eq('user_id', currentUser.id).eq('status','active')
+      .order('updated_at',{ascending:false}).limit(8);
+    games = data || [];
+  } catch(e) {}
+  renderMapGrid(games);
+}
+
+function formatUpdated(d) {
+  if (!d) return '';
+  return 'last updated ' + new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function buildPreviewSVG(mapType, zones) {
+  const R=22;
+  if (mapType==='square') {
+    let c='';
+    SQUARE_POS.forEach((p,i)=>{
+      const z=zones[i]||{}, fill=z.tint||'rgba(200,196,180,0.85)';
+      c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+    });
+    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+      <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
+      <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+      ${c}</svg>`;
+  }
+  const cx=250,cy=190,b=13,pts=[];
+  for(let i=0;i<=700;i++){const t=0.1+(15.4)*i/700; pts.push([cx+b*t*Math.cos(t),cy-b*t*Math.sin(t)]);}
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  let c='';
+  pos.forEach((p,i)=>{
+    const z=zones[i]||{},fill=z.tint||'rgba(200,196,180,0.85)';
+    c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+    if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+  });
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
+    ${c}</svg>`;
+}
+
+function renderMapGrid(games) {
+  let slots='';
+  for(let i=0;i<8;i++){
+    const g=games[i];
+    if(g){
+      const zones=(g.map_data||{}).zones||[], preview=buildPreviewSVG(g.map_type||'spiral',zones);
+      const updated=formatUpdated(g.updated_at), safe=(g.map_name||'untitled').replace(/'/g,"\\'");
+      slots+=`<div class="map-slot" onclick="selectMap('${g.id}')">
+        <button class="slot-delete" title="delete" onclick="event.stopPropagation();deleteMap('${g.id}','${safe}')">×</button>
+        <div class="slot-name">${g.map_name||'untitled'}</div>
+        <div class="slot-preview">${preview}</div>
+        ${updated?`<div class="slot-updated">${updated}</div>`:''}
+      </div>`;
+    } else { slots+=`<div class="map-slot empty"></div>`; }
+  }
+  showTrackPanel(`<div class="step-panel">
+    <div class="step-header">
+      <span class="step-back" onclick="closeTrackMode()">× close</span>
+      <span class="step-header-title">your maps</span>
+      <button class="wall-nav-btn" onclick="window.location.href='https://www.heartability.com/users/archive'">archive</button>
+    </div>
+    <div class="map-grid">${slots}</div>
+  </div>`);
+}
+
+async function deleteMap(gameId, mapName) {
+  if (!confirm(`delete "${mapName}"?\nthis removes the map and all its entries. cannot be undone.`)) return;
+  await sb.from('games').delete().eq('id',gameId).eq('user_id',currentUser.id);
+  stepLoadGame();
+}
+
+// ── Step 2A: new map ───────────────────────────────────────
+function stepNewGame() {
+  setAddNew(false); currentStep='map';
+  setBubble('build your map, then continue');
+  showTrackIframe('../games/treasure-map.html?mode=new&loop=true');
+  setContinueVisible(true,'save map & continue →');
+  document.getElementById('continue-btn').disabled = true;
+}
+
+// ── Step 2B: select map ────────────────────────────────────
+async function selectMap(gameId) {
+  let game=null;
+  try { const {data}=await sb.from('games').select('*').eq('id',gameId).single(); game=data; } catch(e){}
+  if(!game) return;
+  activeGameId=gameId; activeGameData=game; activePhase=null; setAddNew(false); stepPhaseSelect();
+}
+
+// ── Step 3: phase select ───────────────────────────────────
+function stepPhaseSelect() {
+  if(!activeGameData) return;
+  const mapType=activeGameData.map_type||'spiral';
+  const zones=(activeGameData.map_data||{}).zones||[];
+  const prompts=mapType==='square'?SQUARE_PROMPTS:SPIRAL_PROMPTS;
+  const count=mapType==='square'?4:5;
+  setBubble('where are you on the map today?');
+  setContinueVisible(false);
+  const svgContent=mapType==='square'?buildSquareSVG(zones):buildSpiralSVG(zones);
+  const isMobile=window.innerWidth<=655;
+  let keyItems='';
+  for(let i=0;i<count;i++){
+    const label=mapType==='square'?SQUARE_LABELS[i]:(i+1);
+    keyItems+=`<div class="phase-key-item" id="key-${i}" onclick="selectPhase(${i})">
+      <span class="phase-key-num">${label}.</span><span>${prompts[i]}</span></div>`;
+  }
+  showTrackPanel(`<div class="step-panel" style="padding:12px;">
+    <div class="step-header">
+      <span class="step-back" onclick="stepLoadGame()">← back</span>
+      <span class="step-header-title">${activeGameData.map_name||'your map'}</span>
+      <span></span>
+    </div>
+    <div class="phase-wrap">
+      <div class="phase-map-area" id="phase-map-area">${svgContent}</div>
+      ${isMobile?`
+        <button class="phase-select-btn" id="phase-select-btn" onclick="openPhaseDrawer()">select phase →</button>
+        <div class="phase-key-drawer" id="phase-key-drawer">
+          <div class="phase-drawer-header"><span>where are you today?</span>
+            <span class="phase-drawer-close" onclick="closePhaseDrawer()">×</span></div>
+          <div style="padding:10px 12px;">${keyItems}
+            <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button></div>
+        </div>`:
+        `<div class="phase-key"><div class="phase-key-title">where are you today?</div>
+          ${keyItems}
+          <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
+        </div>`}
+    </div>
+  </div>`);
+}
+
+function openPhaseDrawer() {
+  document.getElementById('phase-key-drawer')?.classList.add('open');
+  const btn=document.getElementById('phase-select-btn'); if(btn) btn.style.display='none';
+}
+function closePhaseDrawer() {
+  document.getElementById('phase-key-drawer')?.classList.remove('open');
+  const btn=document.getElementById('phase-select-btn'); if(btn) btn.style.display='';
+}
+function selectPhase(idx) {
+  activePhase=`zone_${idx+1}`;
+  document.querySelectorAll('.phase-key-item').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  document.querySelectorAll('.zone-hit').forEach((el,i)=>{
+    const bg=document.getElementById(`zone-bg-${i}`);
+    if(bg) bg.setAttribute('fill',i===idx?'rgba(101,121,226,0.25)':'rgba(200,196,180,0)');
+  });
+  const btn=document.getElementById('begin-btn'); if(btn) btn.disabled=false;
+  if(window.innerWidth<=655) openPhaseDrawer();
+}
+
+// ── Step 4: character ──────────────────────────────────────
+function stepBegin() {
+  if(!activePhase) return;
+  currentStep='character';
+  setBubble('build your character for today');
+  showTrackIframe(`../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`);
+  setContinueVisible(true,'loading...');
+  document.getElementById('continue-btn').disabled=true;
+}
+
+// ── Step 5: bingo ──────────────────────────────────────────
+function stepBingo() {
+  currentStep='bingo';
+  setBubble('check in with your heart meter');
+  showTrackIframe(`../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`);
+  setContinueVisible(true,'continue →');
+}
+
+// ── Step 6: overview (mood board) ─────────────────────────
+function buildCharacterHTML(charState) {
+  if (!charState) return '';
+  let layers = [];
+  if (Array.isArray(charState.layers)) {
+    layers = charState.layers.filter(Boolean);
+  } else {
+    const tryAdd = (v) => {
+      if (!v) return;
+      const src = typeof v === 'string' ? v : (v.src || v.url || '');
+      // only add if it looks like an actual image path
+      if (src && (src.includes('/') || src.includes('.'))) layers.push(src);
+    };
+    tryAdd(charState.body); tryAdd(charState.eyes); tryAdd(charState.mouth); tryAdd(charState.hair);
+    if (Array.isArray(charState.accessories)) charState.accessories.forEach(a=>tryAdd(a));
+  }
+  layers = layers.filter(Boolean);
+  if (!layers.length) return '';
+  return `<div class="ov-char-stack">${layers.map(src=>`<img class="ov-char-layer" src="${src}" alt="" onerror="this.style.display='none'">`).join('')}</div>`;
+}
+
+function stepOverview() {
+  currentStep='overview';
+  setContinueVisible(false); setAddNew(false);
+  setBubble("here's your session — save when you're ready");
+
+  const phaseIdx   = activePhase ? parseInt(activePhase.split('_')[1])-1 : 0;
+  const zones      = (activeGameData?.map_data||{}).zones||[];
+  const zone       = zones[phaseIdx]||{};
+  const bingoScore = pendingSession.bingoState?.score||0;
+  const meterPct   = Math.round((bingoScore/24)*100);
+  const modeLabel  = bingoScore<=9?'hard mode':bingoScore<=19?'medium mode':'easy mode';
+  const mapPreview = buildPreviewSVG(activeGameData?.map_type||'spiral', zones);
+  const today      = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const terrainSrc = zone.terrain&&TERRAIN_IMGS[zone.terrain]?TERRAIN_IMGS[zone.terrain]:'';
+  const feeling    = zone.feeling||(activePhase?activePhase.replace('_',' '):'');
+  const tint       = zone.tint||'';
+  const charHTML   = buildCharacterHTML(pendingSession.charState);
+
+  const terrainHTML = terrainSrc
+    ? `<div class="ov-terrain-circle">
+        <img src="${terrainSrc}" alt="${feeling}">
+        ${tint?`<div class="ov-terrain-tint" style="background:radial-gradient(circle,${tint}55 0%,transparent 70%)"></div>`:''}
+      </div>`
+    : `<div class="ov-terrain-placeholder">${feeling||'phase '+(phaseIdx+1)}</div>`;
+
+  showTrackPanel(`<div class="step-panel overview-panel">
+    <div class="step-header">
+      <span class="step-back" onclick="closeTrackMode()">× close</span>
+      <span class="ov-date">${today}</span>
+      <span></span>
+    </div>
+    <div class="ov-board">
+
+      <!-- Left: map + past entries -->
+      <div class="ov-col">
+        <div class="ov-map-name">${activeGameData?.map_name||'my map'}</div>
+        <div class="ov-map-svg">${mapPreview}</div>
+        <div class="ov-label" style="margin-top:6px;">past entries</div>
+        <div class="ov-past-list" id="ov-past-list"><span class="ov-label">loading...</span></div>
+      </div>
+
+      <!-- Center: terrain + journal -->
+      <div class="ov-col ov-col-center">
+        ${terrainHTML}
+        <div class="ov-feeling">${feeling}</div>
+        <div class="ov-journal-btn" onclick="openJournal()">
+          <img src="../assets/elements/closed journal.png" alt="adventure journal">
+          <div class="ov-journal-label">adventure journal</div>
+        </div>
+      </div>
+
+      <!-- Right: meter + character + save -->
+      <div class="ov-col ov-col-right">
+        <div class="ov-meter-label">heart meter</div>
+        <div class="ov-meter-track"><div class="ov-meter-fill" style="width:${meterPct}%"></div></div>
+        <div class="ov-meter-stages"><span>hard</span><span>${modeLabel}</span><span>easy</span></div>
+        ${charHTML}
+        <div class="ov-spacer"></div>
+        <div class="ov-saved-msg" id="ov-saved-msg">entry saved</div>
+        <button class="ov-save-btn" id="ov-save-btn" onclick="saveToday()">save today</button>
+        <button class="ov-archive-btn" onclick="window.location.href='https://www.heartability.com/users/archive'">view archive</button>
+      </div>
+
+    </div>
+  </div>`);
+
+  loadPastEntries();
+}
+
+async function loadPastEntries() {
+  if(!currentUser||!activeGameId) return;
+  try {
+    const {data}=await sb.from('daily_entries').select('entry_date,created_at')
+      .eq('game_id',activeGameId).eq('user_id',currentUser.id)
+      .order('created_at',{ascending:false}).limit(5);
+    const list=document.getElementById('ov-past-list');
+    if(!list) return;
+    if(!data||!data.length){list.innerHTML='<span class="ov-label">no entries yet</span>';return;}
+    list.innerHTML=data.map(e=>{
+      const d=new Date(e.created_at||e.entry_date);
+      return `<div class="ov-past-item">${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`;
+    }).join('');
+  } catch(e){}
+}
+
+// ── Single save ────────────────────────────────────────────
+async function saveToday() {
+  if(!currentUser){loginAfterwards='save';openLoginPopup('log in to save your entry');return;}
+  const btn=document.getElementById('ov-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='saving...';}
+  const {error}=await sb.from('daily_entries').insert({
+    game_id:activeGameId, user_id:currentUser.id,
+    entry_date:new Date().toLocaleDateString('en-CA'),
+    map_phase:activePhase,
+    character_data:pendingSession.charState,
+    bingo_data:pendingSession.bingoState?{marked:pendingSession.bingoState.marked,score:pendingSession.bingoState.score}:null,
+    energy_score:pendingSession.bingoState?Math.round((pendingSession.bingoState.score/24)*100):null,
+  });
+  if(error){
+    showStatus('save failed — try again','#E8478B');
+    if(btn){btn.disabled=false;btn.textContent='save today';}
+  } else {
+    const msg=document.getElementById('ov-saved-msg');
+    if(msg) msg.classList.add('show');
+    if(btn) btn.style.display='none';
+    showStatus('entry saved','#6ab86a');
+    loadPastEntries();
+  }
+}
+
+// ── Journal ────────────────────────────────────────────────
+function openJournal() {
+  document.getElementById('journal-date-hdr').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('journal-textarea').value = '';
+  document.getElementById('journal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('journal-textarea')?.focus(),50);
+}
+function closeJournal() { document.getElementById('journal-overlay').classList.remove('open'); }
+async function saveJournalEntry() {
+  const text=(document.getElementById('journal-textarea')?.value||'').trim();
+  if(!text||!currentUser||!activeGameId){closeJournal();return;}
+  await sb.from('diary_entries').insert({
+    game_id:activeGameId, user_id:currentUser.id,
+    entry_date:new Date().toLocaleDateString('en-CA'), diary_text:text,
+  });
+  showStatus('notes saved','#6ab86a'); closeJournal();
+}
+
+// ── Continue handler ───────────────────────────────────────
+async function handleContinue() {
+  const btn=document.getElementById('continue-btn');
+  if(!btn) return; btn.disabled=true;
+  if(currentStep==='map'){
+    btn.textContent='saving map...';
+    const iframe=document.getElementById('game-iframe');
+    if(iframe) iframe.contentWindow.postMessage({type:'save_map'},'*');
+    return;
+  }
+  if(currentStep==='character'||currentStep==='bingo'){
+    btn.textContent='collecting...';
+    const iframe=document.getElementById('game-iframe');
+    if(iframe) iframe.contentWindow.postMessage({type:'request_state'},'*');
+    clearTimeout(window._cFallback);
+    window._cFallback=setTimeout(()=>{
+      const b=document.getElementById('continue-btn');
+      if(b&&b.disabled){b.disabled=false;b.innerHTML='continue →';showStatus('no response — try again','#E8478B');}
+    },5000);
+  }
+}
+
+// ── postMessage from iframes ───────────────────────────────
+window.addEventListener('message', async e => {
+  const msg=e.data||{}; if(!msg.type) return;
+  if(msg.type==='iframe_ready'&&msg.game==='character'){
+    const btn=document.getElementById('continue-btn');
+    if(btn&&currentStep==='character'){btn.disabled=false;btn.innerHTML='continue →';}
+    return;
+  }
+  if(msg.type==='map_saved'&&msg.game_id){
+    activeGameId=msg.game_id;
+    activeGameData={id:msg.game_id,map_name:msg.map_name||'my map',map_type:msg.map_type||'spiral',map_data:msg.map_data||{zones:[]}};
+    activePhase=null; setContinueVisible(false); showStatus('map saved','#6ab86a'); stepPhaseSelect(); return;
+  }
+  if(msg.type==='map_save_failed'){
+    const btn=document.getElementById('continue-btn');
+    if(btn){btn.disabled=false;btn.innerHTML='save map & continue →';}
+    showStatus(msg.reason||'add a goal name and some terrain first','#E8478B'); return;
+  }
+  if(msg.type==='char_state'){
+    clearTimeout(window._cFallback);
+    const charState=msg.state||{};
+    if(!charState.body){
+      showStatus('pick a body first!','#E8478B');
+      const btn=document.getElementById('continue-btn');
+      if(btn){btn.disabled=false;btn.innerHTML='continue →';} return;
+    }
+    pendingSession.charState=charState; stepBingo(); return;
+  }
+  if(msg.type==='bingo_state'){
+    clearTimeout(window._cFallback);
+    const{marked:markedArr,score}=msg;
+    if(!score||score===0){
+      showStatus('check some squares first!','#E8478B');
+      const btn=document.getElementById('continue-btn');
+      if(btn){btn.disabled=false;btn.innerHTML='continue →';} return;
+    }
+    pendingSession.bingoState={marked:markedArr,score}; stepOverview(); return;
+  }
+});
+
+// ── SVG builders ──────────────────────────────────────────
+function buildSpiralSVG(zones) {
+  const cx=250,cy=190,b=13,tMin=0.1,tMax=15.5,steps=700,pts=[];
+  for(let i=0;i<=steps;i++){const t=tMin+(tMax-tMin)*i/steps;pts.push([cx+b*t*Math.cos(t),cy-b*t*Math.sin(t)]);}
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  const R=36; let defs='<defs>',circles='',hits='';
+  pos.forEach((p,i)=>{
+    const z=zones[i]||{},hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
+    if(z.tint){
+      defs+=`<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
+      </radialGradient>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sg${i})" pointer-events="none"/>`;
+    }
+    if(hasTerrain) defs+=`<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
+    if(hasTerrain){
+      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sc${i})" pointer-events="none"/>`;
+    } else {
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
+    }
+    if(z.feeling) circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11" pointer-events="none">${z.feeling}</text>`;
+    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}" fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
+  });
+  defs+='</defs>';
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${defs}
+    <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
+    <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
+    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
+    ${circles}${hits}</svg>`;
+}
+
+function buildSquareSVG(zones) {
+  const R=36; let defs='<defs>',circles='',hits='';
+  SQUARE_POS.forEach((p,i)=>{
+    const z=zones[i]||{},hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
+    if(z.tint){
+      defs+=`<radialGradient id="sqg${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
+      </radialGradient>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sqg${i})" pointer-events="none"/>`;
+    }
+    if(hasTerrain) defs+=`<clipPath id="sqc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
+    if(hasTerrain){
+      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqc${i})" pointer-events="none"/>`;
+    } else {
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="22" pointer-events="none">${SQUARE_LABELS[i]}</text>`;
+    }
+    if(z.feeling) circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11" pointer-events="none">${z.feeling}</text>`;
+    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}" fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
+  });
+  defs+='</defs>';
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${defs}
+    <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
+    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+    ${circles}${hits}</svg>`;
+}
+
+// ── Auth ───────────────────────────────────────────────────
+async function checkSession() {
+  try {
+    const{data:{session}}=await sb.auth.getSession();
+    if(session){
+      currentUser=session.user;
+      const{data:profile}=await sb.from('user-profiles').select('username').eq('id',currentUser.id).single();
+      updateGearMenu(profile?.username||currentUser.email.split('@')[0]);
+    }
+  } catch(e){}
+}
+
+async function popupLogin(e) {
+  e.preventDefault();
+  const btn=document.getElementById('popup-login-btn');
+  btn.disabled=true; btn.textContent='entering...';
+  const{data,error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('popup-login-email').value.trim(),
+    password:document.getElementById('popup-login-password').value,
+  });
+  if(error){showPopupMsg('popup-login-msg',error.message,'error');btn.disabled=false;btn.textContent='enter';}
+  else {
+    currentUser=data.user;
+    const{data:profile}=await sb.from('user-profiles').select('username').eq('id',currentUser.id).single();
+    const username=profile?.username||currentUser.email.split('@')[0];
+    updateGearMenu(username);
+    showPopupMsg('popup-login-msg',`welcome back, ${username}`,'success');
+    setTimeout(()=>{
+      closeLoginPopup();
+      if(loginAfterwards==='track'){loginAfterwards=null;openTrackMode();}
+      else if(loginAfterwards==='save'){loginAfterwards=null;saveToday();}
+    },900);
+  }
+}
+
+async function popupSignup(e) {
+  e.preventDefault();
+  const btn=document.getElementById('popup-signup-btn');
+  btn.disabled=true; btn.textContent='creating...';
+  const username=document.getElementById('popup-signup-username').value.trim();
+  const email=document.getElementById('popup-signup-email').value.trim();
+  const password=document.getElementById('popup-signup-password').value;
+  const{data,error}=await sb.auth.signUp({email,password});
+  if(error){showPopupMsg('popup-signup-msg',error.message,'error');btn.disabled=false;btn.textContent='create account';return;}
+  if(data.user){
+    await sb.from('user-profiles').insert({id:data.user.id,username});
+    currentUser=data.user; updateGearMenu(username);
+    showPopupMsg('popup-signup-msg',`welcome, ${username}`,'success');
+    setTimeout(()=>{closeLoginPopup();if(loginAfterwards==='track'){loginAfterwards=null;openTrackMode();}},900);
+  }
+}
+
+checkSession();
+</script>
+</body>
+</html>
