@@ -34,7 +34,7 @@ serve(async (req) => {
     }
 
     // Get the price ID from the request body
-    const { priceId, tier } = await req.json()
+   const { priceId, tier, paymentMode } = await req.json()
 
     // Create or retrieve Stripe customer
     const { data: profile } = await sb
@@ -62,7 +62,7 @@ serve(async (req) => {
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
+      mode: paymentMode ?? 'subscription',
       allow_promotion_codes: true,
       success_url: `${req.headers.get('origin')}/users/profile.html?success=true`,
       cancel_url: `${req.headers.get('origin')}/membership.html?cancelled=true`,
