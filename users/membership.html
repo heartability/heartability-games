@@ -133,6 +133,8 @@ html, body {
   background: var(--cream);
   overflow: hidden;
   animation: windowIn 0.35s ease both;
+  display: flex;
+  flex-direction: column;
 }
 .window.basic {
   box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
@@ -381,15 +383,15 @@ html, body {
     <div class="window basic">
       <div class="window-titlebar"><span>community</span></div>
       <div class="window-body">
-        <div class="billing-toggle">
-          <button class="billing-opt active" id="opt-monthly" onclick="setBilling('monthly')">monthly</button>
-          <button class="billing-opt" id="opt-yearly" onclick="setBilling('yearly')">yearly</button>
-        </div>
         <div class="price-block">
           <span class="price-amount" id="community-price">$8</span>
           <span class="price-period" id="community-period">/ month</span>
         </div>
         <div class="price-note" id="community-note">billed monthly, cancel anytime</div>
+        <div class="billing-toggle">
+          <button class="billing-opt active" id="opt-monthly" onclick="setBilling('monthly')">monthly</button>
+          <button class="billing-opt" id="opt-yearly" onclick="setBilling('yearly')">yearly</button>
+        </div>
         <hr class="divider" />
         <div class="features">
           <div class="feature-item"><span class="feature-check">✦</span><span>save data for unlimited goals</span></div>
@@ -530,7 +532,13 @@ document.addEventListener('click', e => { const w = document.getElementById('gea
 
       const { url, error } = await res.json();
       if (error) throw new Error(error);
-      window.location.href = url;
+      window.open(url, '_blank');
+      // Reset button since page stays open when Stripe opens in new tab
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        btn.textContent = tier === 'community' ? 'join the community' : 'become a founder';
+      }, 1500);
 
     } catch (err) {
       console.error(err);
@@ -540,16 +548,6 @@ document.addEventListener('click', e => { const w = document.getElementById('gea
       alert('something went wrong — please try again');
     }
   };
-
-  window.addEventListener('pageshow', () => {
-    ['btn-community', 'btn-founding'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (!btn) return;
-      btn.disabled = false;
-      btn.classList.remove('btn-loading');
-      btn.textContent = id === 'btn-community' ? 'join the community' : 'become a founder';
-    });
-  });
 
   init();
 })();
