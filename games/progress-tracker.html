@@ -149,11 +149,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 
 /* Phase select */
 .phase-wrap {
-  flex:1; position:relative; display:flex;
+  flex:1; position:relative; display:flex; gap:10px;
   align-items:stretch; overflow:hidden;
 }
 .phase-map-area {
-  flex:1; position:relative;
+  flex:1 1 58%; min-width:0; position:relative;
   background:#e8e0c8;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
@@ -161,13 +161,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 }
 .phase-map-area svg { width:100%; height:100%; display:block; }
 
-/* Phase key — bottom right overlay */
+/* Phase key — full-height right column (no longer overlapping the map) */
 .phase-key {
-  position:absolute; bottom:0; right:0;
-  width:260px; max-height:100%;
+  flex:0 0 42%; min-width:230px; max-width:440px;
+  align-self:stretch; max-height:100%;
   background:rgba(245,240,234,0.97);
-  border-top:2px solid #8a7a5a; border-left:2px solid #8a7a5a;
-  padding:10px 12px; overflow-y:auto;
+  border:2px solid #8a7a5a;
+  padding:14px 16px; overflow-y:auto;
+  display:flex; flex-direction:column;
   font-family:var(--font-hand);
 }
 .phase-key-title { font-size:12px; color:#aaa; letter-spacing:.3px; margin-bottom:8px; }
@@ -802,11 +803,9 @@ async function saveAndContinue() {
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
 const SPIRAL_PROMPTS = [
-  "phase one - what does it feel like to imagine your goal coming true?",
-  "phase two - what does it feel like to begin?",
-  "phase three - what does it feel like when you get into a good rhythm?",
-  "phase four - what does it feel like when you take a big step forward?",
-  "phase five - what does it feel like when you are tested?",
+  "phase one — what does it feel like to begin?",
+  "phase two — what does it feel like when you take a big step forward?",
+  "phase three — what does it feel like when you are tested?",
 ];
 const SQUARE_PROMPTS = [
   "corner one — what does it feel like to be a beginner?",
@@ -922,6 +921,50 @@ function formatUpdated(dateStr) {
   return 'last updated ' + new Date(dateStr).toLocaleDateString('en-US', { month:'short', day:'numeric' });
 }
 
+// ── SHARED SPIRAL RENDERER ────────────────────────────────
+// Mirrors the treasure-map game: spiral-3.png background, 3 zones at fixed
+// positions, full radial-halo tint, clipped terrain, bold feeling labels.
+// interactive=true adds phase numbers + click targets (phase-select screen);
+// the matrix and map thumbnails call it read-only (no numbers, no clicks).
+const SPIRAL_ZONE_POS = [ {x:245,y:230}, {x:372,y:288}, {x:150,y:75} ];
+function spiralZonesSVG(zones, opts){
+  zones = zones || []; opts = opts || {};
+  const interactive = !!opts.interactive;
+  const R = 36;
+  let defs = '<defs>', body = '', hits = '';
+  SPIRAL_ZONE_POS.forEach((p,i) => {
+    const z = zones[i] || {};
+    const hasTerrain = !!(z.terrain && TERRAIN_IMGS[z.terrain]);
+    if (z.tint) {
+      defs += `<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">`
+        + `<stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>`
+        + `<stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>`
+        + `<stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/></radialGradient>`;
+      body += `<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sg${i})" pointer-events="none"/>`;
+    }
+    if (hasTerrain) {
+      defs += `<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sc${i})" pointer-events="none"/>`;
+    } else {
+      body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
+      if (interactive) body += `<text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
+    }
+    if (z.feeling) {
+      body += `<text x="${p.x}" y="${p.y+R+18}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="15" font-weight="bold" pointer-events="none">${z.feeling}</text>`;
+    }
+    if (interactive) {
+      hits += `<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}" fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
+    }
+  });
+  defs += '</defs>';
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">`
+    + defs
+    + `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`
+    + `<line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`
+    + `<image href="../assets/elements/spiral-3.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>`
+    + body + hits + `</svg>`;
+}
+
 function buildPreviewSVG(mapType, zones) {
   const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
   const SQUARE_POS   = [{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}];
@@ -943,26 +986,8 @@ function buildPreviewSVG(mapType, zones) {
     </svg>`;
   }
 
-  // Spiral
-  const cx=250, cy=190, b=13;
-  const pts=[];
-  for(let i=0;i<=700;i++){
-    const t=0.1+(15.4)*i/700;
-    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
-  }
-  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
-  let circles = '';
-  pos.forEach((p,i)=>{
-    const z = zones[i] || {};
-    const fill = z.tint || 'rgba(200,196,180,0.85)';
-    circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
-    if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
-  });
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
-    ${circles}
-  </svg>`;
+  // Spiral — shared renderer (read-only: full tint, terrain, feelings; no numbers)
+  return spiralZonesSVG(zones, { interactive:false });
 }
 
 function renderMapGrid(games) {
@@ -1020,7 +1045,7 @@ function stepPhaseSelect() {
   const mapData = activeGameData.map_data || {};
   const zones   = mapData.zones || [];
   const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
-  const zoneCount = mapType === 'square' ? 4 : 5;
+  const zoneCount = mapType === 'square' ? 4 : 3;
 
   setBubble(`where are you on the map today?`, []);
   setSaveBtnVisible(false);
@@ -1384,69 +1409,7 @@ window.addEventListener('message', async e => {
 
 // ── SVG BUILDERS (read-only, zone click = phase select) ──
 function buildSpiralSVG(zones) {
-  const W=500, H=400, cx=W/2, cy=H/2-10, b=13;
-  const tMin=0.1, tMax=15.5, steps=700;
-  const pts=[];
-  for(let i=0;i<=steps;i++){
-    const t=tMin+(tMax-tMin)*i/steps;
-    pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]);
-  }
-  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t), y:cy-b*t*Math.sin(t)}));
-  const R=36;
-
-  let defs='<defs>';
-  let circles='';
-  let hits='';
-
-  pos.forEach((p,i)=>{
-    const z=zones[i]||{};
-    const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
-
-    if(z.tint){
-      defs+=`<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
-        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
-        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
-      </radialGradient>`;
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sg${i})" pointer-events="none"/>`;
-    }
-    if(hasTerrain){
-      defs+=`<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-    }
-
-    // Background circle (highlighted when selected)
-    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
-      fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
-
-    if(hasTerrain){
-      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
-        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet"
-        clip-path="url(#sc${i})" pointer-events="none"/>`;
-    } else {
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
-        fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
-        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle"
-          fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
-    }
-    if(z.feeling){
-      circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle"
-        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
-        pointer-events="none">${z.feeling}</text>`;
-    }
-    // Transparent hit target
-    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
-      fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
-  });
-  defs+='</defs>';
-
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-    ${defs}
-    <line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
-    <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>
-    <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>
-    ${circles}${hits}
-  </svg>`;
+  return spiralZonesSVG(zones, { interactive:true });
 }
 
 function buildSquareSVG(zones) {
