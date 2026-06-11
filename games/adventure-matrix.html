@@ -500,8 +500,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .matrix-header { position:relative; height:34px; flex-shrink:0; }
 /* Framed container — insets the matrix so it doesn't bleed into the wall edges */
 .matrix-frame {
-  flex:1; min-height:0; position:relative;
-  margin:2px 20px 18px; overflow:hidden;
+  width:76%; height:76%; margin:auto; align-self:center;
+  position:relative; overflow:hidden;
   border:2px solid var(--blue);
   box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,0.35);
 }
@@ -1275,26 +1275,26 @@ function buildAdventureMatrix(data, seedStr){
   const rot = r => ((rnd()*2-1)*r).toFixed(1);
   const pct = (a,b) => (a + rnd()*(b-a)).toFixed(1);
 
-  // Treasure map (left)
-  const mapItem = `<div class="adv-item adv-map" style="left:${(20+jit(5)).toFixed(1)}%;top:${(48+jit(8)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(5)}deg);">
+  // MAP → top-left quadrant (external + action)
+  const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-map-svg">${buildPreviewSVG(data.mapType||'spiral', data.zones||[])}</div>
       <div class="adv-cap">${_escapeHtml(data.mapName||'my map')}</div></div>`;
 
-  // Bingo (right) → heart meter
+  // BINGO (heart meter) → bottom-left quadrant (internal + action)
   const meterPct = Math.round(((data.bingoScore||0)/24)*100);
   const mode = (data.bingoScore||0)<=9 ? 'hard mode' : (data.bingoScore||0)<=19 ? 'medium mode' : 'easy mode';
-  const bingoItem = `<div class="adv-item adv-bingo" style="left:${(78+jit(5)).toFixed(1)}%;top:${(50+jit(8)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(4)}deg);">
+  const bingoItem = `<div class="adv-item adv-bingo" style="left:${(27+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-cap">heart meter</div>
       <div class="adv-meter"><div class="adv-meter-fill" style="width:${meterPct}%"></div></div>
       <div class="adv-mode">${mode}</div></div>`;
 
-  // Character / infinity mirror (bottom)
+  // CHARACTER / infinity mirror → top-right quadrant (external + feeling)
   const charStack = _buildCharStack(data.charState);
-  const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(50+jit(7)).toFixed(1)}%;top:${(75+jit(6)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(5)}deg);">${charStack}</div>` : '';
+  const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
 
-  // Journal (top) → first 10 words
+  // NOTES (journal) → bottom-right quadrant (internal + feeling)
   const preview = _firstWords(data.journalText, 10);
-  const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(50+jit(8)).toFixed(1)}%;top:${(22+jit(6)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(4)}deg);">
+  const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-journal-text">${_escapeHtml(preview)}</div></div>` : '';
 
   // Photos scattered across the whole matrix
@@ -1321,10 +1321,10 @@ function buildAdventureMatrix(data, seedStr){
         <div class="adv-grid"></div>
         <div class="adv-axis adv-axis-x"></div>
         <div class="adv-axis adv-axis-y"></div>
-        <div class="adv-axlabel adv-top">journal</div>
-        <div class="adv-axlabel adv-bottom">infinity mirror</div>
-        <div class="adv-axlabel adv-left">treasure map</div>
-        <div class="adv-axlabel adv-right">bingo</div>
+        <div class="adv-axlabel adv-top">external</div>
+        <div class="adv-axlabel adv-bottom">internal</div>
+        <div class="adv-axlabel adv-left">action</div>
+        <div class="adv-axlabel adv-right">feeling</div>
         ${dots}
         ${mapItem}${bingoItem}${charItem}${journalItem}
         ${photos}
