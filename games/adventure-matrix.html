@@ -1196,16 +1196,72 @@ function _seedRand(str){
 }
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _firstWords(t,n){ if(!t) return ''; const w=t.trim().split(/\s+/); return w.slice(0,n).join(' ') + (w.length>n ? '…' : ''); }
+// Full-canvas character PNGs (777×1155, transparent padding so layers align).
+// Mirrors FULL_ASSETS in infinity-mirror.html — keep in sync if those assets change.
+const CHAR_FULL_ASSETS = {
+  body_red:    "../assets/characters-full/01.01 RED_BODY.png",
+  body_orange: "../assets/characters-full/02.01-ORANGE_BODY.png",
+  body_yellow: "../assets/characters-full/03.01-YELLOW_BODY.png",
+  body_green:  "../assets/characters-full/04.01-GREEN_BODY.png",
+  body_cyan:   "../assets/characters-full/05.01-CYAN_BODY.png",
+  body_blue:   "../assets/characters-full/06.01-BLUE_BODY.png",
+  body_purple: "../assets/characters-full/07.01-PURPLE_BODY.png",
+  body_pink:   "../assets/characters-full/08.01-PINK_BODY.png",
+
+  eyes_open:       "../assets/characters-full/01.02 OPEN_EYES.png",
+  eyes_closed:     "../assets/characters-full/02.02-EYES_CLOSED.png",
+  eyes_cyclops:    "../assets/characters-full/03.02-SINGLE_EYE.png",
+  eyes_glasses:    "../assets/characters-full/04.02-GLASSES.png",
+  eyes_serious:    "../assets/characters-full/05.02-SERIOUS_EYES.png",
+  eyes_up:         "../assets/characters-full/06.02-UP_EYES.png",
+  eyes_sunglasses: "../assets/characters-full/07.02-SUNGLASSES.png",
+  eyes_sideways:   "../assets/characters-full/08.02-SIDE_EYES.png",
+
+  mouth_lips:     "../assets/characters-full/01.03 RED_LIPS.png",
+  mouth_tongue:   "../assets/characters-full/02.03-TONGUE_SMILE.png",
+  mouth_thin:     "../assets/characters-full/03.03-THIN_SMILE.png",
+  mouth_flat:     "../assets/characters-full/04.03-FLAT_MOUTH.png",
+  mouth_straight: "../assets/characters-full/05.03-STRAIGHT_MOUTH.png",
+  mouth_sad:      "../assets/characters-full/06.03-SLIGHT_SAD.png",
+  mouth_grin:     "../assets/characters-full/07.03-BIG_GRIN.png",
+  mouth_smooch:   "../assets/characters-full/08.03-SMOOCH.png",
+
+  hair_fire:     "../assets/characters-full/01.04 FIRE_HAIR.png",
+  hair_flower:   "../assets/characters-full/02.04-ORANGE_HAIR.png",
+  hair_rays:     "../assets/characters-full/03.04-RAY_HAIR.png",
+  hair_spikes:   "../assets/characters-full/04.04-SPIKE_HAIR.png",
+  hair_squiggle: "../assets/characters-full/05.04-SQUIGGLE_HAIR.png",
+  hair_wings:    "../assets/characters-full/06.04-BLUE_HAIR.png",
+  hair_pigtails: "../assets/characters-full/07.04-PIGTAIL_HAIR.png",
+  hair_wideray:  "../assets/characters-full/08.04-WIDE_RAY.png",
+
+  acc_rollerblades: "../assets/characters-full/09.02-ROLLERBLADES.png",
+  acc_sneakers:     "../assets/characters-full/09.03-SNEAKERS.png",
+  acc_heels:        "../assets/characters-full/09.01-HIGH_HEELS.png",
+  acc_sandals:      "../assets/characters-full/09.04-SANDALS.png",
+  acc_devil:        "../assets/characters-full/10.01-DEVIL.png",
+  acc_angel:        "../assets/characters-full/10.02-HALO.png",
+  acc_birthday:     "../assets/characters-full/10.03-BIRTHDAY.png",
+  acc_swearword:    "../assets/characters-full/10.05-SENSOR.png",
+  acc_rainstorm:    "../assets/characters-full/10-RAINSTORM.png",
+  acc_rainbow:      "../assets/characters-full/10.04-RAINBOW.png",
+};
+
 function _buildCharStack(charState){
   if(!charState) return '';
-  let layers=[];
-  if(Array.isArray(charState.layers)) layers = charState.layers.filter(Boolean);
-  else {
-    const add = v => { if(!v) return; const src = typeof v==='string'?v:(v.src||v.url||''); if(src && (src.includes('/')||src.includes('.'))) layers.push(src); };
-    add(charState.body); add(charState.eyes); add(charState.mouth); add(charState.hair);
-    if(Array.isArray(charState.accessories)) charState.accessories.forEach(add);
-  }
-  layers = layers.filter(Boolean);
+  // Saved state stores bare IDs (e.g. "body_pink"); resolve each to its full-canvas PNG.
+  // A value already containing "/" is treated as a ready URL (forward-compatible).
+  const resolve = v => !v ? null
+    : (typeof v === 'string' && v.includes('/') ? v : (CHAR_FULL_ASSETS[v] || null));
+  // Same back→front order as the mirror: body, shoes, hair, eyes, mouth, acc (acc on top).
+  const layers = [
+    charState.body,
+    charState.shoes,
+    charState.hair,
+    charState.eyes,
+    charState.mouth,
+    charState.acc,
+  ].map(resolve).filter(Boolean);
   if(!layers.length) return '';
   return `<div class="adv-char-stack">${layers.map(s=>`<img src="${s}" alt="" onerror="this.style.display='none'">`).join('')}</div>`;
 }

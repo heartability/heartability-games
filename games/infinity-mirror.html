@@ -313,7 +313,7 @@ body, .wall { background: #f0ead6; }
     <div class="main-panel">
       <div class="name-row">
         <div class="section-label">name this archetype</div>
-        <input class="name-input" id="charName" maxlength="30" placeholder="who are you today?" oninput="onNameChange()" />
+        <input class="name-input" id="charName" maxlength="30" placeholder="what archetype is this?" oninput="onNameChange()" />
       </div>
 
       <div class="two-col">
@@ -347,10 +347,11 @@ body, .wall { background: #f0ead6; }
         <div class="mirror-col">
           <div class="mirror-frame">
             <div class="char-layer layer-body"  id="layerBody"></div>
-            <div class="char-layer layer-acc"   id="layerAcc"></div>
+            <div class="char-layer layer-shoes" id="layerShoes"></div>
             <div class="char-layer layer-hair"  id="layerHair"></div>
             <div class="char-layer layer-eyes"  id="layerEyes"></div>
             <div class="char-layer layer-mouth" id="layerMouth"></div>
+            <div class="char-layer layer-acc"   id="layerAcc"></div>
             <div class="mirror-empty" id="mirrorEmpty">
               <div class="mirror-empty-text">pick a body<br>to begin</div>
             </div>
@@ -554,11 +555,12 @@ function renderLayer(layerId, partId) {
 function render() {
   document.getElementById("mirrorEmpty").style.display = state.body ? "none" : "flex";
   renderLayer("layerBody",  state.body);
+  renderLayer("layerShoes", state.shoes);
   renderLayer("layerHair",  state.hair);
   renderLayer("layerEyes",  state.eyes);
   renderLayer("layerMouth", state.mouth);
-  // shoes on same layer as acc — shoes take priority if both set
-  renderLayer("layerAcc",   state.shoes || state.acc);
+  // shoes and acc now have separate layers — both can show at once
+  renderLayer("layerAcc",   state.acc);
 
   // summary
   const find = (arr, id) => arr.find(x => x.id === id);
