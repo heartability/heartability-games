@@ -496,7 +496,17 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .matrix-archive-btn:hover { background:#4a5bc4; }
 .matrix-archive-btn:active { box-shadow:none; transform:translate(2px,2px); }
 
-.adv-matrix { position:relative; width:100%; flex:1; min-height:0; margin-top:34px; overflow:hidden; }
+/* Header row holds the date + archive button, above the framed matrix */
+.matrix-header { position:relative; height:34px; flex-shrink:0; }
+/* Framed container — insets the matrix so it doesn't bleed into the wall edges */
+.matrix-frame {
+  flex:1; min-height:0; position:relative;
+  margin:2px 20px 18px; overflow:hidden;
+  border:2px solid var(--blue); border-radius:8px;
+  box-shadow:2px 3px 0 rgba(101,121,226,.18);
+}
+
+.adv-matrix { position:absolute; inset:0; overflow:hidden; }
 .adv-grid {
   position:absolute; inset:0; pointer-events:none;
   background-image:
@@ -511,10 +521,10 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   position:absolute; font-family:var(--font-hand); color:#5a4a2a;
   letter-spacing:.5px; pointer-events:none; font-size:clamp(14px,1.9vw,23px); z-index:4;
 }
-.adv-top    { top:1.5%;  left:50%; transform:translateX(-50%); }
-.adv-bottom { bottom:1%; left:50%; transform:translateX(-50%); }
-.adv-left   { left:1%;  top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl; }
-.adv-right  { right:1%; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; }
+.adv-top    { top:2.5%;  left:50%; transform:translateX(-50%); }
+.adv-bottom { bottom:2%; left:50%; transform:translateX(-50%); }
+.adv-left   { left:2%;  top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl; }
+.adv-right  { right:2%; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; }
 
 .adv-item { position:absolute; z-index:3; text-align:center; }
 .adv-cap  { font-family:var(--font-hand); font-size:clamp(10px,1.1vw,13px); color:#8a7a5a; margin-top:3px; }
@@ -1248,19 +1258,23 @@ function buildAdventureMatrix(data, seedStr){
   }
 
   return `<div class="step-panel matrix-panel">
-    <button class="matrix-archive-btn" onclick="window.location.href='${data.archiveHref||'#'}'">archive →</button>
-    <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
-    <div class="adv-matrix">
-      <div class="adv-grid"></div>
-      <div class="adv-axis adv-axis-x"></div>
-      <div class="adv-axis adv-axis-y"></div>
-      <div class="adv-axlabel adv-top">journal</div>
-      <div class="adv-axlabel adv-bottom">infinity mirror</div>
-      <div class="adv-axlabel adv-left">treasure map</div>
-      <div class="adv-axlabel adv-right">bingo</div>
-      ${dots}
-      ${mapItem}${bingoItem}${charItem}${journalItem}
-      ${photos}
+    <div class="matrix-header">
+      <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
+      <button class="matrix-archive-btn" onclick="window.location.href='${data.archiveHref||'#'}'">archive →</button>
+    </div>
+    <div class="matrix-frame">
+      <div class="adv-matrix">
+        <div class="adv-grid"></div>
+        <div class="adv-axis adv-axis-x"></div>
+        <div class="adv-axis adv-axis-y"></div>
+        <div class="adv-axlabel adv-top">journal</div>
+        <div class="adv-axlabel adv-bottom">infinity mirror</div>
+        <div class="adv-axlabel adv-left">treasure map</div>
+        <div class="adv-axlabel adv-right">bingo</div>
+        ${dots}
+        ${mapItem}${bingoItem}${charItem}${journalItem}
+        ${photos}
+      </div>
     </div>
   </div>`;
 }
