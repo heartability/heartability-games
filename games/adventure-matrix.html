@@ -506,7 +506,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,0.35);
 }
 
-.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; }
+.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:url('../assets/elements/gradient.png') center/cover no-repeat; }
 .adv-grid {
   position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
   background-image:
@@ -557,7 +557,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   width:100%; display:block; border:4px solid #fff; border-bottom-width:18px;
   box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:cover; aspect-ratio:1;
 }
-.adv-dot { position:absolute; border-radius:50%; z-index:1; pointer-events:none; }
 </style>
 </head>
 <body>
@@ -1303,14 +1302,6 @@ function buildAdventureMatrix(data, seedStr){
     photos += `<div class="adv-photo" style="left:${pct(14,86)}%;top:${pct(16,82)}%;transform:translate(-50%,-50%) rotate(${rot(10)}deg);"><img src="${url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
   });
 
-  // Accent dots
-  const dotColors = ['var(--blue)','var(--aqua)','#b8a88a','#c8b88a'];
-  let dots = '';
-  for (let i=0;i<12;i++){
-    const sz = (8 + rnd()*14).toFixed(0);
-    dots += `<span class="adv-dot" style="left:${pct(6,94)}%;top:${pct(8,92)}%;width:${sz}px;height:${sz}px;background:${dotColors[Math.floor(rnd()*dotColors.length)]};opacity:${(0.25+rnd()*0.35).toFixed(2)};"></span>`;
-  }
-
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
@@ -1325,7 +1316,6 @@ function buildAdventureMatrix(data, seedStr){
         <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
         <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
         <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
-        ${dots}
         ${mapItem}${bingoItem}${charItem}${journalItem}
         ${photos}
       </div>
