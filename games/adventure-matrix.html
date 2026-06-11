@@ -826,7 +826,7 @@ const SQUARE_PROMPTS = [
 
 // Spiral zone polar positions (same as treasure-map)
 const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
-const SQUARE_POS   = [ {x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286} ];
+const SQUARE_POS   = [ {x:160,y:114},{x:340,y:114},{x:340,y:286},{x:160,y:286} ];
 const SQUARE_LABELS= ['1','2','3','4'];
 const TERRAIN_IMGS = {
   dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
@@ -977,7 +977,7 @@ function spiralZonesSVG(zones, opts){
 
 function buildPreviewSVG(mapType, zones) {
   const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
-  const SQUARE_POS   = [{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}];
+  const SQUARE_POS   = [{x:160,y:114},{x:340,y:114},{x:340,y:286},{x:160,y:286}];
   const R = 22;
 
   if (mapType === 'square') {
@@ -989,9 +989,7 @@ function buildPreviewSVG(mapType, zones) {
       if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
     });
     return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-      <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
-      <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
-      <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+      <image href="../assets/elements/square-1.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
       ${circles}
     </svg>`;
   }
@@ -1470,9 +1468,7 @@ function buildSquareSVG(zones) {
 
   return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
     ${defs}
-    <rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="2"/>
-    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
-    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="5 4"/>
+    <image href="../assets/elements/square-1.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
     ${circles}${hits}
   </svg>`;
 }
