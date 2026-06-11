@@ -518,18 +518,13 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .adv-axis-x { left:6%; right:6%; top:50%; height:1.5px; }
 .adv-axis-y { top:7%; bottom:7%; left:50%; width:1.5px; }
 
-/* Axis descriptors live in their OWN overlay, pinned to the frame —
-   independent of .adv-matrix so its sizing/overflow can't clip them. */
-.adv-axes {
-  position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none;
+/* Axis descriptors — siblings of the items inside .adv-matrix (which paints
+   reliably). translateZ(0) forces each onto its own layer so none get dropped. */
+.adv-axlbl {
+  position:absolute; z-index:5; white-space:nowrap;
   font-family:var(--font-hand); color:#5a4a2a; letter-spacing:.5px;
   font-size:clamp(14px,1.9vw,23px);
 }
-.adv-ax { position:absolute; }
-.adv-ax-top    { top:8px;    left:0; width:100%; text-align:center; }
-.adv-ax-bottom { bottom:8px; left:0; width:100%; text-align:center; }
-.adv-ax-left   { left:6px;  top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl; }
-.adv-ax-right  { right:6px; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; }
 
 .adv-item { position:absolute; z-index:3; text-align:center; }
 .adv-cap  { font-family:var(--font-hand); font-size:clamp(10px,1.1vw,13px); color:#8a7a5a; margin-top:3px; }
@@ -1326,15 +1321,13 @@ function buildAdventureMatrix(data, seedStr){
         <div class="adv-grid"></div>
         <div class="adv-axis adv-axis-x"></div>
         <div class="adv-axis adv-axis-y"></div>
+        <div class="adv-axlbl" style="left:50%;top:3.5%;transform:translate(-50%,-50%) translateZ(0);">external</div>
+        <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
+        <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
+        <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
         ${dots}
         ${mapItem}${bingoItem}${charItem}${journalItem}
         ${photos}
-      </div>
-      <div class="adv-axes">
-        <span class="adv-ax adv-ax-top">external</span>
-        <span class="adv-ax adv-ax-right">feeling</span>
-        <span class="adv-ax adv-ax-bottom">internal</span>
-        <span class="adv-ax adv-ax-left">action</span>
       </div>
     </div>
   </div>`;
