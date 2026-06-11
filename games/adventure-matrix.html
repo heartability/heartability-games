@@ -506,9 +506,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,0.35);
 }
 
-.adv-matrix { position:absolute; inset:0; overflow:hidden; }
+.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; }
 .adv-grid {
-  position:absolute; inset:0; pointer-events:none;
+  position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
   background-image:
     linear-gradient(to right, rgba(184,168,138,.13) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(184,168,138,.13) 1px, transparent 1px);
@@ -517,14 +517,19 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .adv-axis { position:absolute; background:rgba(184,168,138,.5); pointer-events:none; }
 .adv-axis-x { left:6%; right:6%; top:50%; height:1.5px; }
 .adv-axis-y { top:7%; bottom:7%; left:50%; width:1.5px; }
-.adv-axlabel {
-  position:absolute; font-family:var(--font-hand); color:#5a4a2a;
-  letter-spacing:.5px; pointer-events:none; font-size:clamp(14px,1.9vw,23px); z-index:4;
+
+/* Axis descriptors live in their OWN overlay, pinned to the frame —
+   independent of .adv-matrix so its sizing/overflow can't clip them. */
+.adv-axes {
+  position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none;
+  font-family:var(--font-hand); color:#5a4a2a; letter-spacing:.5px;
+  font-size:clamp(14px,1.9vw,23px);
 }
-.adv-top    { top:2%;    left:0; right:0; text-align:center; }
-.adv-bottom { bottom:2%; left:0; right:0; text-align:center; }
-.adv-left   { left:6px;  top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl; }
-.adv-right  { right:6px; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; }
+.adv-ax { position:absolute; }
+.adv-ax-top    { top:8px;    left:0; width:100%; text-align:center; }
+.adv-ax-bottom { bottom:8px; left:0; width:100%; text-align:center; }
+.adv-ax-left   { left:6px;  top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl; }
+.adv-ax-right  { right:6px; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; }
 
 .adv-item { position:absolute; z-index:3; text-align:center; }
 .adv-cap  { font-family:var(--font-hand); font-size:clamp(10px,1.1vw,13px); color:#8a7a5a; margin-top:3px; }
@@ -1321,13 +1326,15 @@ function buildAdventureMatrix(data, seedStr){
         <div class="adv-grid"></div>
         <div class="adv-axis adv-axis-x"></div>
         <div class="adv-axis adv-axis-y"></div>
-        <div class="adv-axlabel adv-top">external</div>
-        <div class="adv-axlabel adv-bottom">internal</div>
-        <div class="adv-axlabel adv-left">action</div>
-        <div class="adv-axlabel adv-right">feeling</div>
         ${dots}
         ${mapItem}${bingoItem}${charItem}${journalItem}
         ${photos}
+      </div>
+      <div class="adv-axes">
+        <span class="adv-ax adv-ax-top">external</span>
+        <span class="adv-ax adv-ax-right">feeling</span>
+        <span class="adv-ax adv-ax-bottom">internal</span>
+        <span class="adv-ax adv-ax-left">action</span>
       </div>
     </div>
   </div>`;
