@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Progress Tracker — Heartability</title>
+<title>Adventure Matrix — Heartability</title>
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
@@ -482,7 +482,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 /* ── ADVENTURE MATRIX ─────────────────────────────────────
    Portable: this block + buildAdventureMatrix() can be lifted
    into the archive page so the moodboard renders identically.   */
-.matrix-panel { padding:0; overflow:hidden; justify-content:flex-start; position:relative; }
+.matrix-panel { padding:0; overflow:hidden; justify-content:flex-start; align-items:stretch; position:relative; }
 .matrix-date {
   position:absolute; top:10px; left:50%; transform:translateX(-50%);
   font-family:var(--font-hand); font-size:clamp(13px,1.5vw,17px); color:#8a7a5a; z-index:6;
@@ -565,7 +565,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <!-- NAV -->
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../index.html'">← back</span>
-  <span>progress tracker</span>
+  <span>adventure matrix</span>
   <span></span>
 </nav>
 
@@ -1310,7 +1310,7 @@ async function stepDone() {
   currentStep = 'done';
   setBubble("your entry is complete!");
   const today = new Date().toLocaleDateString('en-CA');
-  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;">gathering your day…</div></div>');
+  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
   const data = await assembleTodayMatrixData(today);
   showPanel(buildAdventureMatrix(data, `${activeGameId}|${today}`));
 }
