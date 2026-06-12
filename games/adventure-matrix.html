@@ -558,6 +558,70 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:cover; aspect-ratio:1;
 }
 
+/* Add-photo button — top-left of the matrix header, mirrors the archive btn */
+.matrix-photo-btn {
+  position:absolute; top:8px; left:12px; z-index:6;
+  font-family:var(--font-hand); font-size:clamp(12px,1.3vw,15px);
+  color:var(--blue); background:rgba(255,255,255,.72);
+  border:2px solid var(--blue); box-shadow:2px 2px 0 var(--aqua);
+  padding:5px 14px; cursor:pointer; transition:all .05s;
+}
+.matrix-photo-btn:hover  { background:var(--blue); color:#fff; }
+.matrix-photo-btn:active { box-shadow:none; transform:translate(2px,2px); }
+
+/* ── PHOTO UPLOAD MODAL — framed to match the matrix ── */
+.photo-overlay {
+  position:fixed; inset:0; z-index:320;
+  background:rgba(40,32,24,.45);
+  display:none; align-items:center; justify-content:center; padding:18px;
+}
+.photo-overlay.open { display:flex; }
+.photo-card {
+  width:min(440px,94vw); max-height:92vh; overflow-y:auto;
+  background:var(--back-wall);
+  border:2px solid var(--blue);
+  box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
+  padding:18px 20px; font-family:var(--font-hand);
+}
+.photo-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.photo-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue); }
+.photo-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.photo-close:hover { color:#E8478B; }
+.photo-sub { font-size:13px; color:#8a7a5a; margin:2px 0 14px; }
+
+.photo-drop { display:block; cursor:pointer; }
+.photo-preview {
+  width:100%; aspect-ratio:4/3; background:#e8e0c8;
+  border:2px dashed #8a7a5a; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; margin-bottom:14px; transition:border-color .12s;
+}
+.photo-drop:hover .photo-preview { border-color:var(--blue); }
+.photo-preview img { width:100%; height:100%; object-fit:cover; }
+.photo-drop-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:14px; }
+
+.photo-quad-label { font-size:12px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
+.photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.photo-quad {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:12px 8px; background:#fdf6e3; border:1.5px solid #ccc;
+  font-family:var(--font-hand); cursor:pointer; color:#555; transition:all .1s;
+}
+.photo-quad b { font-size:15px; color:#3a2e1e; }
+.photo-quad span { font-size:10px; color:#8a7a5a; }
+.photo-quad:hover { border-color:var(--blue); background:#f0edfa; }
+.photo-quad.selected { border-color:var(--blue); background:var(--blue); box-shadow:2px 2px 0 #3a4aaa; }
+.photo-quad.selected b, .photo-quad.selected span { color:#fff; }
+
+.photo-status { font-size:13px; min-height:18px; margin-bottom:8px; color:#8a7a5a; }
+.photo-add-btn {
+  width:100%; padding:12px 18px; background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:16px; color:#fff; cursor:pointer; transition:all .05s;
+}
+.photo-add-btn:hover  { background:#4a5bc4; }
+.photo-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
 /* ── SIDEQUEST BUILDER MODAL ── */
 .sq-overlay {
   position:fixed; inset:0; z-index:300;
@@ -807,6 +871,35 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
     </div>
   </div>
 </div>
+
+<!-- PHOTO UPLOAD — adds a picture to a chosen quadrant of the matrix -->
+<div class="photo-overlay" id="photo-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">✦ add a photo</span>
+      <button class="photo-close" onclick="closePhotoUpload()">×</button>
+    </div>
+    <div class="photo-sub">pick an image and choose where it lands on your matrix.</div>
+
+    <label class="photo-drop">
+      <input type="file" id="photo-file" accept="image/*" hidden onchange="onPhotoPicked(event)">
+      <div class="photo-preview" id="photo-preview">
+        <span class="photo-drop-hint">tap to choose an image</span>
+      </div>
+    </label>
+
+    <div class="photo-quad-label">which quadrant?</div>
+    <div class="photo-quad-grid" id="photo-quad-grid">
+      <button class="photo-quad" data-q="external-action"  onclick="pickQuadrant('external-action',this)"><b>map</b><span>external · action</span></button>
+      <button class="photo-quad" data-q="external-feeling" onclick="pickQuadrant('external-feeling',this)"><b>character</b><span>external · feeling</span></button>
+      <button class="photo-quad" data-q="internal-action"  onclick="pickQuadrant('internal-action',this)"><b>heart</b><span>internal · action</span></button>
+      <button class="photo-quad" data-q="internal-feeling" onclick="pickQuadrant('internal-feeling',this)"><b>journal</b><span>internal · feeling</span></button>
+    </div>
+
+    <div class="photo-status" id="photo-status"></div>
+    <button class="photo-add-btn" id="photo-add-btn" disabled onclick="uploadMatrixPhoto()">add to matrix</button>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
@@ -814,6 +907,12 @@ const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
+
+// ── MATRIX PHOTO UPLOADS ──────────────────────────────────
+// ⚠️ Set this to YOUR existing Supabase Storage bucket name.
+//    The bucket needs: authenticated INSERT allowed + public read.
+//    (If the bucket is private, swap getPublicUrl → createSignedUrl below.)
+const MATRIX_PHOTO_BUCKET = 'matrix-photos';
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activeGameId   = null;
@@ -1141,6 +1240,34 @@ function buildPreviewSVG(mapType, zones) {
   return spiralZonesSVG(zones, { interactive:false });
 }
 
+// The matrix map item shows ONLY the day's chosen destination (one terrain +
+// tint glow + feeling), not the whole map. loc = {terrain, feeling, tint}.
+function buildSingleLocationSVG(loc){
+  loc = loc || {};
+  const R = 58, cx = 150, cy = 108;
+  let defs = '', body = '';
+  if (loc.tint) {
+    defs += `<radialGradient id="locglow" cx="50%" cy="50%" r="50%">`
+      + `<stop offset="0%" stop-color="${loc.tint}" stop-opacity="1"/>`
+      + `<stop offset="55%" stop-color="${loc.tint}" stop-opacity=".85"/>`
+      + `<stop offset="100%" stop-color="${loc.tint}" stop-opacity="0"/></radialGradient>`;
+    body += `<circle cx="${cx}" cy="${cy}" r="${R+44}" fill="url(#locglow)"/>`;
+  }
+  if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
+    defs += `<clipPath id="locclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
+    body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
+      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#locclip)"/>`
+      + `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5"/>`;
+  } else {
+    body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
+  }
+  if (loc.feeling) {
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14" `
+      + `font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${_escapeHtml(loc.feeling)}</text>`;
+  }
+  return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
+}
+
 function renderMapGrid(games) {
   let slots = '';
   for (let i = 0; i < 8; i++) {
@@ -1421,6 +1548,22 @@ function _buildCharStack(charState){
 // PORTABLE: give it a day's data + a stable seed string, get matrix HTML back.
 // data = { dateLabel, mapName, mapType, zones, bingoScore(0-24), charState,
 //          journalText, journalImages[], archiveHref }
+// Quadrant geometry for photo placement (matrix %). Each quadrant lays photos
+// on a 2-col grid that grows inward from the matrix's outer corner, so photos
+// cluster in their quadrant without their bodies overlapping each other.
+const QUADRANTS = {
+  'external-action':  { x0:13, y0:17, dx:+1 },  // top-left  (map)
+  'external-feeling': { x0:87, y0:17, dx:-1 },  // top-right (character)
+  'internal-action':  { x0:13, y0:61, dx:+1 },  // bottom-left (heart)
+  'internal-feeling': { x0:87, y0:61, dx:-1 },  // bottom-right (journal)
+};
+const PHOTO_COLS = 2, PHOTO_COL_GAP = 17, PHOTO_ROW_GAP = 16;
+function photoSlot(quadrant, n){
+  const q = QUADRANTS[quadrant] || QUADRANTS['internal-feeling'];
+  const col = n % PHOTO_COLS, row = Math.floor(n / PHOTO_COLS);
+  return { left: q.x0 + q.dx * col * PHOTO_COL_GAP, top: q.y0 + row * PHOTO_ROW_GAP };
+}
+
 function buildAdventureMatrix(data, seedStr){
   const rnd = _seedRand(seedStr || 'matrix');
   const jit = r => (rnd()*2-1)*r;            // ± r
@@ -1428,9 +1571,13 @@ function buildAdventureMatrix(data, seedStr){
   const pct = (a,b) => (a + rnd()*(b-a)).toFixed(1);
 
   // MAP → top-left quadrant (external + action)
+  // Show ONLY the day's chosen destination (sidequest_data → location_data),
+  // not the entire map.
+  const dayLoc = data.sidequestData || data.locationData || {};
+  const mapCap = data.sidequestData?.name || data.mapName || 'my map';
   const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-      <div class="adv-map-svg">${buildPreviewSVG(data.mapType||'spiral', data.zones||[])}</div>
-      <div class="adv-cap">${_escapeHtml(data.mapName||'my map')}</div></div>`;
+      <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
+      <div class="adv-cap">${_escapeHtml(mapCap)}</div></div>`;
 
   // BINGO (heart meter) → bottom-left quadrant (internal + action)
   const meterPct = Math.round(((data.bingoScore||0)/24)*100);
@@ -1449,15 +1596,22 @@ function buildAdventureMatrix(data, seedStr){
   const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-journal-text">${_escapeHtml(preview)}</div></div>` : '';
 
-  // Photos scattered across the whole matrix
+  // Photos — placed inside their assigned quadrant, spaced on a 2-col grid so
+  // each photo's main body stays visible (only edges may overlap).
+  const quadCount = {};
   let photos = '';
-  (data.journalImages||[]).forEach(url => {
-    photos += `<div class="adv-photo" style="left:${pct(14,86)}%;top:${pct(16,82)}%;transform:translate(-50%,-50%) rotate(${rot(10)}deg);"><img src="${url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
+  (data.matrixImages||[]).forEach(img => {
+    if (!img || !img.url) return;
+    const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
+    const n = quadCount[q] || 0; quadCount[q] = n + 1;
+    const slot = photoSlot(q, n);
+    photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
   });
 
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
+      <button class="matrix-photo-btn" onclick="openPhotoUpload()">+ photo</button>
       <button class="matrix-archive-btn" onclick="window.location.href='${data.archiveHref||'#'}'">archive →</button>
     </div>
     <div class="matrix-frame">
@@ -1486,19 +1640,25 @@ async function assembleTodayMatrixData(entryId){
     zones: (activeGameData?.map_data||{}).zones || [],
     mapPhase: null,                              // selected phase — used by single-phase matrix render
     locationData: null,                          // {terrain,feeling,tint} of the selected place — self-contained
-    bingoScore: 0, charState: null, journalText: '', journalImages: [],
+    sidequestData: null,                         // sidequest snapshot {terrain,feeling,tint,name} when phase==='sidequest'
+    bingoScore: 0, charState: null, journalText: '', matrixImages: [],
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
     const { data: row } = await sb.from('saved_data').select('*')
       .eq('id', entryId).maybeSingle();
     if (row){
-      d.charState   = row.character_data || null;
-      d.bingoScore  = row.bingo_data?.score || 0;
-      d.mapPhase    = row.map_phase || null;
+      d.charState    = row.character_data || null;
+      d.bingoScore   = row.bingo_data?.score || 0;
+      d.mapPhase     = row.map_phase || null;
       d.locationData = row.location_data || null;
-      d.journalText = row.diary_text || '';
-      if (row.image_url) d.journalImages = [row.image_url];
+      d.sidequestData= row.sidequest_data || null;
+      d.journalText  = row.diary_text || '';
+      // Manually-uploaded matrix photos (each tagged to a quadrant)…
+      const uploaded = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+      // …plus the journal's own image, which always lives in the journal quadrant.
+      const journalImg = row.image_url ? [{ url: row.image_url, quadrant: 'internal-feeling' }] : [];
+      d.matrixImages = [...uploaded, ...journalImg];
     }
   } catch(e){}
   return d;
@@ -1508,8 +1668,106 @@ async function stepDone() {
   currentStep = 'done';
   setBubble("your entry is complete!");
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
+  _matrixSeed = `${activeGameId}|${activeEntryId}`;
+  await renderMatrix();
+}
+
+// Re-assemble + redraw the matrix in place (used after adding a photo).
+let _matrixSeed = 'matrix';
+async function renderMatrix() {
   const data = await assembleTodayMatrixData(activeEntryId);
-  showPanel(buildAdventureMatrix(data, `${activeGameId}|${activeEntryId}`));
+  showPanel(buildAdventureMatrix(data, _matrixSeed));
+}
+
+// ── MATRIX PHOTO UPLOAD ───────────────────────────────────
+let photoDraft = { file:null, quadrant:null };
+
+function openPhotoUpload(){
+  photoDraft = { file:null, quadrant:null };
+  document.getElementById('photo-file').value = '';
+  document.getElementById('photo-preview').innerHTML =
+    '<span class="photo-drop-hint">tap to choose an image</span>';
+  document.querySelectorAll('.photo-quad.selected').forEach(el => el.classList.remove('selected'));
+  const st = document.getElementById('photo-status');
+  st.textContent = ''; st.style.color = '#8a7a5a';
+  refreshPhotoAdd();
+  document.getElementById('photo-overlay').classList.add('open');
+}
+function closePhotoUpload(){
+  document.getElementById('photo-overlay').classList.remove('open');
+}
+function onPhotoPicked(e){
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const st = document.getElementById('photo-status');
+  if (!file.type.startsWith('image/')){
+    st.style.color = '#E8478B'; st.textContent = 'that file isn’t an image';
+    photoDraft.file = null; refreshPhotoAdd(); return;
+  }
+  photoDraft.file = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('photo-preview').innerHTML = `<img src="${ev.target.result}" alt="">`;
+  };
+  reader.readAsDataURL(file);
+  st.textContent = '';
+  refreshPhotoAdd();
+}
+function pickQuadrant(q, el){
+  photoDraft.quadrant = q;
+  document.querySelectorAll('.photo-quad').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  refreshPhotoAdd();
+}
+function refreshPhotoAdd(){
+  document.getElementById('photo-add-btn').disabled = !(photoDraft.file && photoDraft.quadrant);
+}
+
+async function uploadMatrixPhoto(){
+  if (!(photoDraft.file && photoDraft.quadrant)) return;
+  const st  = document.getElementById('photo-status');
+  const btn = document.getElementById('photo-add-btn');
+  if (!currentUser){
+    st.style.color = '#E8478B'; st.textContent = 'sign in to save photos';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'uploading…';
+  st.style.color = '#8a7a5a'; st.textContent = 'uploading…';
+
+  try {
+    const file = photoDraft.file;
+    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path = `${currentUser.id}/${activeEntryId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error: upErr } = await sb.storage
+      .from(MATRIX_PHOTO_BUCKET)
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
+    const publicUrl = pub?.publicUrl;
+    if (!publicUrl) throw new Error('could not resolve image url');
+
+    // Append {url,quadrant} to saved_data.matrix_images (read-modify-write).
+    const { data: row, error: readErr } = await sb.from('saved_data')
+      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
+    const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant }];
+
+    const { error: updErr } = await sb.from('saved_data')
+      .update({ matrix_images: next }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+
+    closePhotoUpload();
+    showRoomStatus('photo added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch (err) {
+    console.error('[matrix photo] upload failed:', err);
+    st.style.color = '#E8478B';
+    st.textContent = err?.message ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
+    btn.disabled = false; btn.textContent = 'add to matrix';
+  }
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
