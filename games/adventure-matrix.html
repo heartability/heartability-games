@@ -506,7 +506,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,0.35);
 }
 
-.adv-matrix { position:absolute; inset:0; overflow:hidden; transform:translateZ(0); background:url('../assets/elements/gradient.png') center/cover no-repeat; }
+.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:url('../assets/elements/gradient.png') center/cover no-repeat; }
 .adv-grid {
   position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
   background-image:
@@ -687,6 +687,7 @@ let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
 let currentStep    = null; // 'character' | 'bingo' | 'journal'
+let activeEntryId  = null; // one uuid per playthrough = one saved_data row
 
 // ── LOGIN MODAL ───────────────────────────────────────────
 function showLoginModal() {
@@ -1140,6 +1141,7 @@ function selectPhase(idx) {
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
 function stepBegin() {
   if (!activePhase) return;
+  activeEntryId = crypto.randomUUID();   // fresh saved_data row for this session
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
@@ -1162,7 +1164,7 @@ function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
   setBubble('write your adventure notes ♡', []);
-  const src = `../users/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}`;
+  const src = `../users/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}&entry_id=${activeEntryId}`;
   showIframe(src);
   setSaveBtnVisible(true, 'save notes &amp; finish →');
 }
@@ -1323,28 +1325,27 @@ function buildAdventureMatrix(data, seedStr){
   </div>`;
 }
 
-// Assemble today's saved data from the DB (page-specific; archive will gather its own).
-async function assembleTodayMatrixData(dateStr){
+// Assemble this playthrough's saved data from the DB by its row id.
+// (archive gathers its own data separately.)
+async function assembleTodayMatrixData(entryId){
   const d = {
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
     mapName: activeGameData?.map_name || 'my map',
     mapType: activeGameData?.map_type || 'spiral',
     zones: (activeGameData?.map_data||{}).zones || [],
+    mapPhase: null,                              // selected phase — used by single-phase matrix render
     bingoScore: 0, charState: null, journalText: '', journalImages: [],
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
-    const { data: daily } = await sb.from('daily_entries').select('*')
-      .eq('game_id', activeGameId).eq('entry_date', dateStr).maybeSingle();
-    if (daily){ d.charState = daily.character_data || null; d.bingoScore = daily.bingo_data?.score || 0; }
-  } catch(e){}
-  try {
-    const { data: diary } = await sb.from('diary_entries').select('*')
-      .eq('game_id', activeGameId).eq('entry_date', dateStr).maybeSingle();
-    if (diary){
-      d.journalText = diary.diary_text || '';
-      if (Array.isArray(diary.image_urls)) d.journalImages = diary.image_urls.filter(Boolean);
-      else if (diary.image_url) d.journalImages = [diary.image_url];
+    const { data: row } = await sb.from('saved_data').select('*')
+      .eq('id', entryId).maybeSingle();
+    if (row){
+      d.charState   = row.character_data || null;
+      d.bingoScore  = row.bingo_data?.score || 0;
+      d.mapPhase    = row.map_phase || null;
+      d.journalText = row.diary_text || '';
+      if (row.image_url) d.journalImages = [row.image_url];
     }
   } catch(e){}
   return d;
@@ -1353,10 +1354,9 @@ async function assembleTodayMatrixData(dateStr){
 async function stepDone() {
   currentStep = 'done';
   setBubble("your entry is complete!");
-  const today = new Date().toLocaleDateString('en-CA');
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
-  const data = await assembleTodayMatrixData(today);
-  showPanel(buildAdventureMatrix(data, `${activeGameId}|${today}`));
+  const data = await assembleTodayMatrixData(activeEntryId);
+  showPanel(buildAdventureMatrix(data, `${activeGameId}|${activeEntryId}`));
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
@@ -1396,7 +1396,7 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Character state received — save to daily_entries ───
+  // ── Character state received — save to saved_data ───
   if (msg.type === 'char_state') {
     const charState = msg.state || {};
     if (!charState.body) {
@@ -1405,14 +1405,14 @@ window.addEventListener('message', async e => {
       btn.disabled = false; btn.innerHTML = 'save character &amp; continue →';
       return;
     }
-    const today = new Date().toLocaleDateString('en-CA');
     let saved = false;
 
-    const { error } = await sb.from('daily_entries').upsert({
+    const { error } = await sb.from('saved_data').upsert({
+      id: activeEntryId,
       game_id: activeGameId, user_id: currentUser.id,
-      entry_date: today, map_phase: activePhase,
+      map_phase: activePhase,
       character_data: charState,
-    }, { onConflict: 'game_id,entry_date' });
+    }, { onConflict: 'id' });
     saved = !error;
     if (error) showRoomStatus('save failed', '#E8478B');
 
@@ -1427,7 +1427,7 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Bingo state received — save to daily_entries ───────
+  // ── Bingo state received — save to saved_data ───────
   if (msg.type === 'bingo_state') {
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
@@ -1436,14 +1436,14 @@ window.addEventListener('message', async e => {
       btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
       return;
     }
-    const today        = new Date().toLocaleDateString('en-CA');
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
 
-    const { error } = await sb.from('daily_entries').upsert({
+    const { error } = await sb.from('saved_data').upsert({
+      id: activeEntryId,
       game_id: activeGameId, user_id: currentUser.id,
-      entry_date: today, bingo_data: bingoPayload, energy_score: energyScore,
-    }, { onConflict: 'game_id,entry_date' });
+      bingo_data: bingoPayload, energy_score: energyScore,
+    }, { onConflict: 'id' });
 
     if (!error) {
       showRoomStatus('all saved ✓', '#6ab86a');
