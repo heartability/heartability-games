@@ -1485,6 +1485,7 @@ async function assembleTodayMatrixData(entryId){
     mapType: activeGameData?.map_type || 'spiral',
     zones: (activeGameData?.map_data||{}).zones || [],
     mapPhase: null,                              // selected phase — used by single-phase matrix render
+    locationData: null,                          // {terrain,feeling,tint} of the selected place — self-contained
     bingoScore: 0, charState: null, journalText: '', journalImages: [],
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
@@ -1495,6 +1496,7 @@ async function assembleTodayMatrixData(entryId){
       d.charState   = row.character_data || null;
       d.bingoScore  = row.bingo_data?.score || 0;
       d.mapPhase    = row.map_phase || null;
+      d.locationData = row.location_data || null;
       d.journalText = row.diary_text || '';
       if (row.image_url) d.journalImages = [row.image_url];
     }
@@ -1558,14 +1560,22 @@ window.addEventListener('message', async e => {
     }
     let saved = false;
 
-    // Resolve the place label for this entry, and the sidequest payload if any.
-    let mapLocation = null, sidequestData = null;
+    // Resolve the place for this entry: a self-contained snapshot (terrain +
+    // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
+    let mapLocation = null, sidequestData = null, locationData = null;
     if (activePhase === 'sidequest' && activeSidequest) {
       mapLocation   = activeSidequest.terrain || null;
       sidequestData = activeSidequest;
+      locationData  = { terrain: activeSidequest.terrain || null,
+                        feeling: activeSidequest.feeling || null,
+                        tint:    activeSidequest.tint    || null };
     } else if (activePhase && activeGameData?.map_data?.zones) {
       const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
-      mapLocation = activeGameData.map_data.zones[idx]?.terrain || null;
+      const z = activeGameData.map_data.zones[idx] || {};
+      mapLocation  = z.terrain || null;
+      locationData = { terrain: z.terrain || null,
+                       feeling: z.feeling || null,
+                       tint:    z.tint    || null };
     }
 
     const { error } = await sb.from('saved_data').upsert({
@@ -1573,6 +1583,7 @@ window.addEventListener('message', async e => {
       game_id: activeGameId, user_id: currentUser.id,
       map_phase: activePhase,
       map_location: mapLocation,
+      location_data: locationData,
       sidequest_data: sidequestData,
       character_data: charState,
     }, { onConflict: 'id' });
