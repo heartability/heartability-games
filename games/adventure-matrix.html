@@ -622,6 +622,63 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 .photo-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
 
+/* ── NATIVE JOURNAL — book rendered on the back wall (replaces trail-notes iframe) ── */
+.jr-panel { justify-content:center; padding:10px; overflow:hidden; }
+.jr-inner {
+  position:relative; --book-ar:1.5;
+  aspect-ratio:var(--book-ar);
+  width:min(100%, calc((70vh - 40px) * var(--book-ar)));
+  max-height:100%;
+}
+.jr-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; pointer-events:none; }
+.jr-date {
+  position:absolute; top:13%; left:55%; right:9%; text-align:left;
+  font-family:var(--font-hand); font-size:clamp(11px,1.2vw,16px); color:#8a7a5a; pointer-events:none;
+}
+.jr-textarea {
+  position:absolute; top:21%; left:55%; right:9%; bottom:9%;
+  background:transparent; border:none; outline:none; resize:none;
+  font-family:var(--font-hand); font-size:clamp(12px,1.3vw,18px); color:var(--brown);
+  line-height:2.0; caret-color:var(--blue); user-select:text; overflow-y:auto;
+}
+.jr-textarea::placeholder { color:rgba(138,122,90,.35); font-style:italic; }
+.jr-entry-label {
+  position:absolute; bottom:4%; left:55%; text-align:left;
+  font-family:var(--font-hand); font-size:clamp(9px,.9vw,12px); color:#aaa; white-space:nowrap; pointer-events:none;
+}
+.jr-entry-nav { position:absolute; bottom:11%; left:5%; display:flex; flex-direction:column; align-items:flex-start; gap:2px; z-index:5; }
+.jr-nav-btn {
+  font-family:var(--font-hand); font-size:clamp(11px,1.2vw,16px); color:#111;
+  background:none; border:none; cursor:pointer; padding:4px 6px; opacity:.7; transition:opacity .15s; white-space:nowrap;
+}
+.jr-nav-btn:hover { opacity:1; }
+#jr-btn-newer { display:none; font-size:clamp(10px,1.1vw,14px); }
+.jr-clip {
+  position:absolute; top:-1%; left:10%; width:clamp(28px,5%,56px); height:auto;
+  background:none; border:none; cursor:pointer; display:block; z-index:6;
+}
+.jr-clip img { width:100%; height:auto; display:block; }
+@keyframes jr-wiggle { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-3deg)} 40%{transform:rotate(3deg)} 60%{transform:rotate(-2deg)} 80%{transform:rotate(2deg)} }
+.jr-clip:hover { animation:jr-wiggle .48s ease; }
+.jr-upload-note {
+  position:absolute; top:8%; left:15%; width:30%; cursor:pointer;
+  font-family:var(--font-hand); font-size:clamp(8px,1.05vw,12px); color:#9a8a6a; line-height:1.5;
+}
+.jr-img-wrap { position:absolute; top:44%; left:13%; width:clamp(60px,28%,160px); display:none; z-index:5; }
+.jr-img-wrap.has-img { display:block; }
+.jr-img-preview { width:100%; border:2px solid #c8b88a; display:block; object-fit:cover; }
+.jr-img-remove {
+  position:absolute; top:-8px; right:-8px; width:18px; height:18px;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%; cursor:pointer; font-size:10px;
+  display:flex; align-items:center; justify-content:center; color:#888; line-height:1;
+}
+.jr-status { position:absolute; top:2%; right:6%; font-family:var(--font-hand); font-size:clamp(10px,1vw,12px); color:#6ab86a; opacity:0; transition:opacity .3s; z-index:5; }
+.jr-status.visible { opacity:1; }
+/* When paging back to an old entry: read-only, no upload affordances */
+.jr-inner.viewing-old .jr-clip,
+.jr-inner.viewing-old .jr-upload-note,
+.jr-inner.viewing-old .jr-img-remove { display:none; }
+
 /* ── SIDEQUEST BUILDER MODAL ── */
 .sq-overlay {
   position:fixed; inset:0; z-index:300;
@@ -823,24 +880,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
       </div>
     </div>
     <div class="lm-footer">your journey starts here ✧</div>
-  </div>
-</div>
-
-<!-- JOURNAL WINDOW — floats on the back wall -->
-<div class="journal-wall-overlay" id="journal-wall">
-  <div style="height:38px;background:#e8e3da;border-bottom:2px solid #bbb;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-family:var(--font-hand);font-size:15px;color:#555;flex-shrink:0;">
-    <span>adventure notes</span>
-    <span style="cursor:pointer;font-size:20px;color:#bbb;" onclick="skipJournal()">×</span>
-  </div>
-  <div class="journal-inline" style="flex:1;min-height:0;">
-    <div class="journal-spine-inline" id="journal-spine"></div>
-    <div class="journal-page">
-      <div class="journal-page-header" id="journal-date-header"></div>
-      <textarea class="journal-textarea" id="journal-textarea"
-        placeholder="anything you want to put on the record about today? wins, losses, learning moments..."
-        maxlength="4000"></textarea>
-      <div class="journal-privacy">your entries are private and only visible to you ✦</div>
-    </div>
   </div>
 </div>
 
@@ -1437,13 +1476,14 @@ function stepBingo() {
   setSaveBtnVisible(true, 'save &amp; finish →');
 }
 
-// ── STEP 6: BINGO DONE → JOURNAL ─────────────────────────
+// ── STEP 6: BINGO DONE → JOURNAL (native, no iframe) ─────
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
   setBubble('write your adventure notes ♡', []);
-  const src = `../users/trail-notes.html?game_id=${activeGameId}&phase=${activePhase}&entry_id=${activeEntryId}`;
-  showIframe(src);
+  showPanel(buildJournalPanel());
+  fitJournalBook();
+  loadJournalEntries();
   setSaveBtnVisible(true, 'save notes &amp; finish →');
 }
 
@@ -1454,14 +1494,195 @@ function skipJournal() {
 }
 
 async function saveJournalEntry() {
-  // Tell the trail-notes iframe to save, then wait for journal_saved response
-  const iframe = document.getElementById('game-iframe');
-  if (iframe) {
-    iframe.contentWindow.postMessage({ type: 'request_save' }, '*');
-  } else {
+  const ok = await saveJournalNative();
+  if (ok) {
     setSaveBtnVisible(false);
     stepDone();
+  } else {
+    // Let the user retry — re-enable the save button.
+    setSaveBtnVisible(true, 'save notes &amp; finish →');
   }
+}
+
+// ── NATIVE JOURNAL ───────────────────────────────────────
+// Ported from the old trail-notes.html iframe. Images now save into the
+// matrix-photos bucket + saved_data.matrix_images (tagged source:'journal',
+// quadrant:'internal-feeling') instead of the retired image_url column.
+const journal = { entries:[], index:0, pendingImage:null, viewingOld:false, removeExisting:false };
+
+function buildJournalPanel(){
+  return `<div class="step-panel jr-panel">
+    <div class="jr-inner" id="jr-inner">
+      <img class="jr-bg" id="jr-bg" src="../assets/elements/open-journal.png" alt="journal">
+      <div class="jr-status" id="jr-status"></div>
+      <div class="jr-date" id="jr-date"></div>
+      <textarea class="jr-textarea" id="jr-textarea" placeholder="what needs to be put on record about today?" maxlength="4000"></textarea>
+      <span class="jr-entry-label" id="jr-entry-label"></span>
+      <div class="jr-entry-nav">
+        <button class="jr-nav-btn" id="jr-btn-newer" onclick="journalGoEntry(-1)">newer entry →</button>
+        <button class="jr-nav-btn" id="jr-btn-prev" onclick="journalPastEntries()">← past entries</button>
+      </div>
+      <div class="jr-clip" id="jr-clip" onclick="document.getElementById('jr-file').click()" title="add a photo">
+        <img src="../assets/elements/paperclip.png" alt="add a photo">
+      </div>
+      <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
+      <p class="jr-upload-note" onclick="document.getElementById('jr-file').click()">Upload a picture to your daily moodboard. <br> It could be a park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence. <br> What do you want to remember?</p>
+      <div class="jr-img-wrap" id="jr-img-wrap">
+        <img class="jr-img-preview" id="jr-img-preview" src="" alt="uploaded">
+        <div class="jr-img-remove" onclick="removeJournalImage()">✕</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Size the book box to the journal PNG's true ratio so the printed pages line up.
+function fitJournalBook(){
+  const bg = document.getElementById('jr-bg'); if (!bg) return;
+  const apply = () => {
+    const inner = document.getElementById('jr-inner');
+    if (inner && bg.naturalWidth && bg.naturalHeight)
+      inner.style.setProperty('--book-ar', (bg.naturalWidth/bg.naturalHeight).toFixed(4));
+  };
+  if (bg.complete) apply(); else bg.addEventListener('load', apply);
+}
+
+function journalImageOf(entry){
+  const imgs = Array.isArray(entry?.matrix_images) ? entry.matrix_images : [];
+  const j = imgs.find(i => i && i.source === 'journal');
+  return j?.url || '';
+}
+
+async function loadJournalEntries(){
+  journal.entries = []; journal.index = 0; journal.viewingOld = false; journal.removeExisting = false; journal.pendingImage = null;
+  const dateEl = document.getElementById('jr-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  if (!currentUser || !activeGameId){ journalUpdateNav(); return; }
+  try {
+    const { data } = await sb.from('saved_data')
+      .select('id, diary_text, matrix_images, created_at')
+      .eq('game_id', activeGameId).eq('user_id', currentUser.id)
+      .order('created_at',{ ascending:false }).limit(30);
+    // This playthrough's row (even if blank) + any past rows with journal text.
+    journal.entries = (data||[]).filter(e => e.id === activeEntryId || (e.diary_text && e.diary_text.trim()));
+  } catch(e){}
+  const cur = journal.entries.find(e => e.id === activeEntryId);
+  if (cur){ journal.index = journal.entries.indexOf(cur); applyJournalEntry(cur, false); }
+  journalUpdateNav();
+}
+
+function applyJournalEntry(entry, isOld){
+  const ta = document.getElementById('jr-textarea');
+  if (ta){ ta.value = entry.diary_text || ''; ta.readOnly = isOld; }
+  const url  = journalImageOf(entry);
+  const wrap = document.getElementById('jr-img-wrap');
+  if (wrap){
+    if (url){ document.getElementById('jr-img-preview').src = url; wrap.classList.add('has-img'); }
+    else    { document.getElementById('jr-img-preview').src = '';  wrap.classList.remove('has-img'); }
+  }
+  const d = new Date(entry.created_at || Date.now());
+  const dateEl = document.getElementById('jr-date');
+  if (dateEl) dateEl.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  journal.viewingOld = isOld;
+  document.getElementById('jr-inner')?.classList.toggle('viewing-old', isOld);
+}
+
+// dir = +1 → older, dir = -1 → newer (toward today)
+function journalGoEntry(dir){
+  const ni = journal.index + dir;
+  if (ni < 0 || ni >= journal.entries.length) return;
+  journal.index = ni;
+  const e = journal.entries[ni];
+  applyJournalEntry(e, e.id !== activeEntryId);
+  journalUpdateNav();
+}
+function journalPastEntries(){
+  if (journal.index >= journal.entries.length - 1){ showRoomStatus('no past journal entries yet', '#8a7a5a'); return; }
+  journalGoEntry(1);
+}
+function journalUpdateNav(){
+  const newer = document.getElementById('jr-btn-newer');
+  const label = document.getElementById('jr-entry-label');
+  if (newer) newer.style.display = journal.index > 0 ? 'inline' : 'none';
+  if (label) label.textContent = journal.entries.length > 1 ? `${journal.index+1} of ${journal.entries.length}` : '';
+}
+
+function onJournalImagePicked(e){
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  if (!file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    journal.pendingImage = { file, base64: ev.target.result };
+    journal.removeExisting = false;
+    document.getElementById('jr-img-preview').src = ev.target.result;
+    document.getElementById('jr-img-wrap').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+function removeJournalImage(){
+  journal.pendingImage = null;
+  journal.removeExisting = true;   // drop the saved journal image on next save
+  document.getElementById('jr-img-preview').src = '';
+  document.getElementById('jr-img-wrap').classList.remove('has-img');
+  const f = document.getElementById('jr-file'); if (f) f.value = '';
+}
+
+// Saves notes + (optional) moodboard image. Returns true on success.
+async function saveJournalNative(){
+  if (journal.viewingOld) return true;               // viewing an old page — nothing to save
+  if (!(currentUser && activeEntryId)) return true;  // nothing to persist to
+  const text = (document.getElementById('jr-textarea')?.value || '').trim();
+
+  let newImageUrl = null;
+  if (journal.pendingImage){
+    try {
+      const file = journal.pendingImage.file;
+      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const path = `${currentUser.id}/${activeEntryId}/journal-${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await sb.storage
+        .from(MATRIX_PHOTO_BUCKET)
+        .upload(path, file, { contentType:file.type, upsert:false });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
+      newImageUrl = pub?.publicUrl || null;
+    } catch(err){
+      console.error('[journal image] upload failed:', err);
+      showJournalStatus('couldn’t save photo — notes still saved', false);
+    }
+  }
+
+  // Merge into matrix_images: keep manual uploads, replace the single journal image.
+  let imgs = [];
+  try {
+    const { data: row } = await sb.from('saved_data').select('matrix_images').eq('id', activeEntryId).maybeSingle();
+    imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
+  } catch(e){}
+  if (newImageUrl || journal.removeExisting) imgs = imgs.filter(i => !(i && i.source === 'journal'));
+  if (newImageUrl) imgs.push({ url:newImageUrl, quadrant:'internal-feeling', source:'journal' });
+
+  try {
+    const { error } = await sb.from('saved_data')
+      .update({ diary_text:text, updated_at:new Date().toISOString(), matrix_images:imgs })
+      .eq('id', activeEntryId);
+    if (error) throw error;
+  } catch(err){
+    console.error('[journal save] failed:', err);
+    showJournalStatus('something went wrong saving — try again', false);
+    return false;
+  }
+
+  journal.pendingImage = null; journal.removeExisting = false;
+  showJournalStatus('saved ✓', true);
+  return true;
+}
+
+function showJournalStatus(msg, ok){
+  const el = document.getElementById('jr-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = ok ? '#6ab86a' : '#E8478B';
+  el.classList.add('visible');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('visible'), 2500);
 }
 
 // ── STEP 7: DONE ──────────────────────────────────────────
@@ -1886,12 +2107,6 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Journal saved ────────────────────────────────────────
-  if (msg.type === 'journal_saved') {
-    setSaveBtnVisible(false);
-    stepDone();
-    return;
-  }
 });
 
 // ── SVG BUILDERS (read-only, zone click = phase select) ──
