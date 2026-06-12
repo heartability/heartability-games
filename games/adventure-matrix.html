@@ -1654,11 +1654,9 @@ async function assembleTodayMatrixData(entryId){
       d.locationData = row.location_data || null;
       d.sidequestData= row.sidequest_data || null;
       d.journalText  = row.diary_text || '';
-      // Manually-uploaded matrix photos (each tagged to a quadrant)…
-      const uploaded = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-      // …plus the journal's own image, which always lives in the journal quadrant.
-      const journalImg = row.image_url ? [{ url: row.image_url, quadrant: 'internal-feeling' }] : [];
-      d.matrixImages = [...uploaded, ...journalImg];
+      // All matrix photos — manual uploads AND journal images — now live in
+      // matrix_images, each tagged to a quadrant (journal images: 'internal-feeling').
+      d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];
     }
   } catch(e){}
   return d;
