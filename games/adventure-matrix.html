@@ -1655,11 +1655,11 @@ function buildSquareSVG(zones) {
     const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
     if(z.tint){
       defs+=`<radialGradient id="sqg${i}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
-        <stop offset="65%" stop-color="${z.tint}" stop-opacity=".18"/>
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>
+        <stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>
         <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
       </radialGradient>`;
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+28}" fill="url(#sqg${i})" pointer-events="none"/>`;
+      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sqg${i})" pointer-events="none"/>`;
     }
     if(hasTerrain){
       defs+=`<clipPath id="sqc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
