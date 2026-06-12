@@ -557,6 +557,18 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   width:100%; display:block; border:4px solid #fff; border-bottom-width:18px;
   box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:cover; aspect-ratio:1;
 }
+/* Remove control on each matrix photo — hover-reveal on desktop, always on touch */
+.adv-photo-remove {
+  position:absolute; top:-8px; right:-8px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:11px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-photo:hover .adv-photo-remove { opacity:1; }
+.adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
+@media (hover: none) { .adv-photo-remove { opacity:1; } }
 
 /* Add-photo button — top-left of the matrix header, mirrors the archive btn */
 .matrix-photo-btn {
@@ -952,6 +964,31 @@ let currentUser = null;
 //    The bucket needs: authenticated INSERT allowed + public read.
 //    (If the bucket is private, swap getPublicUrl → createSignedUrl below.)
 const MATRIX_PHOTO_BUCKET = 'matrix-photos';
+
+// Convert a stored public URL back to its in-bucket path so storage.remove()
+// can act on it. Returns null for anything not in this bucket (e.g. legacy URLs).
+function matrixPhotoPath(url){
+  if (typeof url !== 'string') return null;
+  const marker = `/object/public/${MATRIX_PHOTO_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  let p = url.slice(i + marker.length);
+  const q = p.indexOf('?'); if (q !== -1) p = p.slice(0, q);   // strip any query string
+  try { p = decodeURIComponent(p); } catch(e){}
+  return p || null;
+}
+
+// Best-effort delete of one or more stored photos. Storage cleanup should never
+// block or fail a save, so this swallows its own errors (just logs them).
+async function deleteMatrixPhotoFiles(urls){
+  const paths = (urls || []).map(matrixPhotoPath).filter(Boolean);
+  if (!paths.length) return;
+  try {
+    await sb.storage.from(MATRIX_PHOTO_BUCKET).remove(paths);
+  } catch(err){
+    console.error('[matrix photo] storage delete failed:', err);
+  }
+}
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activeGameId   = null;
@@ -1656,7 +1693,13 @@ async function saveJournalNative(){
     const { data: row } = await sb.from('saved_data').select('matrix_images').eq('id', activeEntryId).maybeSingle();
     imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
   } catch(e){}
-  if (newImageUrl || journal.removeExisting) imgs = imgs.filter(i => !(i && i.source === 'journal'));
+  // Journal photo(s) being dropped — removed outright, or replaced by a new one.
+  // (Guard against deleting the new file if the URL somehow matches.)
+  let droppedUrls = [];
+  if (newImageUrl || journal.removeExisting) {
+    droppedUrls = imgs.filter(i => i && i.source === 'journal' && i.url !== newImageUrl).map(i => i.url);
+    imgs = imgs.filter(i => !(i && i.source === 'journal'));
+  }
   if (newImageUrl) imgs.push({ url:newImageUrl, quadrant:'internal-feeling', source:'journal' });
 
   try {
@@ -1669,6 +1712,9 @@ async function saveJournalNative(){
     showJournalStatus('something went wrong saving — try again', false);
     return false;
   }
+
+  // Reference is gone from the DB — now clean up the orphaned file(s) in storage.
+  if (droppedUrls.length) await deleteMatrixPhotoFiles(droppedUrls);
 
   journal.pendingImage = null; journal.removeExisting = false;
   showJournalStatus('saved ✓', true);
@@ -1826,7 +1872,7 @@ function buildAdventureMatrix(data, seedStr){
     const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
     const n = quadCount[q] || 0; quadCount[q] = n + 1;
     const slot = photoSlot(q, n);
-    photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
+    photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
   });
 
   return `<div class="step-panel matrix-panel">
@@ -1988,6 +2034,38 @@ async function uploadMatrixPhoto(){
     btn.disabled = false; btn.textContent = 'add to matrix';
   }
 }
+
+// Remove a photo from the matrix: drop its reference from matrix_images, then
+// delete the file from storage. Keyed by url (UUID filenames are unique).
+async function removeMatrixPhoto(url){
+  if (!url || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('saved_data')
+      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
+    const imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
+    const next = imgs.filter(i => !(i && i.url === url));
+    if (next.length === imgs.length) { await renderMatrix(); return; }  // nothing matched
+    const { error } = await sb.from('saved_data')
+      .update({ matrix_images: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch (err) {
+    console.error('[matrix photo] remove failed:', err);
+    showRoomStatus('couldn’t remove photo — try again', '#E8478B');
+    return;
+  }
+  await deleteMatrixPhotoFiles([url]);   // best-effort storage cleanup
+  showRoomStatus('photo removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// One delegated listener handles every photo's ✕ (the panel's innerHTML is
+// rebuilt on each render, so per-button listeners would be lost).
+document.getElementById('content-panel').addEventListener('click', e => {
+  const btn = e.target.closest('.adv-photo-remove');
+  if (!btn) return;
+  e.stopPropagation();
+  removeMatrixPhoto(btn.dataset.url);
+});
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
 window.addEventListener('message', async e => {
