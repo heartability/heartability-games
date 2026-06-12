@@ -370,6 +370,7 @@ document.getElementById('gear-logout').addEventListener('click', async () => { a
 const params   = new URLSearchParams(window.location.search);
 const GAME_ID  = params.get('game_id');
 const PHASE    = params.get('phase');
+const ENTRY_ID = params.get('entry_id');   // the saved_data row for this playthrough
 const TODAY    = new Date().toLocaleDateString('en-CA');
 
 let currentUser  = null;
@@ -410,20 +411,27 @@ async function loadEntries() {
     return;
   }
   try {
-    const { data } = await sb.from('diary_entries')
-      .select('*')
+    const { data } = await sb.from('saved_data')
+      .select('id, diary_text, image_url, created_at')
       .eq('game_id', GAME_ID)
       .eq('user_id', currentUser.id)
-      .order('entry_date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(30);
-    entries = data || [];
+    // Keep this playthrough's row (even if its journal is still blank) plus any
+    // past rows that actually have journal text. Entries are per-playthrough now,
+    // not per-day — a day with two sessions shows two pages.
+    entries = (data || []).filter(e =>
+      e.id === ENTRY_ID || (e.diary_text && e.diary_text.trim()));
   } catch(e) {}
 
-  const todayEntry = entries.find(e => e.entry_date === TODAY);
-  if (todayEntry) {
-    document.getElementById('note-textarea').value = todayEntry.diary_text || '';
+  // Pre-fill the textarea from THIS playthrough's row (blank on first journal).
+  const currentEntry = entries.find(e => e.id === ENTRY_ID);
+  if (currentEntry) {
+    document.getElementById('note-textarea').value = currentEntry.diary_text || '';
+    entryIndex = entries.indexOf(currentEntry);
+  } else {
+    entryIndex = 0;
   }
-  entryIndex = 0;
   updateNav();
 }
 
@@ -435,10 +443,10 @@ function goEntry(dir) {
   entryIndex = newIdx;
   const entry = entries[entryIndex];
   document.getElementById('note-textarea').value = entry.diary_text || '';
-  const d = new Date(entry.entry_date + 'T12:00:00');
+  const d = new Date(entry.created_at);
   document.getElementById('note-date').textContent =
     d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-  isViewingOld = entry.entry_date !== TODAY;
+  isViewingOld = entry.id !== ENTRY_ID;
   const saveBtn = document.getElementById('btn-save');
   saveBtn.style.opacity = isViewingOld ? '0.3' : '1';
   saveBtn.disabled = isViewingOld;
@@ -521,7 +529,7 @@ async function saveEntry() {
   if (pendingImage && currentUser) {
     try {
       const ext  = pendingImage.file.name.split('.').pop();
-      const path = `${currentUser.id}/${GAME_ID}/${TODAY}.${ext}`;
+      const path = `${currentUser.id}/${GAME_ID}/${ENTRY_ID}.${ext}`;
       const { error: upErr } = await sb.storage
         .from('trail-notes-images')
         .upload(path, pendingImage.file, { upsert: true });
@@ -532,16 +540,14 @@ async function saveEntry() {
     } catch(e) {}
   }
 
-  if (currentUser && GAME_ID) {
-    const payload = {
-      game_id:    GAME_ID,
-      user_id:    currentUser.id,
-      entry_date: TODAY,
+  if (currentUser && ENTRY_ID) {
+    const updates = {
       diary_text: text,
       updated_at: new Date().toISOString(),
     };
-    if (imageUrl) payload.image_url = imageUrl;
-    await sb.from('diary_entries').upsert(payload, { onConflict: 'game_id,entry_date' });
+    if (imageUrl) updates.image_url = imageUrl;
+    // The row already exists (created by the character/bingo steps), so UPDATE — not upsert.
+    await sb.from('saved_data').update(updates).eq('id', ENTRY_ID);
   }
 
   showStatus('saved ✓');
