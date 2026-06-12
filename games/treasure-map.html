@@ -471,7 +471,7 @@ const TERRAIN_IMGS = {
   mountains: "../assets/elements/maps/mountains.png",
   ocean:     "../assets/elements/maps/ocean.png",
   orchard:   "../assets/elements/maps/orchard.png",
-  plateu:    "../assets/elements/maps/plateu.png",
+  plateau:   "../assets/elements/maps/plateau.png",
   pond:      "../assets/elements/maps/pond.png",
   river:     "../assets/elements/maps/river.png",
   spring:    "../assets/elements/maps/spring.png",
@@ -484,7 +484,7 @@ const TERRAIN = [
   { id:"dunes",     label:"dunes"     }, { id:"pond",      label:"pond"      },
   { id:"river",     label:"river"     }, { id:"ocean",     label:"ocean"     },
   { id:"waterfall", label:"waterfall" }, { id:"spring",    label:"spring"    },
-  { id:"plateu",    label:"plateau"   },
+  { id:"plateau",   label:"plateau"   },
 ];
 
 const WEATHER_CATS = [
@@ -1066,21 +1066,15 @@ async function saveToday() {
     return;
   }
 
-  // ── EXISTING GAME — update map + save daily entry ──
-  const activeZoneData = activeIdx !== null ? mapState.zones[activeIdx] : null;
-  const mapLocation    = activeZoneData?.terrain || null;
-  const mapPhase       = currentPhase || (activeIdx !== null ? `zone_${activeIdx + 1}` : null);
-
-  await sb.from('games').update({ map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() })
+  // ── EXISTING GAME — persist the map only. ──
+  // The daily ritual + saved_data entry is owned by the adventure matrix;
+  // standalone editing here just saves the map itself (no daily entry written).
+  const { error: updErr } = await sb.from('games')
+    .update({ map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() })
     .eq('id', currentGameId).eq('user_id', currentUser.id);
 
-  const { error: entryErr } = await sb.from('daily_entries').upsert({
-    game_id: currentGameId, user_id: currentUser.id,
-    entry_date: today, map_location: mapLocation, map_phase: mapPhase,
-  }, { onConflict: 'game_id,entry_date' });
-
-  if (entryErr) { showSaveStatus('save failed', '#ff6b6b'); btn.textContent = 'save'; }
-  else { showSaveStatus("saved", '#83d2e6'); btn.textContent = 'saved'; btn.style.opacity = '0.6'; }
+  if (updErr) { showSaveStatus('save failed', '#ff6b6b'); if (btn) btn.textContent = 'save'; }
+  else { showSaveStatus("saved", '#83d2e6'); if (btn) { btn.textContent = 'saved'; btn.style.opacity = '0.6'; } }
 }
 
 // ── GUEST SAVE ────────────────────────────────────────────────────────────

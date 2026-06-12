@@ -557,6 +557,112 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   width:100%; display:block; border:4px solid #fff; border-bottom-width:18px;
   box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:cover; aspect-ratio:1;
 }
+
+/* ── SIDEQUEST BUILDER MODAL ── */
+.sq-overlay {
+  position:fixed; inset:0; z-index:300;
+  background:rgba(40,32,24,.45);
+  display:none; align-items:center; justify-content:center;
+  padding:18px;
+}
+.sq-overlay.open { display:flex; }
+.sq-card {
+  width:min(760px,94vw); max-height:92vh; overflow-y:auto;
+  background:var(--back-wall);
+  border:3px solid var(--blue);
+  box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
+  padding:18px 20px; font-family:var(--font-hand);
+}
+.sq-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
+.sq-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue); }
+.sq-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.sq-close:hover { color:#E8478B; }
+.sq-sub { font-size:13px; color:#8a7a5a; margin-bottom:12px; }
+.sq-name {
+  width:100%; font-family:var(--font-hand); font-size:15px; color:#3a2e1e;
+  padding:8px 10px; margin-bottom:14px;
+  background:#fdf6e3; border:2px solid #8a7a5a;
+  border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
+  border-left-color:#c8b88a; border-top-color:#c8b88a;
+}
+.sq-name::placeholder { color:rgba(138,122,90,.55); font-style:italic; }
+.sq-body { display:flex; gap:16px; align-items:flex-start; }
+@media (max-width:640px){ .sq-body { flex-direction:column; } }
+.sq-preview-col { flex:0 0 40%; min-width:0; }
+.sq-controls-col { flex:1 1 60%; min-width:0; }
+.sq-map-frame {
+  width:100%; aspect-ratio:5/4;
+  background:#e8e0c8;
+  border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
+  border-left-color:#c8b88a; border-top-color:#c8b88a;
+}
+.sq-map-frame svg { width:100%; height:100%; display:block; }
+.sq-section-label { font-size:12px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 6px; }
+
+/* terrain palette */
+.sq-palette { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.sq-terrain {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:5px 6px; background:#f0ead6; cursor:pointer; user-select:none;
+  border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
+  border-left-color:#c8b88a; border-top-color:#c8b88a;
+  transition:filter .1s;
+}
+.sq-terrain:hover { filter:brightness(1.06); }
+.sq-terrain.active { border-color:var(--aqua); outline:2px solid var(--aqua); outline-offset:1px; background:#e0f0f0; }
+.sq-terrain img { width:34px; height:28px; object-fit:contain; pointer-events:none; }
+.sq-terrain span { font-size:10px; color:#5a4a2a; letter-spacing:.4px; pointer-events:none; }
+
+/* climates + feeling chips */
+.sq-climates { display:flex; flex-direction:column; gap:8px; }
+.sq-climate {
+  padding:7px 9px;
+  border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
+  border-left-color:#c8b88a; border-top-color:#c8b88a;
+}
+.sq-climate.sunny { background:#f2e6a8; border-color:#715f04; }
+.sq-climate.rainy { background:#ae87e2; border-color:#260156; }
+.sq-climate.windy { background:#a3eac9; border-color:#046957; }
+.sq-climate.snowy { background:#6cd1ea; border-color:#033f50; }
+.sq-climate-head { font-size:18px; margin-bottom:5px; }
+.sq-climate.sunny .sq-climate-head { color:#715f04; }
+.sq-climate.rainy .sq-climate-head { color:#260156; }
+.sq-climate.windy .sq-climate-head { color:#046957; }
+.sq-climate.snowy .sq-climate-head { color:#033f50; }
+.sq-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.sq-chip {
+  padding:3px 9px; font-family:var(--font-hand); font-size:13px; letter-spacing:.4px;
+  cursor:pointer; user-select:none; border:2px solid; transition:filter .1s;
+}
+.sq-chip:hover { filter:brightness(.92); }
+.sq-chip.active { outline:2px solid #111; outline-offset:1px; }
+.sq-climate.sunny .sq-chip { background:#f8edb8; border-color:#715f04; color:#715f04; }
+.sq-climate.rainy .sq-chip { background:#c9b3e7; border-color:#260156; color:#260156; }
+.sq-climate.windy .sq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
+.sq-climate.snowy .sq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
+
+.sq-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+.sq-btn {
+  padding:10px 18px; font-family:var(--font-hand); font-size:15px; cursor:pointer;
+  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
+  transition:all .05s;
+}
+.sq-btn:hover { background:#4a5bc4; }
+.sq-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.sq-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; box-shadow:2px 2px 0 #3a4aaa; }
+.sq-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
+.sq-btn.ghost:hover { border-color:var(--blue); color:var(--blue); background:none; }
+
+/* sidequest entry in the phase key */
+.phase-key-item.sidequest-item {
+  border-color:var(--blue); border-style:dashed; color:var(--blue);
+  background:#f0edfa; margin-top:8px;
+}
+.phase-key-item.sidequest-item:hover { background:var(--blue); color:#fff; border-style:solid; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sq-terrain, .sq-chip, .sq-btn { transition:none; }
+}
 </style>
 </head>
 <body>
@@ -674,6 +780,33 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
   </div>
 </div>
 
+<!-- SIDEQUEST BUILDER — secret one-location phase -->
+<div class="sq-overlay" id="sq-overlay">
+  <div class="sq-card">
+    <div class="sq-head">
+      <span class="sq-title">✦ build a sidequest</span>
+      <button class="sq-close" onclick="closeSidequestBuilder()">×</button>
+    </div>
+    <div class="sq-sub">a secret little world to fall into — one place, one climate.</div>
+    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name your sidequest...">
+    <div class="sq-body">
+      <div class="sq-preview-col">
+        <div class="sq-section-label">your place</div>
+        <div class="sq-map-frame" id="sq-map-frame"></div>
+      </div>
+      <div class="sq-controls-col">
+        <div class="sq-section-label">terrain</div>
+        <div class="sq-palette" id="sq-palette"></div>
+        <div class="sq-section-label">emotional climate</div>
+        <div class="sq-climates" id="sq-climates"></div>
+      </div>
+    </div>
+    <div class="sq-actions">
+      <button class="sq-btn ghost" onclick="closeSidequestBuilder()">cancel</button>
+      <button class="sq-btn" id="sq-confirm" disabled onclick="confirmSidequest()">enter sidequest →</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
@@ -688,6 +821,7 @@ let activeGameData = null;
 let activePhase    = null;
 let currentStep    = null; // 'character' | 'bingo' | 'journal'
 let activeEntryId  = null; // one uuid per playthrough = one saved_data row
+let activeSidequest = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 
 // ── LOGIN MODAL ───────────────────────────────────────────
 function showLoginModal() {
@@ -832,10 +966,19 @@ const TERRAIN_IMGS = {
   dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
   meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
   ocean:"../assets/elements/maps/ocean.png", orchard:"../assets/elements/maps/orchard.png",
-  plateu:"../assets/elements/maps/plateu.png", pond:"../assets/elements/maps/pond.png",
+  plateau:"../assets/elements/maps/plateau.png", pond:"../assets/elements/maps/pond.png",
   river:"../assets/elements/maps/river.png", spring:"../assets/elements/maps/spring.png",
   waterfall:"../assets/elements/maps/waterfall.png",
 };
+
+// Ordered terrain list + climates (mirrors treasure-map) — used by the sidequest builder.
+const TERRAIN_ORDER = ['mountains','forest','orchard','meadow','dunes','pond','river','ocean','waterfall','spring','plateau'];
+const WEATHER_CATS = [
+  { id:"sunny", label:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"] },
+  { id:"rainy", label:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret"] },
+  { id:"windy", label:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
+  { id:"snowy", label:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock"] },
+];
 
 // ── BUBBLE HELPERS ────────────────────────────────────────
 function setBubble(text, buttons=[]) {
@@ -1048,6 +1191,8 @@ async function selectMap(gameId) {
 
 function stepPhaseSelect() {
   if (!activeGameData) return;
+  activePhase = null;
+  activeSidequest = null;
   showAddNew(false);
   const mapType = activeGameData.map_type || 'spiral';
   const mapData = activeGameData.map_data || {};
@@ -1070,6 +1215,11 @@ function stepPhaseSelect() {
       <span>${prompts[i]}</span>
     </div>`;
   }
+  // Secret phase — opens the one-location builder instead of selecting a map zone
+  keyItems += `<div class="phase-key-item sidequest-item" onclick="openSidequestBuilder()">
+      <span class="phase-key-num">✦</span>
+      <span>sidequest — fall into a secret little world</span>
+    </div>`;
 
   const isMobile = window.innerWidth <= 768;
 
@@ -1124,6 +1274,7 @@ function closePhaseDrawer() {
 
 function selectPhase(idx) {
   activePhase = `zone_${idx+1}`;
+  activeSidequest = null;   // picking a normal zone clears any sidequest draft
   document.querySelectorAll('.phase-key-item').forEach((el,i) =>
     el.classList.toggle('selected', i===idx));
   // Highlight zone circle in SVG
@@ -1407,10 +1558,22 @@ window.addEventListener('message', async e => {
     }
     let saved = false;
 
+    // Resolve the place label for this entry, and the sidequest payload if any.
+    let mapLocation = null, sidequestData = null;
+    if (activePhase === 'sidequest' && activeSidequest) {
+      mapLocation   = activeSidequest.terrain || null;
+      sidequestData = activeSidequest;
+    } else if (activePhase && activeGameData?.map_data?.zones) {
+      const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
+      mapLocation = activeGameData.map_data.zones[idx]?.terrain || null;
+    }
+
     const { error } = await sb.from('saved_data').upsert({
       id: activeEntryId,
       game_id: activeGameId, user_id: currentUser.id,
       map_phase: activePhase,
+      map_location: mapLocation,
+      sidequest_data: sidequestData,
       character_data: charState,
     }, { onConflict: 'id' });
     saved = !error;
@@ -1520,7 +1683,108 @@ function buildSquareSVG(zones) {
 }
 
 // ── INIT ──────────────────────────────────────────────────
+// ── SIDEQUEST BUILDER ─────────────────────────────────────
+let sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+
+function buildSidequestPalette() {
+  // terrain thumbnails
+  const pal = document.getElementById('sq-palette');
+  pal.innerHTML = TERRAIN_ORDER.map(id => `
+    <div class="sq-terrain" id="sq-terrain-${id}" onclick="sidequestPickTerrain('${id}')">
+      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
+      <span>${id}</span>
+    </div>`).join('');
+  // climate groups with feeling chips
+  const cl = document.getElementById('sq-climates');
+  cl.innerHTML = WEATHER_CATS.map(cat => `
+    <div class="sq-climate ${cat.id}">
+      <div class="sq-climate-head">${cat.label}</div>
+      <div class="sq-chips">
+        ${cat.feelings.map(f => `<span class="sq-chip" id="sq-chip-${f}"
+            onclick="sidequestPickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openSidequestBuilder() {
+  sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+  document.getElementById('sq-name').value = '';
+  document.querySelectorAll('.sq-terrain.active, .sq-chip.active')
+    .forEach(el => el.classList.remove('active'));
+  renderSidequestPreview();
+  document.getElementById('sq-confirm').disabled = true;
+  document.getElementById('sq-overlay').classList.add('open');
+}
+function closeSidequestBuilder() {
+  document.getElementById('sq-overlay').classList.remove('open');
+}
+
+function sidequestPickTerrain(id) {
+  sqDraft.terrain = id;
+  document.querySelectorAll('.sq-terrain').forEach(el => el.classList.remove('active'));
+  document.getElementById(`sq-terrain-${id}`)?.classList.add('active');
+  renderSidequestPreview();
+  refreshSidequestConfirm();
+}
+function sidequestPickFeeling(feeling, cat, tint) {
+  sqDraft.feeling = feeling; sqDraft.cat = cat; sqDraft.tint = tint;
+  document.querySelectorAll('.sq-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById(`sq-chip-${feeling}`)?.classList.add('active');
+  renderSidequestPreview();
+  refreshSidequestConfirm();
+}
+function refreshSidequestConfirm() {
+  // terrain + feeling required; name optional
+  document.getElementById('sq-confirm').disabled = !(sqDraft.terrain && sqDraft.feeling);
+}
+
+// One centered destination — terrain image + tint glow + feeling label
+function renderSidequestPreview() {
+  const R = 50, cx = 150, cy = 110;
+  let defs = '', body = '';
+  if (sqDraft.tint) {
+    defs += `<radialGradient id="sqtint" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${sqDraft.tint}" stop-opacity="1"/>
+      <stop offset="55%" stop-color="${sqDraft.tint}" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="${sqDraft.tint}" stop-opacity="0"/></radialGradient>`;
+    body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#sqtint)"/>`;
+  }
+  if (sqDraft.terrain && TERRAIN_IMGS[sqDraft.terrain]) {
+    defs += `<clipPath id="sqclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
+    body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
+      href="${TERRAIN_IMGS[sqDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqclip)"/>
+      <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5"/>`;
+  } else {
+    body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
+      stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#8a7a5a"
+        font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
+  }
+  if (sqDraft.feeling) {
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
+      font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${sqDraft.feeling}</text>`;
+  }
+  document.getElementById('sq-map-frame').innerHTML =
+    `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${body}</svg>`;
+}
+
+function confirmSidequest() {
+  if (!(sqDraft.terrain && sqDraft.feeling)) return;
+  activeSidequest = {
+    name:    document.getElementById('sq-name').value.trim() || 'a secret place',
+    terrain: sqDraft.terrain,
+    feeling: sqDraft.feeling,
+    tint:    sqDraft.tint,
+    cat:     sqDraft.cat,
+  };
+  activePhase = 'sidequest';
+  closeSidequestBuilder();
+  stepBegin();   // mints the entry id and continues into character → bingo → journal
+}
+
+// ── INIT ──────────────────────────────────────────────────
 async function init() {
+  buildSidequestPalette();
   try {
     const { data:{ session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
