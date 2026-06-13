@@ -1955,6 +1955,7 @@ function openPhotoUpload(){
   document.querySelectorAll('.photo-quad.selected').forEach(el => el.classList.remove('selected'));
   const st = document.getElementById('photo-status');
   st.textContent = ''; st.style.color = '#8a7a5a';
+  document.getElementById('photo-add-btn').textContent = 'add to matrix';
   refreshPhotoAdd();
   document.getElementById('photo-overlay').classList.add('open');
 }
