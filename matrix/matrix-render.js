@@ -134,6 +134,60 @@
     return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
   }
 
+  // ── WHOLE-MAP RENDER (read-only) ──────────────────────────
+  // The full map as drawn on the treasure-map game + matrix phase selector:
+  // 3-zone spiral on spiral-3.png, or 4-corner square on square-1.png, with
+  // the large soft tint glows. Read-only (no zone numbers, no click targets).
+  // zones[i] = { terrain, feeling, tint }. Single source for the archive's
+  // map window + map-selector thumbnails so they can't drift from the games.
+  const SPIRAL_ZONE_POS = [ {x:245,y:230}, {x:372,y:288}, {x:150,y:75} ];
+  const SQUARE_ZONE_POS = [ {x:160,y:114}, {x:340,y:114}, {x:340,y:286}, {x:160,y:286} ];
+
+  function _mapZone(p, z, R, feelOffset, feelSize){
+    let defs = '', body = '';
+    if (z.tint){
+      const gid = 'mg_' + Math.random().toString(36).slice(2,9);
+      defs += `<radialGradient id="${gid}" cx="50%" cy="50%" r="50%">`
+        + `<stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>`
+        + `<stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>`
+        + `<stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/></radialGradient>`;
+      body += `<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#${gid})" pointer-events="none"/>`;
+    }
+    if (z.terrain && TERRAIN_IMGS[z.terrain]){
+      const cid = 'mc_' + Math.random().toString(36).slice(2,9);
+      defs += `<clipPath id="${cid}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
+      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${cid})" pointer-events="none"/>`
+        + `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
+    } else {
+      body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
+    }
+    if (z.feeling){
+      body += `<text x="${p.x}" y="${p.y+R+feelOffset}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="${feelSize}" font-weight="bold" pointer-events="none">${esc(z.feeling)}</text>`;
+    }
+    return { defs, body };
+  }
+
+  function buildMapSVG(mapType, zones){
+    zones = zones || [];
+    const square = (mapType === 'square');
+    const positions = square ? SQUARE_ZONE_POS : SPIRAL_ZONE_POS;
+    const bg = square ? '../assets/elements/square-1.png' : '../assets/elements/spiral-3.png';
+    const R = 36;
+    let defs = '', body = '';
+    positions.forEach((p,i) => {
+      const part = _mapZone(p, zones[i] || {}, R, square ? 14 : 18, square ? 13 : 15);
+      defs += part.defs; body += part.body;
+    });
+    const guides = square ? '' :
+      `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`
+      + `<line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`;
+    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">`
+      + `<defs>${defs}</defs>`
+      + guides
+      + `<image href="${bg}" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>`
+      + body + `</svg>`;
+  }
+
   // Quadrant geometry for photo placement (matrix %). 2-col grid growing inward
   // from each quadrant's outer corner so photo bodies don't overlap.
   const QUADRANTS = {
@@ -676,6 +730,7 @@
     attachMatrix,
     createPhotoEditor,
     createJournalEditor,
+    buildMapSVG,
     // exposed for reuse/testing
     CHAR_FULL_ASSETS,
     TERRAIN_IMGS,

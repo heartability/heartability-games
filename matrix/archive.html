@@ -134,6 +134,17 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .week-nav-btn:hover:not(:disabled) { background:var(--purple); color:#fff; }
 .week-nav-btn:disabled { opacity:0.25; cursor:default; }
 
+/* week / month toggle */
+.graph-toggle { display:flex; border:1.5px solid rgba(101,121,226,.35); }
+.graph-toggle-btn {
+  font-family:var(--font-game); font-size:12px; color:var(--purple);
+  background:none; border:none; padding:3px 11px; cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.graph-toggle-btn + .graph-toggle-btn { border-left:1.5px solid rgba(101,121,226,.35); }
+.graph-toggle-btn.active { background:var(--purple); color:#fff; }
+.graph-toggle-btn:hover:not(.active) { background:rgba(101,121,226,.12); }
+
 .graph-plot-row { display:flex; gap:0; align-items:stretch; }
 .graph-y {
   display:flex; flex-direction:column; justify-content:space-between;
@@ -366,13 +377,16 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
         <div class="window" id="graph-window">
           <div class="window-titlebar">
             <span>energy over time</span>
-            <span style="font-size:12px;color:#aaa;">avg hearts / day</span>
+            <div class="graph-toggle">
+              <button class="graph-toggle-btn active" id="toggle-week" onclick="setGraphMode('week')">week</button>
+              <button class="graph-toggle-btn" id="toggle-month" onclick="setGraphMode('month')">month</button>
+            </div>
           </div>
           <div class="graph-area">
             <div class="graph-week-nav">
-              <button class="week-nav-btn" id="graph-prev-week" onclick="changeWeekPage(1)" title="previous week">◄</button>
+              <button class="week-nav-btn" id="graph-prev-week" onclick="graphNav(1)" title="earlier">◄</button>
               <span id="week-label" style="font-family:var(--font-game);font-size:11px;color:#aaa;"></span>
-              <button class="week-nav-btn" id="graph-next-week" onclick="changeWeekPage(-1)" title="next week">►</button>
+              <button class="week-nav-btn" id="graph-next-week" onclick="graphNav(-1)" title="later">►</button>
             </div>
             <div class="graph-plot-row">
               <div class="graph-y" id="graph-y"></div>
@@ -454,16 +468,8 @@ const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── TERRAIN ASSETS (whole-map preview in the map window) ──
-const TERRAIN_IMGS = {
-  dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
-  meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
-  ocean:"../assets/elements/maps/ocean.png", orchard:"../assets/elements/maps/orchard.png",
-  plateau:"../assets/elements/maps/plateau.png", pond:"../assets/elements/maps/pond.png",
-  river:"../assets/elements/maps/river.png", spring:"../assets/elements/maps/spring.png",
-  waterfall:"../assets/elements/maps/waterfall.png",
-};
-const SQUARE_POS = [{x:150,y:114},{x:350,y:114},{x:350,y:286},{x:150,y:286}];
+// Map rendering (3-phase spiral / square, big tints) lives in matrix-render.js
+// so the archive's map window can't drift from the games + matrix.
 
 // ── STATE ─────────────────────────────────────────────────
 let currentUser   = null;
@@ -475,6 +481,9 @@ let viewYear      = new Date().getFullYear();
 let viewMonth     = new Date().getMonth();
 let viewingSelector = true;
 let weekPage      = 0;
+let graphMode     = 'week';   // 'week' | 'month'
+let graphMonth    = new Date().getMonth();
+let graphYear     = new Date().getFullYear();
 
 // popup state
 let activeDayKey  = null;
@@ -523,76 +532,14 @@ function showToast(msg, color) {
   _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-// ── WHOLE-MAP SVG (map window only) ───────────────────────
-function buildMapSVG(mapType, zones) {
-  return mapType === 'square' ? buildSquareSVG(zones||[]) : buildSpiralSVG(zones||[]);
-}
-function buildSpiralSVG(zones) {
-  const cx=250, cy=190, b=13, pts=[];
-  for (let i=0;i<=700;i++){ const t=0.1+15.4*i/700; pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]); }
-  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const thetas=[0.5,9.4,11.5,13.3,14.9];
-  const pos=thetas.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
-  return buildZonesSVG(pos, zones, d);
-}
-function buildSquareSVG(zones) {
-  const extra = `<rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
-    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
-    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>`;
-  return buildZonesSVG(SQUARE_POS, zones, null, extra);
-}
-function buildZonesSVG(positions, zones, spiralPath, extra) {
-  const R=32; let defs='<defs>', els='';
-  positions.forEach((pos,i) => {
-    const z=zones[i]||{};
-    if(z.tint){
-      defs+=`<radialGradient id="ag${i}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
-        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/></radialGradient>`;
-      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R+24}" fill="url(#ag${i})"/>`;
-    }
-    if(z.terrain && TERRAIN_IMGS[z.terrain]){
-      defs+=`<clipPath id="ac${i}"><circle cx="${pos.x}" cy="${pos.y}" r="${R-2}"/></clipPath>`;
-      els+=`<image x="${pos.x-R}" y="${pos.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" clip-path="url(#ac${i})" preserveAspectRatio="xMidYMid meet"/>`;
-    } else {
-      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R}" fill="rgba(200,196,180,.8)" stroke="#8a7a5a" stroke-width="1.2"/>`;
-      els+=`<text x="${pos.x}" y="${pos.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="20">${i+1}</text>`;
-    }
-    if(z.feeling){
-      els+=`<text x="${pos.x}" y="${pos.y+R+14}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="14" font-weight="bold">${z.feeling}</text>`;
-    }
-  });
-  defs+='</defs>';
-  const spiral = spiralPath
-    ? `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
-       <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
-       <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${spiralPath}"/>` : '';
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">${defs}${spiral}${extra||''}${els}</svg>`;
-}
-function buildPreviewSVG(mapType, zones) {
-  const SPIRAL_THETA=[0.5,9.4,11.5,13.3,14.9];
-  const SQ=[{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}], R=22;
-  if (mapType === 'square') {
-    let c=''; SQ.forEach((p,i)=>{ const z=zones[i]||{};
-      c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
-      if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`; });
-    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>${c}</svg>`;
-  }
-  const cx=250,cy=190,b=13,pts=[];
-  for(let i=0;i<=700;i++){const t=0.1+15.4*i/700;pts.push([cx+b*t*Math.cos(t),cy-b*t*Math.sin(t)]);}
-  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
-  let c=''; pos.forEach((p,i)=>{ const z=zones[i]||{};
-    c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
-    if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`; });
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>${c}</svg>`;
-}
+// ── WHOLE-MAP SVG — delegated to the shared module ────────
 function renderMap() {
   const game = allGames.find(g => g.id === activeGameId);
   if (!game) return;
   document.getElementById('map-window-title').textContent = game.map_name || 'your map';
   document.getElementById('map-window-type').textContent  = (game.map_type || 'spiral') + ' map';
-  document.getElementById('map-svg-wrap').innerHTML = buildMapSVG(game.map_type||'spiral', (game.map_data||{}).zones || []);
+  document.getElementById('map-svg-wrap').innerHTML =
+    MatrixRender.buildMapSVG(game.map_type||'spiral', (game.map_data||{}).zones || []);
 }
 
 // ── CALENDAR ──────────────────────────────────────────────
@@ -643,26 +590,55 @@ function changeMonth(dir) {
   renderCalendar();
 }
 
-// ── LINE GRAPH ────────────────────────────────────────────
+// ── LINE GRAPH (week / month) ─────────────────────────────
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
 function getWeekSunday(weekOffset) {
   const now = new Date();
   const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   local.setDate(local.getDate() - local.getDay() - weekOffset * 7);
   return local;
 }
-function changeWeekPage(dir) { weekPage += dir; renderLineGraph(); }
 
-function renderLineGraph() {
-  const yEl    = document.getElementById('graph-y');
-  const svgWrap= document.getElementById('graph-svg-wrap');
-  const xEl    = document.getElementById('graph-x-labels');
-  const emptyEl= document.getElementById('graph-empty');
-  yEl.innerHTML=''; svgWrap.innerHTML=''; xEl.innerHTML='';
+function setGraphMode(mode) {
+  if (mode === graphMode) return;
+  graphMode = mode;
+  document.getElementById('toggle-week').classList.toggle('active', mode==='week');
+  document.getElementById('toggle-month').classList.toggle('active', mode==='month');
+  renderGraph();
+}
+// dir = +1 → earlier (◄), -1 → later (►)
+function graphNav(dir) {
+  if (graphMode === 'week') {
+    weekPage += dir;
+  } else {
+    graphMonth -= dir;
+    if (graphMonth > 11) { graphMonth = 0; graphYear++; }
+    if (graphMonth < 0)  { graphMonth = 11; graphYear--; }
+  }
+  renderGraph();
+}
 
+function renderGraph() {
+  const emptyEl = document.getElementById('graph-empty');
   const daysWithEnergy = Object.keys(daysByKey).filter(k => dayAvgHearts(k) != null).sort();
-  if (!daysWithEnergy.length) { emptyEl.style.display='block'; return; }
+  if (!daysWithEnergy.length) {
+    document.getElementById('graph-y').innerHTML='';
+    document.getElementById('graph-svg-wrap').innerHTML='';
+    document.getElementById('graph-x-labels').innerHTML='';
+    document.getElementById('week-label').textContent='';
+    document.getElementById('graph-prev-week').disabled=true;
+    document.getElementById('graph-next-week').disabled=true;
+    emptyEl.style.display='block';
+    return;
+  }
   emptyEl.style.display='none';
+  if (graphMode === 'week') renderWeekGraph(daysWithEnergy);
+  else                      renderMonthGraph(daysWithEnergy);
+}
 
+function renderWeekGraph(daysWithEnergy) {
   // Clamp weekPage to the earliest data week.
   const earliest = new Date(daysWithEnergy[0] + 'T00:00:00');
   const earliestSunday = new Date(earliest); earliestSunday.setDate(earliest.getDate() - earliest.getDay());
@@ -671,38 +647,71 @@ function renderLineGraph() {
 
   const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const sunday = getWeekSunday(weekPage);
-  const weekDays = [];
+  const slots = [];
   for (let i=0;i<7;i++){
     const d=new Date(sunday); d.setDate(sunday.getDate()+i);
     const dateStr=d.toLocaleDateString('en-CA');
-    weekDays.push({ dateStr, name:DAY_NAMES[i], num:d.getDate(), month:d.getMonth(), hearts:dayAvgHearts(dateStr) });
+    slots.push({ dateStr, hearts:dayAvgHearts(dateStr), labelTop:DAY_NAMES[i], labelBot:String(d.getDate()), showLabel:true });
   }
 
-  // Week label + nav state
-  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const f=weekDays[0], l=weekDays[6];
-  document.getElementById('week-label').textContent = f.month===l.month
-    ? `${monthNames[f.month]} ${f.num} – ${l.num}`
-    : `${monthNames[f.month]} ${f.num} – ${monthNames[l.month]} ${l.num}`;
+  const f=new Date(sunday), l=new Date(sunday); l.setDate(sunday.getDate()+6);
+  document.getElementById('week-label').textContent = f.getMonth()===l.getMonth()
+    ? `${MONTHS_SHORT[f.getMonth()]} ${f.getDate()} – ${l.getDate()}`
+    : `${MONTHS_SHORT[f.getMonth()]} ${f.getDate()} – ${MONTHS_SHORT[l.getMonth()]} ${l.getDate()}`;
   document.getElementById('graph-prev-week').disabled = weekPage >= maxPage;
   document.getElementById('graph-next-week').disabled = weekPage <= 0;
+
+  paintGraph(slots, { showScores:true });
+}
+
+function renderMonthGraph(daysWithEnergy) {
+  // Clamp the month cursor to [earliest data month, current month].
+  const earliest = new Date(daysWithEnergy[0] + 'T00:00:00');
+  const now = new Date();
+  let cur = graphYear*12 + graphMonth;
+  const min = earliest.getFullYear()*12 + earliest.getMonth();
+  const max = now.getFullYear()*12 + now.getMonth();
+  cur = Math.max(min, Math.min(cur, max));
+  graphYear = Math.floor(cur/12); graphMonth = cur%12;
+
+  const daysInMonth = new Date(graphYear, graphMonth+1, 0).getDate();
+  const slots = [];
+  for (let d=1; d<=daysInMonth; d++){
+    const dateStr = graphYear + '-' + String(graphMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const showLabel = (d===1 || d%5===0 || d===daysInMonth);
+    slots.push({ dateStr, hearts:dayAvgHearts(dateStr), labelTop:String(d), labelBot:'', showLabel });
+  }
+
+  document.getElementById('week-label').textContent = `${MONTHS_LONG[graphMonth]} ${graphYear}`;
+  document.getElementById('graph-prev-week').disabled = cur <= min;
+  document.getElementById('graph-next-week').disabled = cur >= max;
+
+  paintGraph(slots, { showScores:false });
+}
+
+// Shared painter. slots = [{dateStr, hearts(null|0-24), labelTop, labelBot, showLabel}]
+function paintGraph(slots, opts) {
+  opts = opts || {};
+  const yEl    = document.getElementById('graph-y');
+  const svgWrap= document.getElementById('graph-svg-wrap');
+  const xEl    = document.getElementById('graph-x-labels');
+  yEl.innerHTML=''; svgWrap.innerHTML=''; xEl.innerHTML='';
 
   // Y-axis labels
   ['easy','medium','hard'].forEach(lbl => {
     const el=document.createElement('div'); el.className='y-label'; el.textContent=lbl; yEl.appendChild(el);
   });
 
-  // Geometry: 7 columns in a 700x200 viewBox, 16px top/bottom padding.
-  const W=700, H=200, padT=16, padB=16, plotH=H-padT-padB;
-  const colW = W/7;
+  const N=slots.length, W=700, H=200, padT=16, padB=16, plotH=H-padT-padB;
+  const colW = W/N;
   const xC = i => i*colW + colW/2;
   const yFor = h => padT + (1 - h/24) * plotH;
 
   // Difficulty bands (boundaries at 9 and 19 hearts, matching the heart-meter modes).
   const bands = [
-    { lo:19, hi:24, color:'rgba(42,59,154,.10)',  label:'easy'   },
-    { lo:9,  hi:19, color:'rgba(101,121,226,.07)', label:'medium' },
-    { lo:0,  hi:9,  color:'rgba(168,180,240,.07)', label:'hard'   },
+    { lo:19, hi:24, color:'rgba(42,59,154,.10)'  },
+    { lo:9,  hi:19, color:'rgba(101,121,226,.07)' },
+    { lo:0,  hi:9,  color:'rgba(168,180,240,.07)' },
   ];
   let bandSvg='';
   bands.forEach(b => {
@@ -711,10 +720,9 @@ function renderLineGraph() {
     bandSvg += `<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="rgba(101,121,226,.15)" stroke-width="1"/>`;
   });
 
-  // Vertices = only days that have data; the polyline connects them in order,
-  // spanning across (not breaking at) the days with no entry.
+  // Vertices = only days with data; the polyline spans across (not breaks at) gaps.
   const verts = [];
-  weekDays.forEach((day,i) => { if (day.hearts != null) verts.push({ i, dateStr:day.dateStr, hearts:day.hearts }); });
+  slots.forEach((s,i) => { if (s.hearts != null) verts.push({ i, dateStr:s.dateStr, hearts:s.hearts }); });
 
   let lineSvg='';
   if (verts.length >= 2) {
@@ -724,8 +732,8 @@ function renderLineGraph() {
   let dotsSvg='';
   verts.forEach(v => {
     const x=xC(v.i), y=yFor(v.hearts);
-    dotsSvg += `<text class="gp-dot-score" x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}">${v.hearts}</text>`;
-    dotsSvg += `<circle class="gp-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" onclick="openDayPopup('${v.dateStr}')"><title>${v.hearts} hearts</title></circle>`;
+    if (opts.showScores) dotsSvg += `<text class="gp-dot-score" x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}">${v.hearts}</text>`;
+    dotsSvg += `<circle class="gp-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${opts.showScores?5:4}" onclick="openDayPopup('${v.dateStr}')"><title>${v.hearts} hearts</title></circle>`;
   });
 
   svgWrap.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -735,11 +743,11 @@ function renderLineGraph() {
     ${lineSvg}${dotsSvg}
   </svg>`;
 
-  // X labels
-  weekDays.forEach(day => {
+  // X labels — one slot per column so they stay aligned with the line.
+  slots.forEach(s => {
     const x=document.createElement('div');
-    x.className='bar-x-label' + (day.hearts!=null ? ' bar-x-label--active' : '');
-    x.innerHTML = `${day.name}<br>${day.num}`;
+    x.className='bar-x-label' + (s.hearts!=null ? ' bar-x-label--active' : '');
+    x.innerHTML = s.showLabel ? (s.labelBot ? `${s.labelTop}<br>${s.labelBot}` : s.labelTop) : '&nbsp;';
     xEl.appendChild(x);
   });
 }
@@ -843,11 +851,13 @@ async function loadEntries() {
   });
 
   weekPage = 0;
+  graphMonth = new Date().getMonth();
+  graphYear  = new Date().getFullYear();
   const dd = document.getElementById('game-dropdown');
   if (dd) dd.value = activeGameId;
   renderMap();
   renderCalendar();
-  renderLineGraph();
+  renderGraph();
 }
 
 // ── MAP SELECTOR ──────────────────────────────────────────
@@ -864,7 +874,7 @@ function renderMapSelectorGrid() {
     const g = allGames[i];
     if (g) {
       const zones=(g.map_data||{}).zones||[];
-      const preview=buildPreviewSVG(g.map_type||'spiral', zones);
+      const preview=MatrixRender.buildMapSVG(g.map_type||'spiral', zones);
       const updated=g.updated_at ? 'last updated '+new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
       const safeName=(g.map_name||'untitled').replace(/'/g,"\\'");
       const slot=document.createElement('div');
