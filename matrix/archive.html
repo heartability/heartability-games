@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Archive — Heartability</title>
+<style>
+@font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --font-game:  "VT323", monospace;
+  --purple:     #6579e2;
+  --purple-dk:  #4a5bc4;
+  --purple-sh:  #3a4aaa;
+  --aqua:       #83d2e6;
+  --mint:       #c9fff5;
+  --cream:      #f5f0ea;
+  --cream-dk:   #e8e3da;
+  --panel-bg:   #f0ead6;
+  /* aliases consumed by matrix-render.js */
+  --blue:       #6579e2;
+  --back-wall:  #f1ebe4;
+}
+
+html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand); user-select:none; }
+
+/* ── NAV ── */
+.room-nav {
+  position:fixed; top:0; left:0; right:0; height:44px;
+  background:var(--mint); border-bottom:2px solid #111;
+  z-index:200; display:flex; align-items:center; justify-content:space-between;
+  padding:0 clamp(12px,2vw,28px);
+  font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111;
+}
+.nav-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  pointer-events:none; white-space:nowrap;
+  font-family:var(--font-hand); font-size:clamp(18px,2.2vw,28px);
+}
+.nav-btn { cursor:pointer; padding:4px 8px; transition:background .15s; }
+.nav-btn:hover { background:rgba(0,0,0,.08); }
+
+/* ── Gear dropdown ── */
+.gear-wrap { position:relative; }
+.gear-btn {
+  width:30px; height:30px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:3px; transition:background 0.15s; padding:3px;
+}
+.gear-btn:hover { background:rgba(0,0,0,0.08); }
+.gear-btn img { width:22px; height:22px; display:block; }
+.gear-dropdown {
+  position:absolute; top:calc(100% + 4px); left:0; min-width:170px;
+  background:var(--mint); border:2px solid #111;
+  box-shadow:3px 4px 0 rgba(0,0,0,0.12);
+  z-index:201; display:none; flex-direction:column; overflow:hidden;
+}
+.gear-dropdown.open { display:flex; }
+.gear-item {
+  font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333;
+  padding:9px 14px; cursor:pointer; border:none; background:none;
+  text-align:left; white-space:nowrap; transition:background 0.12s;
+}
+.gear-item:hover { background:rgba(0,0,0,0.07); }
+
+.page-wrap {
+  min-height:100dvh; padding:80px 20px 48px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.page-body {
+  width:100%; max-width:1200px;
+  display:flex; flex-direction:column; gap:24px;
+  padding:0 4px;
+}
+
+/* Top row: map + graph side by side */
+.top-row {
+  display:grid; grid-template-columns:1fr 1fr;
+  align-items:stretch; gap:20px;
+}
+.top-row > * { min-width:0; min-height:0; }
+
+@media (max-width:700px) {
+  .page-body { padding:0 8px; }
+  .top-row { grid-template-columns:1fr; }
+}
+
+/* ── WINDOW ── */
+.window {
+  background:var(--cream);
+  box-shadow:0 0 0 3px var(--purple), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,.28);
+  overflow:hidden;
+  animation:windowIn .35s ease both;
+}
+@keyframes windowIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+.window-titlebar {
+  height:38px; background:var(--cream-dk); border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; font-family:var(--font-hand); font-size:clamp(13px,1.4vw,16px); color:#555;
+}
+.window-body { padding:20px 20px 24px; }
+
+/* Map window */
+#map-window { display:flex; flex-direction:column; }
+.map-window-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:8px; }
+.map-svg-wrap {
+  flex:1; background:#e8e0c8; border:1.5px solid #b8a88a;
+  overflow:hidden; min-height:280px;
+}
+.map-svg-wrap svg { width:100%; height:100%; display:block; }
+
+/* ── GRAPH (line) ── */
+.graph-col { display:flex; flex-direction:column; gap:8px; min-width:0; }
+#graph-window { display:flex; flex-direction:column; flex:1; min-width:0; }
+.graph-area { flex:1; padding:14px 20px 18px; display:flex; flex-direction:column; }
+.graph-week-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px; flex-shrink:0;
+}
+.week-nav-btn {
+  background:none; border:1.5px solid rgba(101,121,226,.35);
+  color:var(--purple); font-family:var(--font-game); font-size:14px;
+  width:26px; height:26px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s, color .15s; padding:0;
+}
+.week-nav-btn:hover:not(:disabled) { background:var(--purple); color:#fff; }
+.week-nav-btn:disabled { opacity:0.25; cursor:default; }
+
+.graph-plot-row { display:flex; gap:0; align-items:stretch; }
+.graph-y {
+  display:flex; flex-direction:column; justify-content:space-between;
+  width:64px; flex-shrink:0; padding:14px 8px 22px 0; text-align:right;
+}
+.y-label { font-family:var(--font-game); font-size:11px; color:#aaa; line-height:1; }
+.graph-svg-wrap { flex:1; min-width:0; }
+.graph-svg-wrap svg { width:100%; height:200px; display:block; overflow:visible; }
+.graph-x-labels { display:flex; padding-left:64px; padding-top:2px; }
+.bar-x-label {
+  font-family:var(--font-game); font-size:9px; color:#ccc;
+  text-align:center; line-height:1.4; flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.bar-x-label--active { color:var(--purple); }
+.phase-legend { padding:8px 20px 12px; border-top:1px solid rgba(101,121,226,.1); }
+.legend-line {
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-game); font-size:10px; color:#aaa;
+}
+.legend-swatch { width:22px; height:3px; background:var(--purple); border-radius:2px; }
+.empty-month {
+  text-align:center; padding:32px 20px;
+  font-family:var(--font-hand); font-style:italic; color:#bbb; font-size:15px; line-height:1.7;
+}
+
+/* SVG graph pieces */
+.gp-band { opacity:1; }
+.gp-line { fill:none; stroke:var(--purple); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.gp-dot { fill:var(--purple); stroke:#fff; stroke-width:2; cursor:pointer; transition:r .1s; }
+.gp-dot:hover { r:7; fill:var(--aqua); }
+.gp-dot-score { font-family:var(--font-game); font-size:11px; fill:var(--purple-sh); text-anchor:middle; }
+.gp-band-label { font-family:var(--font-game); font-size:9px; fill:rgba(101,121,226,.55); text-anchor:end; }
+
+/* ── CALENDAR ── */
+#cal-window .window-titlebar { height:60px; justify-content:center; gap:20px; }
+.month-btn {
+  font-family:var(--font-game); font-size:20px;
+  background:none; border:1.5px solid var(--purple); color:var(--purple);
+  width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s, color .15s;
+}
+.month-btn:hover { background:var(--purple); color:#fff; }
+.month-label {
+  font-family:var(--font-hand); font-size:clamp(15px,1.8vw,22px); color:#333;
+  min-width:180px; text-align:center;
+}
+.cal-header { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:5px; }
+.cal-day-label { text-align:center; font-family:var(--font-game); font-size:12px; color:#aaa; padding:3px 0; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+
+.cal-cell {
+  aspect-ratio:1; border:1.5px solid rgba(101,121,226,.15);
+  background:rgba(255,255,255,.4); position:relative;
+  cursor:default; transition:border-color .15s, transform .1s;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.cal-cell.filler { background:transparent; border-color:transparent; }
+.cal-cell.has-entry { border-color:var(--purple); cursor:pointer; background:rgba(101,121,226,.05); }
+.cal-cell.has-entry:hover { border-color:var(--aqua); transform:scale(1.05); z-index:2; box-shadow:0 0 0 2px var(--aqua); }
+.cal-cell.is-today { box-shadow:0 0 0 1px var(--aqua); }
+
+.cal-date {
+  position:absolute; top:3px; left:4px;
+  font-family:var(--font-game); font-size:10px; color:#bbb; line-height:1;
+}
+.cal-cell.has-entry .cal-date { color:var(--purple); }
+
+.cal-glyph {
+  font-family:var(--font-hand); line-height:1;
+  font-size:clamp(20px,3vw,30px);
+}
+.cal-glyph.has   { color:var(--purple); }
+.cal-glyph.empty { color:rgba(120,120,120,.28); }
+
+/* ── DAY POPUP ── */
+.day-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  z-index:500; display:none; align-items:center; justify-content:center; padding:18px;
+}
+.day-overlay.open { display:flex; }
+.day-window {
+  background:var(--cream);
+  box-shadow:0 0 0 3px var(--purple), 0 0 0 6px var(--aqua), 8px 12px 40px rgba(0,0,0,.4);
+  width:min(960px,96vw); max-height:92dvh; overflow:hidden;
+  display:flex; flex-direction:column;
+  animation:windowIn .2s ease both;
+}
+.day-titlebar {
+  height:40px; flex-shrink:0; background:var(--cream-dk); border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px; font-family:var(--font-hand); font-size:15px; color:#555;
+}
+.day-close { cursor:pointer; font-size:20px; color:#aaa; padding:2px 6px; }
+.day-close:hover { color:var(--purple); }
+.day-back { cursor:pointer; font-family:var(--font-hand); font-size:14px; color:#888; padding:2px 4px; }
+.day-back:hover { color:var(--purple); }
+
+.day-body { flex:1; overflow-y:auto; }
+
+/* List view */
+#day-list-view { padding:18px 20px 22px; }
+.loc-list { display:flex; flex-direction:column; gap:10px; }
+.loc-row {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 16px; background:rgba(101,121,226,.06);
+  border:1.5px solid rgba(101,121,226,.18); cursor:pointer;
+  transition:border-color .12s, background .12s, transform .08s;
+}
+.loc-row:hover { border-color:var(--purple); background:rgba(101,121,226,.1); transform:translateX(2px); }
+.loc-name { font-family:var(--font-hand); font-size:clamp(16px,1.8vw,19px); color:#333; }
+.loc-time { font-family:var(--font-game); font-size:13px; color:#999; white-space:nowrap; }
+.loc-arrow { color:var(--purple); font-size:16px; }
+.day-list-empty { font-family:var(--font-hand); font-style:italic; color:#bbb; text-align:center; padding:30px 0; }
+
+/* Matrix view */
+#day-matrix-view { display:none; }
+.matrix-stage { position:relative; width:100%; height:min(70vh,640px); }
+
+/* ── MAP SELECTOR SCREEN ── */
+#map-selector {
+  display:none; position:fixed; inset:0;
+  padding-top:44px; background:#e8e3da; z-index:50; overflow-y:auto;
+  align-items:center; justify-content:center;
+}
+.map-sel-inner { max-width:900px; margin:0 auto; padding:28px clamp(16px,3vw,48px) 48px; }
+.map-sel-window {
+  background:var(--cream);
+  box-shadow:0 0 0 3px var(--purple), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,.28);
+  overflow:hidden; animation:windowIn .35s ease both;
+}
+.map-sel-titlebar {
+  height:38px; background:var(--cream-dk); border-bottom:2px solid #bbb;
+  display:flex; align-items:center; padding:0 16px;
+  font-family:var(--font-hand); font-size:clamp(13px,1.4vw,16px); color:#555;
+}
+.map-grid { display:grid; grid-template-columns:repeat(4, minmax(140px,1fr)); gap:16px; padding:20px; }
+@media (max-width:700px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
+.map-slot {
+  border:2px solid #ccc; background:#fdf6e3;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:stretch; padding:8px 8px 6px; gap:5px;
+  font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s;
+  position:relative; aspect-ratio:4/5;
+}
+.map-slot:hover { border-color:var(--purple); box-shadow:2px 2px 0 var(--purple); transform:translateY(-2px); }
+.map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
+.map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
+.slot-name { font-size:13px; color:#333; line-height:1.2; word-break:break-word; font-weight:600; flex-shrink:0; }
+.slot-updated { font-size:10px; color:#bbb; flex-shrink:0; }
+.slot-preview { flex:1; min-height:0; overflow:hidden; background:#e8e0c8; border:1px solid #c8b88a; }
+.slot-preview svg { width:100%; height:100%; display:block; }
+.slot-delete {
+  position:absolute; top:5px; right:6px;
+  font-size:14px; color:#ccc; background:none; border:none;
+  cursor:pointer; line-height:1; padding:2px 4px; transition:color .12s; z-index:2;
+}
+.slot-delete:hover { color:#E8478B; }
+
+/* ── TOAST ── */
+#toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background:#333; color:#fff; font-family:var(--font-hand); font-size:15px;
+  padding:10px 18px; border-radius:4px; z-index:700;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+#toast.show { opacity:1; }
+
+/* ── LOADING ── */
+#loading-state {
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-pixel); font-size:24px;
+  color:var(--aqua); text-shadow:0 0 20px rgba(131,210,230,.6);
+  background:#e8e3da; z-index:999;
+}
+#main-content { display:none; }
+</style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='../users/profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
+  <span class="nav-title">adventure archive</span>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" onclick="handleBack()">← back</span>
+    <span class="nav-btn" onclick="window.location.href='../games/chart-room.html'"> track today →</span>
+  </div>
+</nav>
+
+<div id="loading-state">loading your archive...</div>
+
+<!-- MAP SELECTOR -->
+<div id="map-selector">
+  <div class="map-sel-inner">
+    <div class="map-sel-window">
+      <div class="map-sel-titlebar">your maps</div>
+      <div class="map-grid" id="map-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="page-body" id="main-content">
+
+    <!-- TOP ROW: map + line graph -->
+    <div class="top-row">
+      <!-- MAP WINDOW -->
+      <div class="window" id="map-window">
+        <div class="window-titlebar">
+          <span>Map of: <span id="map-window-title">your map</span></span>
+          <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
+        </div>
+        <div class="map-window-body">
+          <div class="map-svg-wrap" id="map-svg-wrap"></div>
+        </div>
+      </div>
+
+      <!-- GRAPH -->
+      <div class="graph-col">
+        <select id="game-dropdown" onchange="onGameChange()" style="display:none;"></select>
+        <div class="window" id="graph-window">
+          <div class="window-titlebar">
+            <span>energy over time</span>
+            <span style="font-size:12px;color:#aaa;">avg hearts / day</span>
+          </div>
+          <div class="graph-area">
+            <div class="graph-week-nav">
+              <button class="week-nav-btn" id="graph-prev-week" onclick="changeWeekPage(1)" title="previous week">◄</button>
+              <span id="week-label" style="font-family:var(--font-game);font-size:11px;color:#aaa;"></span>
+              <button class="week-nav-btn" id="graph-next-week" onclick="changeWeekPage(-1)" title="next week">►</button>
+            </div>
+            <div class="graph-plot-row">
+              <div class="graph-y" id="graph-y"></div>
+              <div class="graph-svg-wrap" id="graph-svg-wrap"></div>
+            </div>
+            <div class="graph-x-labels" id="graph-x-labels"></div>
+          </div>
+          <div class="phase-legend">
+            <div class="legend-line"><span class="legend-swatch"></span> a dot for each day you showed up — the line stays unbroken across the days you missed</div>
+          </div>
+          <div class="empty-month" id="graph-empty" style="display:none;">
+            no energy data yet — complete the daily loop to build your graph
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="window" id="cal-window">
+      <div class="window-titlebar">
+        <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+        <div class="month-label" id="month-label"></div>
+        <button class="month-btn" onclick="changeMonth(1)">►</button>
+      </div>
+      <div class="window-body">
+        <div class="cal-header">
+          <div class="cal-day-label">SUN</div><div class="cal-day-label">MON</div>
+          <div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div>
+          <div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div>
+          <div class="cal-day-label">SAT</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+          <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
+        </div>
+        <div class="empty-month" id="cal-empty" style="display:none;">no entries for this map yet</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DAY POPUP -->
+<div class="day-overlay" id="day-overlay" onclick="handleDayOverlayClick(event)">
+  <div class="day-window">
+    <!-- VIEW 1: locations list -->
+    <div id="day-list-wrap" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+      <div class="day-titlebar">
+        <span id="day-title">day</span>
+        <span class="day-close" onclick="closeDayPopup()">✕</span>
+      </div>
+      <div class="day-body">
+        <div id="day-list-view">
+          <div class="loc-list" id="loc-list"></div>
+        </div>
+      </div>
+    </div>
+    <!-- VIEW 2: embedded matrix -->
+    <div id="day-matrix-wrap" style="display:none;flex-direction:column;flex:1;min-height:0;">
+      <div class="day-titlebar">
+        <span class="day-back" onclick="backToList()">← all locations</span>
+        <span id="matrix-loc-title" style="color:#777;"></span>
+        <span class="day-close" onclick="closeDayPopup()">✕</span>
+      </div>
+      <div class="day-body">
+        <div class="matrix-stage" id="matrix-stage"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./matrix-render.js"></script>
+<script>
+// ── SUPABASE ──────────────────────────────────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── TERRAIN ASSETS (whole-map preview in the map window) ──
+const TERRAIN_IMGS = {
+  dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
+  meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
+  ocean:"../assets/elements/maps/ocean.png", orchard:"../assets/elements/maps/orchard.png",
+  plateau:"../assets/elements/maps/plateau.png", pond:"../assets/elements/maps/pond.png",
+  river:"../assets/elements/maps/river.png", spring:"../assets/elements/maps/spring.png",
+  waterfall:"../assets/elements/maps/waterfall.png",
+};
+const SQUARE_POS = [{x:150,y:114},{x:350,y:114},{x:350,y:286},{x:150,y:286}];
+
+// ── STATE ─────────────────────────────────────────────────
+let currentUser   = null;
+let allGames      = [];
+let activeGameId  = null;
+let allSaves      = [];     // every saved_data row for the active game (asc by created_at)
+let daysByKey     = {};     // 'YYYY-MM-DD' (local) -> [save, ...] sorted by created_at
+let viewYear      = new Date().getFullYear();
+let viewMonth     = new Date().getMonth();
+let viewingSelector = true;
+let weekPage      = 0;
+
+// popup state
+let activeDayKey  = null;
+let activeSaveId  = null;
+let lastMatrixData = null;
+let photoEditor   = null;
+let journalEditor = null;
+
+// ── SINGLE SOURCE OF TRUTH: which local day a row belongs to ──
+// en-CA renders as YYYY-MM-DD, evaluated in the browser's local timezone.
+function localDayKey(ts) { return new Date(ts).toLocaleDateString('en-CA'); }
+function localToday()    { return new Date().toLocaleDateString('en-CA'); }
+
+function formatDateLabel(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}).toLowerCase();
+}
+function locationLabel(save) {
+  if (save.sidequest_data && save.sidequest_data.name) return save.sidequest_data.name;
+  const l = save.location_data || {};
+  if (l.terrain && l.feeling) return `${l.terrain} of ${l.feeling}`;
+  if (l.terrain || l.feeling) return l.terrain || l.feeling;
+  if (save.map_phase) return save.map_phase.replace(/_/g,' ');
+  return 'a place';
+}
+// Average hearts for a local day (null if no save that day has an energy score).
+function dayAvgHearts(dateStr) {
+  const saves = daysByKey[dateStr] || [];
+  const energies = saves.map(s => s.energy_score).filter(v => v != null);
+  if (!energies.length) return null;
+  const avg = energies.reduce((a,b)=>a+b,0) / energies.length;
+  return Math.round(Math.min(avg,100) / 100 * 24);
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+let _toastTimer = null;
+function showToast(msg, color) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = color || '#333';
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ── WHOLE-MAP SVG (map window only) ───────────────────────
+function buildMapSVG(mapType, zones) {
+  return mapType === 'square' ? buildSquareSVG(zones||[]) : buildSpiralSVG(zones||[]);
+}
+function buildSpiralSVG(zones) {
+  const cx=250, cy=190, b=13, pts=[];
+  for (let i=0;i<=700;i++){ const t=0.1+15.4*i/700; pts.push([cx+b*t*Math.cos(t), cy-b*t*Math.sin(t)]); }
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const thetas=[0.5,9.4,11.5,13.3,14.9];
+  const pos=thetas.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  return buildZonesSVG(pos, zones, d);
+}
+function buildSquareSVG(zones) {
+  const extra = `<rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>
+    <line x1="250" y1="28" x2="250" y2="372" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="50" y1="200" x2="450" y2="200" stroke="#b8a88a" stroke-width="1" stroke-dasharray="4 4"/>`;
+  return buildZonesSVG(SQUARE_POS, zones, null, extra);
+}
+function buildZonesSVG(positions, zones, spiralPath, extra) {
+  const R=32; let defs='<defs>', els='';
+  positions.forEach((pos,i) => {
+    const z=zones[i]||{};
+    if(z.tint){
+      defs+=`<radialGradient id="ag${i}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${z.tint}" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/></radialGradient>`;
+      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R+24}" fill="url(#ag${i})"/>`;
+    }
+    if(z.terrain && TERRAIN_IMGS[z.terrain]){
+      defs+=`<clipPath id="ac${i}"><circle cx="${pos.x}" cy="${pos.y}" r="${R-2}"/></clipPath>`;
+      els+=`<image x="${pos.x-R}" y="${pos.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" clip-path="url(#ac${i})" preserveAspectRatio="xMidYMid meet"/>`;
+    } else {
+      els+=`<circle cx="${pos.x}" cy="${pos.y}" r="${R}" fill="rgba(200,196,180,.8)" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      els+=`<text x="${pos.x}" y="${pos.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="20">${i+1}</text>`;
+    }
+    if(z.feeling){
+      els+=`<text x="${pos.x}" y="${pos.y+R+14}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="14" font-weight="bold">${z.feeling}</text>`;
+    }
+  });
+  defs+='</defs>';
+  const spiral = spiralPath
+    ? `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
+       <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.12)" stroke-width="1"/>
+       <path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${spiralPath}"/>` : '';
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">${defs}${spiral}${extra||''}${els}</svg>`;
+}
+function buildPreviewSVG(mapType, zones) {
+  const SPIRAL_THETA=[0.5,9.4,11.5,13.3,14.9];
+  const SQ=[{x:150,y:114},{x:350,y:114},{x:150,y:286},{x:350,y:286}], R=22;
+  if (mapType === 'square') {
+    let c=''; SQ.forEach((p,i)=>{ const z=zones[i]||{};
+      c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+      if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`; });
+    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><rect x="50" y="28" width="400" height="344" fill="none" stroke="#b8a88a" stroke-width="1.5"/>${c}</svg>`;
+  }
+  const cx=250,cy=190,b=13,pts=[];
+  for(let i=0;i<=700;i++){const t=0.1+15.4*i/700;pts.push([cx+b*t*Math.cos(t),cy-b*t*Math.sin(t)]);}
+  const d=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const pos=SPIRAL_THETA.map(t=>({x:cx+b*t*Math.cos(t),y:cy-b*t*Math.sin(t)}));
+  let c=''; pos.forEach((p,i)=>{ const z=zones[i]||{};
+    c+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${z.tint||'rgba(200,196,180,0.85)'}" stroke="#8a7a5a" stroke-width="1.2"/>`;
+    if(z.feeling) c+=`<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`; });
+  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><path fill="none" stroke="#b8a88a" stroke-width="1.5" stroke-linecap="round" d="${d}"/>${c}</svg>`;
+}
+function renderMap() {
+  const game = allGames.find(g => g.id === activeGameId);
+  if (!game) return;
+  document.getElementById('map-window-title').textContent = game.map_name || 'your map';
+  document.getElementById('map-window-type').textContent  = (game.map_type || 'spiral') + ' map';
+  document.getElementById('map-svg-wrap').innerHTML = buildMapSVG(game.map_type||'spiral', (game.map_data||{}).zones || []);
+}
+
+// ── CALENDAR ──────────────────────────────────────────────
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-label').textContent = monthNames[viewMonth] + ' ' + viewYear;
+
+  const firstDay   = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth= new Date(viewYear, viewMonth+1, 0).getDate();
+  const today      = localToday();
+  const grid       = document.getElementById('cal-grid');
+  grid.innerHTML   = '';
+
+  for (let i=0;i<firstDay;i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell filler';
+    grid.appendChild(cell);
+  }
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dateStr = viewYear + '-' + String(viewMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const hasEntry = !!(daysByKey[dateStr] && daysByKey[dateStr].length);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (hasEntry ? ' has-entry' : '') + (dateStr===today ? ' is-today' : '');
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'cal-date';
+    dateEl.textContent = d;
+    cell.appendChild(dateEl);
+
+    const glyph = document.createElement('div');
+    glyph.className = 'cal-glyph ' + (hasEntry ? 'has' : 'empty');
+    glyph.textContent = hasEntry ? '☆' : 'O';
+    cell.appendChild(glyph);
+
+    if (hasEntry) cell.onclick = () => openDayPopup(dateStr);
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('cal-entry-count').textContent =
+    allSaves.length + (allSaves.length === 1 ? ' entry' : ' entries');
+  document.getElementById('cal-empty').style.display = allSaves.length ? 'none' : 'block';
+}
+function changeMonth(dir) {
+  viewMonth += dir;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
+  renderCalendar();
+}
+
+// ── LINE GRAPH ────────────────────────────────────────────
+function getWeekSunday(weekOffset) {
+  const now = new Date();
+  const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  local.setDate(local.getDate() - local.getDay() - weekOffset * 7);
+  return local;
+}
+function changeWeekPage(dir) { weekPage += dir; renderLineGraph(); }
+
+function renderLineGraph() {
+  const yEl    = document.getElementById('graph-y');
+  const svgWrap= document.getElementById('graph-svg-wrap');
+  const xEl    = document.getElementById('graph-x-labels');
+  const emptyEl= document.getElementById('graph-empty');
+  yEl.innerHTML=''; svgWrap.innerHTML=''; xEl.innerHTML='';
+
+  const daysWithEnergy = Object.keys(daysByKey).filter(k => dayAvgHearts(k) != null).sort();
+  if (!daysWithEnergy.length) { emptyEl.style.display='block'; return; }
+  emptyEl.style.display='none';
+
+  // Clamp weekPage to the earliest data week.
+  const earliest = new Date(daysWithEnergy[0] + 'T00:00:00');
+  const earliestSunday = new Date(earliest); earliestSunday.setDate(earliest.getDate() - earliest.getDay());
+  const maxPage = Math.max(0, Math.round((getWeekSunday(0) - earliestSunday) / (7*86400000)));
+  weekPage = Math.max(0, Math.min(weekPage, maxPage));
+
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const sunday = getWeekSunday(weekPage);
+  const weekDays = [];
+  for (let i=0;i<7;i++){
+    const d=new Date(sunday); d.setDate(sunday.getDate()+i);
+    const dateStr=d.toLocaleDateString('en-CA');
+    weekDays.push({ dateStr, name:DAY_NAMES[i], num:d.getDate(), month:d.getMonth(), hearts:dayAvgHearts(dateStr) });
+  }
+
+  // Week label + nav state
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const f=weekDays[0], l=weekDays[6];
+  document.getElementById('week-label').textContent = f.month===l.month
+    ? `${monthNames[f.month]} ${f.num} – ${l.num}`
+    : `${monthNames[f.month]} ${f.num} – ${monthNames[l.month]} ${l.num}`;
+  document.getElementById('graph-prev-week').disabled = weekPage >= maxPage;
+  document.getElementById('graph-next-week').disabled = weekPage <= 0;
+
+  // Y-axis labels
+  ['easy','medium','hard'].forEach(lbl => {
+    const el=document.createElement('div'); el.className='y-label'; el.textContent=lbl; yEl.appendChild(el);
+  });
+
+  // Geometry: 7 columns in a 700x200 viewBox, 16px top/bottom padding.
+  const W=700, H=200, padT=16, padB=16, plotH=H-padT-padB;
+  const colW = W/7;
+  const xC = i => i*colW + colW/2;
+  const yFor = h => padT + (1 - h/24) * plotH;
+
+  // Difficulty bands (boundaries at 9 and 19 hearts, matching the heart-meter modes).
+  const bands = [
+    { lo:19, hi:24, color:'rgba(42,59,154,.10)',  label:'easy'   },
+    { lo:9,  hi:19, color:'rgba(101,121,226,.07)', label:'medium' },
+    { lo:0,  hi:9,  color:'rgba(168,180,240,.07)', label:'hard'   },
+  ];
+  let bandSvg='';
+  bands.forEach(b => {
+    const y=yFor(b.hi), h=yFor(b.lo)-yFor(b.hi);
+    bandSvg += `<rect class="gp-band" x="0" y="${y.toFixed(1)}" width="${W}" height="${h.toFixed(1)}" fill="${b.color}"/>`;
+    bandSvg += `<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="rgba(101,121,226,.15)" stroke-width="1"/>`;
+  });
+
+  // Vertices = only days that have data; the polyline connects them in order,
+  // spanning across (not breaking at) the days with no entry.
+  const verts = [];
+  weekDays.forEach((day,i) => { if (day.hearts != null) verts.push({ i, dateStr:day.dateStr, hearts:day.hearts }); });
+
+  let lineSvg='';
+  if (verts.length >= 2) {
+    const pts = verts.map(v => `${xC(v.i).toFixed(1)},${yFor(v.hearts).toFixed(1)}`).join(' ');
+    lineSvg = `<polyline class="gp-line" points="${pts}"/>`;
+  }
+  let dotsSvg='';
+  verts.forEach(v => {
+    const x=xC(v.i), y=yFor(v.hearts);
+    dotsSvg += `<text class="gp-dot-score" x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}">${v.hearts}</text>`;
+    dotsSvg += `<circle class="gp-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" onclick="openDayPopup('${v.dateStr}')"><title>${v.hearts} hearts</title></circle>`;
+  });
+
+  svgWrap.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    ${bandSvg}
+    <line x1="0" y1="0" x2="0" y2="${H}" stroke="rgba(101,121,226,.25)" stroke-width="1"/>
+    <line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="rgba(101,121,226,.25)" stroke-width="1"/>
+    ${lineSvg}${dotsSvg}
+  </svg>`;
+
+  // X labels
+  weekDays.forEach(day => {
+    const x=document.createElement('div');
+    x.className='bar-x-label' + (day.hearts!=null ? ' bar-x-label--active' : '');
+    x.innerHTML = `${day.name}<br>${day.num}`;
+    xEl.appendChild(x);
+  });
+}
+
+// ── DAY POPUP ─────────────────────────────────────────────
+function openDayPopup(dateStr) {
+  activeDayKey = dateStr;
+  const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at)-new Date(b.created_at));
+  document.getElementById('day-title').textContent = formatDateLabel(dateStr);
+
+  const list = document.getElementById('loc-list');
+  list.innerHTML = '';
+  if (!saves.length) {
+    list.innerHTML = '<div class="day-list-empty">no locations saved this day</div>';
+  } else {
+    saves.forEach(save => {
+      const row = document.createElement('div');
+      row.className = 'loc-row';
+      row.innerHTML = `<span class="loc-name">${escapeHtml(locationLabel(save))}</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="loc-time">${formatTime(save.created_at)}</span>
+          <span class="loc-arrow">→</span>
+        </span>`;
+      row.onclick = () => openMatrixView(save.id);
+      list.appendChild(row);
+    });
+  }
+
+  showListView();
+  document.getElementById('day-overlay').classList.add('open');
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function showListView() {
+  document.getElementById('day-list-wrap').style.display = 'flex';
+  document.getElementById('day-matrix-wrap').style.display = 'none';
+}
+function backToList() {
+  activeSaveId = null;
+  document.getElementById('matrix-stage').innerHTML = '';
+  showListView();
+}
+function closeDayPopup() {
+  document.getElementById('day-overlay').classList.remove('open');
+  document.getElementById('matrix-stage').innerHTML = '';
+  activeSaveId = null;
+}
+function handleDayOverlayClick(e) { if (e.target === document.getElementById('day-overlay')) closeDayPopup(); }
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeDayPopup(); });
+
+async function openMatrixView(saveId) {
+  activeSaveId = saveId;
+  const save = allSaves.find(s => s.id === saveId);
+  document.getElementById('matrix-loc-title').textContent = save ? locationLabel(save) : '';
+  document.getElementById('day-list-wrap').style.display = 'none';
+  document.getElementById('day-matrix-wrap').style.display = 'flex';
+  document.getElementById('matrix-stage').innerHTML =
+    '<div style="text-align:center;padding:40px;font-family:var(--font-hand);color:#aaa;">gathering your entry…</div>';
+  await refreshMatrixView();
+}
+async function refreshMatrixView() {
+  if (!activeSaveId) return;
+  const game = allGames.find(g => g.id === activeGameId);
+  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game);
+  const seed = `${activeGameId}|${activeSaveId}`;
+  document.getElementById('matrix-stage').innerHTML =
+    MatrixRender.buildHTML(lastMatrixData, seed, { showAddPhoto:true, showEditNotes:true, archiveHref:null });
+}
+
+// ── GAME LOADING + ENTRIES ────────────────────────────────
+async function loadGames() {
+  const { data } = await sb.from('games')
+    .select('id, map_name, map_type, map_data, status, updated_at')
+    .eq('user_id', currentUser.id)
+    .order('updated_at', { ascending:false });
+  allGames = data || [];
+  const dd = document.getElementById('game-dropdown');
+  dd.innerHTML = '';
+  allGames.forEach(g => {
+    const opt=document.createElement('option');
+    opt.value=g.id; opt.textContent=(g.map_name||'untitled')+' ('+(g.map_type||'spiral')+')';
+    dd.appendChild(opt);
+  });
+}
+function onGameChange() { activeGameId = document.getElementById('game-dropdown').value; loadEntries(); }
+
+async function loadEntries() {
+  if (!activeGameId) return;
+  const { data } = await sb.from('saved_data')
+    .select('id, character_data, bingo_data, energy_score, map_phase, location_data, sidequest_data, diary_text, matrix_images, created_at')
+    .eq('game_id', activeGameId)
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending:true });
+  allSaves = data || [];
+
+  // Group once, by local day. Calendar, graph, and popup all read this.
+  daysByKey = {};
+  allSaves.forEach(s => {
+    const k = localDayKey(s.created_at);
+    (daysByKey[k] = daysByKey[k] || []).push(s);
+  });
+
+  weekPage = 0;
+  const dd = document.getElementById('game-dropdown');
+  if (dd) dd.value = activeGameId;
+  renderMap();
+  renderCalendar();
+  renderLineGraph();
+}
+
+// ── MAP SELECTOR ──────────────────────────────────────────
+function showMapSelector() {
+  viewingSelector = true;
+  document.getElementById('map-selector').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'none';
+  renderMapSelectorGrid();
+}
+function renderMapSelectorGrid() {
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  for (let i=0;i<8;i++) {
+    const g = allGames[i];
+    if (g) {
+      const zones=(g.map_data||{}).zones||[];
+      const preview=buildPreviewSVG(g.map_type||'spiral', zones);
+      const updated=g.updated_at ? 'last updated '+new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+      const safeName=(g.map_name||'untitled').replace(/'/g,"\\'");
+      const slot=document.createElement('div');
+      slot.className='map-slot';
+      slot.onclick=()=>selectMapForArchive(g.id);
+      slot.innerHTML=`<button class="slot-delete" title="delete map" onclick="event.stopPropagation();deleteMapFromArchive('${g.id}','${safeName}')">×</button>
+        <div class="slot-name">${g.map_name||'untitled'}</div>
+        <div class="slot-preview">${preview}</div>
+        ${updated?`<div class="slot-updated">${updated}</div>`:''}`;
+      grid.appendChild(slot);
+    } else {
+      const empty=document.createElement('div'); empty.className='map-slot empty'; grid.appendChild(empty);
+    }
+  }
+}
+async function selectMapForArchive(gameId) {
+  activeGameId=gameId; viewingSelector=false;
+  document.getElementById('map-selector').style.display='none';
+  const ls=document.getElementById('loading-state'); ls.textContent='loading...'; ls.style.display='flex';
+  await loadEntries();
+  ls.style.display='none';
+  document.getElementById('main-content').style.display='flex';
+}
+async function deleteMapFromArchive(gameId, mapName) {
+  if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
+  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  allGames = allGames.filter(g => g.id !== gameId);
+  renderMapSelectorGrid();
+}
+
+// ── NAV ───────────────────────────────────────────────────
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const wrap=document.getElementById('gear-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
+});
+document.getElementById('gear-logout').addEventListener('click', async () => {
+  await sb.auth.signOut(); window.location.href='../users/login.html';
+});
+function handleBack() {
+  if (!viewingSelector) showMapSelector();
+  else (history.length>1 ? history.back() : window.location.href='../users/profile.html');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  try { const { data:{ session } } = await sb.auth.getSession(); currentUser = session?.user || null; } catch(e){}
+  if (!currentUser) { document.getElementById('loading-state').textContent='please log in to view your archive'; return; }
+
+  // Editors + matrix event wiring (created once; delegation survives re-renders).
+  photoEditor = MatrixRender.createPhotoEditor({
+    sb, getEntryId: () => activeSaveId, getUserId: () => currentUser.id,
+    onChange: refreshMatrixView, status: showToast,
+  });
+  journalEditor = MatrixRender.createJournalEditor({
+    sb, getEntryId: () => activeSaveId,
+    onChange: refreshMatrixView, status: showToast,
+  });
+  MatrixRender.attachMatrix(document.getElementById('matrix-stage'), {
+    onAddPhoto:    () => photoEditor.open(),
+    onRemovePhoto: (url) => photoEditor.remove(url),
+    onEditNotes:   () => journalEditor.open(lastMatrixData ? lastMatrixData.journalText : ''),
+  });
+
+  await loadGames();
+  const params = new URLSearchParams(window.location.search);
+  const urlId  = params.get('game_id');
+  if (urlId && allGames.find(g => g.id === urlId)) {
+    await selectMapForArchive(urlId);
+  } else {
+    document.getElementById('loading-state').style.display='none';
+    showMapSelector();
+  }
+}
+init();
+</script>
+</body>
+</html>
