@@ -36,7 +36,7 @@
      Lower the % to drop the castle; raise it to lift it further. */
   --castle-anchor: 80%;
 
-  --toggle-loop: 14s;   /* full logo<->castle crossfade cycle */
+  --toggle-loop: 7s;   /* full logo<->castle crossfade cycle */
   --ease-breath: cubic-bezier(0.37, 0, 0.63, 1); /* gentle sine-like in/out */
 }
 
@@ -154,22 +154,6 @@ body {
 }
 
 .castle-img,
-.portal-logo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: block;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
-}
-
-/* Logo: centered on its own middle = the shared optical center */
-.portal-logo {
-  width: clamp(140px, 40vw, 450px);
-  height: auto;
-  transform-origin: 50% 50%;
-  transform: translate(-50%, -50%) scale(1);
-  animation: logoBreathe var(--toggle-loop) var(--ease-breath) infinite;
-}
 
 /* Castle: positioned so the point at var(--castle-anchor) down its image
    lands on the rainbow's center (~96% => the castle base sits at center). */
@@ -183,17 +167,7 @@ body {
 
 /* Reveal castle on hover */
 .castle-link:hover .castle-img  { animation: none; opacity: 1; }
-.castle-link:hover .portal-logo { animation: none; opacity: 0; }
 
-/* ── BREATHING SWAP KEYFRAMES ──────────────────────── */
-
-@keyframes logoBreathe {
-  0%         { opacity: 1; }
-  25%        { opacity: 0; }
-  50%        { opacity: 0; }
-  75%        { opacity: 0; }
-  100%       { opacity: 1; }
-}
 @keyframes castleBreathe {
   0%         { opacity: 0; }
   25%        { opacity: 0; }
@@ -318,7 +292,6 @@ body {
   }
 
   .castle-img  { width: clamp(120px, 55vw, 375px); }
-  .portal-logo { width: clamp(90px, 55vw, 375px); }
 
   /* spirals smaller + tucked in on phones */
   .spiral-1 { top: 6vh;  left: 3vw;  width: clamp(50px, 16vw, 90px); }
@@ -354,12 +327,10 @@ body {
    (Hover-to-reveal-castle still works.)
 ══════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .portal-logo,
   .castle-img,
   .heart-guide-img,
   .spiral img { animation: none !important; }
 
-  .portal-logo { opacity: 1; }
   .castle-img  { opacity: 0; }
   .spiral { transition: none; }
 }
@@ -399,9 +370,6 @@ body {
 
       <!-- Castle link sits behind rainbow, whole oval is clickable -->
       <a class="castle-link" href="../games/game-room.html" aria-label="Enter Heartability">
-        <img class="portal-logo"
-             src="assets/elements/logo.png"
-             alt="Heartability">
         <img class="castle-img"
              src="assets/elements/castle.png"
              alt="Castle — click to enter">
@@ -425,7 +393,7 @@ body {
 
   <!-- Speech bubble -->
   <div class="heart-bubble-wrap" id="heartBubbleWrap">
-    <div class="speech-bubble">i heard there is a castle around here</div>
+    <div class="speech-bubble">welcome to heartability!</div>
   </div>
 
 </div>
