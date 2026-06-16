@@ -153,7 +153,12 @@ body {
   z-index: 4;
 }
 
-.castle-img,
+.castle-img, {  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
+}
 
 /* Castle: positioned so the point at var(--castle-anchor) down its image
    lands on the rainbow's center (~96% => the castle base sits at center). */
