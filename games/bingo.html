@@ -395,7 +395,6 @@ async function initSupabase() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
-    if (currentUser) showSaveStatus('cloud saves active ✓', '#6ab86a');
   } catch(e) {}
 }
 
@@ -441,13 +440,9 @@ const LINES = [
 let marked = new Array(25).fill(false);
 let dragging = false;
 
-function load() {
-  try { const s = localStorage.getItem("hb-bingo"); if(s) marked = JSON.parse(s); } catch(e){}
-}
+function load() { /* no-op — board always starts blank */ }
 
-function save() {
-  try { localStorage.setItem("hb-bingo", JSON.stringify(marked)); } catch(e){}
-}
+function save() { /* no-op — state is in-memory only */ }
 
 function buildGrid() {
   const grid = document.getElementById("bingoGrid");
@@ -525,8 +520,6 @@ function resetGame() {
   save(); buildGrid(); update();
 }
 
-load();
-if (LOOP_MODE) { marked = new Array(25).fill(false); }
 buildGrid();
 marked[12] = true;
 update();

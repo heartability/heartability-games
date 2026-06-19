@@ -425,7 +425,6 @@ body, .wall { background: #f0ead6; }
           <div class="section-header" style="margin-bottom:0;">your map</div>
           <div style="display:flex;gap:6px;">
             <button class="clear-map-btn" onclick="clearMap()">clear</button>
-            <button class="clear-map-btn save-map-btn" id="btn-save-spiral" onclick="saveToday()">save</button>
           </div>
         </div>
 
@@ -935,43 +934,25 @@ let currentPhase  = null;   // 'zone_1' … 'zone_5' / 'zone_4'
 
 function localToday() { return new Date().toLocaleDateString('en-CA'); }
 
-function showSaveStatus(msg, color) {
-  const el = document.getElementById('save-status');
-  if (!el) return;
-  el.textContent = msg; el.style.color = color || '#83d2e6';
-  clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; }, 3000);
-}
-
 // ── LOAD GAME FROM URL PARAMS ─────────────────────────────────────────────
 async function loadGameContext() {
   const params  = new URLSearchParams(window.location.search);
   currentGameId = params.get('game_id');
   currentPhase  = params.get('phase');
-  const urlMode = params.get('mode'); // 'cloud' | 'guest' | 'new'
+  const urlMode = params.get('mode'); // 'cloud' | 'new'
 
-  const saveBtn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
-
-  if (!currentGameId || urlMode === 'new') {
-    saveBtn.textContent = 'save';
-    return;
-  }
+  if (!currentGameId || urlMode === 'new') { return; }
 
   // Existing game — load it
-  saveBtn.textContent = 'save';
-  showSaveStatus('loading...', '#83d2e6');
-
   let gameData = null;
-  if (urlMode === 'guest') {
-    // Guests no longer have local saves — nothing to load.
-    gameData = null;
-  } else if (currentUser) {
+  if (currentUser) {
     try {
       const { data } = await sb.from('games').select('*').eq('id', currentGameId).single();
       gameData = data;
     } catch(e) {}
   }
 
-  if (!gameData) { showSaveStatus('could not load map', '#ff6b6b'); return; }
+  if (!gameData) { return; }
 
   const mapType = gameData.map_type || 'spiral';
   const mapData = gameData.map_data || {};
@@ -1007,37 +988,31 @@ async function loadGameContext() {
   banner.innerHTML = `<span class="status-active">${gameData.map_name}</span> <span class="status-hint">· zone ${phaseNum} today</span>`;
   banner.style.display = 'block';
 
-  showSaveStatus('map loaded ✓', '#83d2e6');
 }
 
 // ── SAVE TODAY ────────────────────────────────────────────────────────────
 async function saveToday() {
-  const today     = localToday();
   const isSpiral  = currentMode === 'spiral';
   const mapState  = isSpiral ? spiralState : squareState;
-  const activeIdx = isSpiral ? activeZone : squareActiveZone;
   const mapType   = currentMode;
   const mapName   = (document.getElementById("mapName").value || mapState.name || '').trim();
   const mapData   = { ...mapState, type: mapType };
 
   const hasContent = mapState.zones.some(z => z.terrain);
   if (!hasContent) {
-    showSaveStatus('add something to your map first!', '#ff6b6b');
     try { window.parent.postMessage({ type: 'map_save_failed', reason: 'add some terrain to your map first' }, '*'); } catch(e) {}
     return;
   }
 
-  const btn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
-  if (btn) btn.textContent = '♥ SAVING...';
-
-  // Guest / not logged in
-  if (!currentUser) { saveGuestData(mapName, mapData, mapType, activeIdx, today, btn); return; }
+  // Not logged in — guests cannot save
+  if (!currentUser) {
+    try { window.parent.postMessage({ type: 'map_save_failed', reason: 'log in to save your map' }, '*'); } catch(e) {}
+    return;
+  }
 
   // ── NEW GAME — create games row only, no daily entry yet ──
   if (!currentGameId) {
     if (!mapName) {
-      showSaveStatus('name your dream first!', '#ff6b6b');
-      if (btn) btn.textContent = 'save';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your dream first' }, '*'); } catch(e) {}
       return;
     }
@@ -1045,43 +1020,19 @@ async function saveToday() {
       user_id: currentUser.id, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active'
     }).select().single();
     if (error) {
-      showSaveStatus('save failed', '#ff6b6b');
-      if (btn) btn.textContent = 'save';
       try { window.parent.postMessage({ type: 'map_save_failed', reason: 'save failed' }, '*'); } catch(e) {}
       return;
     }
     currentGameId = newGame.id;
-    showSaveStatus('map created ✓', '#83d2e6');
-    if (btn) { btn.textContent = 'saved'; btn.style.opacity = '0.6'; }
-    // Notify chart-room to advance to phase select
     try { window.parent.postMessage({ type: 'map_saved', game_id: newGame.id, map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
     return;
   }
 
-  // ── EXISTING GAME — persist the map only. ──
-  // The daily ritual + saved_data entry is owned by the adventure matrix;
-  // standalone editing here just saves the map itself (no daily entry written).
-  const { error: updErr } = await sb.from('games')
+  // ── EXISTING GAME — persist the map definition only. ──
+  // Daily entries are owned by the adventure matrix.
+  await sb.from('games')
     .update({ map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() })
     .eq('id', currentGameId).eq('user_id', currentUser.id);
-
-  if (updErr) { showSaveStatus('save failed', '#ff6b6b'); if (btn) btn.textContent = 'save'; }
-  else { showSaveStatus("saved", '#83d2e6'); if (btn) { btn.textContent = 'saved'; btn.style.opacity = '0.6'; } }
-}
-
-// ── Member popup controls ─────────────────────────────────
-function showMemberPrompt() {
-  document.getElementById('memberOverlay').classList.add('open');
-}
-function closeMemberPrompt() {
-  document.getElementById('memberOverlay').classList.remove('open');
-}
-function goToSignup() {
-  // Let the chart-room / parent handle routing to the signup flow.
-  // If this page is ever used standalone, change this to a direct redirect,
-  // e.g. window.top.location.href = '../signup.html';
-  try { window.parent.postMessage({ type: 'request_signup' }, '*'); } catch(e) {}
-  closeMemberPrompt();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
@@ -1090,7 +1041,6 @@ async function initSupabase() {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
     await loadGameContext();
-    if (currentUser && !currentGameId) showSaveStatus('cloud saves active ✓', '#83d2e6');
   } catch(e) {}
 }
 
@@ -1103,15 +1053,6 @@ buildSquareSVG();
 document.getElementById("mapName").value = spiralState.name || "";
 updateSpiralStatus();
 initSupabase();
-
-// ── Loop mode — hide save button, let chart-room drive it ──
-const _loopMode = new URLSearchParams(window.location.search).get('loop') === 'true';
-if (_loopMode) {
-  const saveBtn = document.getElementById(currentMode==='square'?'btn-save-square':'btn-save-spiral') || document.getElementById('btn-save-today');
-  if (saveBtn) saveBtn.style.display = 'none';
-  const saveStatus = document.getElementById('save-status');
-  if (saveStatus) saveStatus.style.display = 'none';
-}
 
 // ── Listen for chart-room triggering the save ─────────────
 window.addEventListener('message', e => {
