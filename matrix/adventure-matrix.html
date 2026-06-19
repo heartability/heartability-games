@@ -840,7 +840,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
 <!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
 <div class="save-continue-bar" id="save-continue-bar">
   <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
-    save &amp; continue →
+    continue →
   </button>
 </div>
 <div class="save-status-bar" id="save-status-bar"></div>
@@ -1073,7 +1073,7 @@ function showRoomStatus(msg, color, duration=3000) {
   el._t = setTimeout(() => { el.textContent = ''; }, duration);
 }
 
-function setSaveBtnVisible(visible, label='save &amp; continue →') {
+function setSaveBtnVisible(visible, label='continue →') {
   const bar = document.getElementById('save-continue-bar');
   const btn = document.getElementById('save-continue-btn');
   bar.classList.toggle('visible', visible);
@@ -1106,8 +1106,8 @@ async function saveAndContinue() {
     iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
     // Fallback: re-enable if no response in 5s
     const label = currentStep === 'character'
-      ? 'save character &amp; continue →'
-      : 'save &amp; finish →';
+      ? 'continue →'
+      : 'finish →';
     clearTimeout(window._saveFallback);
     window._saveFallback = setTimeout(() => {
       const b = document.getElementById('save-continue-btn');
@@ -1219,7 +1219,7 @@ function stepNewGame() {
   setBubble('build a map to begin!', []);
   const src = '../games/treasure-map.html?mode=new&loop=true';
   showIframe(src);
-  setSaveBtnVisible(true, 'save map &amp; continue →');
+  setSaveBtnVisible(true, 'continue →');
 }
 
 // ── STEP 2B: LOAD GAME ────────────────────────────────────
@@ -1510,7 +1510,7 @@ function stepBingo() {
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
-  setSaveBtnVisible(true, 'save &amp; finish →');
+  setSaveBtnVisible(true, 'continue →');
 }
 
 // ── STEP 6: BINGO DONE → JOURNAL (native, no iframe) ─────
@@ -1521,7 +1521,7 @@ function stepJournal() {
   showPanel(buildJournalPanel());
   fitJournalBook();
   loadJournalEntries();
-  setSaveBtnVisible(true, 'save notes &amp; finish →');
+  setSaveBtnVisible(true, 'continue →');
 }
 
 function skipJournal() {
@@ -1537,7 +1537,7 @@ async function saveJournalEntry() {
     stepDone();
   } else {
     // Let the user retry — re-enable the save button.
-    setSaveBtnVisible(true, 'save notes &amp; finish →');
+    setSaveBtnVisible(true, 'continue →');
   }
 }
 
@@ -2078,7 +2078,7 @@ window.addEventListener('message', async e => {
     const btn = document.getElementById('save-continue-btn');
     if (btn && currentStep === 'character') {
       btn.disabled = false;
-      btn.innerHTML = 'save character &amp; continue →';
+      btn.innerHTML = 'continue →';
     }
     return;
   }
@@ -2100,7 +2100,7 @@ window.addEventListener('message', async e => {
   // Map save failed — re-enable button with reason
   if (msg.type === 'map_save_failed') {
     const btn = document.getElementById('save-continue-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'save map &amp; continue →'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
     showRoomStatus(msg.reason || 'add a goal name and some terrain first', '#E8478B');
     return;
   }
@@ -2111,7 +2111,7 @@ window.addEventListener('message', async e => {
     if (!charState.body) {
       showRoomStatus('pick a body first!', '#E8478B');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'save character &amp; continue →';
+      btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
     let saved = false;
@@ -2151,7 +2151,7 @@ window.addEventListener('message', async e => {
       stepBingo();
     } else {
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'save character &amp; continue →';
+      btn.disabled = false; btn.innerHTML = 'continue →';
     }
     return;
   }
@@ -2162,7 +2162,7 @@ window.addEventListener('message', async e => {
     if (!score || score === 0) {
       showRoomStatus('check some squares first!', '#E8478B');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
+      btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
     const energyScore  = Math.round((score / 24) * 100);
@@ -2181,7 +2181,7 @@ window.addEventListener('message', async e => {
     } else {
       showRoomStatus('save failed', '#E8478B');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'save &amp; finish →';
+      btn.disabled = false; btn.innerHTML = 'continue →';
     }
     return;
   }
