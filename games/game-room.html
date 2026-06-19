@@ -188,11 +188,11 @@ body.game-mode .char-heart {
 
 .game-close-btn {
   position: absolute; top: 8px; right: 10px; z-index: 2;
-  font-family: var(--font-hand); font-size: 18px; color: #333;
-  border: none; cursor: pointer;
-  padding: 4px 10px; transition: color 0.12s;
+  background: none; border: none; cursor: pointer;
+  color: #aaa; font-size: 16px; padding: 4px; line-height: 1;
+  transition: color 0.12s;
 }
-.game-close-btn:hover { color: var( --blue); }
+.game-close-btn:hover { color: var(--blue); }
 
 .game-howto-btn {
   position: absolute; top: 8px; left: 10px; z-index: 2;
@@ -731,7 +731,7 @@ body.game-mode .char-heart {
 <!-- GAME PANEL — back wall iframe for games  z:10 -->
 <div class="game-panel" id="game-panel">
   <button class="game-howto-btn" id="game-howto-btn" onclick="reopenHowto()">how to play</button>
-  <button class="game-close-btn" onclick="closeGame()">×</button>
+  <button class="game-close-btn" onclick="closeGame()">&#x2715;</button>
 </div>
 
 <!-- ABOUT LETTER -->
