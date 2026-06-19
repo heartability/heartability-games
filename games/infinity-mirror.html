@@ -209,9 +209,9 @@ body::before {
 .mirror-col { display: flex; flex-direction: column; gap: 10px; }
 
 .mirror-frame {
-  background: var(--mirror-bg);
+  background: url("../asset/elements/gradient.png") center / cover no-repeat, var(--mirror-bg);
   border: 5px solid #6579e2;
-  border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+  border-radius: 0;
   box-shadow:
     0 0 0 6px #83d2e6,
     0 0 0 10px #83d2e6,
@@ -536,16 +536,13 @@ const ACCS = [
 
 let state = { name:"", body:null, hair:null, eyes:null, mouth:null, shoes:null, acc:null };
 
-// ── localStorage (fallback for logged-out users) ─────────
-function saveLocal() {
-  try { localStorage.setItem("hb-char", JSON.stringify(state)); } catch(e){}
-}
-function loadLocal() {
-  try { const s = localStorage.getItem("hb-char"); if(s) state = JSON.parse(s); } catch(e){}
-}
+// ── No persistence ───────────────────────────────────────
+// Character resets on every visit — nothing is stored or restored.
+function saveLocal() {}
+function loadLocal() {}
 
-// ── Auto-save on every change ─────────────────────────────
-function save() { saveLocal(); }
+// ── No-op save (state lives in memory only for this session) ──
+function save() {}
 
 function renderLayer(layerId, partId) {
   const layer = document.getElementById(layerId);
@@ -627,8 +624,7 @@ try { window.parent.postMessage({ type: 'iframe_ready', game: 'character' }, '*'
 
 // ── Init ─────────────────────────────────────────────────
 async function init() {
-  // In loop mode, always start fresh — blank slate each day
-  if (!LOOP_MODE) loadLocal();
+  // Always start fresh — no saved character is restored.
 
   makeGrid("grid-body",  BODIES, "body",  false);
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
