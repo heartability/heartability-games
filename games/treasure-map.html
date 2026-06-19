@@ -376,6 +376,84 @@ body, .wall { background: #f0ead6; }
 /* Mode toggle disabled state */
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 
+/* ── BECOME-A-MEMBER POPUP ─────────────────────────────── */
+.member-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(10,26,46,0.45);
+  padding: 20px;
+}
+.member-overlay.open { display: flex; }
+
+.member-window {
+  width: 100%; max-width: 380px;
+  background: var(--panel-bg);
+  border: 5px solid #6579e2;
+  box-shadow:
+    0 0 0 6px #83d2e6,
+    0 0 0 10px #83d2e6,
+    4px 8px 24px rgba(0,0,0,0.5);
+  font-family: var(--font-game);
+}
+.member-titlebar {
+  background: #6579e2;
+  color: #f0ead6;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.member-titlebar .member-close {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a; border-top-color: #c8b88a;
+  color: var(--text-dark);
+  width: 22px; height: 22px; line-height: 1;
+  font-family: var(--font-game); font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.member-close:hover { filter: brightness(0.94); }
+
+.member-body { padding: 20px 18px; text-align: center; }
+.member-heading {
+  font-size: 22px;
+  color: #6579e2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.member-sub {
+  font-size: 14px;
+  color: var(--text-mid);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.member-actions { display: flex; flex-direction: column; gap: 8px; }
+.member-btn {
+  background: #e8e0c8;
+  border: 3px solid #6579e2;
+  outline: 2px solid #83d2e6; outline-offset: -4px;
+  box-shadow: 2px 3px 0 2px rgba(0,0,0,0.4);
+  padding: 8px 16px;
+  font-family: var(--font-game); font-size: 16px;
+  color: #6579e2; cursor: pointer; letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.member-btn:hover { filter: brightness(1.08); }
+.member-btn:active { transform: translate(2px,3px); box-shadow: none; }
+.member-btn.secondary {
+  background: var(--panel-bg);
+  border-color: #8a7a5a;
+  outline: none;
+  box-shadow: none;
+  color: var(--text-mid);
+  font-size: 14px;
+}
+.member-btn.secondary:active { transform: translate(1px,1px); }
+
 </style>
 </head>
 <body>
@@ -577,15 +655,12 @@ let activeZone  = null;
 let ZONE_POSITIONS = [];
 
 function spiralLoadState() {
-  try {
-    const s = localStorage.getItem("hb-spiral");
-    if (s) spiralState = JSON.parse(s);
-    while (spiralState.zones.length < 3) spiralState.zones.push({});
-  } catch(e) {}
+  // No persistence — always start with a fresh map each visit.
+  while (spiralState.zones.length < 3) spiralState.zones.push({});
 }
 function spiralSaveState() {
+  // Keep in-memory name in sync; nothing is written to storage.
   spiralState.name = document.getElementById("mapName").value;
-  try { localStorage.setItem("hb-spiral", JSON.stringify(spiralState)); } catch(e) {}
 }
 function updateSpiralStatus() {
   const prompt = document.getElementById("zonePrompt");
@@ -611,15 +686,12 @@ let squareState     = { name:"", zones:[{},{},{},{}] };
 let squareActiveZone = null;
 
 function squareLoadState() {
-  try {
-    const s = localStorage.getItem("hb-square");
-    if (s) squareState = JSON.parse(s);
-    while (squareState.zones.length < 4) squareState.zones.push({});
-  } catch(e) {}
+  // No persistence — always start with a fresh map each visit.
+  while (squareState.zones.length < 4) squareState.zones.push({});
 }
 function squareSaveState() {
+  // Keep in-memory name in sync; nothing is written to storage.
   squareState.name = document.getElementById("mapName").value;
-  try { localStorage.setItem("hb-square", JSON.stringify(squareState)); } catch(e) {}
 }
 function updateSquareStatus() {
   const prompt = document.getElementById("zonePrompt");
@@ -968,10 +1040,8 @@ async function loadGameContext() {
 
   let gameData = null;
   if (urlMode === 'guest') {
-    try {
-      const games = JSON.parse(localStorage.getItem('hb_games') || '[]');
-      gameData = games.find(g => g.id === currentGameId) || null;
-    } catch(e) {}
+    // Guests no longer have local saves — nothing to load.
+    gameData = null;
   } else if (currentUser) {
     try {
       const { data } = await sb.from('games').select('*').eq('id', currentGameId).single();
@@ -1078,33 +1148,26 @@ async function saveToday() {
 }
 
 // ── GUEST SAVE ────────────────────────────────────────────────────────────
+// Guests can't save — prompt them to become a member instead.
 function saveGuestData(mapName, mapData, mapType, activeIdx, today, btn) {
-  try {
-    let games   = JSON.parse(localStorage.getItem('hb_games')   || '[]');
-    let entries = JSON.parse(localStorage.getItem('hb_entries') || '[]');
-    if (!currentGameId) {
-      if (!mapName) { showSaveStatus('name your dream first!', '#ff6b6b'); btn.textContent = 'save'; return; }
-      const newId = 'guest_' + Date.now();
-      games.push({ id: newId, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active',
-        created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
-      currentGameId = newId;
-      localStorage.setItem('hb_games', JSON.stringify(games));
-      showSaveStatus('map saved locally ✓', '#83d2e6');
-      btn.textContent = 'saved'; btn.style.opacity = '0.6';
-      return;
-    }
-    games = games.map(g => g.id === currentGameId
-      ? { ...g, map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() } : g);
-    localStorage.setItem('hb_games', JSON.stringify(games));
-    const mapLocation = activeIdx !== null ? (mapData.zones?.[activeIdx]?.terrain || null) : null;
-    const mapPhase    = currentPhase || (activeIdx !== null ? `zone_${activeIdx + 1}` : null);
-    const entry = { id: 'e_' + Date.now(), game_id: currentGameId, entry_date: today, map_location: mapLocation, map_phase: mapPhase };
-    entries = entries.filter(e => !(e.game_id === currentGameId && e.entry_date === today));
-    entries.push(entry);
-    localStorage.setItem('hb_entries', JSON.stringify(entries));
-    showSaveStatus('saved locally ✓', '#83d2e6');
-    btn.textContent = 'saved'; btn.style.opacity = '0.6';
-  } catch(e) { showSaveStatus('local save failed', '#ff6b6b'); btn.textContent = 'save'; }
+  if (btn) btn.textContent = 'save';
+  showMemberPrompt();
+  try { window.parent.postMessage({ type: 'map_save_failed', reason: 'become a user to save your maps' }, '*'); } catch(e) {}
+}
+
+// ── Member popup controls ─────────────────────────────────
+function showMemberPrompt() {
+  document.getElementById('memberOverlay').classList.add('open');
+}
+function closeMemberPrompt() {
+  document.getElementById('memberOverlay').classList.remove('open');
+}
+function goToSignup() {
+  // Let the chart-room / parent handle routing to the signup flow.
+  // If this page is ever used standalone, change this to a direct redirect,
+  // e.g. window.top.location.href = '../signup.html';
+  try { window.parent.postMessage({ type: 'request_signup' }, '*'); } catch(e) {}
+  closeMemberPrompt();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
@@ -1143,5 +1206,24 @@ window.addEventListener('message', e => {
   }
 });
 </script>
+
+<!-- ── Become-a-member popup (shown when a guest tries to save) ── -->
+<div class="member-overlay" id="memberOverlay" onclick="if(event.target===this)closeMemberPrompt()">
+  <div class="member-window" role="dialog" aria-modal="true" aria-labelledby="memberHeading">
+    <div class="member-titlebar">
+      <span>HEARTABILITY</span>
+      <button class="member-close" onclick="closeMemberPrompt()" aria-label="Close">&times;</button>
+    </div>
+    <div class="member-body">
+      <div class="member-heading" id="memberHeading">Become a user<br>to save your maps!</div>
+      <div class="member-sub">Sign up to keep your treasure maps and revisit them anytime.</div>
+      <div class="member-actions">
+        <button class="member-btn" onclick="goToSignup()">&#x25BA; Sign Up</button>
+        <button class="member-btn secondary" onclick="closeMemberPrompt()">Maybe later</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
