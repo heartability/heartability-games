@@ -378,25 +378,11 @@ body {
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── URL params (set by chart-room daily loop) ─────────────
+// ── URL params (set by adventure matrix daily loop) ───────
 const _params   = new URLSearchParams(window.location.search);
 const GAME_ID   = _params.get('game_id');
 const LOOP_MODE = _params.get('loop') === 'true';
-
-// ── Supabase ─────────────────────────────────────────────
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentUser = null;
-
-async function initSupabase() {
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    currentUser = session?.user || null;
-  } catch(e) {}
-}
 
 const SQUARES = [
   "your body feels clean",
@@ -523,7 +509,6 @@ function resetGame() {
 buildGrid();
 marked[12] = true;
 update();
-initSupabase();
 
 // Respond to chart-room state requests
 window.addEventListener('message', e => {

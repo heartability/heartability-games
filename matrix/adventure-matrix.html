@@ -1099,7 +1099,7 @@ async function saveAndContinue() {
   if (!iframe) { btn.disabled = false; return; }
 
   if (currentStep === 'map') {
-    // Tell treasure-map to run its save logic; response comes via map_saved postMessage
+    // Tell treasure-map to report its state; matrix handles the DB write on map_ready
     iframe.contentWindow.postMessage({ type: 'save_map' }, '*');
   } else {
     // Request current state from character builder or bingo
@@ -1382,7 +1382,7 @@ function renderMapGrid(games) {
 async function selectMap(gameId) {
   let game = null;
   try {
-    const { data } = await sb.from('games').select('*').eq('id',gameId).single();
+    const { data } = await sb.from('games').select('*').eq('id',gameId).eq('user_id',currentUser.id).single();
     game = data;
   } catch(e){}
   if (!game) return;
@@ -1703,9 +1703,11 @@ async function saveJournalNative(){
   if (newImageUrl) imgs.push({ url:newImageUrl, quadrant:'internal-feeling', source:'journal' });
 
   try {
-    const { error } = await sb.from('saved_data')
-      .update({ diary_text:text, updated_at:new Date().toISOString(), matrix_images:imgs })
-      .eq('id', activeEntryId);
+    const { error } = await sb.from('saved_data').upsert({
+      id: activeEntryId,
+      game_id: activeGameId, user_id: currentUser.id,
+      diary_text: text, updated_at: new Date().toISOString(), matrix_images: imgs,
+    }, { onConflict: 'id' });
     if (error) throw error;
   } catch(err){
     console.error('[journal save] failed:', err);
@@ -1913,7 +1915,7 @@ async function assembleTodayMatrixData(entryId){
   };
   try {
     const { data: row } = await sb.from('saved_data').select('*')
-      .eq('id', entryId).maybeSingle();
+      .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
     if (row){
       d.charState    = row.character_data || null;
       d.bingoScore   = row.bingo_data?.score || 0;
@@ -2083,13 +2085,40 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // New map built — advance to phase select
-  if (msg.type === 'map_saved' && msg.game_id) {
-    activeGameId   = msg.game_id;
-    activeGameData = {
-      id: msg.game_id, map_name: msg.map_name || 'my map',
-      map_type: msg.map_type || 'spiral', map_data: msg.map_data || { zones:[] },
-    };
+  // Game reported its map state — matrix owns the DB write
+  if (msg.type === 'map_ready') {
+    const { map_name, map_type, map_data } = msg;
+    const btn = document.getElementById('save-continue-btn');
+
+    if (!activeGameId) {
+      // New map — INSERT into games
+      const { data: newGame, error } = await sb.from('games').insert({
+        user_id: currentUser.id,
+        map_name: map_name || 'my map',
+        map_type: map_type || 'spiral',
+        map_data: map_data || { zones: [] },
+        status: 'active',
+      }).select().single();
+      if (error) {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+        showRoomStatus('save failed — try again', '#E8478B');
+        return;
+      }
+      activeGameId   = newGame.id;
+      activeGameData = { id: newGame.id, map_name, map_type, map_data: map_data || { zones: [] } };
+    } else {
+      // Existing map — UPDATE games
+      const { error } = await sb.from('games')
+        .update({ map_name, map_type, map_data, updated_at: new Date().toISOString() })
+        .eq('id', activeGameId).eq('user_id', currentUser.id);
+      if (error) {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+        showRoomStatus('save failed — try again', '#E8478B');
+        return;
+      }
+      activeGameData = { ...activeGameData, map_name, map_type, map_data: map_data || { zones: [] } };
+    }
+
     activePhase = null;
     setSaveBtnVisible(false);
     showRoomStatus('map saved ✓', '#6ab86a');

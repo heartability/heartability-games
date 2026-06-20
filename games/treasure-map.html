@@ -460,7 +460,6 @@ body, .wall { background: #f0ead6; }
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const TERRAIN_IMGS = {
@@ -924,124 +923,23 @@ function clearMap() {
   }
 }
 
-// ── SUPABASE ──────────────────────────────────────────────────────────────
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentUser   = null;
-let currentGameId = null;   // set from URL param or after creating new game
-let currentPhase  = null;   // 'zone_1' … 'zone_5' / 'zone_4'
+// ── REPORT MAP STATE TO MATRIX ────────────────────────────────────────────
+function reportMapState() {
+  const isSpiral = currentMode === 'spiral';
+  const mapState = isSpiral ? spiralState : squareState;
+  const mapType  = currentMode;
+  const mapName  = (document.getElementById("mapName").value || mapState.name || '').trim();
+  const mapData  = { ...mapState, type: mapType };
 
-function localToday() { return new Date().toLocaleDateString('en-CA'); }
-
-// ── LOAD GAME FROM URL PARAMS ─────────────────────────────────────────────
-async function loadGameContext() {
-  const params  = new URLSearchParams(window.location.search);
-  currentGameId = params.get('game_id');
-  currentPhase  = params.get('phase');
-  const urlMode = params.get('mode'); // 'cloud' | 'new'
-
-  if (!currentGameId || urlMode === 'new') { return; }
-
-  // Existing game — load it
-  let gameData = null;
-  if (currentUser) {
-    try {
-      const { data } = await sb.from('games').select('*').eq('id', currentGameId).single();
-      gameData = data;
-    } catch(e) {}
-  }
-
-  if (!gameData) { return; }
-
-  const mapType = gameData.map_type || 'spiral';
-  const mapData = gameData.map_data || {};
-
-  document.getElementById("mapName").value = gameData.map_name || '';
-
-  // Lock mode toggle — can't change type of an existing game
-  const btnSp = document.getElementById('btn-spiral');
-  const btnSq = document.getElementById('btn-square');
-  if (mapType === 'square') { btnSp.disabled = true; } else { btnSq.disabled = true; }
-
-  if (mapType === 'square') {
-    squareState = { name: gameData.map_name || '', zones: mapData.zones || [{},{},{},{}] };
-    while (squareState.zones.length < 4) squareState.zones.push({});
-    setMode('square');
-    if (currentPhase) {
-      const idx = parseInt(currentPhase.replace('zone_','')) - 1;
-      if (idx >= 0 && idx < 4) { squareActiveZone = idx; renderSquareZones(); updateSquareStatus(); }
-    }
-  } else {
-    spiralState = { name: gameData.map_name || '', zones: mapData.zones || [{},{},{}] };
-    while (spiralState.zones.length < 3) spiralState.zones.push({});
-    setMode('spiral');
-    if (currentPhase) {
-      const idx = parseInt(currentPhase.replace('zone_','')) - 1;
-      if (idx >= 0 && idx < 3) { activeZone = idx; renderZoneCircles(); updateSpiralStatus(); }
-    }
-  }
-
-  // Show context banner
-  const banner   = document.getElementById('game-context');
-  const phaseNum = currentPhase ? currentPhase.replace('zone_','') : '?';
-  banner.innerHTML = `<span class="status-active">${gameData.map_name}</span> <span class="status-hint">· zone ${phaseNum} today</span>`;
-  banner.style.display = 'block';
-
-}
-
-// ── SAVE TODAY ────────────────────────────────────────────────────────────
-async function saveToday() {
-  const isSpiral  = currentMode === 'spiral';
-  const mapState  = isSpiral ? spiralState : squareState;
-  const mapType   = currentMode;
-  const mapName   = (document.getElementById("mapName").value || mapState.name || '').trim();
-  const mapData   = { ...mapState, type: mapType };
-
-  const hasContent = mapState.zones.some(z => z.terrain);
-  if (!hasContent) {
+  if (!mapState.zones.some(z => z.terrain)) {
     try { window.parent.postMessage({ type: 'map_save_failed', reason: 'add some terrain to your map first' }, '*'); } catch(e) {}
     return;
   }
-
-  // Not logged in — guests cannot save
-  if (!currentUser) {
-    try { window.parent.postMessage({ type: 'map_save_failed', reason: 'log in to save your map' }, '*'); } catch(e) {}
+  if (!mapName) {
+    try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your dream first' }, '*'); } catch(e) {}
     return;
   }
-
-  // ── NEW GAME — create games row only, no daily entry yet ──
-  if (!currentGameId) {
-    if (!mapName) {
-      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your dream first' }, '*'); } catch(e) {}
-      return;
-    }
-    const { data: newGame, error } = await sb.from('games').insert({
-      user_id: currentUser.id, map_name: mapName, map_type: mapType, map_data: mapData, status: 'active'
-    }).select().single();
-    if (error) {
-      try { window.parent.postMessage({ type: 'map_save_failed', reason: 'save failed' }, '*'); } catch(e) {}
-      return;
-    }
-    currentGameId = newGame.id;
-    try { window.parent.postMessage({ type: 'map_saved', game_id: newGame.id, map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
-    return;
-  }
-
-  // ── EXISTING GAME — persist the map definition only. ──
-  // Daily entries are owned by the adventure matrix.
-  await sb.from('games')
-    .update({ map_data: mapData, map_name: mapName, updated_at: new Date().toISOString() })
-    .eq('id', currentGameId).eq('user_id', currentUser.id);
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────
-async function initSupabase() {
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    currentUser = session?.user || null;
-    await loadGameContext();
-  } catch(e) {}
+  try { window.parent.postMessage({ type: 'map_ready', map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
 }
 
 spiralLoadState();
@@ -1052,12 +950,11 @@ buildSpiralSVG();
 buildSquareSVG();
 document.getElementById("mapName").value = spiralState.name || "";
 updateSpiralStatus();
-initSupabase();
 
-// ── Listen for chart-room triggering the save ─────────────
+// ── Listen for matrix triggering the state report ─────────
 window.addEventListener('message', e => {
   if (e.data && e.data.type === 'save_map') {
-    saveToday();
+    reportMapState();
   }
 });
 </script>
