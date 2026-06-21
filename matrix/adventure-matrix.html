@@ -903,10 +903,10 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
       <button class="sq-close" onclick="closeSidequestBuilder()">×</button>
     </div>
     <div class="sq-sub">a secret world you fall into.</div>
-    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name your sidequest...">
+    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this location">
     <div class="sq-body">
       <div class="sq-preview-col">
-        <div class="sq-section-label">your place</div>
+        <div class="sq-section-label">your sidequest</div>
         <div class="sq-map-frame" id="sq-map-frame"></div>
       </div>
       <div class="sq-controls-col">
@@ -1880,7 +1880,7 @@ function buildAdventureMatrix(data, seedStr){
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
-      <button class="matrix-photo-btn" onclick="openPhotoUpload()">+ photo</button>
+      <button class="matrix-photo-btn" onclick="openPhotoUpload()"> add photos</button>
       <button class="matrix-archive-btn" onclick="window.location.href='${data.archiveHref||'#'}'">archive →</button>
     </div>
     <div class="matrix-frame">
