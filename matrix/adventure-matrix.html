@@ -888,7 +888,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none; back
           <input class="lm-input" type="password" id="lm-su-password" placeholder="at least 6 characters" minlength="6"/>
         </div>
         <div class="lm-msg" id="lm-signup-msg"></div>
-        <button class="lm-btn" id="lm-signup-btn" onclick="lmSignup()">create account ♡</button>
+        <button class="lm-btn" id="lm-signup-btn" onclick="lmSignup()">create account</button>
       </div>
     </div>
     <div class="lm-footer">login to access the matrix</div>
@@ -1045,7 +1045,7 @@ async function lmSignup() {
   const { data, error } = await sb.auth.signUp({ email, password });
   if (error) {
     lmShowMsg('lm-signup-msg', error.message, 'error');
-    btn.disabled = false; btn.textContent = 'create account ♡';
+    btn.disabled = false; btn.textContent = 'create account';
     return;
   }
   if (data.user && username) {
@@ -1517,7 +1517,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('write your adventure notes ♡', []);
+  setBubble('write your adventure notes', []);
   showPanel(buildJournalPanel());
   fitJournalBook();
   loadJournalEntries();
