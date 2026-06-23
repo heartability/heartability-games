@@ -86,22 +86,6 @@ body {
   pointer-events: none;
 }
 
-.reset-btn {
-  background: rgba(138,122,90,0.18);
-  border: 1px solid rgba(138,122,90,0.5);
-  font-family: var(--font-game);
-  font-size: 12px;
-  color: #8a7a5a;
-  padding: 5px 12px;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: background 0.15s;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
-.reset-btn:hover { background: rgba(138,122,90,0.32); }
-
 /* GRID */
 .bingo-grid {
   display: grid;
@@ -364,7 +348,6 @@ body {
 
       <div class="bottom-row">
         <div class="reading-panel" id="readingPanel">
-          <button class="reset-btn" onclick="resetGame()">reset</button>
           <div class="reading-header">
             <div class="reading-title" id="readingTitle"></div>
             <div class="reading-score" id="readingScore"></div>
