@@ -385,30 +385,30 @@ const GAME_ID   = _params.get('game_id');
 const LOOP_MODE = _params.get('loop') === 'true';
 
 const SQUARES = [
+  "you feel full",
+  "your stomach hasn't rumbled today",
+  "your fridge is full",
+  "you had fresh food this week",
+  "you ate something good today",
+  "your sheets are clean",
+  "you have a quiet place to rest",
+  "close your eyes for one minute",
+  "think of a relaxing smell",
+  "take a deep breath",
+  "your body feels comfy",
+  "you laughed today",
+  "you felt fresh air today",
+  "drink a glass of water",
   "your body feels clean",
-  "you are not hungry or thirsty",
-  "you feel comfy in your body",
-  "you feel loved by your community",
-  "you feel well rested today",
-  "your space feels clean",
-  "you have drank a glass of water today",
-  "you have done something fun this week",
-  "you have talked to a friend this week",
-  "you find it easy to fall asleep lately",
-  "you recently cleaned your room/house",
-  "you have eaten food that you enjoyed today",
-  "you dont try to do everything alone",
-  "you do something relaxing to end your day",
-  "without moving, look at an item with a story",
-  "you have options for your next meal",
-  "you have moved your body mindfully today",
-  "without moving, look at something you love",
-  "you dont feel guilty for taking naps",
-  "you feel in control of your environment",
-  "somebody cooked for you this week",
-  "you know why you get sore and how to feel better",
-  "you have people to call in an emergency",
-  "you are not afraid to prioritize rest"
+  "you meditated today",
+  "your environment is clean",
+  "you smell good",
+  "you brushed your teeth today",
+  "you feel like you are on the right path",
+  "you asked for help today",
+  "look at something nostalgic",
+  "light a candle for someone you love",
+  "eat something ancestral"
 ];
 
 const READINGS = [
@@ -440,7 +440,7 @@ function buildGrid() {
 
     const txt = document.createElement("div");
     txt.className = "cell-text";
-    txt.textContent = i===12 ? "take a deep breath" : SQUARES[i<12?i:i-1];
+    txt.textContent = i===12 ? "you are alive" : SQUARES[i<12?i:i-1];
     cell.appendChild(txt);
 
     const heart = document.createElement("div");
