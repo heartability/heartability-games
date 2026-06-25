@@ -282,7 +282,9 @@ async function ensureCosmicGame(tpl){
       if (error) throw error;
       game = data;
     } catch(err){
-      // Unique index likely caught a race — re-fetch the row that won.
+      // Surface the real reason (constraint, RLS, etc.) — don't hide it.
+      console.error('[cosmic clone] games insert failed:', err?.message || err, err);
+      // A unique-index race is the one benign case: re-fetch the row that won.
       try {
         const { data } = await sb.from('games').select('*')
           .eq('user_id', currentUser.id).eq('map_type','cosmic');
