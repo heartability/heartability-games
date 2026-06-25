@@ -5,53 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cosmic Matrix — Heartability</title>
 <style>
-@font-face { font-family:"ZoesNumbers";    src:url("../assets/fonts/ZoesNumbers-Regular.ttf") format("truetype"); }
-@font-face { font-family:"PFPixelscript";   src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 :root{
-  --cream:#fdf6e3; --ink:#000f5a; --blue:#6578e2; --aqua:#83d2e6;
-  --pink:#E8478B; --gold:#c8a84b;
-  --font-hand:"PFPixelscript",cursive; --font-write:"ZoesHandwriting",cursive; --font-game:"VT323",monospace;
+  --font-hand:"ZoesHandwriting",cursive;
+  --font-pixel:"PFPixelscript",cursive;
+  --blue:#6579e2; --aqua:#83d2e6; --ink:#000f5a; --cream:#fdf6e3; --pink:#E8478B;
+  --line:#111;
+  --bw-top:9%; --bw-left:15%; --bw-width:70%; --bw-height:70%;
 }
-body{ min-height:100vh; background:var(--cream); font-family:var(--font-game); color:var(--ink); display:flex; flex-direction:column; overflow-x:hidden; }
+html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
+  background:linear-gradient(#d7e7f3 0%, #eaf0ec 48%, var(--cream) 100%);
+  font-family:var(--font-hand); color:var(--ink); }
 
-/* NAV */
-.room-nav{ display:flex; justify-content:space-between; align-items:center; padding:12px 18px;
-  font-family:var(--font-game); font-size:18px; letter-spacing:1px; color:var(--blue); border-bottom:2px solid rgba(101,120,226,0.25); }
-.room-nav .nav-btn{ cursor:pointer; }
-.room-nav .nav-btn:hover{ color:var(--ink); }
-.room-nav .nav-title{ font-family:var(--font-hand); font-size:22px; color:var(--ink); }
+/* NAV (matches adventure) */
+.room-nav{ position:fixed; top:0; left:0; right:0; height:44px; background:#c9fff5;
+  border-bottom:2px solid var(--line); z-index:200; display:flex; align-items:center;
+  justify-content:space-between; padding:0 clamp(12px,2vw,28px);
+  font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111; }
+.nav-btn{ cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
+.nav-btn:hover{ background:rgba(0,0,0,.08); }
 
-/* STAGE */
-.stage{ flex:1; display:flex; flex-direction:column; align-items:center; padding:22px 16px 40px; position:relative; }
+/* CONTENT PANEL — sits where the back wall would be (outside: no wall, soft frame) */
+.content-panel{ position:fixed; top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height); z-index:10; display:none;
+  flex-direction:column; overflow:hidden; }
+.content-panel.active{ display:flex; }
+.content-panel.active:not(.iframe-mode){ background:var(--cream); border:2px solid var(--aqua); box-shadow:0 8px 22px rgba(0,0,0,.08); }
+.game-iframe{ width:100%; height:100%; border:none; display:block; }
+.content-panel.iframe-mode{ border:3px solid #111; box-shadow:inset 0 0 0 2px var(--aqua); }
+.panel-scroll{ width:100%; height:100%; overflow-y:auto; padding:22px; display:flex; flex-direction:column; align-items:center; }
 
-/* CONTENT PANEL */
-.panel{ width:100%; max-width:780px; }
-.panel.iframe-mode{ height:72vh; }
-.game-iframe{ width:100%; height:100%; border:2px solid var(--blue); background:var(--cream); display:block; }
+/* HEART + BUBBLE (matches adventure: heart bottom-left, bubble to its RIGHT) */
+@keyframes idle-pulse{ 0%,100%{ transform:translateY(0) rotate(-2deg) scale(1);} 50%{ transform:translateY(-8px) rotate(2deg) scale(1.03);} }
+.char-heart{ position:fixed; left:4vw; bottom:6vh; width:clamp(100px,14vw,220px); z-index:20; }
+.char-heart .char-img{ display:block; width:100%; height:auto; filter:drop-shadow(0 4px 10px rgba(0,0,0,.28)); animation:idle-pulse 3.6s ease-in-out 1s infinite; }
+.thought-bubble{ position:absolute; left:calc(100% - 8px); bottom:60%;
+  min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
+  background:#fff; border:2px solid #000; border-radius:50%; padding:14px 20px;
+  font-family:var(--font-hand); font-size:clamp(11px,1.3vw,15px); color:#000;
+  text-align:center; line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2)); z-index:21; }
 
-/* HEADER */
-.season-head{ text-align:center; margin-bottom:6px; }
-.season-title{ font-family:var(--font-hand); font-size:clamp(24px,4vw,34px); color:var(--ink); }
-.season-sub{ font-family:var(--font-game); font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--blue); }
+/* SAVE BAR (matches adventure: floating blue button) */
+.save-continue-bar{ position:fixed; bottom:0; left:0; right:0; height:calc(21% - 44px);
+  display:none; align-items:center; justify-content:center; z-index:15; pointer-events:none; }
+.save-continue-bar.visible{ display:flex; }
+.save-continue-btn{ pointer-events:all; padding:14px 40px; background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:3px 3px 0 #3a4aaa; font-family:var(--font-hand);
+  font-size:clamp(15px,1.8vw,20px); color:#fff; cursor:pointer; transition:all .05s; letter-spacing:.3px; text-transform:lowercase; }
+.save-continue-btn:hover{ background:#4a5bc4; }
+.save-continue-btn:active{ box-shadow:none; transform:translate(3px,3px); }
+.save-continue-btn:disabled{ opacity:.38; cursor:not-allowed; transform:none!important; box-shadow:3px 3px 0 #3a4aaa; }
+.save-status-bar{ position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+  font-family:var(--font-hand); font-size:14px; color:#6ab86a; z-index:16; pointer-events:none; }
+
+/* SEASON HEADER */
+.season-head{ text-align:center; margin-bottom:8px; }
+.season-title{ font-family:var(--font-hand); font-size:clamp(24px,3.4vw,34px); color:var(--ink); }
+.season-sub{ font-family:var(--font-hand); font-size:clamp(13px,1.5vw,16px); letter-spacing:2px; color:var(--blue); }
 
 /* TIMELINE */
-.timeline{ width:100%; max-width:560px; margin:14px auto 0; position:relative; }
-.timeline::before{ content:""; position:absolute; left:23px; top:14px; bottom:14px; width:2px;
+.timeline{ width:100%; max-width:520px; margin:10px auto 0; position:relative; }
+.timeline::before{ content:""; position:absolute; left:22px; top:14px; bottom:14px; width:2px;
   background:repeating-linear-gradient(var(--blue) 0 5px, transparent 5px 11px); opacity:.5; }
-.node{ display:flex; align-items:center; gap:14px; padding:9px 10px; margin:5px 0; position:relative;
-  border:2px solid transparent; background:transparent; }
+.node{ display:flex; align-items:center; gap:14px; padding:9px 10px; margin:5px 0; position:relative; border:2px solid transparent; }
 .node-dot{ width:30px; height:30px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-game); font-size:15px; border:2px solid var(--blue); background:var(--cream); color:var(--blue); z-index:1; }
+  font-family:var(--font-hand); font-size:17px; border:2px solid var(--blue); background:var(--cream); color:var(--blue); z-index:1; }
 .node-body{ flex:1; min-width:0; }
-.node-loc{ font-family:var(--font-write); font-size:17px; color:var(--ink); line-height:1.15; }
-.node-meta{ font-family:var(--font-game); font-size:12px; letter-spacing:.5px; color:var(--blue); margin-top:1px; }
-.node-badge{ font-family:var(--font-game); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; flex-shrink:0; }
-
-/* node states */
+.node-loc{ font-family:var(--font-hand); font-size:clamp(17px,2vw,20px); color:var(--ink); line-height:1.15; }
+.node-meta{ font-family:var(--font-hand); font-size:clamp(12px,1.4vw,15px); color:var(--blue); margin-top:1px; }
+.node-badge{ font-family:var(--font-hand); font-size:13px; letter-spacing:.5px; padding:2px 8px; flex-shrink:0; }
 .node.available{ cursor:pointer; }
 .node.available:hover{ border-color:var(--aqua); background:#eef6f9; }
 .node.available .node-badge{ color:var(--aqua); }
@@ -59,74 +84,61 @@ body{ min-height:100vh; background:var(--cream); font-family:var(--font-game); c
 .node.completed .node-dot{ background:var(--pink); border-color:var(--pink); color:#fff; }
 .node.completed:hover{ border-color:var(--pink); background:#fbe9f1; }
 .node.completed .node-badge{ color:var(--pink); }
-.node.locked{ opacity:.45; cursor:default; }
+.node.locked{ opacity:.45; }
 .node.locked .node-dot{ border-color:#9aa0b8; color:#9aa0b8; }
 .node.locked .node-badge{ color:#9aa0b8; }
-.node.current .node-dot{ box-shadow:0 0 0 3px rgba(131,210,230,.5); }
+.node.current .node-dot{ box-shadow:0 0 0 3px rgba(131,210,230,.55); }
 .node.just-done{ animation:flash 1.6s ease-out; }
-@keyframes flash{ 0%{ background:#fff0a0; } 100%{ background:transparent; } }
+@keyframes flash{ 0%{ background:#fff0a0;} 100%{ background:transparent;} }
 
-/* HEART + BUBBLE */
-.guide{ position:fixed; bottom:14px; left:16px; z-index:20; display:flex; align-items:flex-end; gap:8px; pointer-events:none; }
-.guide-img{ width:clamp(56px,10vw,82px); height:auto; filter:drop-shadow(0 4px 10px rgba(0,0,0,.25)); animation:float 4s ease-in-out infinite; }
-@keyframes float{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-8px) rotate(2deg);} }
-.bubble{ background:#fff; border:2px solid var(--ink); border-radius:18px; padding:10px 16px; font-family:var(--font-write);
-  font-size:clamp(13px,1.6vw,16px); color:var(--ink); max-width:min(58vw,320px); filter:drop-shadow(1px 3px 4px rgba(0,0,0,.15)); }
-
-/* SAVE BAR */
-.save-bar{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:21; display:none; }
-.save-bar.visible{ display:block; }
-.save-btn{ font-family:var(--font-game); font-size:20px; letter-spacing:1px; color:#fff; background:var(--blue);
-  border:2px solid var(--ink); border-right-color:#000f5a; border-bottom-color:#000f5a; padding:9px 30px; cursor:pointer; text-transform:lowercase; }
-.save-btn:hover{ filter:brightness(1.08); }
-.save-btn:active{ transform:translateY(1px); }
-.save-btn:disabled{ opacity:.6; cursor:default; }
-.status{ position:fixed; bottom:58px; left:50%; transform:translateX(-50%); z-index:21; font-family:var(--font-game); font-size:14px; letter-spacing:.5px; }
-
-/* GATE / MESSAGE PANELS */
-.gate{ max-width:480px; margin:8vh auto 0; text-align:center; background:#eef6f9; border:2px solid var(--aqua);
-  border-right-color:#5fa9bd; border-bottom-color:#5fa9bd; padding:30px 26px; }
+/* GATE */
+.gate{ margin:auto; max-width:420px; text-align:center; background:#eef6f9; border:2px solid var(--aqua); padding:28px 24px; }
 .gate-title{ font-family:var(--font-hand); font-size:26px; color:var(--ink); margin-bottom:10px; }
-.gate-text{ font-family:var(--font-write); font-size:17px; color:var(--ink); line-height:1.4; margin-bottom:18px; }
-.gate-btn{ font-family:var(--font-game); font-size:18px; letter-spacing:1px; color:#fff; background:var(--blue);
-  border:2px solid var(--ink); padding:9px 24px; cursor:pointer; text-transform:lowercase; }
-.gate-btn:hover{ filter:brightness(1.08); }
+.gate-text{ font-family:var(--font-hand); font-size:17px; color:var(--ink); line-height:1.4; margin-bottom:18px; }
+.gate-btn{ font-family:var(--font-hand); font-size:18px; color:#fff; background:var(--blue);
+  border:2px solid #4a5bc4; box-shadow:3px 3px 0 #3a4aaa; padding:10px 24px; cursor:pointer; }
+.gate-btn:hover{ background:#4a5bc4; }
+.gate-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 
-/* JOURNAL (streamlined) */
-.jr{ background:var(--cream); border:2px solid var(--blue); padding:16px; }
-.jr-note{ font-family:var(--font-write); font-size:15px; color:var(--blue); margin-bottom:8px; }
-.jr-ta{ width:100%; min-height:160px; resize:vertical; font-family:var(--font-game); font-size:16px; color:var(--ink);
+/* JOURNAL */
+.jr{ width:100%; max-width:520px; margin:0 auto; }
+.jr-note{ font-family:var(--font-hand); font-size:16px; color:var(--blue); margin-bottom:8px; }
+.jr-ta{ width:100%; min-height:150px; resize:vertical; font-family:var(--font-hand); font-size:17px; color:var(--ink);
   background:#fffdf5; border:2px solid #c8b88a; padding:10px; line-height:1.4; }
 .jr-row{ display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap; }
-.jr-upload{ font-family:var(--font-game); font-size:14px; color:var(--blue); border:2px dashed var(--aqua); padding:8px 14px; cursor:pointer; }
+.jr-upload{ font-family:var(--font-hand); font-size:15px; color:var(--blue); border:2px dashed var(--aqua); padding:8px 14px; cursor:pointer; }
 .jr-preview{ max-height:90px; border:2px solid #c8b88a; display:none; }
 .jr-preview.show{ display:block; }
-.jr-status{ font-family:var(--font-game); font-size:13px; margin-top:8px; min-height:16px; }
+.jr-status{ font-family:var(--font-hand); font-size:14px; margin-top:8px; min-height:16px; }
+
+/* MOBILE */
+@media (max-width:768px){
+  :root{ --bw-top:44px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 44px); }
+  .content-panel.active:not(.iframe-mode){ border:none; box-shadow:none; }
+  .char-heart{ display:none; }
+  .save-continue-bar{ height:auto; padding:10px 0; bottom:0; z-index:30; }
+}
 </style>
 </head>
 <body>
 
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← back</span>
-  <span class="nav-title">cosmic matrix</span>
+  <span>cosmic matrix</span>
   <span></span>
 </nav>
 
-<div class="stage">
-  <div class="panel" id="panel"></div>
+<div class="content-panel" id="content-panel"></div>
+
+<div class="char-heart" id="char-heart">
+  <div class="thought-bubble" id="bubble">reading the sky…</div>
+  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
-<!-- heart guide + bubble -->
-<div class="guide">
-  <div class="bubble" id="bubble">reading the sky…</div>
-  <img class="guide-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
+<div class="save-continue-bar" id="save-bar">
+  <button class="save-continue-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
 </div>
-
-<!-- save bar -->
-<div class="status" id="status"></div>
-<div class="save-bar" id="save-bar">
-  <button class="save-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
-</div>
+<div class="save-status-bar" id="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -165,8 +177,8 @@ function showStatus(msg,color){ const el=$('status'); el.textContent=msg; el.sty
   clearTimeout(el._t); el._t=setTimeout(()=>el.textContent='',3000); }
 function setSave(visible,label='continue →'){ const bar=$('save-bar'),btn=$('save-btn');
   bar.classList.toggle('visible',visible); if(btn){ btn.innerHTML=label; btn.disabled=false; } }
-function showPanel(html){ const p=$('panel'); p.className='panel'; p.innerHTML=html; }
-function showIframe(src){ const p=$('panel'); p.className='panel iframe-mode';
+function showPanel(html){ const p=$('content-panel'); p.className='content-panel active'; p.innerHTML=`<div class="panel-scroll">${html}</div>`; }
+function showIframe(src){ const p=$('content-panel'); p.className='content-panel active iframe-mode';
   p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`; }
 
 function phases(){ return (activeMapData?.phases || []).slice().sort((a,b)=>Date.parse(a.opens_utc)-Date.parse(b.opens_utc)); }
