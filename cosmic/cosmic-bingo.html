@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Bingo — Heartability</title>
+<style>
+@font-face {
+  font-family: "ZoesNumbers";
+  src: url("../assets/fonts/ZoesNumbers-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --wall-dark: #fdf6e3;
+  --panel-bg: #fdf6e3;
+  --panel-border: #6578e2;
+  --panel-border-dark: #6578e2;
+  --panel-border-light: #83d2e6;
+  --text-dark: #000f5a;
+  --text-mid: #6578e2;
+  --aqua: #83d2e6;
+  --heart-pink: #E8478B;
+  --heart-light: #ffb3d1;
+  --gold: #c8a84b;
+  --font-hand: "PFPixelscript", cursive;
+  --font-write: "ZoesHandwriting", cursive;
+  --font-game: "VT323", monospace;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--wall-dark);
+  font-family: var(--font-game);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ROOM LAYOUT */
+.room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.wall {
+  flex: 1;
+  background: var(--wall-dark);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 40px;
+  min-height: 0;
+}
+
+/* HEADER */
+.cosmic-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+.cosmic-title {
+  font-family: var(--font-hand);
+  font-size: clamp(22px, 4vw, 34px);
+  color: var(--text-dark);
+  letter-spacing: 1px;
+}
+.cosmic-season {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--text-mid);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* RPG PANEL */
+.rpg-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--panel-bg);
+  width: 100%;
+  max-width: 760px;
+  padding: 20px;
+}
+
+/* GRID */
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  user-select: none;
+}
+
+/* CELL */
+.cell {
+  background: #e8e0c8;
+  border: 2px solid #8a7a5a;
+  border-right-color: #5a4a2a;
+  border-bottom-color: #5a4a2a;
+  border-left-color: #c8b88a;
+  border-top-color: #c8b88a;
+  min-height: clamp(78px, 17vw, 132px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 5px;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.1s;
+  overflow: hidden;
+}
+
+.cell:hover { filter: brightness(1.05); }
+
+.cell:active {
+  border-right-color: #c8b88a;
+  border-bottom-color: #c8b88a;
+  border-left-color: #5a4a2a;
+  border-top-color: #5a4a2a;
+}
+
+.cell.free-space {
+  background: #d8ecf2;
+  border-color: var(--aqua);
+  cursor: default;
+}
+
+.cell.marked { background: #f0d0e0; }
+
+.cell.bingo-line {
+  background: #fff0a0;
+  animation: blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+  from { background: #fff0a0; }
+  to { background: #ffe040; }
+}
+
+.cell-text {
+  font-family: var(--font-game);
+  font-size: clamp(8px, 1.45vw, 13px);
+  color: var(--text-dark);
+  text-align: center;
+  line-height: 1.15;
+  z-index: 1;
+  pointer-events: none;
+  letter-spacing: 0.3px;
+}
+
+.cell-date {
+  font-family: var(--font-game);
+  font-size: clamp(7px, 1.1vw, 10px);
+  color: var(--text-mid);
+  text-align: center;
+  line-height: 1;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.cell.free-space .cell-text {
+  font-family: var(--font-hand);
+  font-size: clamp(10px, 1.6vw, 15px);
+  color: var(--text-dark);
+}
+
+.cell-heart {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(20px, 4vw, 38px);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cell.marked .cell-heart { opacity: 1; }
+.cell.marked .cell-text,
+.cell.marked .cell-date { opacity: 0.15; }
+
+/* METER */
+.meter-section { margin-top: 16px; }
+
+.meter-label {
+  font-family: var(--font-game);
+  font-size: 13px;
+  color: var(--text-mid);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.meter-track {
+  background: #c8b88a;
+  border: 2px solid var(--panel-border-dark);
+  border-right-color: var(--panel-border-light);
+  border-bottom-color: var(--panel-border-light);
+  height: 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #e8478b 0px, #e8478b 18px,
+    #ff6ba8 18px, #ff6ba8 20px
+  );
+  transition: width 0.4s steps(12);
+  min-width: 0;
+}
+
+.meter-count {
+  font-family: var(--font-game);
+  font-size: 12px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* BINGO ALERT */
+.bingo-alert {
+  display: none;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: #c8a84b;
+  text-shadow: 1px 2px 0 rgba(0,0,0,0.18);
+  text-align: center;
+  padding: 8px 0 2px;
+  animation: blink-text 0.6s ease-in-out infinite alternate;
+}
+.bingo-alert.show { display: block; }
+
+@keyframes blink-text {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+/* READING / TRANSIT PANEL */
+.reading-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #eef6f9;
+  border: 2px solid var(--aqua);
+  border-right-color: #5fa9bd;
+  border-bottom-color: #5fa9bd;
+  padding: 12px 16px;
+  margin-top: 14px;
+  min-height: 76px;
+}
+
+.reading-guide {
+  width: clamp(44px, 9vw, 58px);
+  height: auto;
+  flex-shrink: 0;
+  animation: guideFloat 4s ease-in-out infinite;
+}
+@keyframes guideFloat {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(2deg); }
+}
+
+.reading-body { flex: 1; }
+
+.reading-transit {
+  font-family: var(--font-write);
+  font-size: clamp(14px, 2vw, 18px);
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.reading-date {
+  font-family: var(--font-game);
+  font-size: 13px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  margin-top: 3px;
+}
+
+@media (max-width: 500px) {
+  .wall { padding: 16px 10px 30px; }
+  .rpg-panel { padding: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="room">
+  <div class="wall">
+
+    <div class="cosmic-header">
+      <div class="cosmic-title">cosmic bingo</div>
+      <div class="cosmic-season" id="seasonLabel">cancer season</div>
+    </div>
+
+    <div class="bingo-alert" id="bingoAlert">&#x2726; BINGO &#x2726;</div>
+
+    <div class="rpg-panel">
+
+      <div class="bingo-grid" id="bingoGrid"></div>
+
+      <div class="meter-section">
+        <div class="meter-label">season progress</div>
+        <div class="meter-track">
+          <div class="meter-fill" id="meterFill" style="width:0%"></div>
+        </div>
+        <div class="meter-count" id="meterCount">0 of 24</div>
+      </div>
+
+      <div class="reading-panel" id="readingPanel">
+        <img class="reading-guide" src="../assets/elements/guides/heart.png" alt="Heart guide">
+        <div class="reading-body">
+          <div class="reading-transit" id="readingTransit">tap a square to read its transit</div>
+          <div class="reading-date" id="readingDate"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   COSMIC BINGO — season board (embedded as an iframe by cosmic_matrix.html)
+   This page plays in-memory and never touches Supabase. The cosmic matrix
+   is the sole writer, exactly like adventure-matrix.html: it hydrates the
+   board via load_state and persists via the bingo_state it requests.
+
+   postMessage contract
+     game → parent : cosmic_bingo_ready            (on load; matrix then hydrates)
+     parent → game : load_state { marked: bool[25] }   (saved season board)
+     parent → game : request_state                 (matrix's "continue →" clicked)
+     game → parent : bingo_state { marked, score }     (matrix writes if paid)
+
+   Prompts come from BOARD (in production: cosmic_templates.bingo_prompts).
+   ============================================================ */
+
+// ── URL params (set by the cosmic matrix when it builds the iframe src) ──
+const _params = new URLSearchParams(window.location.search);
+const SEASON  = _params.get('season') || 'cancer season';
+document.getElementById('seasonLabel').textContent = SEASON.toLowerCase();
+
+/* ── BOARD CONTENT ──────────────────────────────────────────
+   COLUMN-MAJOR: five categories are the five columns, five prompts
+   run down each. Index 12 (Uranus/Neptune #3) is the centre free space.
+
+   Columns →   Sun | Mercury | Uranus/Neptune | Venus/Mars | Jupiter/Saturn
+   Rows (prompt #1..#5) fill top to bottom.
+
+   In production this array IS the shape you store in
+   cosmic_templates.bingo_prompts — swap the constant for a fetch and
+   nothing else changes.
+─────────────────────────────────────────────────────────── */
+const BOARD = [
+  // ── Row 1 (prompt #1) ──
+  { prompt: "Receive praise without diminishing it",            date: "6/21",  transit: "Sun enters Cancer" },
+  { prompt: "Revive a forgotten thread",                        date: "6/29",  transit: "Mercury retrograde begins" },
+  { prompt: "Take a different route and see where it goes",     date: "7/15",  transit: "Uranus sextile Neptune" },
+  { prompt: "Show appreciation for someone important",          date: "6/25",  transit: "Venus trine Saturn" },
+  { prompt: "Speak up about something important to you",        date: "6/29",  transit: "Jupiter enters Leo" },
+  // ── Row 2 (prompt #2) ──
+  { prompt: "Tell the truth when a lie would feel nicer",       date: "6/25",  transit: "Sun square Neptune" },
+  { prompt: "Revise your work for common errors",              date: "6/29–7/21", transit: "Mercury moving retrograde" },
+  { prompt: "Switch up your routine for a day",                date: "7/4",   transit: "Mars conjunct Uranus" },
+  { prompt: "Tell someone how you really feel",                date: "6/28",  transit: "Mars enters Gemini" },
+  { prompt: "Say no to something you feel obligated to do",     date: "",      transit: "Saturn in Aries" },
+  // ── Row 3 (prompt #3) — centre is free space ──
+  { prompt: "Write down your current goals for future reference", date: "6/29", transit: "Full moon in Cap · Mercury retrograde · Jupiter enters Leo" },
+  { prompt: "Take action on a dream",                          date: "7/14",  transit: "New moon conjunct Mercury" },
+  { prompt: "you are here",                                    date: "",      transit: "the sky holds this one for you", free: true },
+  { prompt: "Do a random act of kindness",                     date: "7/4",   transit: "Mars conjunct Uranus" },
+  { prompt: "Clean out a closet",                              date: "7/20",  transit: "Jupiter opposite Pluto" },
+  // ── Row 4 (prompt #4) ──
+  { prompt: "Take action on your passion",                     date: "7/6",   transit: "Sun square Saturn" },
+  { prompt: "Express your emotional state",                    date: "7/14",  transit: "Moon conjunct Mercury" },
+  { prompt: "Take a risk on a dream",                          date: "7/20",  transit: "Jupiter trine Neptune" },
+  { prompt: "Go on a date with someone you love",              date: "7/9",   transit: "Venus enters Virgo" },
+  { prompt: "Do something you have been avoiding",             date: "7/19",  transit: "Mars sextile Saturn" },
+  // ── Row 5 (prompt #5) ──
+  { prompt: "Teach someone something",                         date: "7/12",  transit: "Sun conjunct Mercury" },
+  { prompt: "Reprogram a pattern that needs updating",         date: "7/21",  transit: "Mercury stations direct" },
+  { prompt: "Break a social norm",                             date: "7/17",  transit: "Uranus trine Pluto" },
+  { prompt: "Tell someone who needs to know how you really feel", date: "7/13", transit: "Venus square Uranus" },
+  { prompt: "Accept an unusual invitation",                    date: "7/21",  transit: "Jupiter sextile Uranus" },
+];
+
+const FREE_INDEX = BOARD.findIndex(c => c.free);
+
+// Bingo lines (5 rows, 5 cols, 2 diagonals) over the 5×5 grid
+const LINES = [
+  [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+  [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+  [0,6,12,18,24],[4,8,12,16,20]
+];
+
+let marked = new Array(25).fill(false);
+marked[FREE_INDEX] = true;
+let dragging = false;
+
+function buildGrid() {
+  const grid = document.getElementById('bingoGrid');
+  grid.innerHTML = '';
+  BOARD.forEach((cell, i) => {
+    const el = document.createElement('div');
+    el.className = 'cell' + (cell.free ? ' free-space' : '') + (marked[i] ? ' marked' : '');
+    el.dataset.idx = i;
+
+    const txt = document.createElement('div');
+    txt.className = 'cell-text';
+    txt.textContent = cell.prompt;
+    el.appendChild(txt);
+
+    if (cell.date) {
+      const d = document.createElement('div');
+      d.className = 'cell-date';
+      d.textContent = '(' + cell.date + ')';
+      el.appendChild(d);
+    }
+
+    const heart = document.createElement('div');
+    heart.className = 'cell-heart';
+    heart.textContent = '\u2665';
+    heart.style.color = 'var(--heart-pink)';
+    el.appendChild(heart);
+
+    if (!cell.free) {
+      el.addEventListener('click', () => {
+        marked[i] = !marked[i];
+        showReading(i);
+        update();
+        notifyParent();
+      });
+      el.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+      el.addEventListener('mouseenter', () => {
+        if (dragging) { marked[i] = true; showReading(i); update(); notifyParent(); }
+      });
+    } else {
+      el.addEventListener('click', () => showReading(i));
+    }
+
+    grid.appendChild(el);
+  });
+  document.addEventListener('mouseup', () => dragging = false);
+}
+
+function showReading(i) {
+  const cell = BOARD[i];
+  document.getElementById('readingTransit').textContent = cell.transit;
+  document.getElementById('readingDate').textContent = cell.date ? cell.date : '';
+}
+
+function update() {
+  document.querySelectorAll('.cell').forEach((cell, i) => {
+    cell.classList.toggle('marked', !!marked[i]);
+    cell.classList.remove('bingo-line');
+  });
+
+  let hasBingo = false;
+  LINES.forEach(line => {
+    if (line.every(i => marked[i])) {
+      hasBingo = true;
+      line.forEach(i => {
+        const c = document.querySelector(".cell[data-idx='" + i + "']");
+        if (c) c.classList.add('bingo-line');
+      });
+    }
+  });
+  document.getElementById('bingoAlert').classList.toggle('show', hasBingo);
+
+  const score = marked.filter((v, i) => v && i !== FREE_INDEX).length;
+  document.getElementById('meterFill').style.width = (score / 24) * 100 + '%';
+  document.getElementById('meterCount').textContent = score + ' of 24';
+}
+
+/* ── postMessage contract with cosmic_matrix.html ───────────
+   The matrix is the sole writer. This page never saves; it reports
+   state when asked (on continue) and accepts a saved board to hydrate. */
+function currentState() {
+  const score = marked.filter((v, i) => v && i !== FREE_INDEX).length;
+  return { type: 'bingo_state', marked: Array.from(marked), score };
+}
+
+// Push live state up on every change, so a paid matrix can persist
+// continuously across the session if it chooses (it can also just wait
+// for request_state on continue — both are supported).
+function notifyParent() {
+  if (window.parent !== window) window.parent.postMessage(currentState(), '*');
+}
+
+window.addEventListener('message', e => {
+  const msg = e.data || {};
+  // Matrix hands us the saved season board to render (accumulated marks)
+  if (msg.type === 'load_state' && Array.isArray(msg.marked)) {
+    marked = msg.marked.slice(0, 25);
+    while (marked.length < 25) marked.push(false);
+    marked[FREE_INDEX] = true;            // free space is always lit
+    buildGrid();
+    update();
+  }
+  // Matrix's "continue →" was clicked — report current state for the write
+  if (msg.type === 'request_state') {
+    window.parent.postMessage(currentState(), '*');
+  }
+});
+
+(function init() {
+  buildGrid();
+  update();
+  // Tell the matrix we're ready so it can hydrate with the saved board.
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'cosmic_bingo_ready' }, '*');
+  }
+})();
+</script>
+
+</body>
+</html>
