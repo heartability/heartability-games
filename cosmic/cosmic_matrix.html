@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Matrix — Heartability</title>
+<style>
+@font-face { font-family:"ZoesNumbers";    src:url("../assets/fonts/ZoesNumbers-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelscript";   src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+:root{
+  --cream:#fdf6e3; --ink:#000f5a; --blue:#6578e2; --aqua:#83d2e6;
+  --pink:#E8478B; --gold:#c8a84b;
+  --font-hand:"PFPixelscript",cursive; --font-write:"ZoesHandwriting",cursive; --font-game:"VT323",monospace;
+}
+body{ min-height:100vh; background:var(--cream); font-family:var(--font-game); color:var(--ink); display:flex; flex-direction:column; overflow-x:hidden; }
+
+/* NAV */
+.room-nav{ display:flex; justify-content:space-between; align-items:center; padding:12px 18px;
+  font-family:var(--font-game); font-size:18px; letter-spacing:1px; color:var(--blue); border-bottom:2px solid rgba(101,120,226,0.25); }
+.room-nav .nav-btn{ cursor:pointer; }
+.room-nav .nav-btn:hover{ color:var(--ink); }
+.room-nav .nav-title{ font-family:var(--font-hand); font-size:22px; color:var(--ink); }
+
+/* STAGE */
+.stage{ flex:1; display:flex; flex-direction:column; align-items:center; padding:22px 16px 40px; position:relative; }
+
+/* CONTENT PANEL */
+.panel{ width:100%; max-width:780px; }
+.panel.iframe-mode{ height:72vh; }
+.game-iframe{ width:100%; height:100%; border:2px solid var(--blue); background:var(--cream); display:block; }
+
+/* HEADER */
+.season-head{ text-align:center; margin-bottom:6px; }
+.season-title{ font-family:var(--font-hand); font-size:clamp(24px,4vw,34px); color:var(--ink); }
+.season-sub{ font-family:var(--font-game); font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--blue); }
+
+/* TIMELINE */
+.timeline{ width:100%; max-width:560px; margin:14px auto 0; position:relative; }
+.timeline::before{ content:""; position:absolute; left:23px; top:14px; bottom:14px; width:2px;
+  background:repeating-linear-gradient(var(--blue) 0 5px, transparent 5px 11px); opacity:.5; }
+.node{ display:flex; align-items:center; gap:14px; padding:9px 10px; margin:5px 0; position:relative;
+  border:2px solid transparent; background:transparent; }
+.node-dot{ width:30px; height:30px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-game); font-size:15px; border:2px solid var(--blue); background:var(--cream); color:var(--blue); z-index:1; }
+.node-body{ flex:1; min-width:0; }
+.node-loc{ font-family:var(--font-write); font-size:17px; color:var(--ink); line-height:1.15; }
+.node-meta{ font-family:var(--font-game); font-size:12px; letter-spacing:.5px; color:var(--blue); margin-top:1px; }
+.node-badge{ font-family:var(--font-game); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; flex-shrink:0; }
+
+/* node states */
+.node.available{ cursor:pointer; }
+.node.available:hover{ border-color:var(--aqua); background:#eef6f9; }
+.node.available .node-badge{ color:var(--aqua); }
+.node.completed{ cursor:pointer; }
+.node.completed .node-dot{ background:var(--pink); border-color:var(--pink); color:#fff; }
+.node.completed:hover{ border-color:var(--pink); background:#fbe9f1; }
+.node.completed .node-badge{ color:var(--pink); }
+.node.locked{ opacity:.45; cursor:default; }
+.node.locked .node-dot{ border-color:#9aa0b8; color:#9aa0b8; }
+.node.locked .node-badge{ color:#9aa0b8; }
+.node.current .node-dot{ box-shadow:0 0 0 3px rgba(131,210,230,.5); }
+.node.just-done{ animation:flash 1.6s ease-out; }
+@keyframes flash{ 0%{ background:#fff0a0; } 100%{ background:transparent; } }
+
+/* HEART + BUBBLE */
+.guide{ position:fixed; bottom:14px; left:16px; z-index:20; display:flex; align-items:flex-end; gap:8px; pointer-events:none; }
+.guide-img{ width:clamp(56px,10vw,82px); height:auto; filter:drop-shadow(0 4px 10px rgba(0,0,0,.25)); animation:float 4s ease-in-out infinite; }
+@keyframes float{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-8px) rotate(2deg);} }
+.bubble{ background:#fff; border:2px solid var(--ink); border-radius:18px; padding:10px 16px; font-family:var(--font-write);
+  font-size:clamp(13px,1.6vw,16px); color:var(--ink); max-width:min(58vw,320px); filter:drop-shadow(1px 3px 4px rgba(0,0,0,.15)); }
+
+/* SAVE BAR */
+.save-bar{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:21; display:none; }
+.save-bar.visible{ display:block; }
+.save-btn{ font-family:var(--font-game); font-size:20px; letter-spacing:1px; color:#fff; background:var(--blue);
+  border:2px solid var(--ink); border-right-color:#000f5a; border-bottom-color:#000f5a; padding:9px 30px; cursor:pointer; text-transform:lowercase; }
+.save-btn:hover{ filter:brightness(1.08); }
+.save-btn:active{ transform:translateY(1px); }
+.save-btn:disabled{ opacity:.6; cursor:default; }
+.status{ position:fixed; bottom:58px; left:50%; transform:translateX(-50%); z-index:21; font-family:var(--font-game); font-size:14px; letter-spacing:.5px; }
+
+/* GATE / MESSAGE PANELS */
+.gate{ max-width:480px; margin:8vh auto 0; text-align:center; background:#eef6f9; border:2px solid var(--aqua);
+  border-right-color:#5fa9bd; border-bottom-color:#5fa9bd; padding:30px 26px; }
+.gate-title{ font-family:var(--font-hand); font-size:26px; color:var(--ink); margin-bottom:10px; }
+.gate-text{ font-family:var(--font-write); font-size:17px; color:var(--ink); line-height:1.4; margin-bottom:18px; }
+.gate-btn{ font-family:var(--font-game); font-size:18px; letter-spacing:1px; color:#fff; background:var(--blue);
+  border:2px solid var(--ink); padding:9px 24px; cursor:pointer; text-transform:lowercase; }
+.gate-btn:hover{ filter:brightness(1.08); }
+
+/* JOURNAL (streamlined) */
+.jr{ background:var(--cream); border:2px solid var(--blue); padding:16px; }
+.jr-note{ font-family:var(--font-write); font-size:15px; color:var(--blue); margin-bottom:8px; }
+.jr-ta{ width:100%; min-height:160px; resize:vertical; font-family:var(--font-game); font-size:16px; color:var(--ink);
+  background:#fffdf5; border:2px solid #c8b88a; padding:10px; line-height:1.4; }
+.jr-row{ display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap; }
+.jr-upload{ font-family:var(--font-game); font-size:14px; color:var(--blue); border:2px dashed var(--aqua); padding:8px 14px; cursor:pointer; }
+.jr-preview{ max-height:90px; border:2px solid #c8b88a; display:none; }
+.jr-preview.show{ display:block; }
+.jr-status{ font-family:var(--font-game); font-size:13px; margin-top:8px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← back</span>
+  <span class="nav-title">cosmic matrix</span>
+  <span></span>
+</nav>
+
+<div class="stage">
+  <div class="panel" id="panel"></div>
+</div>
+
+<!-- heart guide + bubble -->
+<div class="guide">
+  <div class="bubble" id="bubble">reading the sky…</div>
+  <img class="guide-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
+</div>
+
+<!-- save bar -->
+<div class="status" id="status"></div>
+<div class="save-bar" id="save-bar">
+  <button class="save-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   COSMIC MATRIX — orchestration spine
+   Paid-gated. Sole writer of cosmic_phases + cosmic_bingo.
+   Flow per phase:  select → character (iframe) → cosmic bingo (iframe) → journal.
+   Entry identity is (game_id, map_phase): upsert on that key → no dup spiral nodes.
+   ============================================================ */
+
+// ── SUPABASE (same project as adventure-matrix) ─────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const MATRIX_PHOTO_BUCKET = 'matrix-photos';
+const LOGIN_URL   = '../games/game-room.html';      // where auth lives
+const UPGRADE_URL = '../users/membership.html';     // TODO: confirm your pricing/upgrade page
+
+// ── STATE ───────────────────────────────────────────────────
+let currentUser    = null;
+let activeTemplate = null;   // cosmic_templates row
+let activeGameId   = null;   // per-user cloned games row id
+let activeMapData  = null;   // the season's map_data (phases + windows)
+let activePhase    = null;   // map_phase key, e.g. 'moon_scorpio'
+let currentStep    = null;   // 'character' | 'bingo' | 'journal'
+let completedSet   = new Set();   // map_phase keys that have a character row
+let cosmicBoard    = { marked:null };  // the season bingo board (cosmic_bingo.bingo_data)
+let justDoneKey    = null;
+let journalPending = null;   // {file} for the journal photo
+
+// ── HELPERS ─────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function setBubble(t){ $('bubble').textContent = t; }
+function showStatus(msg,color){ const el=$('status'); el.textContent=msg; el.style.color=color||'#6ab86a';
+  clearTimeout(el._t); el._t=setTimeout(()=>el.textContent='',3000); }
+function setSave(visible,label='continue →'){ const bar=$('save-bar'),btn=$('save-btn');
+  bar.classList.toggle('visible',visible); if(btn){ btn.innerHTML=label; btn.disabled=false; } }
+function showPanel(html){ const p=$('panel'); p.className='panel'; p.innerHTML=html; }
+function showIframe(src){ const p=$('panel'); p.className='panel iframe-mode';
+  p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`; }
+
+function phases(){ return (activeMapData?.phases || []).slice().sort((a,b)=>Date.parse(a.opens_utc)-Date.parse(b.opens_utc)); }
+function phaseByKey(k){ return phases().find(p=>p.map_phase===k); }
+function nowMs(){ return Date.now(); }
+function isOpen(p){ return nowMs() >= Date.parse(p.opens_utc); }
+function currentPhaseKey(){
+  const open = phases().filter(isOpen);
+  return open.length ? open[open.length-1].map_phase : null;
+}
+function fmtOpens(p){
+  const d=new Date(p.opens_utc);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' +
+         d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+// ── BOOT ────────────────────────────────────────────────────
+async function init(){
+  try { const { data:{ session } } = await sb.auth.getSession(); currentUser = session?.user || null; } catch(e){}
+  if (!currentUser){ return showLoginGate(); }
+
+  // Paid gate: membership_status present and not 'free'
+  let profile=null;
+  try {
+    const { data } = await sb.from('user-profiles')
+      .select('membership_status, membership_tier, membership_expires_at')
+      .eq('id', currentUser.id).maybeSingle();
+    profile = data;
+  } catch(e){}
+  const status = profile?.membership_status || null;
+  const paid = !!status && status !== 'free';
+  if (!paid){ return showUpgradeGate(); }
+
+  await loadSeason();
+}
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if (event==='SIGNED_IN' && session && !currentUser){ currentUser=session.user; init(); }
+});
+
+// ── GATES ───────────────────────────────────────────────────
+function showLoginGate(){
+  setBubble('the sky is waiting for you.');
+  showPanel(`<div class="gate">
+    <div class="gate-title">the cosmic matrix</div>
+    <div class="gate-text">log in to walk the season's moon phases.</div>
+    <button class="gate-btn" onclick="window.location.href='${LOGIN_URL}'">log in →</button>
+  </div>`);
+}
+function showUpgradeGate(){
+  setBubble('this ritual is for members.');
+  showPanel(`<div class="gate">
+    <div class="gate-title">a members' ritual</div>
+    <div class="gate-text">the cosmic matrix guides you through each astrological season — one location per moon phase. it's part of membership.</div>
+    <button class="gate-btn" onclick="window.location.href='${UPGRADE_URL}'">become a member →</button>
+  </div>`);
+}
+function showNoSeason(){
+  setBubble('no season is open right now.');
+  showPanel(`<div class="gate">
+    <div class="gate-title">between seasons</div>
+    <div class="gate-text">there's no published cosmic season at the moment. check back when the next one begins.</div>
+    <button class="gate-btn" onclick="window.location.href='${LOGIN_URL}'">back to the castle →</button>
+  </div>`);
+}
+
+// ── SEASON LOAD + CLONE-ON-FIRST-OPEN ───────────────────────
+async function loadSeason(){
+  const param = new URLSearchParams(location.search).get('season'); // test hook: load unpublished by key
+  let query = sb.from('cosmic_templates').select('*');
+  query = param ? query.eq('season', param) : query.eq('is_published', true);
+  let tpls=[];
+  try { const { data } = await query; tpls = data || []; } catch(e){}
+  if (!tpls.length){ return showNoSeason(); }
+
+  let tpl;
+  if (param){ tpl = tpls[0]; }
+  else {
+    const now = nowMs();
+    tpl = tpls.find(t=>{
+      const s=Date.parse(t.map_data?.season_start_utc), e=Date.parse(t.map_data?.season_end_utc);
+      return s && e && now>=s && now<e;
+    }) || tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0))[0];
+  }
+  activeTemplate = tpl;
+  activeMapData  = tpl.map_data;
+
+  await ensureCosmicGame(tpl);
+  if (!activeGameId){ showStatus('could not open this season — try again','#E8478B'); return; }
+  await loadProgress();
+  renderTimeline();
+}
+
+// Clone the season template into a per-user games row exactly once.
+async function ensureCosmicGame(tpl){
+  const season = tpl.map_data?.season || tpl.season;
+  let game=null;
+  try {
+    const { data } = await sb.from('games').select('*')
+      .eq('user_id', currentUser.id).eq('map_type','cosmic');
+    game = (data||[]).find(g => g.map_data?.season === season) || null;
+  } catch(e){}
+
+  if (!game){
+    try {
+      const { data, error } = await sb.from('games').insert({
+        user_id: currentUser.id,
+        map_name: tpl.title || season,
+        map_type: 'cosmic',
+        map_data: tpl.map_data,     // carries season + phases; map_data->>'season' powers the unique index
+        status: 'active',
+      }).select().single();
+      if (error) throw error;
+      game = data;
+    } catch(err){
+      // Unique index likely caught a race — re-fetch the row that won.
+      try {
+        const { data } = await sb.from('games').select('*')
+          .eq('user_id', currentUser.id).eq('map_type','cosmic');
+        game = (data||[]).find(g => g.map_data?.season === season) || null;
+      } catch(e){}
+    }
+  }
+  if (game){ activeGameId = game.id; activeMapData = game.map_data || activeMapData; }
+}
+
+// Which phases are already lived (have a character row) + the season board.
+async function loadProgress(){
+  completedSet = new Set();
+  try {
+    const { data } = await sb.from('cosmic_phases')
+      .select('map_phase, character_data')
+      .eq('game_id', activeGameId).eq('user_id', currentUser.id);
+    (data||[]).forEach(r=>{ if (r.character_data) completedSet.add(r.map_phase); });
+  } catch(e){}
+  try {
+    const { data } = await sb.from('cosmic_bingo')
+      .select('bingo_data').eq('game_id', activeGameId).eq('user_id', currentUser.id).maybeSingle();
+    cosmicBoard = data?.bingo_data || { marked:null };
+  } catch(e){ cosmicBoard = { marked:null }; }
+}
+
+// ── TIMELINE (the season-so-far view; spiral render is pass 2) ──
+function renderTimeline(){
+  currentStep = null; activePhase = null;
+  setSave(false);
+  setBubble("trust your intuition — choose where the moon has you.");
+  const curKey = currentPhaseKey();
+
+  const rows = phases().map(p=>{
+    const open = isOpen(p);
+    const done = completedSet.has(p.map_phase);
+    const isCur = p.map_phase === curKey;
+    const state = !open ? 'locked' : (done ? 'completed' : 'available');
+    const badge = !open ? 'locked' : (done ? 'lived' : (isCur ? 'now' : 'open'));
+    const meta  = !open ? ('opens ' + fmtOpens(p))
+                        : (p.sign + (p.transits && p.transits.length ? ' · ' + p.transits.length + ' transit' + (p.transits.length>1?'s':'') : ' · no transits'));
+    const click = open ? ` onclick="selectPhase('${p.map_phase}')"` : '';
+    const just  = p.map_phase===justDoneKey ? ' just-done' : '';
+    return `<div class="node ${state}${isCur?' current':''}${just}"${click}>
+      <div class="node-dot">${done?'✦':p.phase}</div>
+      <div class="node-body">
+        <div class="node-loc">${p.location}</div>
+        <div class="node-meta">${meta}</div>
+      </div>
+      <div class="node-badge">${badge}</div>
+    </div>`;
+  }).join('');
+
+  showPanel(`
+    <div class="season-head">
+      <div class="season-title">${activeTemplate.title || 'cosmic season'}</div>
+      <div class="season-sub">${phases().length} moon phases</div>
+    </div>
+    <div class="timeline">${rows}</div>`);
+  justDoneKey = null;
+}
+
+// ── FLOW ────────────────────────────────────────────────────
+function selectPhase(key){
+  const p = phaseByKey(key);
+  if (!p || !isOpen(p)) return;
+  activePhase = key;
+  stepCharacter();
+}
+
+function stepCharacter(){
+  currentStep = 'character';
+  const p = phaseByKey(activePhase);
+  setBubble(`${p.location} — who do you feel like under this sky?`);
+  showIframe(`../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`);
+  setSave(true,'loading…'); $('save-btn').disabled = true;
+}
+
+function stepBingo(){
+  currentStep = 'bingo';
+  setBubble("mark the sky's invitations as you live them.");
+  showIframe(`../games/cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`);
+  setSave(true,'continue →');
+}
+
+function stepJournal(){
+  currentStep = 'journal';
+  setBubble('what do you want to remember from this phase?');
+  showPanel(`<div class="jr">
+    <div class="jr-note">a note from this moon phase — a feeling, an omen, something that happened.</div>
+    <textarea class="jr-ta" id="jr-ta" placeholder="write freely…"></textarea>
+    <div class="jr-row">
+      <label class="jr-upload">+ add a photo
+        <input type="file" id="jr-file" accept="image/*" hidden onchange="onJournalPhoto(event)">
+      </label>
+      <img class="jr-preview" id="jr-preview" alt="">
+    </div>
+    <div class="jr-status" id="jr-status"></div>
+  </div>`);
+  prefillJournal();
+  setSave(true,'finish →');
+}
+
+async function prefillJournal(){
+  try {
+    const { data } = await sb.from('cosmic_phases').select('diary_text, matrix_images')
+      .eq('game_id', activeGameId).eq('map_phase', activePhase).maybeSingle();
+    if (data?.diary_text) $('jr-ta').value = data.diary_text;
+    const img = (data?.matrix_images||[]).find(i=>i&&i.source==='journal');
+    if (img){ const pv=$('jr-preview'); pv.src=img.url; pv.classList.add('show'); }
+  } catch(e){}
+}
+function onJournalPhoto(ev){
+  const f = ev.target.files?.[0]; if(!f) return;
+  journalPending = { file:f };
+  const pv=$('jr-preview'); pv.src=URL.createObjectURL(f); pv.classList.add('show');
+}
+
+function stepDone(){
+  justDoneKey = activePhase;
+  completedSet.add(activePhase);
+  setSave(false);
+  showStatus('phase complete ✦', '#E8478B');
+  renderTimeline();
+}
+
+// ── SAVE & CONTINUE — matrix owns every write ───────────────
+async function saveAndContinue(){
+  const btn = $('save-btn'); btn.disabled = true; btn.textContent='saving…';
+
+  if (currentStep === 'journal'){ await saveJournal(); return; }
+
+  const iframe = $('game-iframe');
+  if (!iframe){ btn.disabled=false; return; }
+  iframe.contentWindow.postMessage({ type:'request_state' }, '*');
+  clearTimeout(window._fb);
+  window._fb = setTimeout(()=>{ if (btn.disabled){ btn.disabled=false;
+    btn.innerHTML = currentStep==='character'?'continue →':'continue →';
+    showStatus('something went wrong — try again','#E8478B'); } }, 5000);
+}
+
+async function saveJournal(){
+  const text = ($('jr-ta')?.value || '').trim();
+  // upload new photo (if any) to a deterministic per-phase path
+  let newUrl = null;
+  if (journalPending){
+    try {
+      const file = journalPending.file;
+      const ext = (file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const path = `${currentUser.id}/${activeGameId}/${activePhase}/journal-${crypto.randomUUID()}.${ext}`;
+      const { error } = await sb.storage.from(MATRIX_PHOTO_BUCKET).upload(path, file, { contentType:file.type, upsert:false });
+      if (error) throw error;
+      const { data:pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
+      newUrl = pub?.publicUrl || null;
+    } catch(err){ console.error('[journal photo]',err); jrStatus('couldn’t save photo — notes still saved', false); }
+  }
+  // merge matrix_images: keep non-journal, replace the single journal image
+  let imgs=[];
+  try {
+    const { data } = await sb.from('cosmic_phases').select('matrix_images')
+      .eq('game_id', activeGameId).eq('map_phase', activePhase).maybeSingle();
+    imgs = Array.isArray(data?.matrix_images) ? data.matrix_images : [];
+  } catch(e){}
+  if (newUrl){ imgs = imgs.filter(i=>!(i&&i.source==='journal')); imgs.push({ url:newUrl, source:'journal' }); }
+
+  const loc = phaseByKey(activePhase);
+  try {
+    const { error } = await sb.from('cosmic_phases').upsert({
+      game_id: activeGameId, user_id: currentUser.id, map_phase: activePhase,
+      diary_text: text, matrix_images: imgs,
+      location_data: { sign:loc?.sign||null, location:loc?.location||null, opens_utc:loc?.opens_utc||null },
+      updated_at: new Date().toISOString(),
+    }, { onConflict:'game_id,map_phase' });
+    if (error) throw error;
+  } catch(err){
+    console.error('[journal save]',err); jrStatus('something went wrong — try again', false);
+    setSave(true,'finish →'); return;
+  }
+  journalPending = null;
+  stepDone();
+}
+function jrStatus(msg,ok){ const el=$('jr-status'); if(el){ el.textContent=msg; el.style.color=ok?'#6ab86a':'#E8478B'; } }
+
+// ── MESSAGE HANDLERS — iframes report, matrix writes ────────
+window.addEventListener('message', async e=>{
+  const msg = e.data || {}; if (!msg.type) return;
+
+  // character builder loaded
+  if (msg.type==='iframe_ready' && msg.game==='character'){
+    if (currentStep==='character'){ const b=$('save-btn'); if(b){ b.disabled=false; b.innerHTML='continue →'; } }
+    return;
+  }
+
+  // cosmic bingo loaded — hydrate it with the season board
+  if (msg.type==='cosmic_bingo_ready'){
+    const iframe=$('game-iframe');
+    if (iframe && Array.isArray(cosmicBoard?.marked)){
+      iframe.contentWindow.postMessage({ type:'load_state', marked:cosmicBoard.marked }, '*');
+    }
+    return;
+  }
+
+  // character state → cosmic_phases (idempotent on game_id, map_phase)
+  if (msg.type==='char_state'){
+    const charState = msg.state || {};
+    if (!charState.body){ showStatus('pick a body first!','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
+    const loc = phaseByKey(activePhase);
+    try {
+      const { error } = await sb.from('cosmic_phases').upsert({
+        game_id: activeGameId, user_id: currentUser.id, map_phase: activePhase,
+        character_data: charState,
+        location_data: { sign:loc?.sign||null, location:loc?.location||null, opens_utc:loc?.opens_utc||null },
+        updated_at: new Date().toISOString(),
+      }, { onConflict:'game_id,map_phase' });
+      if (error) throw error;
+      showStatus('character saved ✓','#6ab86a'); setSave(false); stepBingo();
+    } catch(err){ console.error('[char save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+    return;
+  }
+
+  // season bingo board → cosmic_bingo (one row per user+game)
+  if (msg.type==='bingo_state'){
+    const { marked, score } = msg;
+    cosmicBoard = { marked, score };
+    try {
+      const { error } = await sb.from('cosmic_bingo').upsert({
+        game_id: activeGameId, user_id: currentUser.id,
+        bingo_data: { marked, score }, updated_at: new Date().toISOString(),
+      }, { onConflict:'user_id,game_id' });
+      if (error) throw error;
+      showStatus('board saved ✓','#6ab86a'); setSave(false); stepJournal();
+    } catch(err){ console.error('[bingo save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+    return;
+  }
+});
+
+init();
+</script>
+</body>
+</html>
