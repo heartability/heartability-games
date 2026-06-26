@@ -137,67 +137,37 @@ html, body {
 
 /* ── PER-ICON POSITION & SIZE — adjust these ── */
 
-/* SETTINGS — top left */
-#icon-settings {
-  top:  4%;
-  left: 12%;
+/* DRESSER — lower-left, sits on floor */
+#icon-dresser {
+  bottom: 2%;
+  left: 18%;
 }
-#icon-settings img { width: clamp(45px, 7vw, 75px); }
+#icon-dresser img { width: clamp(160px, 22vw, 360px); }
 
-/* LEADERBOARD — center of wall, horizontally centered */
+/* BED — lower-center/right, sits on floor */
+#icon-bed {
+  bottom: 0%;
+  left: 44%;
+}
+#icon-bed img { width: clamp(200px, 28vw, 480px); }
+
+/* LEADERBOARD CALENDAR — upper-right wall */
 #icon-leaderboard {
-  top:  28%;
-  left: 50%;
-  transform: translateX(-50%);
+  top:  8%;
+  right: 4%;
 }
-#icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
-#icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
-#icon-leaderboard img { width: clamp(130px, 18vw, 280px); }
+#icon-leaderboard img { width: clamp(100px, 12vw, 200px); }
 
-/* CHATROOM — center of wall, right third */
-#icon-chatroom {
-  top:  38%;
-  right: 8%;
-}
-#icon-chatroom img { width: clamp(100px, 13vw, 200px); }
-
-/* CALENDAR — center of wall, left third */
-#icon-calendar {
-  top:  38%;
-  left: 12%;
-}
-#icon-calendar img { width: clamp(120px, 11vw, 180px); }
-
-/* ── MOBILE: stack center icons into a column ── */
+/* ── MOBILE: stack into a column ── */
 @media (max-width: 600px) {
+  #icon-dresser { bottom: 2%; left: 4%; }
+  #icon-dresser img { width: clamp(120px, 40vw, 200px); }
 
-  #icon-calendar {
-    top: 6%;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  #icon-calendar:hover { transform: translateX(-50%) translateY(-5px); }
-  #icon-calendar:active { transform: translateX(-50%) translateY(-2px); }
-  #icon-calendar img { width: clamp(80px, 28vw, 160px); }
+  #icon-bed { bottom: 2%; left: 44%; }
+  #icon-bed img { width: clamp(140px, 48vw, 240px); }
 
-  #icon-leaderboard {
-    top: 38%;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  #icon-leaderboard:hover { transform: translateX(-50%) translateY(-5px); }
-  #icon-leaderboard:active { transform: translateX(-50%) translateY(-2px); }
-  #icon-leaderboard img { width: clamp(100px, 35vw, 200px); }
-
-  #icon-chatroom {
-    top: 64%;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-  }
-  #icon-chatroom:hover { transform: translateX(-50%) translateY(-5px); }
-  #icon-chatroom:active { transform: translateX(-50%) translateY(-2px); }
-  #icon-chatroom img { width: clamp(60px, 25vw, 150px); }
+  #icon-leaderboard { top: 5%; right: 3%; }
+  #icon-leaderboard img { width: clamp(70px, 22vw, 120px); }
 
   .char-heart {
     left: 4vw;
@@ -583,17 +553,14 @@ html, body {
 
 <!-- ROOM ICONS -->
 <div class="room-icons" id="main-content">
-  <div class="room-icon" id="icon-settings" onclick="openModal('settings')">
-    <img src="../assets/elements/settings.png" alt="account settings" />
+  <div class="room-icon" id="icon-dresser" onclick="openModal('settings')">
+    <img src="../assets/elements/dresser.png" alt="account settings" />
+  </div>
+  <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
+    <img src="../assets/elements/bed.png" alt="adventure archive" />
   </div>
   <div class="room-icon" id="icon-leaderboard" onclick="openModal('leaderboard')">
     <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
-  </div>
-  <div class="room-icon" id="icon-chatroom" onclick="window.location.href='../users/chatroom.html'">
-    <img src="../assets/elements/chatroom.png" alt="chat room" />
-  </div>
-  <div class="room-icon" id="icon-calendar" onclick="window.location.href='/matrix/archive.html'">
-    <img src="../assets/elements/calendar.png" alt="map archive" />
   </div>
 </div>
 
