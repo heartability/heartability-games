@@ -698,7 +698,7 @@ function buildSeasonMapSVG(){
       const op   = done ? 1 : 0.5; // half opacity for open/unfinished
       defs += `<radialGradient id="hg${i}" cx="50%" cy="50%" r="50%">
         <stop offset="0%"   stop-color="${tint}" stop-opacity="${op}"/>
-        <stop offset="55%"  stop-color="${tint}" stop-opacity="${op*0.85}"/>
+        <stop offset="55%"  stop-color="${tint}" stop-opacity="${+(op*0.85).toFixed(2)}"/>
         <stop offset="100%" stop-color="${tint}" stop-opacity="0"/>
       </radialGradient>`;
     }
@@ -713,7 +713,7 @@ function buildSeasonMapSVG(){
   ].join('');
 
   // ── season progress meter (top-right) ──────────────────────
-  const MX=546, MY=14, MW=242, MH=40, barW=MW-28;
+  const MX=590, MY=14, MW=200, MH=40, barW=MW-28;
   const fillW = Math.round((score/24)*barW);
   const meter = `<g font-family="ZoesHandwriting,cursive">
     <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="2" fill="rgba(201,255,245,0.10)" stroke="rgba(201,255,245,0.28)" stroke-width="1"/>
@@ -724,7 +724,8 @@ function buildSeasonMapSVG(){
   </g>`;
 
   // ── season title (top-left) ────────────────────────────────
-  const title = `<text x="12" y="22" font-family="ZoesHandwriting,cursive" font-size="clamp(14px,2vw,18px)" fill="rgba(201,255,245,0.85)">${activeTemplate?.title||'cosmic season'}</text>`;
+  const titleText = (activeTemplate?.title||'cosmic season').replace(/\s+\d{4}$/,'');
+  const title = `<text x="12" y="38" font-family="ZoesHandwriting,cursive" font-size="clamp(28px,4vw,36px)" fill="rgba(201,255,245,0.85)">${escSvg(titleText)}</text>`;
 
   // ── nodes ──────────────────────────────────────────────────
   let nodes = '';
@@ -754,7 +755,7 @@ function buildSeasonMapSVG(){
       const tint = BODY_COLORS[charData.body||''] || '#c9fff5';
 
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="${R+48}" fill="url(#hg${i})" pointer-events="none"/>
+        <circle cx="${x}" cy="${y}" r="${R+28}" fill="url(#hg${i})" pointer-events="none"/>
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent"/>
         ${terrainImg || `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35" pointer-events="none"/>`}
         ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5" pointer-events="none"/>`:''}
@@ -763,7 +764,7 @@ function buildSeasonMapSVG(){
       </g>`;
     } else if (open){
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="${R+48}" fill="url(#hg${i})" pointer-events="none"/>
+        <circle cx="${x}" cy="${y}" r="${R+28}" fill="url(#hg${i})" pointer-events="none"/>
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent" stroke="#c9fff5" stroke-width="1.8" ${isCur?'':'stroke-dasharray="5 3"'}/>
         ${terrainImg}
         <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="14" fill="rgba(201,255,245,0.9)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
