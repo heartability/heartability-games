@@ -1597,10 +1597,8 @@ function confirmSkipUnsent() {
 
 // ── NATIVE JOURNAL (chat-style) ──────────────────────────
 // Each send appends a message to saved_data.journal_messages (jsonb) on this
-// playthrough's row. diary_text is kept in sync (joined message text) so the
-// matrix "notes" tile + archive keep reading it unchanged. Photo'd messages
-// also push into matrix_images (source:'journal') so matrix quadrant
-// placement is untouched. Legacy rows (only diary_text) render as one bubble.
+// playthrough's row. Photo'd messages also push into matrix_images
+// (source:'journal') so matrix quadrant placement is untouched.
 const journal = { entries: [], pendingImage: null };
 
 function buildJournalPanel(){
@@ -1638,21 +1636,9 @@ function jrcEscape(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'
 function jrcTime(iso){ return new Date(iso||Date.now()).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
 function jrcDay(iso){ return new Date(iso||Date.now()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
 
-// Legacy single journal image lived in matrix_images tagged source:'journal'.
-function jrcRowJournalImage(row){
-  const imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-  const j = imgs.find(i => i && i.source === 'journal');
-  return j?.url || '';
-}
-// Normalize a saved_data row into an ordered list of message objects. New rows
-// carry journal_messages; legacy rows surface diary_text as a single message.
 function jrcRowMessages(row){
   const arr = Array.isArray(row?.journal_messages) ? row.journal_messages : [];
-  if (arr.length) return arr.slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
-  const txt = (row?.diary_text||'').trim();
-  const img = jrcRowJournalImage(row);
-  if (txt || img) return [{ id:'legacy-'+row.id, text:txt, image_url:img, created_at:row.created_at }];
-  return [];
+  return arr.slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 }
 
 function renderJournalMessage(msg, isToday){
@@ -1689,7 +1675,7 @@ async function loadJournalEntries(){
   let rows = [];
   try {
     const { data } = await sb.from('saved_data')
-      .select('id, diary_text, journal_messages, matrix_images, created_at')
+      .select('id, journal_messages, matrix_images, created_at')
       .eq('game_id', activeGameId).eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
     rows = data || [];
@@ -1767,7 +1753,7 @@ async function sendJournalMessage(){
 
   const message = { id: crypto.randomUUID(), text, image_url: imageUrl, created_at: new Date().toISOString() };
 
-  // 2) read current row, append, recompute diary_text, merge matrix_images
+  // 2) read current row, append, merge matrix_images
   let row = {};
   try {
     const { data } = await sb.from('saved_data')
@@ -1775,7 +1761,6 @@ async function sendJournalMessage(){
     row = data || {};
   } catch(e){}
   const messages  = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
-  const diaryText = messages.map(m => m.text).filter(Boolean).join('\n\n');
   let imgs = Array.isArray(row.matrix_images) ? row.matrix_images : [];
   if (imageUrl) imgs = imgs.concat([{ url:imageUrl, quadrant:'internal-feeling', source:'journal' }]);
 
@@ -1783,7 +1768,7 @@ async function sendJournalMessage(){
   try {
     const { error } = await sb.from('saved_data').upsert({
       id: activeEntryId, game_id: activeGameId, user_id: currentUser.id,
-      diary_text: diaryText, journal_messages: messages, matrix_images: imgs,
+      journal_messages: messages, matrix_images: imgs,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
     if (error) throw error;
@@ -2010,7 +1995,9 @@ async function assembleTodayMatrixData(entryId){
       d.mapPhase     = row.map_phase || null;
       d.locationData = row.location_data || null;
       d.sidequestData= row.sidequest_data || null;
-      d.journalText  = row.diary_text || '';
+      d.journalText  = (Array.isArray(row.journal_messages)
+        ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
+        : '');
       // All matrix photos — manual uploads AND journal images — now live in
       // matrix_images, each tagged to a quadrant (journal images: 'internal-feeling').
       d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];

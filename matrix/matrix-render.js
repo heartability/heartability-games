@@ -301,7 +301,9 @@
         d.mapPhase      = row.map_phase || null;
         d.locationData  = row.location_data || null;
         d.sidequestData = row.sidequest_data || null;
-        d.journalText   = row.diary_text || '';
+        d.journalText   = (Array.isArray(row.journal_messages)
+          ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
+          : '');
         d.matrixImages  = Array.isArray(row.matrix_images) ? row.matrix_images : [];
         // dateLabel reflects the SAVE's local day, not "today".
         if (row.created_at) {
@@ -489,7 +491,7 @@
 
   // ── JOURNAL EDITOR ────────────────────────────────────────
   // deps = { sb, getEntryId(), onChange(), status(msg,color) }
-  // Edits saved_data.diary_text. Saving empty text clears the entry.
+  // Edits saved_data.journal_messages. Saving replaces with a single message; clearing removes all.
   function createJournalEditor(deps){
     deps = deps || {};
     const status = deps.status || function(){};
@@ -534,9 +536,12 @@
       if (!entryId){ statusEl.style.color = '#E8478B'; statusEl.textContent = 'no entry selected'; return; }
       saveEl.disabled = true; saveEl.textContent = 'saving…';
       const trimmed = textEl.value.trim();
+      const messages = trimmed.length
+        ? [{ id: crypto.randomUUID(), text: trimmed, image_url: null, created_at: new Date().toISOString() }]
+        : [];
       try {
         const { error } = await sb.from('saved_data')
-          .update({ diary_text: trimmed.length ? textEl.value : null })
+          .update({ journal_messages: messages })
           .eq('id', entryId);
         if (error) throw error;
         close();
