@@ -96,7 +96,9 @@
     // Saved state stores bare IDs (e.g. "body_pink"); resolve each to its full PNG.
     // A value already containing "/" is treated as a ready URL (forward-compatible).
     const resolve = v => !v ? null
-      : (typeof v === 'string' && v.includes('/') ? v : (CHAR_FULL_ASSETS[v] || null));
+      : (typeof v === 'string' && v.includes('/')
+          ? v.replace(/(\d{2}\.\d{2})\s+/g, '$1-')  // fix old space-based filenames
+          : (CHAR_FULL_ASSETS[v] || null));
     // Back→front order (same as the mirror): body, shoes, hair, eyes, mouth, acc.
     const layers = [
       charState.body, charState.shoes, charState.hair,
