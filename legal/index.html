@@ -42,8 +42,8 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* Ultimate fallback — if the image ever fails to cover an edge, the gap
-   reads as black "dead space" rather than a colored glitch. */
+/* Ultimate fallback — any uncovered edge reads as black "dead space"
+   rather than a colored glitch. */
 html { background-color: #000; }
 
 body {
@@ -57,10 +57,9 @@ body {
 }
 
 /* ── BACKGROUND LAYER ─────────────────────────────────
-   A position:fixed + inset:0 element always fills the whole viewport and
-   sidesteps the mobile `background-attachment: fixed` bug that was letting
-   the page's edges show the fallback color. The image is stretched (100% 100%)
-   so every edge is covered; #000 sits behind it as a safety net.
+   position:fixed + inset:0 always fills the viewport and sidesteps the iOS
+   `background-attachment: fixed` bug that let the page edges show through.
+   The image is stretched (100% 100%) to every edge; #000 sits behind it.
 ─────────────────────────────────────────────────── */
 body::before {
   content: "";
@@ -237,8 +236,9 @@ body::before {
 ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Swap in the mobile-optimized sky. Still stretched to every edge via the
-     100% 100% sizing inherited from the base ::before rule. */
+  /* Mobile-optimized sky. Only the image swaps — color, size (100% 100%)
+     and position are inherited from the base ::before rule, so it still
+     stretches to every edge. */
   body::before {
     background-image: url("assets/elements/home-sky-m.png");
   }
@@ -339,7 +339,7 @@ body::before {
 <script>
 (function () {
 
-  /* Was referenced but never defined — this is what the parallax guard needs. */
+  /* Referenced below but never defined — this is what the guard needs. */
   const reduceMotion =
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
