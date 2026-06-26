@@ -814,7 +814,7 @@ async function refreshMatrixView() {
   lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game);
   const seed = `${activeGameId}|${activeSaveId}`;
   document.getElementById('matrix-stage').innerHTML =
-    MatrixRender.buildHTML(lastMatrixData, seed, { showAddPhoto:true, showEditNotes:true, archiveHref:null });
+    MatrixRender.buildHTML(lastMatrixData, seed, { showAddPhoto:true, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true });
 }
 
 // ── GAME LOADING + ENTRIES ────────────────────────────────

@@ -259,13 +259,15 @@
     const noteBtn = showEditNotes ? `<button class="matrix-edit-notes" type="button">✎ notes</button>` : '';
     const archBtn = archiveHref   ? `<button class="matrix-archive-btn" type="button" data-href="${esc(archiveHref)}">archive →</button>` : '';
 
+    const bgStyle = opts.bgImage ? ` style="background:url('${opts.bgImage}') center/cover no-repeat"` : '';
+    const frameClass = opts.showFrame ? ' framed' : '';
     return `<div class="step-panel matrix-panel">
       <div class="matrix-header">
         <div class="matrix-date">${esc(data.dateLabel||'')}</div>
         ${addBtn}${noteBtn}${archBtn}
       </div>
-      <div class="matrix-frame">
-        <div class="adv-matrix">
+      <div class="matrix-frame${frameClass}">
+        <div class="adv-matrix"${bgStyle}>
           <div class="adv-grid"></div>
           <div class="adv-axis adv-axis-x"></div>
           <div class="adv-axis adv-axis-y"></div>
@@ -590,10 +592,12 @@
 .matrix-frame {
   width:76%; height:76%; margin:auto; align-self:center;
   position:relative; overflow:hidden;
+}
+.matrix-frame.framed {
   border:2px solid var(--blue,#6579e2);
   box-shadow: 0 0 0 3px var(--blue,#6579e2), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,0.35);
 }
-.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:url('../assets/elements/gradient.png') center/cover no-repeat; }
+.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
 .adv-grid {
   position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
   background-image:
