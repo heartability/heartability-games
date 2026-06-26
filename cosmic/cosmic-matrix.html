@@ -850,48 +850,6 @@ async function saveAndContinue(){
     btn.innerHTML='continue →'; showStatus('something went wrong — try again','#E8478B'); } }, 5000);
 }
 
-async function saveJournal(){
-  const text = ($('jr-ta')?.value || '').trim();
-  // upload new photo (if any) to a deterministic per-phase path
-  let newUrl = null;
-  if (journalPending){
-    try {
-      const file = journalPending.file;
-      const ext = (file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-      const path = `${currentUser.id}/${activeGameId}/${activePhase}/journal-${crypto.randomUUID()}.${ext}`;
-      const { error } = await sb.storage.from(MATRIX_PHOTO_BUCKET).upload(path, file, { contentType:file.type, upsert:false });
-      if (error) throw error;
-      const { data:pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
-      newUrl = pub?.publicUrl || null;
-    } catch(err){ console.error('[journal photo]',err); jrStatus('couldn’t save photo — notes still saved', false); }
-  }
-  // merge matrix_images: keep non-journal, replace the single journal image
-  let imgs=[];
-  try {
-    const { data } = await sb.from('cosmic_phases').select('matrix_images')
-      .eq('game_id', activeGameId).eq('map_phase', activePhase).maybeSingle();
-    imgs = Array.isArray(data?.matrix_images) ? data.matrix_images : [];
-  } catch(e){}
-  if (newUrl){ imgs = imgs.filter(i=>!(i&&i.source==='journal')); imgs.push({ url:newUrl, source:'journal' }); }
-
-  const loc = phaseByKey(activePhase);
-  try {
-    const { error } = await sb.from('cosmic_phases').upsert({
-      game_id: activeGameId, user_id: currentUser.id, map_phase: activePhase,
-      diary_text: text, matrix_images: imgs,
-      location_data: { sign:loc?.sign||null, location:loc?.location||null, opens_utc:loc?.opens_utc||null },
-      updated_at: new Date().toISOString(),
-    }, { onConflict:'game_id,map_phase' });
-    if (error) throw error;
-  } catch(err){
-    console.error('[journal save]',err); jrStatus('something went wrong — try again', false);
-    setSave(true,'finish →'); return;
-  }
-  journalPending = null;
-  stepDone();
-}
-function jrStatus(msg,ok){ const el=$('jr-status'); if(el){ el.textContent=msg; el.style.color=ok?'#6ab86a':'#E8478B'; } }
-
 // ── MESSAGE HANDLERS — iframes report, matrix writes ────────
 window.addEventListener('message', async e=>{
   const msg = e.data || {}; if (!msg.type) return;
