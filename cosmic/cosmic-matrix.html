@@ -759,7 +759,6 @@ function buildSeasonMapSVG(){
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent"/>
         ${terrainImg || `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35" pointer-events="none"/>`}
         ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5" pointer-events="none"/>`:''}
-        <text x="${x}" y="${y+6}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="18" fill="#fff" opacity="0.9" pointer-events="none">✦</text>
         ${labelSvg}
       </g>`;
     } else if (open){
