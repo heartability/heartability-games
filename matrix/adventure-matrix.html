@@ -1188,7 +1188,7 @@ function showIframe(src) {
 
 // ── ADD NEW BUTTON visibility ─────────────────────────────
 function showAddNew(visible) {
-  document.getElementById('add-new-btn').classList.toggle('visible', visible);
+  // add-new-btn is now rendered inline in the map grid panel
 }
 
 // ── STEP 1: go straight to map selector ──────────────────
@@ -1357,14 +1357,13 @@ function renderMapGrid(games) {
   }
 
   const html = `<div class="step-panel">
-    <div class="step-header">
-      <span class="step-header-title">your maps</span>
-      <div style="display:flex;gap:6px;">
-        <button class="wall-nav-btn" onclick="window.location.href='archive.html'">archive</button>
-        <button class="wall-nav-btn" onclick="window.location.href='../users/profile.html'">my profile</button>
-      </div>
+    <div style="width:100%;text-align:center;margin-bottom:14px;">
+      <span style="font-family:var(--font-hand);font-size:clamp(22px,2.4vw,30px);color:#333;">your maps</span>
     </div>
     <div class="map-grid">${slots}</div>
+    <div style="width:100%;display:flex;justify-content:flex-end;margin-top:10px;">
+      <button class="add-new-btn" style="position:static;display:block;" onclick="stepNewGame()">+ add new</button>
+    </div>
   </div>`;
   showPanel(html);
 }
