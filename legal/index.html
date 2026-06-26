@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Open Graph / Social sharing -->
+<meta property="og:title" content="Heartability">
+<meta property="og:description" content="Browser-based wellness games">
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
+<meta property="og:url" content="https://heartability-games.vercel.app">
+<meta property="og:type" content="website">
+
+<!-- Twitter/X card -->
+<meta name="twitter:card" content="summary_large_image">
+
+<title>Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelScript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+/* ══════════════════════════════════════════════════
+   TUNABLE KNOBS — adjust these, nothing else needed
+══════════════════════════════════════════════════ */
+:root {
+  /* The point on the castle (as % down its own image) that lands at the
+     pages center. ~98% = the castle's BASE sits on the centerline.
+     Lower the % to drop the castle; raise it to lift it further. */
+  --castle-anchor: 80%;
+
+  --toggle-loop: 7s;   /* full logo<->castle crossfade cycle */
+  --ease-breath: cubic-bezier(0.37, 0, 0.63, 1); /* gentle sine-like in/out */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Ultimate fallback — if the image ever fails to cover an edge, the gap
+   reads as black "dead space" rather than a colored glitch. */
+html { background-color: #000; }
+
+body {
+  width: 100vw;
+  height: 100vh;
+  background: transparent;   /* image lives on the fixed ::before layer below */
+  font-family: "ZoesHandwriting", cursive;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+/* ── BACKGROUND LAYER ─────────────────────────────────
+   A position:fixed + inset:0 element always fills the whole viewport and
+   sidesteps the mobile `background-attachment: fixed` bug that was letting
+   the page's edges show the fallback color. The image is stretched (100% 100%)
+   so every edge is covered; #000 sits behind it as a safety net.
+─────────────────────────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #000 url("assets/elements/home-sky.png") no-repeat center center;
+  background-size: 100% 100%;   /* stretch to fill all edges */
+}
+
+/* ── SCENE ── */
+.scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* ── CORNER SPIRALS ──────────────────────────────────
+   Wrapper handles position + mouse parallax (JS sets transform).
+   Inner img handles a slow continuous clockwise rotation.
+   Positions are rough — nudge top/left/right/bottom to taste.
+─────────────────────────────────────────────────── */
+.spiral {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.6s ease-out;   /* eases the parallax follow */
+}
+.spiral img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.85;
+}
+.spiral-1 { top: 12vh; left: 4vw;  width: clamp(70px, 9vw, 130px); }
+.spiral-2 { top: 8vh; left: 14vw; width: clamp(45px, 6vw, 85px); }
+.spiral-3 { bottom: 8vh; right: 5vw; width: clamp(80px, 10vw, 150px); }
+
+/* Slow clockwise spin — vary the durations so they don't lock-step */
+.spiral-1 img { animation: spinCW 40s linear infinite; }
+.spiral-2 img { animation: spinCW 52s linear infinite; }
+.spiral-3 img { animation: spinCW 46s linear infinite; }
+
+@keyframes spinCW {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }   /* clockwise */
+}
+
+/* ── PORTAL ──────────────────────────────────────────
+   portal-wrap     — positions the portal on the page
+   castle-link     — fills portal-inner, whole oval is clickable
+   castle-img / portal-logo — share ONE optical center, breathing swap
+─────────────────────────────────────────────────── */
+.portal-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(520px, 72vw, 900px);
+  z-index: 2;
+}
+.portal-inner {
+  position: relative;
+  width: 100%;
+}
+
+.castle-link {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 4;
+}
+
+.castle-img {  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
+}
+
+/* Castle: positioned so the point at var(--castle-anchor) down its image
+   lands on the page center (~96% => the castle base sits at center). */
+.castle-img {
+  width: clamp(190px, 40vw, 450px);
+  height: auto;
+  transform-origin: 50% var(--castle-anchor);
+  transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1);
+  animation: castleBreathe var(--toggle-loop) var(--ease-breath) infinite;
+}
+
+/* Reveal castle on hover */
+.castle-link:hover .castle-img  { animation: none; opacity: 1; }
+
+@keyframes castleBreathe {
+  0%         { opacity: 0; }
+  25%        { opacity: 0; }
+  50%        { opacity: 1; }
+  75%        { opacity: 0; }
+  100%       { opacity: 0; }
+}
+
+/* ── HEART CHARACTER ── */
+.heart-guide-wrap {
+  position: absolute;
+  bottom: 8vh;
+  left: 4vw;
+  z-index: 5;
+  cursor: pointer;
+  pointer-events: all;
+}
+.heart-guide-img {
+  width: 15vw;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  animation: heartFloat 4s ease-in-out infinite;
+}
+@keyframes heartFloat {
+  0%,100% { transform: translateY(0px) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* ── SPEECH BUBBLE ── */
+.heart-bubble-wrap {
+  position: absolute;
+  bottom: 22vh;
+  left: 19vw;
+  z-index: 6;
+}
+.heart-bubble-wrap .speech-bubble {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 14px 24px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(10px, 1.4vw, 16px);
+  color: #000000;
+  text-align: center;
+  line-height: 1.4;
+  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
+  min-width: 180px;
+  max-width: clamp(200px, 20vw, 300px);
+}
+
+/* ── COPYRIGHT ── */
+.copyright {
+  position: fixed;
+  bottom: 14px;
+  right: 20px;
+  font-family: "PFPixelScript", monospace;
+  font-size: 8px;
+  color: rgba(255,255,255,0.32);
+  letter-spacing: 1px;
+  z-index: 10;
+}
+.copyright a { color: inherit; text-decoration: none; }
+.copyright a:hover { color: rgba(255,255,255,0.72); }
+
+/* ── SCREEN READER ONLY ── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════
+   MOBILE
+   Higher % = lower on screen. Lower % = higher on screen.
+══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Swap in the mobile-optimized sky. Still stretched to every edge via the
+     100% 100% sizing inherited from the base ::before rule. */
+  body::before {
+    background-image: url("assets/elements/home-sky-m.png");
+  }
+
+  .castle-img  { width: clamp(120px, 55vw, 375px); }
+
+  /* spirals smaller + tucked in on phones */
+  .spiral-1 { top: 6vh;  left: 3vw;  width: clamp(50px, 16vw, 90px); }
+  .spiral-2 { top: 5vh; left: 14vw; width: clamp(34px, 11vw, 60px); }
+  .spiral-3 { bottom: 4vh; right: 4vw; width: clamp(56px, 18vw, 100px); }
+
+  .heart-guide-wrap {
+    bottom: 2vh;
+    left: 6vw;
+  }
+  .heart-guide-img { width: 25vw; }
+
+  /* Speech bubble hidden by default, shown on heart tap */
+  .heart-bubble-wrap {
+    display: none;
+    bottom: 10vh;
+    left: 25vw;
+  }
+  .heart-bubble-wrap.visible { display: block; }
+  .heart-bubble-wrap .speech-bubble {
+    font-size: clamp(12px, 3.5vw, 18px);
+    min-width: 140px;
+    max-width: 45vw;
+  }
+
+  .copyright { font-size: 5px; }
+
+}
+
+/* ══════════════════════════════════════════════════
+   REDUCED MOTION — static fallback
+   Freeze every loop, show the wordmark, hide the castle.
+   (Hover-to-reveal-castle still works.)
+══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .castle-img,
+  .heart-guide-img,
+  .spiral img { animation: none !important; }
+
+  .castle-img  { opacity: 0; }
+  .spiral { transition: none; }
+}
+
+</style>
+</head>
+<body>
+
+<h1 class="sr-only">Heartability</h1>
+
+<div class="scene">
+
+  <!-- Corner spirals (rough placement — adjust freely) -->
+  <div class="spiral spiral-1" data-depth="1.0">
+    <img src="assets/elements/spiral-1.png" alt="" aria-hidden="true">
+  </div>
+  <div class="spiral spiral-2" data-depth="0.6">
+    <img src="assets/elements/spiral-2.png" alt="" aria-hidden="true">
+  </div>
+  <div class="spiral spiral-3" data-depth="1.3">
+    <img src="assets/elements/spiral-3.png" alt="" aria-hidden="true">
+  </div>
+
+  <!-- Portal -->
+  <div class="portal-wrap">
+    <div class="portal-inner">
+
+      <!-- Castle link -->
+      <a class="castle-link" href="../games/game-room.html" aria-label="Enter Heartability">
+        <img class="castle-img"
+             src="assets/elements/castle.png"
+             alt="Castle — click to enter">
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Heart guide — bottom left -->
+  <div class="heart-guide-wrap" id="heartGuideWrap">
+    <img class="heart-guide-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide character">
+  </div>
+
+  <!-- Speech bubble -->
+  <div class="heart-bubble-wrap" id="heartBubbleWrap">
+    <div class="speech-bubble">welcome to heartability!</div>
+  </div>
+
+</div>
+
+<p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
+
+<script>
+(function () {
+
+  /* Was referenced but never defined — this is what the parallax guard needs. */
+  const reduceMotion =
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Gentle corner-spiral parallax (skipped if reduced motion) ── */
+  if (!reduceMotion) {
+    const spirals = Array.from(document.querySelectorAll('.spiral'));
+    const MAX = 10; // px of travel at depth 1.0
+    window.addEventListener('mousemove', (e) => {
+      const nx = (e.clientX / window.innerWidth)  * 2 - 1;  // -1..1
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      spirals.forEach((el) => {
+        const depth = parseFloat(el.dataset.depth || '1');
+        const x = (-nx * MAX * depth).toFixed(1);
+        const y = (-ny * MAX * depth).toFixed(1);
+        el.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    });
+  }
+
+  /* ── Mobile: tap heart to toggle speech bubble ── */
+  const heartGuide = document.getElementById('heartGuideWrap');
+  const bubbleWrap = document.getElementById('heartBubbleWrap');
+
+  heartGuide.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      bubbleWrap.classList.toggle('visible');
+    }
+  });
+
+  /* Tap anywhere else to dismiss */
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 &&
+        !heartGuide.contains(e.target) &&
+        !bubbleWrap.contains(e.target)) {
+      bubbleWrap.classList.remove('visible');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
