@@ -32,7 +32,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   width:var(--bw-width); height:var(--bw-height); z-index:10; display:none;
   flex-direction:column; overflow:hidden; }
 .content-panel.active { display:flex; }
-.content-panel.active:not(.iframe-mode) { background:var(--cream); border:2px solid var(--aqua); box-shadow:0 8px 22px rgba(0,0,0,.08); }
+.content-panel.active:not(.iframe-mode) { background:transparent; border:none; box-shadow:none; }
 
 /* ── IFRAME PANEL ── */
 .game-iframe { width:100%; height:100%; border:none; display:block; }
@@ -50,13 +50,13 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   width: 100%;
 }
 
-/* Map grid — centered in the step panel */
+/* Map grid — left-aligned so "your maps" header lines up with first card */
 .map-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(120px, 180px));
   gap: 12px;
   padding: 4px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 @media (max-width:600px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
 
@@ -142,8 +142,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .phase-key {
   flex:0 0 42%; min-width:230px; max-width:440px;
   align-self:stretch; max-height:100%;
-  background:rgba(245,240,234,0.97);
-  border:2px solid #8a7a5a;
+  background:transparent;
+  border:none;
   padding:14px 16px; overflow-y:auto;
   display:flex; flex-direction:column;
   font-family:var(--font-hand);
