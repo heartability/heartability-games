@@ -110,18 +110,17 @@ html, body {
 }
 .gear-item:hover { background: rgba(0,0,0,0.07); }
 
-/* ── ROOM ICONS — absolute positions within back wall ── */
+/* ── ROOM ICONS — full viewport ── */
 .room-icons {
   position: fixed;
-  top: 9%; left: 15%;
-  width: 70%; height: 70%;
+  inset: 0;
   z-index: 10;
   display: none;
 }
 .room-icons.active { display: block; }
 
 .room-icon {
-  position: absolute;
+  position: fixed;
   display: flex;
   flex-direction: column;
   align-items: center;
