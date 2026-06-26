@@ -316,19 +316,6 @@ body, .wall { background: #f0ead6; }
 }
 .map-shape-sub:hover { text-decoration: underline; color: #6579e2; }
 
-/* Buttons above map canvas */
-.clear-map-btn {
-  background: rgba(138,122,90,0.18); border: 1px solid rgba(138,122,90,0.5);
-  font-family: var(--font-game); font-size: 12px; color: #8a7a5a;
-  padding: 5px 12px; cursor: pointer; letter-spacing: 0.5px;
-  transition: background 0.15s;
-}
-.clear-map-btn:hover { background: rgba(138,122,90,0.32); }
-.clear-map-btn.save-map-btn {
-  background: rgba(101,121,226,0.15); border-color: rgba(101,121,226,0.45);
-  color: #4a5bc4;
-}
-.clear-map-btn.save-map-btn:hover { background: rgba(101,121,226,0.3); }
 
 /* ── BOTTOM ACTION BAR ────────────────────────────── */
 .panel-action-bar {
@@ -424,7 +411,6 @@ body, .wall { background: #f0ead6; }
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
           <div class="section-header" style="margin-bottom:0;">your map</div>
           <div style="display:flex;gap:6px;">
-            <button class="clear-map-btn" onclick="clearMap()">clear</button>
           </div>
         </div>
 
@@ -907,21 +893,6 @@ function selectFeeling(feeling, cat, el) {
     }
     return;
   }
-}
-
-// ── CLEAR ─────────────────────────────────────────────────────────────────
-function clearMap() {
-  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
-  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
-  document.getElementById("mapName").value = "";
-  if (currentMode === 'spiral') {
-    spiralState = { name:"", zones:[{},{},{}] }; spiralSaveState();
-    activeZone = null; renderZoneCircles(); updateSpiralStatus();
-  } else {
-    squareState = { name:"", zones:[{},{},{},{}] }; squareSaveState();
-    squareActiveZone = null; renderSquareZones(); updateSquareStatus();
-  }
-}
 
 // ── REPORT MAP STATE TO MATRIX ────────────────────────────────────────────
 function reportMapState() {

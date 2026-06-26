@@ -359,7 +359,6 @@ body, .wall { background: transparent; }
           </div>
           <div class="char-name-display" id="charNameDisplay"></div>
           <div class="summary-box" id="summaryBox">nothing selected yet</div>
-          <button class="btn" onclick="resetCharacter()" style="margin-top:10px;width:100%;">&#x25BA; RESET</button>
         </div>
       </div>
     </div>
@@ -604,12 +603,6 @@ function makeGrid(containerId, items, stateKey, allowNone) {
 
 function onNameChange() {
   state.name = document.getElementById("charName").value;
-  save(); render();
-}
-
-function resetCharacter() {
-  state = { name:"", body:null, hair:null, eyes:null, mouth:null, shoes:null, acc:null };
-  document.getElementById("charName").value = "";
   save(); render();
 }
 

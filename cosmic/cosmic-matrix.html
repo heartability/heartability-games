@@ -100,16 +100,78 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gate-btn:hover{ background:#4a5bc4; }
 .gate-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 
-/* JOURNAL */
-.jr{ width:100%; max-width:520px; margin:0 auto; }
-.jr-note{ font-family:var(--font-hand); font-size:16px; color:var(--blue); margin-bottom:8px; }
-.jr-ta{ width:100%; min-height:150px; resize:vertical; font-family:var(--font-hand); font-size:17px; color:var(--ink);
-  background:#fffdf5; border:2px solid #c8b88a; padding:10px; line-height:1.4; }
-.jr-row{ display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap; }
-.jr-upload{ font-family:var(--font-hand); font-size:15px; color:var(--blue); border:2px dashed var(--aqua); padding:8px 14px; cursor:pointer; }
-.jr-preview{ max-height:90px; border:2px solid #c8b88a; display:none; }
-.jr-preview.show{ display:block; }
-.jr-status{ font-family:var(--font-hand); font-size:14px; margin-top:8px; min-height:16px; }
+/* SEASON SELECTOR */
+.map-grid{ display:grid; grid-template-columns:repeat(3,minmax(140px,220px)); gap:14px; justify-content:center; padding:4px; }
+@media (max-width:600px){ .map-grid{ grid-template-columns:repeat(2,1fr); } }
+.map-slot{ border:2px solid #ccc; background:var(--cream); cursor:pointer; display:flex; flex-direction:column;
+  padding:12px 12px 10px; gap:6px; font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s; }
+.map-slot:hover{ border-color:var(--blue); box-shadow:2px 2px 0 var(--blue); transform:translateY(-2px); }
+.slot-name{ font-size:clamp(14px,1.8vw,18px); color:var(--ink); font-weight:600; line-height:1.2; }
+.slot-updated{ font-size:11px; color:#bbb; }
+.slot-badge{ display:inline-block; font-size:11px; letter-spacing:.5px; padding:2px 8px; margin-top:2px; }
+.slot-badge.active{ color:var(--aqua); border:1px solid var(--aqua); }
+.slot-badge.past{ color:#bbb; border:1px solid #ddd; }
+.slot-badge.upcoming{ color:var(--blue); border:1px solid var(--blue); }
+
+/* JOURNAL (chat-style, matches adventure) */
+.jrc-panel{ width:100%; height:100%; padding:8px; display:flex; flex-direction:column; overflow:hidden; }
+.jrc-window{ width:100%; height:100%; background:#f5f0ea;
+  box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.35);
+  display:flex; flex-direction:column; overflow:hidden; }
+.jrc-titlebar{ flex-shrink:0; height:38px; background:#e8e3da; border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:center; position:relative;
+  font-family:var(--font-hand); font-size:clamp(13px,1.5vw,18px); color:#333; letter-spacing:.5px; }
+.jrc-date{ position:absolute; right:12px; font-size:clamp(9px,1vw,12px); color:#999; font-family:var(--font-hand); }
+.jrc-messages{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
+.jrc-msg{ display:flex; flex-direction:column; gap:3px; max-width:80%; }
+.jrc-msg.today{ align-self:flex-end; align-items:flex-end; }
+.jrc-msg.past{ align-self:flex-start; align-items:flex-start; }
+.jrc-bubble{ padding:9px 13px; font-family:var(--font-hand); font-size:clamp(12px,1.4vw,16px); line-height:1.5; word-break:break-word; user-select:text; }
+.jrc-msg.today .jrc-bubble{ background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
+.jrc-msg.past  .jrc-bubble{ background:#fff; color:#222; border:1.5px solid #ccc; }
+.jrc-bubble img{ display:block; width:180px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
+.jrc-msg.past .jrc-bubble img{ border-color:#e3ddd2; }
+.jrc-meta{ font-size:clamp(9px,.9vw,11px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
+.jrc-empty{ margin:auto; text-align:center; color:#9a8a6a; font-style:italic;
+  font-size:clamp(11px,1.2vw,14px); line-height:1.6; max-width:84%; padding:24px 0; }
+.jrc-date-divider{ display:flex; align-items:center; gap:10px; padding:2px 0; align-self:stretch; }
+.jrc-date-divider span{ font-size:10px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
+.jrc-date-divider::before, .jrc-date-divider::after{ content:''; flex:1; height:1px; background:#ddd; }
+.jrc-input-area{ flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; flex-direction:column; gap:7px; background:#ede8e0; }
+.jrc-img-chip{ position:relative; width:70px; display:none; }
+.jrc-img-chip.has-img{ display:block; }
+.jrc-img-chip img{ width:100%; border:1.5px solid #c8b88a; display:block; object-fit:cover; aspect-ratio:1; }
+.jrc-img-x{ position:absolute; top:-7px; right:-7px; width:18px; height:18px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%; cursor:pointer; font-size:10px; color:#888;
+  display:flex; align-items:center; justify-content:center; }
+.jrc-img-x:hover{ color:var(--pink); border-color:var(--pink); }
+.jrc-msg-row{ display:flex; gap:8px; align-items:stretch; }
+.jrc-msg-input{ flex:1; font-family:var(--font-hand); font-size:clamp(12px,1.3vw,15px); color:#222;
+  background:#f5f0ea; border:1.5px solid #bbb; padding:8px 11px; outline:none; resize:none; height:58px; line-height:1.5; }
+.jrc-msg-input:focus{ border-color:var(--blue); }
+.jrc-btn-stack{ flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
+.jrc-plus-btn{ flex:1; background:rgba(255,255,255,.72); border:2px solid var(--blue); box-shadow:2px 2px 0 var(--aqua);
+  font-family:var(--font-hand); font-size:20px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s; }
+.jrc-plus-btn:hover{ background:var(--blue); color:#fff; }
+.jrc-plus-btn:active{ box-shadow:none; transform:translate(2px,2px); }
+.jrc-send-btn{ flex:1; background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:clamp(12px,1.3vw,15px); color:#fff; cursor:pointer; padding:0; transition:all .05s; }
+.jrc-send-btn:hover{ background:#4a5bc4; }
+.jrc-send-btn:active{ box-shadow:none; transform:translate(2px,2px); }
+.jrc-send-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+.jrc-status{ font-size:clamp(9px,.9vw,11px); color:#999; font-family:var(--font-hand); min-height:13px; }
+.jrc-status.ok{ color:#6ab86a; }
+.jrc-status.err{ color:var(--pink); }
+.jrc-confirm{ display:none; align-items:center; flex-wrap:wrap; gap:8px; padding-top:7px; border-top:1px dashed #ccc;
+  font-family:var(--font-hand); font-size:clamp(11px,1.2vw,14px); color:#8a7a5a; }
+.jrc-confirm.open{ display:flex; }
+.jrc-confirm button{ font-family:var(--font-hand); font-size:clamp(11px,1.2vw,14px); cursor:pointer; padding:5px 12px; transition:all .05s; }
+.jrc-confirm-send{ background:var(--blue); color:#fff; border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa; }
+.jrc-confirm-send:hover{ background:#4a5bc4; }
+.jrc-confirm-send:active{ box-shadow:none; transform:translate(2px,2px); }
+.jrc-confirm-skip{ background:none; border:none; color:#8a7a5a; text-decoration:underline; }
+.jrc-confirm-skip:hover{ color:var(--pink); }
 
 /* LOGIN MODAL */
 .login-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; }
@@ -247,7 +309,8 @@ let currentStep    = null;   // 'character' | 'bingo' | 'journal'
 let completedSet   = new Set();   // map_phase keys that have a character row
 let cosmicBoard    = { marked:null };  // the season bingo board (cosmic_bingo.bingo_data)
 let justDoneKey    = null;
-let journalPending = null;   // {file} for the journal photo
+let _bingoRequested = false; // true only while waiting for request_state response from bingo
+const journal = { entries:[], pendingImage:null };
 
 // ── HELPERS ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -367,25 +430,64 @@ function showNoSeason(){
 
 // ── SEASON LOAD + CLONE-ON-FIRST-OPEN ───────────────────────
 async function loadSeason(){
-  const param = new URLSearchParams(location.search).get('season'); // test hook: load unpublished by key
+  const param = new URLSearchParams(location.search).get('season'); // test hook: load by key
   let query = sb.from('cosmic_templates').select('*');
   query = param ? query.eq('season', param) : query.eq('is_published', true);
   let tpls=[];
   try { const { data } = await query; tpls = data || []; } catch(e){}
   if (!tpls.length){ return showNoSeason(); }
 
-  let tpl;
-  if (param){ tpl = tpls[0]; }
-  else {
-    const now = nowMs();
-    tpl = tpls.find(t=>{
+  // Dev param: skip selector
+  if (param){ return openSeason(tpls[0]); }
+  // One season: go straight in
+  if (tpls.length === 1){ return openSeason(tpls[0]); }
+  // Multiple: let the user pick
+  showSeasonSelector(tpls);
+}
+
+function showSeasonSelector(tpls){
+  setBubble('choose your season.');
+  setSave(false);
+  const now = nowMs();
+  const slots = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0))
+    .map((t,i)=>{
       const s=Date.parse(t.map_data?.season_start_utc), e=Date.parse(t.map_data?.season_end_utc);
-      return s && e && now>=s && now<e;
-    }) || tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0))[0];
-  }
+      const isActive = s && e && now>=s && now<e;
+      const isPast   = e && now>=e;
+      const badge    = isActive ? '<span class="slot-badge active">now</span>'
+                     : isPast   ? '<span class="slot-badge past">past</span>'
+                     :            '<span class="slot-badge upcoming">upcoming</span>';
+      const phases   = Array.isArray(t.map_data?.phases) ? t.map_data.phases.length : '?';
+      const dates    = (t.map_data?.season_start_utc && t.map_data?.season_end_utc)
+        ? new Date(t.map_data.season_start_utc).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+          + ' – ' + new Date(t.map_data.season_end_utc).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+        : '';
+      return `<div class="map-slot" onclick="selectSeason(${i})" data-idx="${i}">
+        <div class="slot-name">${t.title||t.season}</div>
+        ${dates ? `<div class="slot-updated">${dates}</div>` : ''}
+        <div class="slot-updated">${phases} moon phases</div>
+        ${badge}
+      </div>`;
+    }).join('');
+  // stash for selectSeason
+  window._cosmicSeasonList = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0));
+  showPanel(`
+    <div class="season-head">
+      <div class="season-title">cosmic matrix</div>
+      <div class="season-sub">choose your season</div>
+    </div>
+    <div class="map-grid" style="margin-top:14px;">${slots}</div>`);
+}
+
+async function selectSeason(idx){
+  const tpl = window._cosmicSeasonList?.[idx];
+  if (!tpl) return;
+  await openSeason(tpl);
+}
+
+async function openSeason(tpl){
   activeTemplate = tpl;
   activeMapData  = tpl.map_data;
-
   await ensureCosmicGame(tpl);
   if (!activeGameId){ showStatus('could not open this season — try again','#E8478B'); return; }
   await loadProgress();
@@ -505,34 +607,224 @@ function stepBingo(){
 function stepJournal(){
   currentStep = 'journal';
   setBubble('what do you want to remember from this phase?');
-  showPanel(`<div class="jr">
-    <div class="jr-note">a note from this moon phase — a feeling, an omen, something that happened.</div>
-    <textarea class="jr-ta" id="jr-ta" placeholder="write freely…"></textarea>
-    <div class="jr-row">
-      <label class="jr-upload">+ add a photo
-        <input type="file" id="jr-file" accept="image/*" hidden onchange="onJournalPhoto(event)">
-      </label>
-      <img class="jr-preview" id="jr-preview" alt="">
-    </div>
-    <div class="jr-status" id="jr-status"></div>
-  </div>`);
-  prefillJournal();
-  setSave(true,'finish →');
+  const p=$('content-panel');
+  p.className='content-panel active';
+  p.innerHTML=buildJournalPanel();
+  loadJournalEntries();
+  setSave(true,'continue →');
+  const msgEl = document.getElementById('jrc-msg');
+  if (msgEl) msgEl.addEventListener('keydown', e=>{
+    if (e.key==='Enter' && (e.metaKey||e.ctrlKey)){ e.preventDefault(); sendJournalMessage(); }
+  });
 }
 
-async function prefillJournal(){
-  try {
-    const { data } = await sb.from('cosmic_phases').select('diary_text, matrix_images')
-      .eq('game_id', activeGameId).eq('map_phase', activePhase).maybeSingle();
-    if (data?.diary_text) $('jr-ta').value = data.diary_text;
-    const img = (data?.matrix_images||[]).find(i=>i&&i.source==='journal');
-    if (img){ const pv=$('jr-preview'); pv.src=img.url; pv.classList.add('show'); }
-  } catch(e){}
+function buildJournalPanel(){
+  return `<div class="jrc-panel">
+    <div class="jrc-window">
+      <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
+      <div class="jrc-messages" id="jrc-messages">
+        <div class="jrc-empty" id="jrc-empty">a note from this moon phase —<br>a feeling, an omen, something that happened.</div>
+      </div>
+      <div class="jrc-input-area">
+        <div class="jrc-img-chip" id="jrc-img-chip">
+          <img id="jrc-img-preview" src="" alt="attached">
+          <button class="jrc-img-x" onclick="removeJournalImage()" title="remove photo">✕</button>
+        </div>
+        <div class="jrc-msg-row">
+          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="write freely…" maxlength="4000"></textarea>
+          <div class="jrc-btn-stack">
+            <button class="jrc-plus-btn" title="add a photo" onclick="document.getElementById('jr-file').click()">+</button>
+            <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
+          </div>
+        </div>
+        <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
+        <div class="jrc-status" id="jrc-status"></div>
+        <div class="jrc-confirm" id="jrc-confirm">
+          <span>you've got notes you haven't sent —</span>
+          <button class="jrc-confirm-send" onclick="confirmSendAndContinue()">send &amp; continue</button>
+          <button class="jrc-confirm-skip" onclick="confirmSkipUnsent()">continue without them →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
-function onJournalPhoto(ev){
-  const f = ev.target.files?.[0]; if(!f) return;
-  journalPending = { file:f };
-  const pv=$('jr-preview'); pv.src=URL.createObjectURL(f); pv.classList.add('show');
+
+// ── JOURNAL HELPERS ──────────────────────────────────────────
+function jrcEscape(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jrcTime(iso){ return new Date(iso||Date.now()).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+function jrcDay(iso){ return new Date(iso||Date.now()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
+function jrcRowMessages(row){ const arr=Array.isArray(row?.journal_messages)?row.journal_messages:[]; return arr.slice().sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)); }
+
+function renderJournalMessage(msg, isToday){
+  const el=document.createElement('div');
+  el.className='jrc-msg '+(isToday?'today':'past');
+  const img=msg.image_url?`<img src="${jrcEscape(msg.image_url)}" alt="" onerror="this.style.display='none'">`:''
+  const txt=msg.text?`<span class="jrc-bubble-txt">${jrcEscape(msg.text)}</span>`:'';
+  el.innerHTML=`<div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div>`;
+  return el;
+}
+
+function jrcScrollBottom(){ const c=document.getElementById('jrc-messages'); if(c) c.scrollTop=c.scrollHeight; }
+
+function jrcMaybeDivider(container, dayLabel){
+  const last=[...container.querySelectorAll('.jrc-date-divider span')].pop();
+  if(last&&last.textContent===dayLabel) return;
+  const div=document.createElement('div');
+  div.className='jrc-date-divider';
+  div.innerHTML=`<span>${dayLabel}</span>`;
+  container.appendChild(div);
+}
+
+function showJournalStatus(msg,ok){
+  const el=document.getElementById('jrc-status'); if(!el) return;
+  el.textContent=msg; el.className='jrc-status '+(ok?'ok':'err');
+  clearTimeout(el._t); el._t=setTimeout(()=>{ el.textContent=''; el.className='jrc-status'; },3000);
+}
+
+async function loadJournalEntries(){
+  journal.entries=[]; journal.pendingImage=null;
+  const dateEl=document.getElementById('jrc-date');
+  if(dateEl) dateEl.textContent=jrcDay();
+  if(!currentUser||!activeGameId) return;
+
+  let rows=[];
+  try {
+    const { data } = await sb.from('cosmic_phases')
+      .select('map_phase,journal_messages,matrix_images,updated_at')
+      .eq('game_id',activeGameId).eq('user_id',currentUser.id)
+      .order('updated_at',{ascending:true});
+    rows=data||[];
+  } catch(e){ console.error('[journal load]',e); }
+
+  rows=rows.filter(r=>r.map_phase===activePhase||jrcRowMessages(r).length);
+  journal.entries=rows;
+
+  const container=document.getElementById('jrc-messages');
+  const empty=document.getElementById('jrc-empty');
+  if(!container) return;
+  container.querySelectorAll('.jrc-msg,.jrc-date-divider').forEach(e=>e.remove());
+
+  let anyMsg=false;
+  rows.forEach(row=>{
+    const isToday=row.map_phase===activePhase;
+    jrcRowMessages(row).forEach(msg=>{
+      jrcMaybeDivider(container,jrcDay(msg.created_at||row.updated_at));
+      container.appendChild(renderJournalMessage(msg,isToday));
+      anyMsg=true;
+    });
+  });
+  if(empty) empty.style.display=anyMsg?'none':'block';
+  jrcScrollBottom();
+}
+
+function onJournalImagePicked(e){
+  const file=e.target.files&&e.target.files[0]; if(!file) return;
+  if(!file.type.startsWith('image/')) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    journal.pendingImage={file,base64:ev.target.result};
+    document.getElementById('jrc-img-preview').src=ev.target.result;
+    document.getElementById('jrc-img-chip').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeJournalImage(){
+  journal.pendingImage=null;
+  const chip=document.getElementById('jrc-img-chip');
+  if(chip){ chip.classList.remove('has-img'); document.getElementById('jrc-img-preview').src=''; }
+  const f=document.getElementById('jr-file'); if(f) f.value='';
+}
+
+async function sendJournalMessage(){
+  const msgEl=document.getElementById('jrc-msg');
+  const sendBtn=document.getElementById('jrc-send');
+  const text=(msgEl?.value||'').trim();
+  if(!text&&!journal.pendingImage) return false;
+  if(!(currentUser&&activeGameId&&activePhase)){ showJournalStatus('not signed in',false); return false; }
+  if(sendBtn) sendBtn.disabled=true;
+
+  let imageUrl=null;
+  if(journal.pendingImage){
+    try {
+      const file=journal.pendingImage.file;
+      const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+      const path=`${currentUser.id}/${activeGameId}/${activePhase}/journal-${crypto.randomUUID()}.${ext}`;
+      const { error:upErr } = await sb.storage.from(MATRIX_PHOTO_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+      if(upErr) throw upErr;
+      const { data:pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
+      imageUrl=pub?.publicUrl||null;
+    } catch(err){
+      console.error('[journal image]',err);
+      showJournalStatus("couldn't attach photo — try again",false);
+      if(sendBtn) sendBtn.disabled=false;
+      return false;
+    }
+  }
+
+  const message={id:crypto.randomUUID(),text,image_url:imageUrl,created_at:new Date().toISOString()};
+
+  let currentRow={};
+  try {
+    const { data } = await sb.from('cosmic_phases')
+      .select('journal_messages,matrix_images').eq('game_id',activeGameId).eq('map_phase',activePhase).maybeSingle();
+    currentRow=data||{};
+  } catch(e){}
+  const messages=(Array.isArray(currentRow.journal_messages)?currentRow.journal_messages:[]).concat([message]);
+  let imgs=Array.isArray(currentRow.matrix_images)?currentRow.matrix_images:[];
+  if(imageUrl) imgs=imgs.concat([{url:imageUrl,source:'journal'}]);
+
+  const loc=phaseByKey(activePhase);
+  try {
+    const { error } = await sb.from('cosmic_phases').upsert({
+      game_id:activeGameId, user_id:currentUser.id, map_phase:activePhase,
+      journal_messages:messages, matrix_images:imgs,
+      location_data:{sign:loc?.sign||null,location:loc?.location||null,opens_utc:loc?.opens_utc||null},
+      updated_at:new Date().toISOString(),
+    },{onConflict:'game_id,map_phase'});
+    if(error) throw error;
+  } catch(err){
+    console.error('[journal send]',err);
+    showJournalStatus('something went wrong — try again',false);
+    if(sendBtn) sendBtn.disabled=false;
+    return false;
+  }
+
+  const container=document.getElementById('jrc-messages');
+  const empty=document.getElementById('jrc-empty');
+  if(empty) empty.style.display='none';
+  jrcMaybeDivider(container,jrcDay(message.created_at));
+  container.appendChild(renderJournalMessage(message,true));
+  if(msgEl) msgEl.value='';
+  removeJournalImage();
+  document.getElementById('jrc-confirm')?.classList.remove('open');
+  if(sendBtn) sendBtn.disabled=false;
+  showJournalStatus('saved ✓',true);
+  jrcScrollBottom();
+  if(msgEl) msgEl.focus();
+  return true;
+}
+
+async function saveJournalEntry(){
+  const msgEl=document.getElementById('jrc-msg');
+  const hasUnsent=!!((msgEl&&msgEl.value.trim())||journal.pendingImage);
+  if(hasUnsent){
+    document.getElementById('jrc-confirm')?.classList.add('open');
+    showJournalStatus('you have unsent notes',false);
+    setSave(true,'continue →');
+    return;
+  }
+  finishJournal();
+}
+function finishJournal(){
+  document.getElementById('jrc-confirm')?.classList.remove('open');
+  setSave(false);
+  stepDone();
+}
+async function confirmSendAndContinue(){ const ok=await sendJournalMessage(); if(ok) finishJournal(); }
+function confirmSkipUnsent(){
+  const msgEl=document.getElementById('jrc-msg'); if(msgEl) msgEl.value='';
+  removeJournalImage(); finishJournal();
 }
 
 function stepDone(){
@@ -547,15 +839,15 @@ function stepDone(){
 async function saveAndContinue(){
   const btn = $('save-btn'); btn.disabled = true; btn.textContent='saving…';
 
-  if (currentStep === 'journal'){ await saveJournal(); return; }
+  if (currentStep === 'journal'){ await saveJournalEntry(); return; }
 
   const iframe = $('game-iframe');
   if (!iframe){ btn.disabled=false; return; }
+  if (currentStep === 'bingo') _bingoRequested = true;
   iframe.contentWindow.postMessage({ type:'request_state' }, '*');
   clearTimeout(window._fb);
   window._fb = setTimeout(()=>{ if (btn.disabled){ btn.disabled=false;
-    btn.innerHTML = currentStep==='character'?'continue →':'continue →';
-    showStatus('something went wrong — try again','#E8478B'); } }, 5000);
+    btn.innerHTML='continue →'; showStatus('something went wrong — try again','#E8478B'); } }, 5000);
 }
 
 async function saveJournal(){
@@ -641,6 +933,9 @@ window.addEventListener('message', async e=>{
   if (msg.type==='bingo_state'){
     const { marked, score } = msg;
     cosmicBoard = { marked, score };
+    // Live notifyParent updates: just keep in-memory, no advance
+    if (!_bingoRequested) return;
+    _bingoRequested = false;
     try {
       const { error } = await sb.from('cosmic_bingo').upsert({
         game_id: activeGameId, user_id: currentUser.id,
@@ -648,7 +943,7 @@ window.addEventListener('message', async e=>{
       }, { onConflict:'user_id,game_id' });
       if (error) throw error;
       showStatus('board saved ✓','#6ab86a'); setSave(false); stepJournal();
-    } catch(err){ console.error('[bingo save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+    } catch(err){ console.error('[bingo save]',err); showStatus('save failed','#E8478B'); _bingoRequested=false; const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
     return;
   }
 });
