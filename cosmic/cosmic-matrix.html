@@ -650,21 +650,19 @@ function renderSeasonMap(){
   const p = $('content-panel');
   p.className = 'content-panel active map-mode';
   p.innerHTML = buildSeasonMapSVG();
-  justDoneKey = null;
-  // Attach clicks via delegation (inline SVG onclick is unreliable after innerHTML)
-  if (p._mapClickHandler) p.removeEventListener('click', p._mapClickHandler);
-  p._mapClickHandler = function(e){
-    const el = e.target.closest('[data-action]');
-    if (!el) return;
-    const key = el.dataset.key;
-    if (el.dataset.action === 'select') selectPhase(key);
-    else if (el.dataset.action === 'journal') showPhaseJournal(key);
-  };
-  p.addEventListener('click', p._mapClickHandler);
+}
+
+let _mapPhases = [];
+function handleMapClick(i){
+  const ph = _mapPhases[i];
+  if (!ph) return;
+  if (completedSet.has(ph.map_phase)) showPhaseJournal(ph.map_phase);
+  else if (isOpen(ph)) selectPhase(ph.map_phase);
 }
 
 function buildSeasonMapSVG(){
   const ps = phases();
+  _mapPhases = ps;
   const N  = ps.length;
   if (!N) return '<div style="color:#c9fff5;font-family:var(--font-hand);padding:40px;text-align:center;">no phases yet</div>';
 
@@ -740,27 +738,30 @@ function buildSeasonMapSVG(){
       const terrainUrl = terrainFromLocation(ph.location);
 
       const terrainImg = terrainUrl
-        ? `<image href="${terrainUrl}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})"/>`
-        : `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35"/>`;
+        ? `<image href="${terrainUrl}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})" pointer-events="none"/>`
+        : `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35" pointer-events="none"/>`;
 
-      nodes += `
-        <circle cx="${x}" cy="${y}" r="${R+28}" fill="${tint}" opacity="0.22" filter="url(#cm-blur)"/>
+      nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
+        <circle cx="${x}" cy="${y}" r="${R+28}" fill="${tint}" opacity="0.22" filter="url(#cm-blur)" pointer-events="none"/>
         <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(255,255,255,0.12)"/>
         ${terrainImg}
-        <circle cx="${x}" cy="${y}" r="${R}" fill="none" stroke="${tint}" stroke-width="2.5" filter="url(#cm-node-glow)" style="cursor:pointer" data-action="journal" data-key="${escSvg(ph.map_phase)}"/>
-        ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5"/>`:''}
+        <circle cx="${x}" cy="${y}" r="${R}" fill="none" stroke="${tint}" stroke-width="2.5" filter="url(#cm-node-glow)"/>
+        ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5" pointer-events="none"/>`:''}
         <text x="${x}" y="${y+6}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="18" fill="#fff" opacity="0.9" pointer-events="none">✦</text>
-        ${labelSvg}`;
+        ${labelSvg}
+      </g>`;
     } else if (open){
-      nodes += `
-        <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(201,255,245,0.08)" stroke="#c9fff5" stroke-width="1.8" ${isCur?'stroke-dasharray="none"':''} style="cursor:pointer" data-action="select" data-key="${escSvg(ph.map_phase)}"/>
+      nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
+        <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(201,255,245,0.08)" stroke="#c9fff5" stroke-width="1.8" ${isCur?'stroke-dasharray="none"':''}/>
         <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="14" fill="rgba(201,255,245,0.8)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
-        ${labelSvg}`;
+        ${labelSvg}
+      </g>`;
     } else {
-      nodes += `
+      nodes += `<g pointer-events="none">
         <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.18)" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="12" fill="rgba(255,255,255,0.28)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
-        ${labelSvg}`;
+        <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="12" fill="rgba(255,255,255,0.28)">${escSvg(ph.phase||String(i+1))}</text>
+        ${labelSvg}
+      </g>`;
     }
   });
 
