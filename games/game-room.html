@@ -70,7 +70,7 @@ html, body {
 .art-mirror   { left: 45vw; top: 24vh; width: clamp(100px, 14vw, 200px); }
 .art-bingo    { right: 21vw; top: 24vh; width: clamp(120px, 16vw, 240px); }
 .art-about    { left: 2vw;  top: 28vh; width: clamp(60px, 9vw, 130px); }
-.art-clock { right: 2vw; top: 28vh; width: clamp(60px, 9vw, 130px); }
+.art-exclaim { right: 2vw; top: 28vh; width: clamp(60px, 9vw, 130px); }
 
 /* Fade wall art in game mode */
 body.game-mode .wall-art { opacity: 0; pointer-events: none; }
@@ -637,7 +637,7 @@ body.game-mode .char-heart {
   .art-mirror   { left: 20vw; top: 40vh; width: 28vw; }
   .art-bingo    { left: 55vw; top: 20vh; width: 28vw; }
   .art-about    { left: 1vw;  top: 30vh; width: 14vw; }
-  .art-clock { right: 1vw; top: 30vh; width: 14vw; }
+  .art-exclaim { right: 1vw; top: 30vh; width: 14vw; }
   .map-grid { grid-template-columns: repeat(2, 1fr); }
   .continue-bar { height: auto; padding: 10px 0; }
   .add-new-btn { bottom: 12px; right: 12px; }
@@ -692,7 +692,7 @@ body.game-mode .char-heart {
 </div>
 
 <!-- CLOCK TRACKER -->
-<div class="art-clock wall-art" id="art-clock" role="button" tabindex="0" onclick="window.location.href='../matrix/adventure-matrix.html'">
+<div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="window.location.href='../matrix/adventure-matrix.html'">
   <img src="../assets/elements/clock.png" alt="Track today">
   <div class="cal-month" id="cal-month"></div>
   <div class="cal-day"   id="cal-day"></div>
@@ -887,7 +887,7 @@ function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime
     'art-map':      'if you feel lost, make a map',
     'art-bingo':    'celebrate the care you give yourself',
     'art-mirror':   'who do you want to be today?',
-    'art-clock':    'enter the adventure matrix',
+    'art-exclaim':    'enter the adventure matrix',
     'art-about':    'a message from the creator of Heartability',
   };
 
