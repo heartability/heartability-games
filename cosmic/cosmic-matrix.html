@@ -488,12 +488,14 @@ function showSeasonSelector(tpls){
     }).join('');
   // stash for selectSeason
   window._cosmicSeasonList = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0));
-  showPanel(`
-    <div class="season-head">
-      <div class="season-title">cosmic matrix</div>
-      <div class="season-sub">choose your season</div>
+  const p = $('content-panel');
+  p.className = 'content-panel active map-mode';
+  p.innerHTML = `
+    <div class="season-head" style="color:#c9fff5;">
+      <div class="season-title" style="color:#c9fff5;">cosmic matrix</div>
+      <div class="season-sub" style="color:rgba(201,255,245,0.7);">choose your season</div>
     </div>
-    <div class="map-grid" style="margin-top:14px;">${slots}</div>`);
+    <div class="map-grid" style="margin-top:14px;">${slots}</div>`;
 }
 
 async function selectSeason(idx){
@@ -566,6 +568,26 @@ async function loadProgress(){
       .select('bingo_data').eq('game_id', activeGameId).eq('user_id', currentUser.id).maybeSingle();
     cosmicBoard = data?.bingo_data || { marked:null };
   } catch(e){ cosmicBoard = { marked:null }; }
+}
+
+// ── TERRAIN IMAGES (match treasure-map.html TERRAIN_IMGS) ───
+const TERRAIN_IMGS = {
+  dunes:     '../assets/elements/maps/dunes.png',
+  forest:    '../assets/elements/maps/forest.png',
+  meadow:    '../assets/elements/maps/meadow.png',
+  mountains: '../assets/elements/maps/mountains.png',
+  ocean:     '../assets/elements/maps/ocean.png',
+  orchard:   '../assets/elements/maps/orchard.png',
+  plateau:   '../assets/elements/maps/plateau.png',
+  pond:      '../assets/elements/maps/pond.png',
+  river:     '../assets/elements/maps/river.png',
+  spring:    '../assets/elements/maps/spring.png',
+  waterfall: '../assets/elements/maps/waterfall.png',
+};
+function terrainFromLocation(loc){
+  if (!loc) return null;
+  const first = loc.trim().toLowerCase().split(/\s+/)[0];
+  return TERRAIN_IMGS[first] || null;
 }
 
 // ── BODY COLOR TABLE (mirrors CHAR_FULL_ASSETS slugs in infinity-mirror.html) ──
@@ -667,7 +689,6 @@ function buildSeasonMapSVG(){
     `<ellipse cx="${CX}" cy="${CY}" rx="${RX+80}" ry="${RY+55}" fill="none" stroke="#7b3fa0" stroke-width="160" opacity="0.22" filter="url(#cm-blur)"/>`,
     `<ellipse cx="${CX}" cy="${CY}" rx="${RX+20}" ry="${RY+14}" fill="none" stroke="#3a8aaa" stroke-width="90" opacity="0.28" filter="url(#cm-blur)"/>`,
     `<ellipse cx="${CX}" cy="${CY}" rx="${RX-10}" ry="${RY-7}" fill="none" stroke="#c9fff5" stroke-width="40" opacity="0.14" filter="url(#cm-blur)"/>`,
-    `<ellipse cx="${CX}" cy="${CY}" rx="${RX-80}" ry="${RY-55}" fill="rgba(8,6,20,0.45)"/>`,
   ].join('');
 
   // ── season progress meter (top-right) ──────────────────────
@@ -706,19 +727,16 @@ function buildSeasonMapSVG(){
       const charData = completedData.get(ph.map_phase) || {};
       const bodyKey  = charData.body || '';
       const tint     = BODY_COLORS[bodyKey] || '#c9fff5';
-      // char layer URLs (body + hair on top, clipped to circle)
-      const bodyUrl  = resolveCharAsset(charData.body);
-      const hairUrl  = resolveCharAsset(charData.hair);
-      const eyesUrl  = resolveCharAsset(charData.eyes);
-      const mouthUrl = resolveCharAsset(charData.mouth);
-      const accUrl   = resolveCharAsset(charData.acc);
+      const terrainUrl = terrainFromLocation(ph.location);
 
-      const charImgs = [bodyUrl,eyesUrl,mouthUrl,hairUrl,accUrl].filter(Boolean)
-        .map(u=>`<image href="${u}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})"/>`).join('');
+      const terrainImg = terrainUrl
+        ? `<image href="${terrainUrl}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})"/>`
+        : `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35"/>`;
 
       nodes += `
         <circle cx="${x}" cy="${y}" r="${R+28}" fill="${tint}" opacity="0.22" filter="url(#cm-blur)"/>
-        ${charImgs || `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35"/>`}
+        <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(255,255,255,0.12)"/>
+        ${terrainImg}
         <circle cx="${x}" cy="${y}" r="${R}" fill="none" stroke="${tint}" stroke-width="2.5" filter="url(#cm-node-glow)" style="cursor:pointer" onclick="showPhaseJournal('${escAttr(ph.map_phase)}')"/>
         ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5"/>`:''}
         <text x="${x}" y="${y+6}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="18" fill="#fff" opacity="0.9" pointer-events="none">✦</text>
