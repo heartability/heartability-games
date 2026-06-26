@@ -456,11 +456,9 @@ async function loadSeason(){
   try { const { data } = await query; tpls = data || []; } catch(e){}
   if (!tpls.length){ return showNoSeason(); }
 
-  // Dev param: skip selector
+  // ?season= param: bypass selector (dev/direct link)
   if (param){ return openSeason(tpls[0]); }
-  // One season: go straight in
-  if (tpls.length === 1){ return openSeason(tpls[0]); }
-  // Multiple: let the user pick
+  // Always show selector at root URL
   showSeasonSelector(tpls);
 }
 
@@ -751,7 +749,7 @@ function wrapLabel(str, maxLen){
   if (mid <= 0) return [str];
   return [str.slice(0,mid), str.slice(mid+1)];
 }
-function escSvg(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escSvg(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escAttr(s){ return (s||'').replace(/'/g,"\\'"); }
 
 // ── PHASE JOURNAL POP-OUT (read-only, completed phases) ──────
