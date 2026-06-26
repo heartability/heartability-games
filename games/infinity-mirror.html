@@ -34,12 +34,13 @@
 
 body {
   min-height: 100dvh;
-  background: var(--bg);
+  background: transparent;
   font-family: var(--font-game);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
 }
+html { background: transparent; }
 
 body::before {
   content: "";
@@ -291,7 +292,7 @@ body::before {
   font-family: "ZoesHandwriting";
   src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
 }
-body, .wall { background: #f0ead6; }
+body, .wall { background: transparent; }
 
 @keyframes gr-intro-wiggle {
   0%   { transform: rotate(0deg) scale(1); }

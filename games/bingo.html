@@ -37,10 +37,11 @@
   --font-game: "VT323", monospace;
 }
 
+html { background: transparent; }
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--wall-dark);
+  background: transparent;
   font-family: var(--font-game);
   display: flex;
   flex-direction: column;
@@ -57,7 +58,7 @@ body {
 /* Walls */
 .wall {
   flex: 1;
-  background: var(--wall-dark);
+  background: transparent;
   position: relative;
   display: flex;
   flex-direction: column;
