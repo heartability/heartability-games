@@ -207,6 +207,24 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .lm-msg.success{ display:block; color:#2d7a4f; background:rgba(45,122,79,.08); border:1px solid rgba(45,122,79,.2); }
 .lm-footer{ text-align:center; padding:0 24px 14px; font-family:var(--font-hand); font-size:11px; color:#aaa; }
 
+/* MAP MODE — panel goes transparent so sky shows through the SVG */
+.content-panel.map-mode{ background:transparent !important; border:none !important; box-shadow:none !important; }
+
+/* PHASE JOURNAL POP-OUT */
+.pj-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:300; display:none; align-items:center; justify-content:center; }
+.pj-overlay.open{ display:flex; }
+.pj-window{ width:min(92vw,480px); max-height:80vh; background:#f5f0ea;
+  box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
+  display:flex; flex-direction:column; overflow:hidden; }
+.pj-titlebar{ flex-shrink:0; height:42px; background:#e8e3da; border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between; padding:0 16px;
+  font-family:var(--font-hand); font-size:clamp(14px,1.6vw,18px); color:#333; }
+.pj-close{ cursor:pointer; font-size:20px; color:#bbb; padding:2px 4px; }
+.pj-close:hover{ color:#444; }
+.pj-messages{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:9px; min-height:180px; }
+.pj-meta{ flex-shrink:0; padding:8px 16px 12px; font-family:var(--font-hand); font-size:12px; color:#aaa;
+  border-top:1px solid #e0dcd4; text-align:center; }
+
 /* MOBILE */
 @media (max-width:768px){
   :root{ --bw-top:44px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 44px); }
@@ -307,6 +325,7 @@ let activeMapData  = null;   // the season's map_data (phases + windows)
 let activePhase    = null;   // map_phase key, e.g. 'moon_scorpio'
 let currentStep    = null;   // 'character' | 'bingo' | 'journal'
 let completedSet   = new Set();   // map_phase keys that have a character row
+let completedData  = new Map();   // map_phase → character_data
 let cosmicBoard    = { marked:null };  // the season bingo board (cosmic_bingo.bingo_data)
 let justDoneKey    = null;
 let _bingoRequested = false; // true only while waiting for request_state response from bingo
@@ -491,7 +510,7 @@ async function openSeason(tpl){
   await ensureCosmicGame(tpl);
   if (!activeGameId){ showStatus('could not open this season — try again','#E8478B'); return; }
   await loadProgress();
-  renderTimeline();
+  renderSeasonMap();
 }
 
 // Clone the season template into a per-user games row exactly once.
@@ -532,11 +551,17 @@ async function ensureCosmicGame(tpl){
 // Which phases are already lived (have a character row) + the season board.
 async function loadProgress(){
   completedSet = new Set();
+  completedData = new Map();
   try {
     const { data } = await sb.from('cosmic_phases')
       .select('map_phase, character_data')
       .eq('game_id', activeGameId).eq('user_id', currentUser.id);
-    (data||[]).forEach(r=>{ if (r.character_data) completedSet.add(r.map_phase); });
+    (data||[]).forEach(r=>{
+      if (r.character_data){
+        completedSet.add(r.map_phase);
+        completedData.set(r.map_phase, r.character_data);
+      }
+    });
   } catch(e){}
   try {
     const { data } = await sb.from('cosmic_bingo')
@@ -545,41 +570,221 @@ async function loadProgress(){
   } catch(e){ cosmicBoard = { marked:null }; }
 }
 
-// ── TIMELINE (the season-so-far view; spiral render is pass 2) ──
-function renderTimeline(){
+// ── BODY COLOR TABLE (mirrors CHAR_FULL_ASSETS slugs in infinity-mirror.html) ──
+const BODY_COLORS = {
+  body_red:'#e85555', body_orange:'#f0922b', body_yellow:'#f5d033',
+  body_green:'#4caf7d', body_cyan:'#83d2e6', body_blue:'#6579e2',
+  body_purple:'#a04bc4', body_pink:'#E8478B',
+};
+const CHAR_FULL_ASSETS = {
+  body_red:'../assets/characters-full/01.01 RED_BODY.png',
+  body_orange:'../assets/characters-full/02.01-ORANGE_BODY.png',
+  body_yellow:'../assets/characters-full/03.01-YELLOW_BODY.png',
+  body_green:'../assets/characters-full/04.01-GREEN_BODY.png',
+  body_cyan:'../assets/characters-full/05.01-CYAN_BODY.png',
+  body_blue:'../assets/characters-full/06.01-BLUE_BODY.png',
+  body_purple:'../assets/characters-full/07.01-PURPLE_BODY.png',
+  body_pink:'../assets/characters-full/08.01-PINK_BODY.png',
+  eyes_open:'../assets/characters-full/01.02 OPEN_EYES.png',
+  eyes_closed:'../assets/characters-full/02.02-EYES_CLOSED.png',
+  eyes_cyclops:'../assets/characters-full/03.02-SINGLE_EYE.png',
+  eyes_glasses:'../assets/characters-full/04.02-GLASSES.png',
+  eyes_serious:'../assets/characters-full/05.02-SERIOUS_EYES.png',
+  eyes_up:'../assets/characters-full/06.02-UP_EYES.png',
+  eyes_sunglasses:'../assets/characters-full/07.02-SUNGLASSES.png',
+  eyes_sideways:'../assets/characters-full/08.02-SIDE_EYES.png',
+  mouth_lips:'../assets/characters-full/01.03 RED_LIPS.png',
+  mouth_tongue:'../assets/characters-full/02.03-TONGUE_SMILE.png',
+  mouth_thin:'../assets/characters-full/03.03-THIN_SMILE.png',
+  mouth_flat:'../assets/characters-full/04.03-FLAT_MOUTH.png',
+  mouth_straight:'../assets/characters-full/05.03-STRAIGHT_MOUTH.png',
+  mouth_sad:'../assets/characters-full/06.03-SLIGHT_SAD.png',
+  mouth_grin:'../assets/characters-full/07.03-BIG_GRIN.png',
+  mouth_smooch:'../assets/characters-full/08.03-SMOOCH.png',
+  hair_fire:'../assets/characters-full/01.04 FIRE_HAIR.png',
+  hair_flower:'../assets/characters-full/02.04-ORANGE_HAIR.png',
+  hair_rays:'../assets/characters-full/03.04-RAY_HAIR.png',
+  hair_spikes:'../assets/characters-full/04.04-SPIKE_HAIR.png',
+  hair_squiggle:'../assets/characters-full/05.04-SQUIGGLE_HAIR.png',
+  hair_wings:'../assets/characters-full/06.04-BLUE_HAIR.png',
+  hair_pigtails:'../assets/characters-full/07.04-PIGTAIL_HAIR.png',
+  hair_wideray:'../assets/characters-full/08.04-WIDE_RAY.png',
+  acc_rollerblades:'../assets/characters-full/09.02-ROLLERBLADES.png',
+  acc_sneakers:'../assets/characters-full/09.03-SNEAKERS.png',
+  acc_heels:'../assets/characters-full/09.01-HIGH_HEELS.png',
+  acc_sandals:'../assets/characters-full/09.04-SANDALS.png',
+  acc_devil:'../assets/characters-full/10.01-DEVIL.png',
+  acc_angel:'../assets/characters-full/10.02-HALO.png',
+  acc_birthday:'../assets/characters-full/10.03-BIRTHDAY.png',
+  acc_swearword:'../assets/characters-full/10.05-SENSOR.png',
+  acc_rainstorm:'../assets/characters-full/10-RAINSTORM.png',
+  acc_rainbow:'../assets/characters-full/10.04-RAINBOW.png',
+};
+function resolveCharAsset(v){ return !v ? null : (v.includes('/') ? v : (CHAR_FULL_ASSETS[v]||null)); }
+
+// ── SEASON MAP (main view) ───────────────────────────────────
+function renderSeasonMap(){
   currentStep = null; activePhase = null;
   setSave(false);
-  setBubble("trust your intuition — choose where the moon has you.");
-  const curKey = currentPhaseKey();
-
-  const rows = phases().map(p=>{
-    const open = isOpen(p);
-    const done = completedSet.has(p.map_phase);
-    const isCur = p.map_phase === curKey;
-    const state = !open ? 'locked' : (done ? 'completed' : 'available');
-    const badge = !open ? 'locked' : (done ? 'lived' : (isCur ? 'now' : 'open'));
-    const meta  = !open ? ('opens ' + fmtOpens(p))
-                        : (p.sign + (p.transits && p.transits.length ? ' · ' + p.transits.length + ' transit' + (p.transits.length>1?'s':'') : ' · no transits'));
-    const click = open ? ` onclick="selectPhase('${p.map_phase}')"` : '';
-    const just  = p.map_phase===justDoneKey ? ' just-done' : '';
-    return `<div class="node ${state}${isCur?' current':''}${just}"${click}>
-      <div class="node-dot">${done?'✦':p.phase}</div>
-      <div class="node-body">
-        <div class="node-loc">${p.location}</div>
-        <div class="node-meta">${meta}</div>
-      </div>
-      <div class="node-badge">${badge}</div>
-    </div>`;
-  }).join('');
-
-  showPanel(`
-    <div class="season-head">
-      <div class="season-title">${activeTemplate.title || 'cosmic season'}</div>
-      <div class="season-sub">${phases().length} moon phases</div>
-    </div>
-    <div class="timeline">${rows}</div>`);
+  setBubble('choose a moon phase to live.');
+  const p = $('content-panel');
+  p.className = 'content-panel active map-mode';
+  p.innerHTML = buildSeasonMapSVG();
   justDoneKey = null;
 }
+
+function buildSeasonMapSVG(){
+  const ps = phases();
+  const N  = ps.length;
+  if (!N) return '<div style="color:#c9fff5;font-family:var(--font-hand);padding:40px;text-align:center;">no phases yet</div>';
+
+  const W=800, H=540, CX=400, CY=272, RX=285, RY=198, R=33;
+  const score = Array.isArray(cosmicBoard?.marked)
+    ? cosmicBoard.marked.filter((v,i)=>v && i!==12).length : 0;
+
+  // ── defs: filters + gradients ──────────────────────────────
+  let defs = `<defs>
+    <filter id="cm-blur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <filter id="cm-node-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="cm-meter" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#E8478B"/>
+      <stop offset="100%" stop-color="#f3a0c4"/>
+    </linearGradient>`;
+
+  // clip paths for completed node character images
+  ps.forEach((p,i)=>{
+    if (completedSet.has(p.map_phase)){
+      defs += `<clipPath id="nc${i}"><circle cx="${nodeX(i,N,CX,RX)}" cy="${nodeY(i,N,CY,RY)}" r="${R}"/></clipPath>`;
+    }
+  });
+  defs += '</defs>';
+
+  // ── aurora rings ───────────────────────────────────────────
+  const aurora = [
+    `<ellipse cx="${CX}" cy="${CY}" rx="${RX+80}" ry="${RY+55}" fill="none" stroke="#7b3fa0" stroke-width="160" opacity="0.22" filter="url(#cm-blur)"/>`,
+    `<ellipse cx="${CX}" cy="${CY}" rx="${RX+20}" ry="${RY+14}" fill="none" stroke="#3a8aaa" stroke-width="90" opacity="0.28" filter="url(#cm-blur)"/>`,
+    `<ellipse cx="${CX}" cy="${CY}" rx="${RX-10}" ry="${RY-7}" fill="none" stroke="#c9fff5" stroke-width="40" opacity="0.14" filter="url(#cm-blur)"/>`,
+    `<ellipse cx="${CX}" cy="${CY}" rx="${RX-80}" ry="${RY-55}" fill="rgba(8,6,20,0.45)"/>`,
+  ].join('');
+
+  // ── season progress meter (top-right) ──────────────────────
+  const MX=546, MY=14, MW=242, MH=40, barW=MW-28;
+  const fillW = Math.round((score/24)*barW);
+  const meter = `<g font-family="ZoesHandwriting,cursive">
+    <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="2" fill="rgba(201,255,245,0.10)" stroke="rgba(201,255,245,0.28)" stroke-width="1"/>
+    <text x="${MX+10}" y="${MY+13}" font-size="9" fill="rgba(201,255,245,0.7)" letter-spacing="1.5">SEASON PROGRESS</text>
+    <rect x="${MX+10}" y="${MY+19}" width="${barW}" height="12" rx="1" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    ${fillW>0?`<rect x="${MX+10}" y="${MY+19}" width="${fillW}" height="12" rx="1" fill="url(#cm-meter)"/>`:''}
+    <text x="${MX+MW-8}" y="${MY+35}" text-anchor="end" font-size="9" fill="rgba(201,255,245,0.7)">${score} of 24</text>
+  </g>`;
+
+  // ── season title (top-left) ────────────────────────────────
+  const title = `<text x="12" y="22" font-family="ZoesHandwriting,cursive" font-size="clamp(14px,2vw,18px)" fill="rgba(201,255,245,0.85)">${activeTemplate?.title||'cosmic season'}</text>`;
+
+  // ── nodes ──────────────────────────────────────────────────
+  let nodes = '';
+  ps.forEach((ph,i)=>{
+    const x = nodeX(i,N,CX,RX), y = nodeY(i,N,CY,RY);
+    const done = completedSet.has(ph.map_phase);
+    const open = isOpen(ph);
+    const isCur = ph.map_phase === currentPhaseKey();
+    const isJust = ph.map_phase === justDoneKey;
+
+    // label: wrap long names at ~16 chars
+    const loc = ph.location || ph.map_phase;
+    const labelLines = wrapLabel(loc, 16);
+    const labelY = y + R + 14;
+    const labelFill = done ? 'rgba(255,255,255,0.9)' : open ? 'rgba(201,255,245,0.75)' : 'rgba(255,255,255,0.28)';
+    const labelSvg = labelLines.map((ln,li)=>
+      `<text x="${x}" y="${labelY + li*13}" text-anchor="middle" font-family="ZoesHandwriting,cursive" font-size="11" fill="${labelFill}" pointer-events="none">${escSvg(ln)}</text>`
+    ).join('');
+
+    if (done){
+      const charData = completedData.get(ph.map_phase) || {};
+      const bodyKey  = charData.body || '';
+      const tint     = BODY_COLORS[bodyKey] || '#c9fff5';
+      // char layer URLs (body + hair on top, clipped to circle)
+      const bodyUrl  = resolveCharAsset(charData.body);
+      const hairUrl  = resolveCharAsset(charData.hair);
+      const eyesUrl  = resolveCharAsset(charData.eyes);
+      const mouthUrl = resolveCharAsset(charData.mouth);
+      const accUrl   = resolveCharAsset(charData.acc);
+
+      const charImgs = [bodyUrl,eyesUrl,mouthUrl,hairUrl,accUrl].filter(Boolean)
+        .map(u=>`<image href="${u}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})"/>`).join('');
+
+      nodes += `
+        <circle cx="${x}" cy="${y}" r="${R+28}" fill="${tint}" opacity="0.22" filter="url(#cm-blur)"/>
+        ${charImgs || `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35"/>`}
+        <circle cx="${x}" cy="${y}" r="${R}" fill="none" stroke="${tint}" stroke-width="2.5" filter="url(#cm-node-glow)" style="cursor:pointer" onclick="showPhaseJournal('${escAttr(ph.map_phase)}')"/>
+        ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5"/>`:''}
+        <text x="${x}" y="${y+6}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="18" fill="#fff" opacity="0.9" pointer-events="none">✦</text>
+        ${labelSvg}`;
+    } else if (open){
+      nodes += `
+        <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(201,255,245,0.08)" stroke="#c9fff5" stroke-width="1.8" ${isCur?'stroke-dasharray="none"':''} style="cursor:pointer" onclick="selectPhase('${escAttr(ph.map_phase)}')"/>
+        <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="14" fill="rgba(201,255,245,0.8)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
+        ${labelSvg}`;
+    } else {
+      nodes += `
+        <circle cx="${x}" cy="${y}" r="${R}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.18)" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="12" fill="rgba(255,255,255,0.28)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
+        ${labelSvg}`;
+    }
+  });
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;overflow:visible;">
+    ${defs}${aurora}${nodes}${meter}${title}
+  </svg>`;
+}
+
+function nodeX(i,N,cx,rx){ return Math.round(cx + rx * Math.cos(2*Math.PI*i/N - Math.PI/2)); }
+function nodeY(i,N,cy,ry){ return Math.round(cy + ry * Math.sin(2*Math.PI*i/N - Math.PI/2)); }
+function wrapLabel(str, maxLen){
+  if (str.length <= maxLen) return [str];
+  const mid = str.lastIndexOf(' ', Math.floor(str.length/2)+4);
+  if (mid <= 0) return [str];
+  return [str.slice(0,mid), str.slice(mid+1)];
+}
+function escSvg(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return (s||'').replace(/'/g,"\\'"); }
+
+// ── PHASE JOURNAL POP-OUT (read-only, completed phases) ──────
+async function showPhaseJournal(phaseKey){
+  const ph = phaseByKey(phaseKey);
+  $('pj-title').textContent = ph?.location || phaseKey;
+  $('pj-meta').textContent  = ph ? (ph.sign + (ph.transits?.length ? ' · '+ph.transits.length+' transit'+(ph.transits.length>1?'s':'') : '')) : '';
+  $('pj-messages').innerHTML = `<div class="jrc-empty">loading…</div>`;
+  $('pj-overlay').classList.add('open');
+
+  try {
+    const { data } = await sb.from('cosmic_phases')
+      .select('journal_messages,updated_at')
+      .eq('game_id',activeGameId).eq('map_phase',phaseKey).eq('user_id',currentUser.id)
+      .maybeSingle();
+    const msgs = jrcRowMessages(data||{});
+    const container = $('pj-messages');
+    if (!msgs.length){
+      container.innerHTML = `<div class="jrc-empty">no notes for this phase yet.</div>`;
+      return;
+    }
+    container.innerHTML = '';
+    msgs.forEach(msg=>{
+      jrcMaybeDivider(container, jrcDay(msg.created_at||data.updated_at));
+      container.appendChild(renderJournalMessage(msg, true));
+    });
+    container.scrollTop = container.scrollHeight;
+  } catch(e){
+    console.error('[phase journal]',e);
+    $('pj-messages').innerHTML = `<div class="jrc-empty">couldn't load notes.</div>`;
+  }
+}
+function closePhaseJournal(){ $('pj-overlay').classList.remove('open'); }
 
 // ── FLOW ────────────────────────────────────────────────────
 function selectPhase(key){
@@ -832,7 +1037,7 @@ function stepDone(){
   completedSet.add(activePhase);
   setSave(false);
   showStatus('phase complete ✦', '#E8478B');
-  renderTimeline();
+  renderSeasonMap();
 }
 
 // ── SAVE & CONTINUE — matrix owns every write ───────────────
@@ -908,5 +1113,16 @@ window.addEventListener('message', async e=>{
 
 init();
 </script>
+
+<div class="pj-overlay" id="pj-overlay" onclick="if(event.target===this)closePhaseJournal()">
+  <div class="pj-window">
+    <div class="pj-titlebar">
+      <span id="pj-title"></span>
+      <button class="pj-close" onclick="closePhaseJournal()">✕</button>
+    </div>
+    <div class="pj-meta" id="pj-meta"></div>
+    <div class="pj-messages" id="pj-messages"></div>
+  </div>
+</div>
 </body>
 </html>
