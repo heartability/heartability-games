@@ -32,7 +32,7 @@
 ══════════════════════════════════════════════════ */
 :root {
   /* The point on the castle (as % down its own image) that lands at the
-     rainbow's center. ~98% = the castle's BASE sits on the centerline.
+     pages center. ~98% = the castle's BASE sits on the centerline.
      Lower the % to drop the castle; raise it to lift it further. */
   --castle-anchor: 80%;
 
@@ -99,9 +99,7 @@ body {
 
 /* ── PORTAL ──────────────────────────────────────────
    portal-wrap     — positions the portal on the page
-   portal-inner    — real-height container (rainbow defines height)
    castle-link     — fills portal-inner, whole oval is clickable
-   rainbow-portal  — sits on top, pointer-events:none lets clicks through
    castle-img / portal-logo — share ONE optical center, breathing swap
 ─────────────────────────────────────────────────── */
 .portal-wrap {
@@ -133,7 +131,7 @@ body {
 }
 
 /* Castle: positioned so the point at var(--castle-anchor) down its image
-   lands on the rainbow's center (~96% => the castle base sits at center). */
+   lands on the page center (~96% => the castle base sits at center). */
 .castle-img {
   width: clamp(190px, 40vw, 450px);
   height: auto;
@@ -221,26 +219,9 @@ body {
 
 /* ══════════════════════════════════════════════════
    MOBILE
-   Adjust .portal-wrap top% to move the rainbow up/down.
    Higher % = lower on screen. Lower % = higher on screen.
 ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-
-  /* ── Rainbow: sized by HEIGHT so the portrait oval fits the screen ──
-     ONE knob: change the height on .portal-inner to resize the whole
-     portal. Smaller vh = smaller oval. The castle/logo re-center to it
-     automatically. (Width follows the image's aspect ratio.) */
-  .portal-wrap {
-    top: 48%;
-    left: 50%;
-    width: max-content;       /* shrink the box to the rainbow */
-    max-width: 96vw;
-    transform: translate(-50%, -50%);
-  }
-  .portal-inner {
-    width: auto;
-    height: 64vh;             /* <-- MOBILE PORTAL SIZE KNOB */
-  }
 
 
   .castle-img  { width: clamp(120px, 55vw, 375px); }
@@ -310,7 +291,7 @@ body {
   <div class="portal-wrap">
     <div class="portal-inner">
 
-      <!-- Castle link sits behind rainbow, whole oval is clickable -->
+      <!-- Castle link -->
       <a class="castle-link" href="../games/game-room.html" aria-label="Enter Heartability">
         <img class="castle-img"
              src="assets/elements/castle.png"
