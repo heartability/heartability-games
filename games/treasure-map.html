@@ -893,6 +893,21 @@ function selectFeeling(feeling, cat, el) {
     }
     return;
   }
+}
+
+// ── CLEAR ─────────────────────────────────────────────────────────────────
+function clearMap() {
+  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
+  document.getElementById("mapName").value = "";
+  if (currentMode === 'spiral') {
+    spiralState = { name:"", zones:[{},{},{}] }; spiralSaveState();
+    activeZone = null; renderZoneCircles(); updateSpiralStatus();
+  } else {
+    squareState = { name:"", zones:[{},{},{},{}] }; squareSaveState();
+    squareActiveZone = null; renderSquareZones(); updateSquareStatus();
+  }
+}
 
 // ── REPORT MAP STATE TO MATRIX ────────────────────────────────────────────
 function reportMapState() {
