@@ -136,16 +136,6 @@ body {
   position: relative;
   width: 100%;
 }
-.rainbow-portal {
-  display: block;
-  top: 50%;
-  left: 25%;
-  width: 200%;
-  height: auto;
-  pointer-events: none;
-  position: relative;
-  z-index: 2;
-}
 
 .castle-link {
   position: absolute;
@@ -292,11 +282,7 @@ body {
     width: auto;
     height: 64vh;             /* <-- MOBILE PORTAL SIZE KNOB */
   }
-  .rainbow-portal {
-    width: auto;
-    height: 100%;             /* fill the height set above */
-    max-width: 96vw;
-  }
+
 
   .castle-img  { width: clamp(120px, 55vw, 375px); }
 
@@ -382,12 +368,6 @@ body {
              alt="Castle — click to enter">
       </a>
 
-      <!-- Rainbow on top, pointer-events:none passes clicks through -->
-      <img class="rainbow-portal"
-           id="rainbowPortal"
-           src="assets/elements/circle-rainbow.png"
-           alt="" aria-hidden="true">
-
     </div>
   </div>
 
@@ -408,20 +388,6 @@ body {
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
-(function () {
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ── Swap rainbow image for mobile ── */
-  function swapRainbow() {
-    const img = document.getElementById('rainbowPortal');
-    if (!img) return;
-    img.src = window.innerWidth <= 768
-      ? 'assets/elements/circle-rainbow-m.png'
-      : 'assets/elements/circle-rainbow.png';
-  }
-  swapRainbow();
-  window.addEventListener('resize', swapRainbow);
 
   /* ── Gentle corner-spiral parallax (skipped if reduced motion) ── */
   if (!reduceMotion) {
