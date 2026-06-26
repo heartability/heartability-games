@@ -222,8 +222,10 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .pj-close{ cursor:pointer; font-size:20px; color:#bbb; padding:2px 4px; }
 .pj-close:hover{ color:#444; }
 .pj-messages{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:9px; min-height:180px; }
-.pj-meta{ flex-shrink:0; padding:8px 16px 12px; font-family:var(--font-hand); font-size:12px; color:#aaa;
-  border-top:1px solid #e0dcd4; text-align:center; }
+.pj-meta{ flex-shrink:0; padding:8px 16px 4px; font-family:var(--font-hand); font-size:12px; color:#aaa; text-align:center; }
+.pj-footer{ flex-shrink:0; padding:10px 16px 14px; border-top:1px solid #e0dcd4; display:flex; justify-content:center; }
+.pj-redo-btn{ font-family:var(--font-hand); font-size:14px; color:var(--blue); background:none; border:1.5px solid var(--blue); padding:6px 18px; cursor:pointer; letter-spacing:0.5px; }
+.pj-redo-btn:hover{ background:var(--blue); color:#fff; }
 
 /* MOBILE */
 @media (max-width:768px){
@@ -656,7 +658,7 @@ let _mapPhases = [];
 function handleMapClick(i){
   const ph = _mapPhases[i];
   if (!ph) return;
-  if (completedSet.has(ph.map_phase)) showPhaseJournal(ph.map_phase);
+  if (completedSet.has(ph.map_phase)) showPhaseJournalForKey(ph.map_phase);
   else if (isOpen(ph)) selectPhase(ph.map_phase);
 }
 
@@ -812,6 +814,16 @@ async function showPhaseJournal(phaseKey){
   }
 }
 function closePhaseJournal(){ $('pj-overlay').classList.remove('open'); }
+
+let _redoPhaseKey = null;
+function showPhaseJournalForKey(key){ _redoPhaseKey = key; showPhaseJournal(key); }
+function redoPhase(){
+  const key = _redoPhaseKey;
+  closePhaseJournal();
+  if (!key) return;
+  activePhase = key;
+  stepCharacter();
+}
 
 // ── FLOW ────────────────────────────────────────────────────
 function selectPhase(key){
@@ -1149,6 +1161,9 @@ init();
     </div>
     <div class="pj-meta" id="pj-meta"></div>
     <div class="pj-messages" id="pj-messages"></div>
+    <div class="pj-footer">
+      <button class="pj-redo-btn" onclick="redoPhase()">redo this phase →</button>
+    </div>
   </div>
 </div>
 </body>
