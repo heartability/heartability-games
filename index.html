@@ -97,26 +97,6 @@ body {
   to   { transform: rotate(360deg); }   /* clockwise */
 }
 
-/* ── TITLE TEXT IMAGES ── */
-.title-spiraling {
-  position: absolute;
-  top: 8vh;
-  left: 15vw;
-  width: 40vw;
-  height: auto;
-  z-index: 4;
-  pointer-events: none;
-}
-.title-dreaming {
-  position: absolute;
-  bottom: 8vh;
-  right: 15vw;
-  width: 40vw;
-  height: auto;
-  z-index: 4;
-  pointer-events: none;
-}
-
 /* ── PORTAL ──────────────────────────────────────────
    portal-wrap     — positions the portal on the page
    portal-inner    — real-height container (rainbow defines height)
@@ -246,27 +226,6 @@ body {
 ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── Titles: rotated to sit along the oval's edge ──────────────
-     The standalone `rotate:` property does work, but the text also
-     needs to be positioned along the oval — so it's set together here.
-     KNOB: the angle in rotate(). Negative tilts the text UP toward the
-     right; positive tilts it DOWN toward the right. */
-  .title-spiraling {
-    top: 11vh;
-    left: 0;
-    width: 74vw;
-    transform-origin: center;
-    transform: rotate(-18deg);
-  }
-  .title-dreaming {
-    top: auto;
-    bottom: 19vh;
-    right: 0;
-    width: 74vw;
-    transform-origin: center;
-    transform: rotate(-25deg);
-  }
-
   /* ── Rainbow: sized by HEIGHT so the portrait oval fits the screen ──
      ONE knob: change the height on .portal-inner to resize the whole
      portal. Smaller vh = smaller oval. The castle/logo re-center to it
@@ -346,16 +305,6 @@ body {
   <div class="spiral spiral-3" data-depth="1.3">
     <img src="assets/elements/spiral-3.png" alt="" aria-hidden="true">
   </div>
-
-  <!-- "stop spiraling" — top left -->
-  <img class="title-spiraling"
-       src="assets/elements/spiraling.png"
-       alt="" aria-hidden="true">
-
-  <!-- "start dreaming" — bottom right -->
-  <img class="title-dreaming"
-       src="assets/elements/dreaming.png"
-       alt="" aria-hidden="true">
 
   <!-- Portal -->
   <div class="portal-wrap">
