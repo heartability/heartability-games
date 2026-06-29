@@ -746,6 +746,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   top:var(--bw-top); left:var(--bw-left);
   width:var(--bw-width); height:var(--bw-height);
   max-height:none; overflow-y:auto;
+  padding:28px 36px;
   background:var(--back-wall);
   border:3px solid var(--blue);
   box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
@@ -772,11 +773,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   align-items:start;
 }
 @media (max-width:640px){ .sq-body { grid-template-columns:1fr; } }
-.sq-preview-col { min-width:0; }
+.sq-preview-col { min-width:0; display:flex; flex-direction:column; align-items:center; }
 .sq-terrain-col { min-width:0; }
 .sq-climate-col { grid-column: 1 / -1; min-width:0; }
 .sq-map-frame {
-  width:100%; aspect-ratio:1/1; max-width:280px;
+  width:min(100%, 300px); aspect-ratio:1/1;
   background:#e8e0c8;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
@@ -1036,7 +1037,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   <div class="sq-card">
     <div class="sq-head">
       <span class="sq-title">today's location</span>
-      <button class="sq-close" onclick="closeSidequestBuilder()">×</button>
     </div>
     <div class="sq-sub">the single place that holds today.</div>
     <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this place">
@@ -1431,11 +1431,6 @@ function stepBuildLocation() {
   currentStep = 'location';
   setBubble("where did today take you?");
   setSaveBtnVisible(false);
-  // Friendly fallback panel behind the builder so closing it isn't a dead end.
-  showPanel(`<div class="step-panel" style="justify-content:center;text-align:center;gap:16px;">
-      <div style="font-size:20px;">build the place that holds today</div>
-      <button class="phase-select-btn" style="max-width:240px;" onclick="openLocationBuilder()">map today →</button>
-    </div>`);
   openLocationBuilder();
 }
 
