@@ -495,8 +495,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   color:#ccc; border-top:1px solid #e8e0d0; padding-top:6px; flex-shrink:0;
 }
 
-/* ── ADVENTURE MATRIX ─────────────────────────────────────
-   Portable: this block + buildAdventureMatrix() can be lifted
+/* ── Daily MATRIX ─────────────────────────────────────
+   Portable: this block + buildDailyMatrix() can be lifted
    into the archive page so the moodboard renders identically.   */
 .matrix-panel { padding:0; overflow:hidden; justify-content:flex-start; align-items:stretch; position:relative; }
 .matrix-date {
@@ -884,7 +884,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
       </div>
     </div>
   </div>
-  <span class="nav-title">adventure matrix</span>
+  <span class="nav-title">daily matrix</span>
   <span class="nav-btn" onclick="window.location.href='../matrix/archive.html'">archive →</span>
 </nav>
 
@@ -1388,7 +1388,7 @@ async function showSeeYouTomorrow(row) {
   setSaveBtnVisible(false);
   const data = await assembleTodayMatrixData(row.id);
   data.seeYouTomorrow = true;
-  showPanel(buildAdventureMatrix(data, _matrixSeed));
+  showPanel(buildDailyMatrix(data, _matrixSeed));
 }
 
 // Step one of a fresh day: build the single location that represents today.
@@ -1677,7 +1677,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('write your adventure notes', []);
+  setBubble('write your daily notes', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
@@ -1892,7 +1892,7 @@ function showJournalStatus(msg, ok){
 }
 
 // ── STEP 7: DONE ──────────────────────────────────────────
-// ── ADVENTURE MATRIX ─────────────────────────────────────
+// ── DAILY MATRIX ─────────────────────────────────────
 // Deterministic string-seeded RNG so a given day always scatters the same way.
 function _seedRand(str){
   let h = 1779033703 ^ (str ? str.length : 0);
@@ -1991,7 +1991,7 @@ function photoSlot(quadrant, n){
   return { left: q.x0 + q.dx * col * PHOTO_COL_GAP, top: q.y0 + row * PHOTO_ROW_GAP };
 }
 
-function buildAdventureMatrix(data, seedStr){
+function buildDailyMatrix(data, seedStr){
   const rnd = _seedRand(seedStr || 'matrix');
   const jit = r => (rnd()*2-1)*r;            // ± r
   const rot = r => ((rnd()*2-1)*r).toFixed(1);
@@ -2093,7 +2093,7 @@ let _matrixSeed = 'matrix';
 async function renderMatrix(seeYouTomorrow) {
   const data = await assembleTodayMatrixData(activeEntryId);
   if (seeYouTomorrow) data.seeYouTomorrow = true;
-  showPanel(buildAdventureMatrix(data, _matrixSeed));
+  showPanel(buildDailyMatrix(data, _matrixSeed));
 }
 
 // (matrix photo upload + remove handlers removed — text-only free tracker)
