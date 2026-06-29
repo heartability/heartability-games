@@ -133,19 +133,25 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   font-family:var(--font-hand); font-size:clamp(13px,1.5vw,18px); color:#333; letter-spacing:.5px; }
 .jrc-date{ position:absolute; right:12px; font-size:clamp(9px,1vw,12px); color:#999; font-family:var(--font-hand); }
 .jrc-messages{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
-.jrc-msg{ display:flex; flex-direction:column; gap:3px; max-width:80%; }
-.jrc-msg.today{ align-self:flex-end; align-items:flex-end; }
-.jrc-msg.past{ align-self:flex-start; align-items:flex-start; }
+.jrc-msg-wrap{ display:flex; align-items:flex-start; gap:8px; }
+.jrc-msg-wrap.right{ flex-direction:row-reverse; align-self:flex-end; }
+.jrc-msg-wrap.left{ flex-direction:row; align-self:flex-start; }
+.jrc-avatar{ flex-shrink:0; width:36px; height:36px; border-radius:50%; overflow:hidden; position:relative; border:1.5px solid #ccc; background:#f0ebe2; }
+.jrc-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.jrc-msg{ display:flex; flex-direction:column; gap:3px; max-width:72%; }
+.jrc-msg-wrap.right .jrc-msg{ align-items:flex-end; }
+.jrc-msg-wrap.left  .jrc-msg{ align-items:flex-start; }
 .jrc-bubble{ padding:9px 13px; font-family:var(--font-hand); font-size:clamp(12px,1.4vw,16px); line-height:1.5; word-break:break-word; user-select:text; }
-.jrc-msg.today .jrc-bubble{ background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
-.jrc-msg.past  .jrc-bubble{ background:#fff; color:#222; border:1.5px solid #ccc; }
+.jrc-msg-wrap.right .jrc-bubble{ background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
+.jrc-msg-wrap.left  .jrc-bubble{ background:#fff; color:#222; border:1.5px solid #ccc; }
 .jrc-bubble img{ display:block; width:180px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
-.jrc-msg.past .jrc-bubble img{ border-color:#e3ddd2; }
+.jrc-msg-wrap.left .jrc-bubble img{ border-color:#e3ddd2; }
 .jrc-meta{ font-size:clamp(9px,.9vw,11px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
 .jrc-empty{ margin:auto; text-align:center; color:#9a8a6a; font-style:italic;
   font-size:clamp(11px,1.2vw,14px); line-height:1.6; max-width:84%; padding:24px 0; }
 .jrc-date-divider{ display:flex; align-items:center; gap:10px; padding:2px 0; align-self:stretch; }
 .jrc-date-divider span{ font-size:10px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
+.jrc-date-divider .divider-location{ font-size:11px; color:#a09080; font-family:var(--font-hand); white-space:nowrap; }
 .jrc-date-divider::before, .jrc-date-divider::after{ content:''; flex:1; height:1px; background:#ddd; }
 .jrc-input-area{ flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; flex-direction:column; gap:7px; background:#ede8e0; }
 .jrc-img-chip{ position:relative; width:70px; display:none; }
@@ -887,9 +893,13 @@ async function showPhaseJournal(phaseKey){
       return;
     }
     container.innerHTML = '';
+    const _pjIdx = phases().map(p=>p.map_phase).indexOf(phaseKey);
+    const _pjSide = _pjIdx % 2 === 0 ? 'left' : 'right';
+    const _pjChar = completedData.get(phaseKey) || null;
+    const _pjLoc  = ph?.location || '';
     msgs.forEach(msg=>{
-      jrcMaybeDivider(container, jrcDay(msg.created_at||data.updated_at));
-      container.appendChild(renderJournalMessage(msg, true));
+      jrcMaybeDivider(container, jrcDay(msg.created_at||data.updated_at), _pjLoc);
+      container.appendChild(renderJournalMessage(msg, _pjSide, _pjChar));
     });
     container.scrollTop = container.scrollHeight;
   } catch(e){
@@ -983,23 +993,34 @@ function jrcTime(iso){ return new Date(iso||Date.now()).toLocaleTimeString('en-U
 function jrcDay(iso){ return new Date(iso||Date.now()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
 function jrcRowMessages(row){ const arr=Array.isArray(row?.journal_messages)?row.journal_messages:[]; return arr.slice().sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)); }
 
-function renderJournalMessage(msg, isToday){
-  const el=document.createElement('div');
-  el.className='jrc-msg '+(isToday?'today':'past');
+function buildAvatar(charData){
+  if (!charData) return '<div class="jrc-avatar"></div>';
+  const layers = ['body','eyes','mouth','hair','shoes','acc'];
+  const imgs = layers.map(k => charData[k] && CHAR_FULL_ASSETS[charData[k]]
+    ? `<img src="${CHAR_FULL_ASSETS[charData[k]]}" alt="">`
+    : '').join('');
+  return `<div class="jrc-avatar">${imgs}</div>`;
+}
+
+function renderJournalMessage(msg, side, charData){
+  const wrap=document.createElement('div');
+  wrap.className='jrc-msg-wrap '+(side==='right'?'right':'left');
   const img=msg.image_url?`<img src="${jrcEscape(msg.image_url)}" alt="" onerror="this.style.display='none'">`:''
   const txt=msg.text?`<span class="jrc-bubble-txt">${jrcEscape(msg.text)}</span>`:'';
-  el.innerHTML=`<div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div>`;
-  return el;
+  const avatar=buildAvatar(charData);
+  wrap.innerHTML=`${avatar}<div class="jrc-msg"><div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div></div>`;
+  return wrap;
 }
 
 function jrcScrollBottom(){ const c=document.getElementById('jrc-messages'); if(c) c.scrollTop=c.scrollHeight; }
 
-function jrcMaybeDivider(container, dayLabel){
+function jrcMaybeDivider(container, dayLabel, location){
   const last=[...container.querySelectorAll('.jrc-date-divider span')].pop();
   if(last&&last.textContent===dayLabel) return;
   const div=document.createElement('div');
   div.className='jrc-date-divider';
-  div.innerHTML=`<span>${dayLabel}</span>`;
+  const locHtml=location?`<span class="divider-location">${jrcEscape(location)}</span> · `:'';
+  div.innerHTML=`${locHtml}<span>${dayLabel}</span>`;
   container.appendChild(div);
 }
 
@@ -1032,12 +1053,19 @@ async function loadJournalEntries(){
   if(!container) return;
   container.querySelectorAll('.jrc-msg,.jrc-date-divider').forEach(e=>e.remove());
 
+  // Build a phase order index so alternation is consistent across sessions
+  const phaseOrder = phases().map(p=>p.map_phase);
+  const phaseLocation = Object.fromEntries(phases().map(p=>[p.map_phase, p.location||'']));
+
   let anyMsg=false;
   rows.forEach(row=>{
-    const isToday=row.map_phase===activePhase;
+    const phaseIdx = phaseOrder.indexOf(row.map_phase);
+    const side = phaseIdx % 2 === 0 ? 'left' : 'right';
+    const charData = completedData.get(row.map_phase) || null;
+    const location = phaseLocation[row.map_phase] || '';
     jrcRowMessages(row).forEach(msg=>{
-      jrcMaybeDivider(container,jrcDay(msg.created_at||row.updated_at));
-      container.appendChild(renderJournalMessage(msg,isToday));
+      jrcMaybeDivider(container, jrcDay(msg.created_at||row.updated_at), location);
+      container.appendChild(renderJournalMessage(msg, side, charData));
       anyMsg=true;
     });
   });
@@ -1121,8 +1149,10 @@ async function sendJournalMessage(){
   const container=document.getElementById('jrc-messages');
   const empty=document.getElementById('jrc-empty');
   if(empty) empty.style.display='none';
-  jrcMaybeDivider(container,jrcDay(message.created_at));
-  container.appendChild(renderJournalMessage(message,true));
+  const _phaseIdx = phases().map(p=>p.map_phase).indexOf(activePhase);
+  const _side = _phaseIdx % 2 === 0 ? 'left' : 'right';
+  jrcMaybeDivider(container, jrcDay(message.created_at), phaseByKey(activePhase)?.location||'');
+  container.appendChild(renderJournalMessage(message, _side, completedData.get(activePhase)||null));
   if(msgEl) msgEl.value='';
   removeJournalImage();
   document.getElementById('jrc-confirm')?.classList.remove('open');
