@@ -1274,6 +1274,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
       isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
     } catch(e) {}
     if (!isPaid) { showMemberGate(); return; }
+    document.getElementById('member-gate-overlay').classList.remove('open');
     stepLoadGame();
   }
 });
