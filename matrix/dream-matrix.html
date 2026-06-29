@@ -1262,23 +1262,7 @@ async function lmSignup() {
 
 // Listen for auth changes from the login iframe
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'INITIAL_SESSION') {
-    currentUser = session?.user || null;
-    let isPaid = false;
-    if (currentUser) {
-      try {
-        const { data: profile } = await sb.from('user-profiles')
-          .select('username, membership_status').eq('id', currentUser.id).single();
-        if (profile?.username) updateGearMenu(profile.username);
-        else updateGearMenu(currentUser.email);
-        isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
-      } catch(e) {}
-    }
-    if (!isPaid) { showMemberGate(); return; }
-    stepInitial();
-    return;
-  }
-  if (event === 'SIGNED_IN' && session && !currentUser) {
+  if (event === 'SIGNED_IN' && session) {
     currentUser = session.user;
     closeLoginModal();
     let isPaid = false;
@@ -2648,9 +2632,22 @@ function confirmSidequest() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
-function init() {
+async function init() {
   buildSidequestPalette();
-  // auth handled entirely by onAuthStateChange (INITIAL_SESSION fires immediately)
+  let isPaid = false;
+  try {
+    const { data: { user }, error } = await sb.auth.getUser();
+    if (user && !error) {
+      currentUser = user;
+      const { data: profile } = await sb.from('user-profiles')
+        .select('username, membership_status').eq('id', currentUser.id).single();
+      if (profile?.username) updateGearMenu(profile.username);
+      else updateGearMenu(currentUser.email);
+      isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+    }
+  } catch(e) {}
+  if (!isPaid) { showMemberGate(); return; }
+  stepInitial();
 }
 
 init();
