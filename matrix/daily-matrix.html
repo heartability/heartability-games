@@ -767,8 +767,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-body {
   display:grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap:20px 24px;
+  grid-template-rows: auto 1fr;
+  gap:16px 24px;
   align-items:start;
 }
 @media (max-width:640px){ .sq-body { grid-template-columns:1fr; } }
@@ -776,16 +776,16 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-terrain-col { min-width:0; }
 .sq-climate-col { grid-column: 1 / -1; min-width:0; }
 .sq-map-frame {
-  width:100%; aspect-ratio:5/4;
+  width:100%; aspect-ratio:4/3; max-height:160px;
   background:#e8e0c8;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
 .sq-map-frame svg { width:100%; height:100%; display:block; }
-.sq-section-label { font-size:12px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 6px; }
+.sq-section-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 8px; }
 
 /* terrain palette */
-.sq-palette { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:14px; }
+.sq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
 .sq-terrain {
   display:flex; flex-direction:column; align-items:center; gap:3px;
   padding:8px 6px; background:#f0ead6; cursor:pointer; user-select:none;
@@ -809,14 +809,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-climate.rainy { background:#ae87e2; border-color:#260156; }
 .sq-climate.windy { background:#a3eac9; border-color:#046957; }
 .sq-climate.snowy { background:#6cd1ea; border-color:#033f50; }
-.sq-climate-head { font-size:18px; margin-bottom:5px; }
+.sq-climate-head { font-size:clamp(26px,3vw,36px); margin-bottom:8px; }
 .sq-climate.sunny .sq-climate-head { color:#715f04; }
 .sq-climate.rainy .sq-climate-head { color:#260156; }
 .sq-climate.windy .sq-climate-head { color:#046957; }
 .sq-climate.snowy .sq-climate-head { color:#033f50; }
 .sq-chips { display:flex; flex-wrap:wrap; gap:5px; }
 .sq-chip {
-  padding:3px 9px; font-family:var(--font-hand); font-size:13px; letter-spacing:.4px;
+  padding:5px 14px; font-family:var(--font-hand); font-size:clamp(16px,1.8vw,22px); letter-spacing:.4px;
   cursor:pointer; user-select:none; border:2px solid; transition:filter .1s;
 }
 .sq-chip:hover { filter:brightness(.92); }
@@ -1057,8 +1057,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     <div class="sq-actions"></div>
   </div>
   <div class="sq-foot">
-    <button class="sq-btn ghost" onclick="closeSidequestBuilder()">cancel</button>
-    <button class="sq-btn save-continue-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
+    <button class="save-continue-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
   </div>
 </div>
 
