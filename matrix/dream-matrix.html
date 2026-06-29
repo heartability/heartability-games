@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adventure Matrix — Heartability</title>
+<title>Dream Matrix — Heartability</title>
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
@@ -495,8 +495,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   color:#ccc; border-top:1px solid #e8e0d0; padding-top:6px; flex-shrink:0;
 }
 
-/* ── ADVENTURE MATRIX ─────────────────────────────────────
-   Portable: this block + buildAdventureMatrix() can be lifted
+/* ── DREAM MATRIX ─────────────────────────────────────
+   Portable: this block + buildDreamMatrix() can be lifted
    into the archive page so the moodboard renders identically.   */
 .matrix-panel { padding:0; overflow:hidden; justify-content:flex-start; align-items:stretch; position:relative; }
 .matrix-date {
@@ -884,7 +884,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
       </div>
     </div>
   </div>
-  <span class="nav-title">adventure matrix</span>
+  <span class="nav-title">dream matrix</span>
   <span class="nav-btn" onclick="window.location.href='../matrix/archive.html'">archive →</span>
 </nav>
 
@@ -1066,8 +1066,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 <!-- MEMBER GATE -->
 <div class="member-gate-overlay" id="member-gate-overlay">
   <div class="member-gate">
-    <div class="member-gate-title">adventure matrix</div>
-    <div class="member-gate-text">the adventure matrix is for dream members. free members have access to the daily tracker.</div>
+    <div class="member-gate-title">dream matrix</div>
+    <div class="member-gate-text">the dream matrix is for paid members. free members have access to the daily tracker.</div>
     <div class="member-gate-btns">
       <button class="member-gate-btn" onclick="window.location.href='daily-tracker.html'">free tracker →</button>
       <button class="member-gate-btn ghost" onclick="window.location.href='../users/membership.html'">upgrade now</button>
@@ -1728,7 +1728,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('write your adventure notes', []);
+  setBubble('write your dream notes', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
@@ -1989,7 +1989,7 @@ function showJournalStatus(msg, ok){
 }
 
 // ── STEP 7: DONE ──────────────────────────────────────────
-// ── ADVENTURE MATRIX ─────────────────────────────────────
+// ── DREAM MATRIX ─────────────────────────────────────
 // Deterministic string-seeded RNG so a given day always scatters the same way.
 function _seedRand(str){
   let h = 1779033703 ^ (str ? str.length : 0);
@@ -2088,7 +2088,7 @@ function photoSlot(quadrant, n){
   return { left: q.x0 + q.dx * col * PHOTO_COL_GAP, top: q.y0 + row * PHOTO_ROW_GAP };
 }
 
-function buildAdventureMatrix(data, seedStr){
+function buildDreamMatrix(data, seedStr){
   const rnd = _seedRand(seedStr || 'matrix');
   const jit = r => (rnd()*2-1)*r;            // ± r
   const rot = r => ((rnd()*2-1)*r).toFixed(1);
@@ -2199,7 +2199,7 @@ async function stepDone() {
 let _matrixSeed = 'matrix';
 async function renderMatrix() {
   const data = await assembleTodayMatrixData(activeEntryId);
-  showPanel(buildAdventureMatrix(data, _matrixSeed));
+  showPanel(buildDreamMatrix(data, _matrixSeed));
 }
 
 // ── MATRIX PHOTO UPLOAD ───────────────────────────────────
