@@ -299,6 +299,34 @@ body {
   margin-top: 3px;
 }
 
+/* ── Board tabs ── */
+.bingo-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+}
+.bingo-tab {
+  font-family: var(--font-game);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border: 2px solid var(--panel-border);
+  color: var(--panel-border);
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.bingo-tab + .bingo-tab { border-left: none; }
+.bingo-tab.active {
+  background: var(--panel-border);
+  color: var(--panel-bg);
+  cursor: default;
+  pointer-events: none;
+}
+.bingo-tab:not(.active):hover { background: rgba(101,120,226,0.08); }
+
 @media (max-width: 500px) {
   .wall { padding: 16px 10px 30px; }
   .rpg-panel { padding: 12px; }
@@ -318,6 +346,10 @@ body {
 
     <div class="rpg-panel">
 
+      <div class="bingo-tabs">
+        <a class="bingo-tab" href="../games/bingo.html">sensory</a>
+        <span class="bingo-tab active">cosmic</span>
+      </div>
       <div class="bingo-grid" id="bingoGrid"></div>
 
       <div class="meter-section">
