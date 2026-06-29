@@ -736,13 +736,16 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 /* ── SIDEQUEST BUILDER MODAL ── */
 .sq-overlay {
   position:fixed; inset:0; z-index:300;
-  background:rgba(40,32,24,.45);
-  display:none; align-items:center; justify-content:center;
-  padding:18px;
+  background:none;
+  display:none; align-items:flex-start; justify-content:flex-start;
+  padding:0;
 }
 .sq-overlay.open { display:flex; }
 .sq-card {
-  width:min(760px,94vw); max-height:92vh; overflow-y:auto;
+  position:fixed;
+  top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height);
+  max-height:none; overflow-y:auto;
   background:var(--back-wall);
   border:3px solid var(--blue);
   box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
