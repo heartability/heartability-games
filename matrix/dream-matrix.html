@@ -1069,8 +1069,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     <div class="member-gate-title">dream matrix</div>
     <div class="member-gate-text">the dream matrix is for paid members. free members have access to the daily tracker.</div>
     <div class="member-gate-btns">
-      <button class="member-gate-btn" onclick="window.location.href='daily-tracker.html'">free tracker →</button>
+      <button class="member-gate-btn" onclick="window.location.href='daily-matrix.html'">free tracker →</button>
       <button class="member-gate-btn ghost" onclick="window.location.href='../users/membership.html'">upgrade now</button>
+    </div>
+    <div style="text-align:center;margin-top:8px;">
+      <span style="font-family:var(--font-hand);font-size:13px;color:#aaa;cursor:pointer;text-decoration:underline;" onclick="showLoginModal()">login here</span>
     </div>
   </div>
 </div>
@@ -2632,7 +2635,8 @@ async function init() {
   buildSidequestPalette();
   let isPaid = false;
   try {
-    const { data:{ session } } = await sb.auth.getSession();
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000));
+    const { data:{ session } } = await Promise.race([sb.auth.getSession(), timeout]);
     currentUser = session?.user || null;
     if (currentUser) {
       const { data: profile } = await sb.from('user-profiles')
@@ -2641,7 +2645,10 @@ async function init() {
       else updateGearMenu(currentUser.email);
       isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
     }
-  } catch(e) {}
+  } catch(e) {
+    await sb.auth.signOut();
+    currentUser = null;
+  }
   if (!isPaid) { showMemberGate(); return; }
   stepInitial();
 }
