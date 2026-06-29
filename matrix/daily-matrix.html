@@ -1419,7 +1419,7 @@ async function showSeeYouTomorrow(row) {
   activeEntryId = row.id;
   activePhase   = null;
   _matrixSeed   = row.id;
-  setBubble("you've tracked today — see you tomorrow");
+  setBubble("see you tomorrow!");
   setSaveBtnVisible(false);
   const data = await assembleTodayMatrixData(row.id);
   data.seeYouTomorrow = true;
@@ -2124,7 +2124,7 @@ async function assembleTodayMatrixData(entryId){
 
 async function stepDone() {
   currentStep = 'done';
-  setBubble("today is tracked — see you tomorrow");
+  setBubble("see you tomorrow!");
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
   _matrixSeed = activeEntryId;
   await renderMatrix(true);
