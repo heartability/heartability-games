@@ -768,10 +768,10 @@ function buildSeasonMapSVG(){
       defs += `<clipPath id="nc${i}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>`;
       const charData = done ? (completedData.get(ph.map_phase)||{}) : {};
       const tint = (done ? tintFromLocation(ph.location) : null) || '#c9fff5';
-      const op   = done ? 1 : 0.5; // half opacity for open/unfinished
+      const op   = done ? 0.85 : 0.4;
       defs += `<radialGradient id="hg${i}" cx="50%" cy="50%" r="50%">
         <stop offset="0%"   stop-color="${tint}" stop-opacity="${op}"/>
-        <stop offset="55%"  stop-color="${tint}" stop-opacity="${+(op*0.85).toFixed(2)}"/>
+        <stop offset="45%"  stop-color="${tint}" stop-opacity="${+(op*0.6).toFixed(2)}"/>
         <stop offset="100%" stop-color="${tint}" stop-opacity="0"/>
       </radialGradient>`;
     }
@@ -828,7 +828,7 @@ function buildSeasonMapSVG(){
       const tint = tintFromLocation(ph.location) || '#c9fff5';
 
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="${R+28}" fill="url(#hg${i})" pointer-events="none"/>
+        <circle cx="${x}" cy="${y}" r="${R+48}" fill="url(#hg${i})" pointer-events="none"/>
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent"/>
         ${terrainImg || `<circle cx="${x}" cy="${y}" r="${R}" fill="${tint}" fill-opacity="0.35" pointer-events="none"/>`}
         ${isJust?`<circle cx="${x}" cy="${y}" r="${R+6}" fill="none" stroke="${tint}" stroke-width="1.5" opacity="0.5" pointer-events="none"/>`:''}
@@ -836,7 +836,7 @@ function buildSeasonMapSVG(){
       </g>`;
     } else if (open){
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="${R+28}" fill="url(#hg${i})" pointer-events="none"/>
+        <circle cx="${x}" cy="${y}" r="${R+48}" fill="url(#hg${i})" pointer-events="none"/>
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent" stroke="#c9fff5" stroke-width="1.8" ${isCur?'':'stroke-dasharray="5 3"'}/>
         ${terrainImg}
         <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="14" fill="rgba(201,255,245,0.9)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
