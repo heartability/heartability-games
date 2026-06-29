@@ -650,6 +650,21 @@ function terrainFromLocation(loc){
   return TERRAIN_IMGS[first] || null;
 }
 
+const WEATHER_CATS = [
+  { tint:'#f2e6a8', feelings:['trust','peace','joy','hope','confidence'] },
+  { tint:'#c9b3e7', feelings:['shadows','worry','fear','depression','regret'] },
+  { tint:'#b6e6cf', feelings:['surprise','curiosity','inspiration','excitement','courage'] },
+  { tint:'#a0d7e6', feelings:['anger','avoidance','bitterness','apathy','shock'] },
+];
+function tintFromLocation(loc){
+  if (!loc) return null;
+  const words = loc.trim().toLowerCase().split(/\s+/);
+  for (const cat of WEATHER_CATS){
+    if (words.some(w => cat.feelings.includes(w))) return cat.tint;
+  }
+  return null;
+}
+
 // ── BODY COLOR TABLE (mirrors CHAR_FULL_ASSETS slugs in infinity-mirror.html) ──
 const BODY_COLORS = {
   body_red:'#e85555', body_orange:'#f0922b', body_yellow:'#f5d033',
@@ -752,7 +767,7 @@ function buildSeasonMapSVG(){
     if (done || open){
       defs += `<clipPath id="nc${i}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>`;
       const charData = done ? (completedData.get(ph.map_phase)||{}) : {};
-      const tint = done ? (BODY_COLORS[charData.body||'']||'#c9fff5') : '#c9fff5';
+      const tint = (done ? tintFromLocation(ph.location) : null) || '#c9fff5';
       const op   = done ? 1 : 0.5; // half opacity for open/unfinished
       defs += `<radialGradient id="hg${i}" cx="50%" cy="50%" r="50%">
         <stop offset="0%"   stop-color="${tint}" stop-opacity="${op}"/>
@@ -810,7 +825,7 @@ function buildSeasonMapSVG(){
 
     if (done){
       const charData = completedData.get(ph.map_phase) || {};
-      const tint = BODY_COLORS[charData.body||''] || '#c9fff5';
+      const tint = tintFromLocation(ph.location) || '#c9fff5';
 
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
         <circle cx="${x}" cy="${y}" r="${R+28}" fill="url(#hg${i})" pointer-events="none"/>
