@@ -605,7 +605,7 @@ body.game-mode .char-heart {
 /* MATRIX PICKER */
 .matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
 .matrix-picker-overlay.open { display: flex; }
-.matrix-picker-popup { background: var(--cream); border: 2px solid var(--aqua); box-shadow: 4px 6px 0 rgba(0,0,0,.15); width: min(92vw, 400px); overflow: hidden; }
+.matrix-picker-popup { background: #f5f0ea; box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
 .matrix-picker-titlebar { height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555; }
 .matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
 .matrix-pick-btn { font-family: var(--font-hand); font-size: clamp(16px,2vw,20px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: left; transition: background .1s; }
@@ -802,7 +802,7 @@ body.game-mode .char-heart {
       <p>Dear visitor,</p>
       <p>Welcome to Heartability. I have played this game in my journals for years. It helped me make so many of my dreams come true. Now I offer it to you. I believe this way of approaching life has the power to change the world, to create a world where people trust their intuition and following your own path is considered normal, not alternative.</p>
       <p>The games on this page take inspiration from the basic settings controls of your typical video game, but instead apply that world building technique to your personal life. Build a map to explore your emotional landscape. Play bingo to check in on your energy reserves. Stare into the infinity mirror and imagine what version of yourself you want to be next.</p> 
-      <p> Visit occasionally, or enter the adventure matrix and start exploring your future with Heartability. There&#39;s no wrong way to play. Nothing to optimize. Just endless possibilities for you to explore.</p>
+      <p> Visit occasionally, or enter the matrix and start exploring your future with Heartability. There&#39;s no wrong way to play. Nothing to optimize. Just endless possibilities for you to explore.</p>
       <div class="letter-sig"><p>I believe in you,</p><p>Zoe Tinnes, founder of Heartability</p></div>
     </div>
   </div>
@@ -958,7 +958,7 @@ function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime
     'art-map':      'if you feel lost, make a map',
     'art-bingo':    'celebrate the care you give yourself',
     'art-mirror':   'who do you want to be today?',
-    'art-exclaim':    'enter the adventure matrix',
+    'art-exclaim':    'enter the matrix',
     'art-about':    'a message from the creator of Heartability',
   };
 
