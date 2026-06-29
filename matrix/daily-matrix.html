@@ -2124,7 +2124,7 @@ async function assembleTodayMatrixData(entryId){
 
 async function stepDone() {
   currentStep = 'done';
-  setBubble("today is tracked — see you tomorrow ✨");
+  setBubble("today is tracked — see you tomorrow");
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
   _matrixSeed = activeEntryId;
   await renderMatrix(true);
