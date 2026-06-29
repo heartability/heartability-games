@@ -928,7 +928,7 @@ function stepCharacter(){
 function stepBingo(){
   currentStep = 'bingo';
   setBubble("mark the sky's invitations as you live them.");
-  showIframe(`../cosmic/cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`);
+  showIframe(`cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`);
   setSave(true,'continue →');
 }
 
