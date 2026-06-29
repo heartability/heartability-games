@@ -24,42 +24,19 @@
   --purple-dark:   #4a5bc4;
   --purple-shadow: #3a4aaa;
   --blue-glow:     #83d2e6;
-  --cream:         #f5f0ea;
-  --cream-dark:    #e8e3da;
-  --pink:          #f8b6ff;
-  --pink-dark:     #d98aec;
-  --pink-shadow:   #b86dcc;
-  --pink-light:    #fde0ff;
   --line-col:      #111;
-  --side-col:      #e8e4dc;
 }
 
 html, body {
   width: 100vw;
   min-height: 100dvh;
-  background: var(--side-col);
   font-family: var(--font-hand);
   user-select: none;
+  background: url('../assets/elements/sky.png') center / cover no-repeat fixed;
+  background-color: #5b7fe0;
 }
 
-/* ── ROOM BACKGROUND ── */
-.room-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-.room-bg svg { width: 100%; height: 100%; display: block; }
-.room-back-wall {
-  position: fixed;
-  top: 9%; left: 15%;
-  width: 70%; height: 70%;
-  background: #f0ece4;
-  border: 2px solid var(--line-col);
-  z-index: 1;
-  pointer-events: none;
-}
-
+/* ── NAV ── */
 .room-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -75,194 +52,22 @@ html, body {
   font-size: clamp(14px, 1.6vw, 20px);
   color: #111;
 }
-.nav-btn {
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 2px;
-  transition: background 0.15s;
-}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); }
-.gear-wrap { position:relative; }
-.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background 0.15s; padding:3px; }
-.gear-btn:hover { background:rgba(0,0,0,0.08); }
-.gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,0.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
-.gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background 0.12s; }
-.gear-item:hover { background:rgba(0,0,0,0.07); }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.gear-wrap { position: relative; }
+.gear-btn { width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 3px; transition: background 0.15s; padding: 3px; }
+.gear-btn:hover { background: rgba(0,0,0,0.08); }
+.gear-btn img { width: 22px; height: 22px; display: block; }
+.gear-dropdown { position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px; background: #c9fff5; border: 2px solid var(--line-col); box-shadow: 3px 4px 0 rgba(0,0,0,0.12); z-index: 201; display: none; flex-direction: column; overflow: hidden; }
+.gear-dropdown.open { display: flex; }
+.gear-item { font-family: var(--font-hand); font-size: clamp(13px,1.3vw,16px); color: #333; padding: 9px 14px; cursor: pointer; border: none; background: none; text-align: left; white-space: nowrap; transition: background 0.12s; }
+.gear-item:hover { background: rgba(0,0,0,0.07); }
 
-.page-wrap {
-  position: fixed;
-  top: 9%; left: 15%;
-  width: 70%; height: 70%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  gap: 20px;
-  overflow-y: auto;
-  position: fixed;
-  z-index: 10;
-}
-
-.banner {
-  width: 100%;
-  max-width: 780px;
-  padding: 12px 20px;
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  border-radius: 2px;
-  display: none;
-  animation: windowIn 0.3s ease both;
-}
-.banner.success  { display: block; background: rgba(45,122,79,0.1); border: 1.5px solid rgba(45,122,79,0.35); color: #2d7a4f; }
-.banner.cancelled { display: block; background: rgba(192,57,43,0.08); border: 1.5px solid rgba(192,57,43,0.2); color: #c0392b; }
-
-.tier-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  width: 100%;
-  max-width: 900px;
-}
-@media (max-width: 700px) { .tier-grid { grid-template-columns: 1fr; } }
-
-.window {
-  background: var(--cream);
-  overflow: hidden;
-  animation: windowIn 0.35s ease both;
-  display: flex;
-  flex-direction: column;
-}
-.window.basic {
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
-  animation-delay: 0.05s;
-}
-.window.founding {
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
-  animation-delay: 0.1s;
-}
-
-@keyframes windowIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.window-titlebar {
-  height: 38px;
-  background: var(--cream-dark);
-  border-bottom: 2px solid #bbb;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #555;
-}
-.founding .window-titlebar {
-  background: var(--cream-dark);
-  border-bottom-color: #bbb;
-}
-
-.titlebar-badge {
-  font-size: clamp(9px, 0.9vw, 11px);
-  padding: 2px 8px;
-  background: var(--purple);
-  color: #fff;
-  border-radius: 2px;
-  letter-spacing: 0.5px;
-}
-
-.window-body {
-  padding: 20px 22px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1;
-}
-
-.price-block {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.price-amount {
-  font-family: var(--font-hand);
-  font-size: clamp(28px, 3.5vw, 40px);
-  color: #222;
-  line-height: 1;
-}
-.price-period { font-size: clamp(12px, 1.2vw, 14px); color: #aaa; }
-.price-note   { font-size: clamp(11px, 1vw, 12px); color: #aaa; margin-top: -8px; }
-
-.features { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: clamp(12px, 1.2vw, 14px);
-  color: #444;
-  line-height: 1.4;
-}
-.feature-check { color: var(--purple); flex-shrink: 0; margin-top: 1px; }
-.founding .feature-check { color: var(--purple); }
-
-.divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); }
-
-.btn-basic {
-  width: 100%;
-  padding: 11px 18px;
-  background: var(--purple);
-  border: 2px solid var(--purple-dark);
-  box-shadow: 2px 2px 0 var(--purple-shadow);
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.05s;
-}
-.btn-basic:hover  { background: var(--purple-dark); }
-.btn-basic:active { box-shadow: none; transform: translate(2px,2px); }
-.btn-basic:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-.btn-founding {
-  width: 100%;
-  padding: 11px 18px;
-  background: var(--pink);
-  border: 2px solid var(--pink-dark);
-  box-shadow: 2px 2px 0 var(--pink-shadow);
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.05s;
-}
-.btn-founding:hover  { background: var(--pink-dark); }
-.btn-founding:active { box-shadow: none; transform: translate(2px,2px); }
-.btn-founding:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-.btn-loading { opacity: 0.6; cursor: not-allowed !important; }
-
-.already-member {
-  width: 100%;
-  max-width: 780px;
-  text-align: center;
-  font-size: clamp(11px, 1vw, 13px);
-  color: #777;
-  animation: windowIn 0.4s ease 0.2s both;
-}
-.already-member a { color: var(--purple); text-decoration: underline; cursor: pointer; }
-
+/* ── LOADING ── */
 #loading-state {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
   font-family: var(--font-pixel);
   font-size: clamp(18px, 2vw, 24px);
   color: var(--blue-glow);
@@ -270,71 +75,128 @@ html, body {
 }
 #main-content { display: none; }
 
-/* ── BILLING TOGGLE ── */
-.billing-toggle {
+/* ── PAGE CONTENT ── */
+.page-content {
+  min-height: 100dvh;
   display: flex;
-  gap: 0;
-  border: 1.5px solid var(--purple);
-  overflow: hidden;
-  align-self: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px 80px;
+  gap: clamp(16px, 3vh, 32px);
 }
-.billing-opt {
-  padding: 4px 12px;
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1vw, 13px);
-  cursor: pointer;
-  border: none;
-  background: none;
-  color: var(--purple);
-  transition: background 0.15s, color 0.15s;
-  white-space: nowrap;
-}
-.billing-opt.active { background: var(--purple); color: #fff; }
-.billing-opt + .billing-opt { border-left: 1.5px solid var(--purple); }
 
-/* ── FREE TIER ── */
-.window.free {
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
-  animation-delay: 0s;
+.banner {
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
+  border-radius: 2px;
+  padding: 10px 18px;
+  display: none;
+  text-align: center;
 }
-.free .window-titlebar { background: var(--cream-dark); }
-.free .feature-check { color: var(--purple); }
+.banner.success  { display: block; background: rgba(45,122,79,0.15); border: 1.5px solid rgba(45,122,79,0.4); color: #e0ffe8; }
+.banner.cancelled { display: block; background: rgba(192,57,43,0.12); border: 1.5px solid rgba(192,57,43,0.3); color: #ffe8e8; }
+
+.membership-title {
+  width: clamp(220px, 38vw, 500px);
+  height: auto;
+  display: block;
+}
+
+/* ── TIERS ── */
+.tiers {
+  display: flex;
+  gap: clamp(24px, 6vw, 80px);
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.tier-label {
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.8vw, 22px);
+  color: rgba(255,255,255,0.85);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.tier-blob {
+  position: relative;
+  width: clamp(200px, 26vw, 340px);
+  transition: transform 0.2s;
+}
+.tier:hover .tier-blob { transform: scale(1.03); }
+.tier:active .tier-blob { transform: scale(0.98); }
+
+.tier-blob img.blob-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.blob-benefits {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.2vh, 16px);
+  padding: 28px 18px;
+  pointer-events: none;
+}
+
+.benefit {
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.2vw, 15px);
+  color: #fff;
+  text-align: center;
+  line-height: 1.3;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+
+/* ── ALREADY A MEMBER ── */
+.already-member {
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.1vw, 15px);
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+}
+.already-member a { color: #fff; text-decoration: underline; cursor: pointer; }
+
+/* ── FOOTER ── */
 .legal-footer {
   position: fixed;
-  bottom: 12px;
-  left: 0; right: 0;
+  bottom: 12px; left: 0; right: 0;
   text-align: center;
   font-family: var(--font-hand);
   font-size: clamp(12px, 1vw, 15px);
-  color: var(--purple);
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
 }
-.legal-footer a {
-  color: #111;
-  text-decoration: none;
-  transition: color 0.15s;
+.legal-footer a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.15s; }
+.legal-footer a:hover { color: #fff; }
+.legal-footer span { color: rgba(255,255,255,0.3); }
+
+@media (max-width: 540px) {
+  .tiers { gap: 28px; }
+  .tier-blob { width: clamp(180px, 72vw, 300px); }
 }
-.legal-footer a:hover { color: var(--purple); }
-.legal-footer span { color: #ccc; }
 
   </style>
 </head>
 <body>
-
-<!-- ROOM BACKGROUND -->
-<div class="room-bg" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-  </svg>
-</div>
-<div class="room-back-wall" aria-hidden="true"></div>
 
 <nav class="room-nav">
   <div class="gear-wrap" id="gear-wrap">
@@ -355,72 +217,40 @@ html, body {
 
 <div id="loading-state">loading</div>
 
-<div class="page-wrap" id="main-content">
+<div class="page-content" id="main-content">
 
   <div class="banner" id="banner"></div>
 
-  <div class="tier-grid">
+  <img class="membership-title" src="../assets/elements/membership.png" alt="membership options">
+
+  <div class="tiers">
 
     <!-- FREE -->
-    <div class="window free">
-      <div class="window-titlebar"><span>free</span></div>
-      <div class="window-body">
-        <div class="price-block">
-          <span class="price-amount">$0</span>
-          <span class="price-period">/ forever</span>
+    <div class="tier" onclick="window.location.href='profile.html'" title="free membership">
+      <div class="tier-label">free membership</div>
+      <div class="tier-blob">
+        <img class="blob-img" src="../assets/elements/free.png" alt="free membership">
+        <div class="blob-benefits">
+          <div class="benefit">create a profile</div>
+          <div class="benefit">access daily tracker</div>
+          <div class="benefit">join the leaderboard</div>
+          <div class="benefit">have fun!</div>
         </div>
-        <div class="price-note">no credit card required</div>
-        <hr class="divider" />
-        <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>save data for one goal and view archive</span></div>
-        </div>
-        <hr class="divider" />
-        <button class="btn-basic" onclick="window.location.href='profile.html'">continue</button>
       </div>
     </div>
 
     <!-- COMMUNITY -->
-    <div class="window basic">
-      <div class="window-titlebar"><span>community</span></div>
-      <div class="window-body">
-        <div class="price-block">
-          <span class="price-amount" id="community-price">$8</span>
-          <span class="price-period" id="community-period">/ month</span>
+    <div class="tier" id="tier-community" onclick="checkout()" title="community membership">
+      <div class="tier-label">community membership</div>
+      <div class="tier-blob">
+        <img class="blob-img" src="../assets/elements/community.png" alt="community membership">
+        <div class="blob-benefits">
+          <div class="benefit">$8/month or $88/year</div>
+          <div class="benefit">access matrix trackers</div>
+          <div class="benefit">join the private group chats</div>
+          <div class="benefit">access new features first</div>
+          <div class="benefit">watch your dreams come true!!</div>
         </div>
-        <div class="price-note" id="community-note">billed monthly, cancel anytime</div>
-        <div class="billing-toggle">
-          <button class="billing-opt active" id="opt-monthly" onclick="setBilling('monthly')">monthly</button>
-          <button class="billing-opt" id="opt-yearly" onclick="setBilling('yearly')">yearly</button>
-        </div>
-        <hr class="divider" />
-        <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>save data for unlimited goals</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>community group chat</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>20% off in gift shop</span></div>
-        </div>
-        <hr class="divider" />
-        <button class="btn-basic" id="btn-community" onclick="checkout('community')">join the community</button>
-      </div>
-    </div>
-
-    <!-- FOUNDING -->
-    <div class="window founding">
-      <div class="window-titlebar">
-        <span>founder</span>
-      </div>
-      <div class="window-body">
-        <div class="price-block">
-          <span class="price-amount">$1,000</span>
-        </div>
-        <div class="price-note">one time payment · forever access</div>
-        <hr class="divider" />
-        <div class="features">
-          <div class="feature-item"><span class="feature-check">✦</span><span>only 100 spots available</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>put your name on a brick in the 2d world</span></div>
-          <div class="feature-item"><span class="feature-check">✦</span><span>be a part of our creation story</span></div>
-        </div>
-        <hr class="divider" />
-        <button class="btn-basic" id="btn-founding" onclick="checkout('founding')">become a founder</button>
       </div>
     </div>
 
@@ -443,7 +273,10 @@ html, body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
-document.addEventListener('click', e => { const w = document.getElementById('gear-wrap'); if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open'); });
+document.addEventListener('click', e => {
+  const w = document.getElementById('gear-wrap');
+  if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
+});
 
 (function () {
   const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -451,31 +284,17 @@ document.addEventListener('click', e => { const w = document.getElementById('gea
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  document.getElementById('gear-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = 'login.html'; });
+  document.getElementById('gear-logout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  });
 
   const PRICE_IDS = {
     community_monthly: 'price_1TX47YA6JE5MLfPsIZAXk3QY',
     community_yearly:  'price_1Tga4bA6JE5MLfPsJ5pzjRgo',
-    founding:          'price_1TgaQqA6JE5MLfPs5oPFirei',
   };
 
-  let currentBilling  = 'monthly';
-  let currentSession  = null;
-
-  window.setBilling = function (type) {
-    currentBilling = type;
-    document.getElementById('opt-monthly').classList.toggle('active', type === 'monthly');
-    document.getElementById('opt-yearly').classList.toggle('active', type === 'yearly');
-    if (type === 'monthly') {
-      document.getElementById('community-price').textContent  = '$8';
-      document.getElementById('community-period').textContent = '/ month';
-      document.getElementById('community-note').textContent   = 'billed monthly, cancel anytime';
-    } else {
-      document.getElementById('community-price').textContent  = '$88';
-      document.getElementById('community-period').textContent = '/ year';
-      document.getElementById('community-note').textContent   = 'save $8 annually';
-    }
-  };
+  let currentSession = null;
 
   async function init() {
     const params = new URLSearchParams(window.location.search);
@@ -495,27 +314,15 @@ document.addEventListener('click', e => { const w = document.getElementById('gea
     document.getElementById('main-content').style.display  = 'flex';
   }
 
-  window.checkout = async function (tier) {
+  window.checkout = async function () {
     if (!currentSession) {
       window.location.href = 'login.html';
       return;
     }
 
-    let priceId, btnId, paymentMode;
-    if (tier === 'community') {
-      priceId     = currentBilling === 'monthly' ? PRICE_IDS.community_monthly : PRICE_IDS.community_yearly;
-      btnId       = 'btn-community';
-      paymentMode = 'subscription';
-    } else {
-      priceId     = PRICE_IDS.founding;
-      btnId       = 'btn-founding';
-      paymentMode = 'payment';
-    }
-
-    const btn = document.getElementById(btnId);
-    btn.disabled = true;
-    btn.classList.add('btn-loading');
-    btn.textContent = 'preparing checkout...';
+    const tier = document.getElementById('tier-community');
+    tier.style.opacity = '0.6';
+    tier.style.pointerEvents = 'none';
 
     try {
       const res = await fetch(
@@ -526,26 +333,25 @@ document.addEventListener('click', e => { const w = document.getElementById('gea
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${currentSession.access_token}`
           },
-          body: JSON.stringify({ priceId, tier, paymentMode })
+          body: JSON.stringify({
+            priceId: PRICE_IDS.community_monthly,
+            tier: 'community',
+            paymentMode: 'subscription'
+          })
         }
       );
 
       const { url, error } = await res.json();
       if (error) throw new Error(error);
       window.open(url, '_blank');
-      // Reset button since page stays open when Stripe opens in new tab
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.classList.remove('btn-loading');
-        btn.textContent = tier === 'community' ? 'join the community' : 'become a founder';
-      }, 1500);
-
     } catch (err) {
       console.error(err);
-      btn.disabled = false;
-      btn.classList.remove('btn-loading');
-      btn.textContent = tier === 'community' ? 'join the community' : 'become a founder';
       alert('something went wrong — please try again');
+    } finally {
+      setTimeout(() => {
+        tier.style.opacity = '';
+        tier.style.pointerEvents = '';
+      }, 1500);
     }
   };
 

@@ -525,7 +525,7 @@ html, body {
       document.getElementById('gear-dropdown').classList.remove('open');
     }
   });
-  document.getElementById('nav-back').addEventListener('click', () => { window.location.href = '../users/profile.html'; });
+  document.getElementById('nav-back').addEventListener('click', () => { history.length > 1 ? history.back() : window.location.href = '../users/profile.html'; });
   document.getElementById('nav-next').addEventListener('click', () => { window.location.href = '../index.html'; });
   document.getElementById('gear-logout').addEventListener('click', async () => {
     await supa.auth.signOut();

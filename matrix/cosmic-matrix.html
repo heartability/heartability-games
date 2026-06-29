@@ -240,7 +240,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← back</span>
+  <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='../games/game-room.html'">← back</span>
   <span class="nav-title">cosmic matrix</span>
   <span></span>
 </nav>

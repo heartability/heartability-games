@@ -153,7 +153,7 @@ html, body {
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="history.back()">← back</span>
+  <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='../index.html'">← back</span>
   <span class="nav-title">privacy policy</span>
   <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
 </nav>
