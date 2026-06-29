@@ -644,7 +644,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 /* ── NATIVE JOURNAL — chat-style journal on the back wall ── */
 .jrc-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
 .jrc-window {
-  width:100%; height:100%; background:#f5f0ea;
+  width:75%; height:75%; background:#f5f0ea;
   box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.35);
   display:flex; flex-direction:column; overflow:hidden;
 }
@@ -1908,7 +1908,8 @@ async function loadJournalEntries(){
   rows.forEach((row, i) => {
     const side = i % 2 === 0 ? 'left' : 'right';
     const charData = row.character_data || null;
-    const location = row.location_data?.terrain || row.location_data?.location || '';
+    const _ld = row.location_data || {};
+    const location = (_ld.terrain && _ld.feeling) ? `${_ld.terrain} of ${_ld.feeling}` : (_ld.terrain || _ld.feeling || '');
     jrcRowMessages(row).forEach(msg => {
       jrcMaybeDivider(container, jrcDay(msg.created_at || row.created_at), location);
       container.appendChild(renderJournalMessage(msg, side, charData));
