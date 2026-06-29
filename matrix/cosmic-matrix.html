@@ -28,6 +28,14 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .nav-btn{ cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
 .nav-btn:hover{ background:rgba(0,0,0,.08); }
 .nav-title{ position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; }
+.gear-wrap { position:relative; }
+.gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background .15s; padding:3px; }
+.gear-btn:hover { background:rgba(0,0,0,.08); }
+.gear-btn img { width:22px; height:22px; display:block; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown.open { display:flex; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
+.gear-item:hover { background:rgba(0,0,0,.07); }
 
 /* CONTENT PANEL — sits where the back wall would be (outside: no wall, soft frame) */
 .content-panel{ position:fixed; top:var(--bw-top); left:var(--bw-left);
@@ -240,9 +248,18 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='../games/game-room.html'">← back</span>
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" id="gear-auth"    onclick="gearLogin()">login</button>
+      <button class="gear-item" id="gear-profile" style="display:none" onclick="gearProfile()">view profile</button>
+      <button class="gear-item" id="gear-logout"  style="display:none" onclick="gearLogout()">logout</button>
+    </div>
+  </div>
   <span class="nav-title">cosmic matrix</span>
-  <span></span>
+  <span class="nav-btn" onclick="window.location.href='archive.html'">archive →</span>
 </nav>
 
 <div class="content-panel" id="content-panel"></div>
@@ -368,10 +385,11 @@ async function init(){
   let profile=null;
   try {
     const { data } = await sb.from('user-profiles')
-      .select('membership_status, membership_tier, membership_expires_at')
+      .select('username, membership_status, membership_tier, membership_expires_at')
       .eq('id', currentUser.id).maybeSingle();
     profile = data;
   } catch(e){}
+  updateGearMenu(profile?.username || currentUser.email);
   const status = profile?.membership_status || null;
   const paid = !!status && status !== 'free';
   if (!paid){ return showUpgradeGate(); }
@@ -395,6 +413,34 @@ function showLoginGate(){
 
 function openLoginModal(){ document.getElementById('login-modal').classList.add('open'); }
 function closeLoginModal(){ document.getElementById('login-modal').classList.remove('open'); }
+
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const gw = document.getElementById('gear-wrap');
+  if (gw && !gw.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
+});
+function gearLogin()   { document.getElementById('gear-dropdown').classList.remove('open'); openLoginModal(); }
+function gearProfile() { document.getElementById('gear-dropdown').classList.remove('open'); window.location.href = '../users/profile.html'; }
+function gearLogout()  {
+  document.getElementById('gear-dropdown').classList.remove('open');
+  if (typeof sb !== 'undefined') sb.auth.signOut().then(() => { currentUser = null; updateGearMenu(null); });
+}
+function updateGearMenu(username) {
+  const auth = document.getElementById('gear-auth');
+  const prof = document.getElementById('gear-profile');
+  const out  = document.getElementById('gear-logout');
+  if (!auth) return;
+  if (username) {
+    auth.style.display = 'none';
+    prof.textContent = username;
+    prof.style.display = '';
+    out.style.display = '';
+  } else {
+    auth.style.display = '';
+    prof.style.display = 'none';
+    out.style.display = 'none';
+  }
+}
 function lmSwitchTab(tab, btn){
   document.querySelectorAll('.lm-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.lm-form').forEach(f=>f.classList.remove('active'));
