@@ -792,7 +792,7 @@ function buildSeasonMapSVG(){
   ].join('');
 
   // ── season progress meter (top-right) ──────────────────────
-  const MX=590, MY=14, MW=200, MH=40, barW=MW-28;
+  const MX=596, MY=4, MW=200, MH=40, barW=MW-28;
   const fillW = Math.round((score/24)*barW);
   const meter = `<g font-family="ZoesHandwriting,cursive">
     <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="2" fill="rgba(201,255,245,0.10)" stroke="rgba(201,255,245,0.28)" stroke-width="1"/>
@@ -804,7 +804,7 @@ function buildSeasonMapSVG(){
 
   // ── season title (top-left) ────────────────────────────────
   const titleText = (activeTemplate?.title||'cosmic season').replace(/\s+\d{4}$/,'');
-  const title = `<text x="10" y="42" font-family="ZoesHandwriting,cursive" font-size="clamp(38px,4vw,46px)" fill="rgba(201,255,245,0.85)">${escSvg(titleText)}</text>`;
+  const title = `<text x="4" y="36" font-family="ZoesHandwriting,cursive" font-size="clamp(38px,4vw,46px)" fill="rgba(201,255,245,0.85)">${escSvg(titleText)}</text>`;
 
   // ── nodes ──────────────────────────────────────────────────
   let nodes = '';
