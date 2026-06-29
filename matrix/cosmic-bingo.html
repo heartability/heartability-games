@@ -67,26 +67,6 @@ body {
   min-height: 0;
 }
 
-/* HEADER */
-.cosmic-header {
-  text-align: center;
-  margin-bottom: 14px;
-}
-.cosmic-title {
-  font-family: var(--font-hand);
-  font-size: clamp(22px, 4vw, 34px);
-  color: var(--text-dark);
-  letter-spacing: 1px;
-}
-.cosmic-season {
-  font-family: var(--font-game);
-  font-size: 14px;
-  color: var(--text-mid);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
 /* RPG PANEL */
 .rpg-panel {
   position: relative;
@@ -326,6 +306,15 @@ body {
   pointer-events: none;
 }
 .bingo-tab:not(.active):hover { background: rgba(101,120,226,0.08); }
+.bingo-tabs { justify-content: flex-start; align-items: center; }
+.bingo-season {
+  margin-left: auto;
+  font-family: var(--font-game);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
 
 @media (max-width: 500px) {
   .wall { padding: 16px 10px 30px; }
@@ -337,11 +326,6 @@ body {
 <div class="room">
   <div class="wall">
 
-    <div class="cosmic-header">
-      <div class="cosmic-title">cosmic bingo</div>
-      <div class="cosmic-season" id="seasonLabel">cancer season</div>
-    </div>
-
     <div class="bingo-alert" id="bingoAlert">&#x2726; BINGO &#x2726;</div>
 
     <div class="rpg-panel">
@@ -349,6 +333,7 @@ body {
       <div class="bingo-tabs">
         <a class="bingo-tab" href="../games/bingo.html">sensory</a>
         <span class="bingo-tab active">cosmic</span>
+        <span class="bingo-season" id="seasonLabel">cancer season</span>
       </div>
       <div class="bingo-grid" id="bingoGrid"></div>
 
