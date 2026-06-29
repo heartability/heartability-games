@@ -753,7 +753,7 @@ function showMapOverlays(visible){
 function renderSeasonMap(){
   currentStep = null; activePhase = null;
   setSave(false);
-  setBubble('choose a moon phase to live.');
+  setBubble('choose a moon phase to track.');
   const p = $('content-panel');
   p.className = 'content-panel active map-mode';
   p.innerHTML = buildSeasonMapSVG();
@@ -965,21 +965,21 @@ function selectPhase(key){
 function stepCharacter(){
   currentStep = 'character';
   const p = phaseByKey(activePhase);
-  setBubble(`${p.location} — who do you feel like under this sky?`);
+  setBubble(`who are you in the ${p.location}?`);
   showIframe(`../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`);
   setSave(true,'loading…'); $('save-btn').disabled = true;
 }
 
 function stepBingo(){
   currentStep = 'bingo';
-  setBubble("mark the sky's invitations as you live them.");
+  setBubble("pay attention for cosmic doorways");
   showIframe(`cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`);
   setSave(true,'continue →');
 }
 
 function stepJournal(){
   currentStep = 'journal';
-  setBubble('what do you want to remember from this phase?');
+  setBubble('what did you discover in this landscape?');
   const p=$('content-panel');
   p.className='content-panel active';
   p.innerHTML=buildJournalPanel();
@@ -1013,7 +1013,7 @@ function buildJournalPanel(){
         <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
         <div class="jrc-status" id="jrc-status"></div>
         <div class="jrc-confirm" id="jrc-confirm">
-          <span>you've got notes you haven't sent —</span>
+          <span>send your note! —</span>
           <button class="jrc-confirm-send" onclick="confirmSendAndContinue()">send &amp; continue</button>
           <button class="jrc-confirm-skip" onclick="confirmSkipUnsent()">continue without them →</button>
         </div>
