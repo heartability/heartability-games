@@ -764,10 +764,17 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
 .sq-name::placeholder { color:rgba(138,122,90,.55); font-style:italic; }
-.sq-body { display:flex; gap:16px; align-items:flex-start; }
-@media (max-width:640px){ .sq-body { flex-direction:column; } }
-.sq-preview-col { flex:0 0 40%; min-width:0; }
-.sq-controls-col { flex:1 1 60%; min-width:0; }
+.sq-body {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap:20px 24px;
+  align-items:start;
+}
+@media (max-width:640px){ .sq-body { grid-template-columns:1fr; } }
+.sq-preview-col { min-width:0; }
+.sq-terrain-col { min-width:0; }
+.sq-climate-col { grid-column: 1 / -1; min-width:0; }
 .sq-map-frame {
   width:100%; aspect-ratio:5/4;
   background:#e8e0c8;
@@ -1038,9 +1045,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
         <div class="sq-section-label">your place</div>
         <div class="sq-map-frame" id="sq-map-frame"></div>
       </div>
-      <div class="sq-controls-col">
+      <div class="sq-terrain-col">
         <div class="sq-section-label">terrain</div>
         <div class="sq-palette" id="sq-palette"></div>
+      </div>
+      <div class="sq-climate-col">
         <div class="sq-section-label">emotional climate</div>
         <div class="sq-climates" id="sq-climates"></div>
       </div>
