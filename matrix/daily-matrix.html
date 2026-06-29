@@ -1384,7 +1384,7 @@ async function showSeeYouTomorrow(row) {
   activeEntryId = row.id;
   activePhase   = null;
   _matrixSeed   = row.id;
-  setBubble("you've tracked today — see you tomorrow ✨");
+  setBubble("you've tracked today — see you tomorrow");
   setSaveBtnVisible(false);
   const data = await assembleTodayMatrixData(row.id);
   data.seeYouTomorrow = true;
@@ -2022,10 +2022,6 @@ function buildDailyMatrix(data, seedStr){
   const preview = _firstWords(data.journalText, 10);
   const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-journal-text">${_escapeHtml(preview)}</div></div>` : '';
-
-  const caption = data.seeYouTomorrow
-    ? `<div class="matrix-date" style="font-size:13px;opacity:.7;margin-top:2px;">today's entry · see you tomorrow ✨</div>`
-    : '';
 
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
