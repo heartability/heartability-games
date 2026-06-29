@@ -97,20 +97,22 @@ html, body {
 .banner.success  { display: block; background: rgba(45,122,79,0.15); border: 1.5px solid rgba(45,122,79,0.4); color: #e0ffe8; }
 .banner.cancelled { display: block; background: rgba(192,57,43,0.12); border: 1.5px solid rgba(192,57,43,0.3); color: #ffe8e8; }
 
-/* ── TIERS ROW (title sits between blobs) ── */
+/* ── TIERS ROW (title sits between blobs, top-aligned) ── */
 .tiers {
   display: flex;
-  gap: clamp(16px, 3vw, 48px);
-  align-items: center;
+  gap: clamp(12px, 2vw, 36px);
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: nowrap;
+  width: 100%;
 }
 
 .membership-title {
-  width: clamp(120px, 14vw, 200px);
+  width: clamp(180px, 22vw, 300px);
   height: auto;
   display: block;
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .tier {
@@ -131,7 +133,7 @@ html, body {
 
 .tier-blob {
   position: relative;
-  width: clamp(250px, 32.5vw, 425px);
+  width: clamp(280px, 36vw, 480px);
   transition: transform 0.2s;
 }
 .tier:hover .tier-blob { transform: scale(1.03); }
