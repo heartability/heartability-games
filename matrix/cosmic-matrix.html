@@ -27,6 +27,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   font-family:var(--font-hand); font-size:clamp(14px,1.6vw,20px); color:#111; }
 .nav-btn{ cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
 .nav-btn:hover{ background:rgba(0,0,0,.08); }
+.nav-title{ position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; }
 
 /* CONTENT PANEL — sits where the back wall would be (outside: no wall, soft frame) */
 .content-panel{ position:fixed; top:var(--bw-top); left:var(--bw-left);
@@ -240,7 +241,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 <nav class="room-nav">
   <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← back</span>
-  <span>cosmic matrix</span>
+  <span class="nav-title">cosmic matrix</span>
   <span></span>
 </nav>
 

@@ -60,7 +60,7 @@ html, body {
   transition: background 0.15s;
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { text-align: center; }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
 
 /* ── GARDEN ELEMENTS ── */
 .garden-el {
@@ -160,9 +160,9 @@ html, body {
 
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
-  <span class="nav-btn" id="nav-back">back</span>
+  <span class="nav-btn" id="nav-back">← back</span>
   <span class="nav-title">secret garden</span>
-  <span class="nav-btn" id="nav-next">next</span>
+  <span class="nav-btn" id="nav-next">next →</span>
 </nav>
 
 <div class="scene">
@@ -223,7 +223,7 @@ html, body {
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
   /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = '../games/game-select.html'; });
+  document.getElementById('nav-back').addEventListener('click',  () => { window.location.href = '../games/game-room.html'; });
 
   document.getElementById('nav-next').addEventListener('click',   nextRoom);
 
@@ -255,7 +255,7 @@ html, body {
     if (queue.length === 0) {
       /* All rooms visited — back to game-select, reset queue */
       localStorage.removeItem(STORAGE_KEY);
-      window.location.href = '../games/game-select.html';
+      window.location.href = '../games/game-room.html';
       return;
     }
 

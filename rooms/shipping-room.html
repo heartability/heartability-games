@@ -62,8 +62,9 @@ html, body {
   padding: 0 clamp(12px, 2vw, 28px);
   font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px); color: #111;
 }
-.nav-btn { cursor: pointer; padding: 4px 8px; transition: background .15s; }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; }
 .nav-btn:hover { background: rgba(0,0,0,.08); }
+.nav-title { position: fixed; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
 
 /* ─────────────────────────────────────────────────
    POSTERS  z:4
@@ -207,8 +208,8 @@ html, body {
 
 <!-- NAV -->
 <nav class="room-nav">
-  <span class="nav-btn" onclick="window.location.href='../games/game-select.html'">← game room</span>
-  <span style="font-family:var(--font-hand);">shipping room</span>
+  <span class="nav-btn" onclick="window.location.href='../games/game-room.html'">← game room</span>
+  <span class="nav-title">shipping room</span>
   <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
 </nav>
 

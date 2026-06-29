@@ -55,6 +55,7 @@ html, body {
 }
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
 
 .page-wrap {
   max-width: 720px;
@@ -152,9 +153,9 @@ html, body {
 <body>
 
 <nav class="room-nav">
-  <span class="nav-btn" onclick="history.back()">back</span>
-  <span>privacy policy</span>
-  <span class="nav-btn" onclick="window.location.href='index.html'">home</span>
+  <span class="nav-btn" onclick="history.back()">← back</span>
+  <span class="nav-title">privacy policy</span>
+  <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
 </nav>
 
 <div class="page-wrap">
