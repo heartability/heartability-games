@@ -1083,8 +1083,19 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 // ── SUPABASE ──────────────────────────────────────────────
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+
+// Read stored token before creating the client so we can inject it directly.
+// This prevents the Supabase client from triggering a token refresh on startup,
+// which hangs indefinitely and blocks all subsequent DB calls.
+const _storedRaw = (() => {
+  try { return JSON.parse(localStorage.getItem('sb-rrdfltqnrnvmqemyrfaj-auth-token') || 'null'); }
+  catch(e) { return null; }
+})();
+const _storedToken = _storedRaw?.access_token || null;
+
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { autoRefreshToken: false }
+  auth: { autoRefreshToken: false, persistSession: false },
+  global: _storedToken ? { headers: { Authorization: `Bearer ${_storedToken}` } } : {}
 });
 let currentUser = null;
 
