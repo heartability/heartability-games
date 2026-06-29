@@ -1,7 +1,7 @@
 /* ============================================================================
    matrix-render.js — shared adventure-matrix renderer + editors
    ----------------------------------------------------------------------------
-   One source of truth for: assembling a saved_data row into a render model,
+   One source of truth for: assembling a dream_matrix row into a render model,
    drawing the 2x2 adventure matrix, and editing a row's photos + journal.
 
    Used by BOTH archive.html (now) and adventure-matrix.html (after launch).
@@ -282,7 +282,7 @@
     </div>`;
   }
 
-  // ── ASSEMBLE: load a saved_data row by id → render model ──
+  // ── ASSEMBLE: load a dream_matrix row by id → render model ──
   // gameData = { map_name, map_type, map_data } for the row's parent game.
   async function assemble(sb, entryId, gameData){
     const g = gameData || {};
@@ -296,7 +296,7 @@
     };
     if (!sb || !entryId) return d;
     try {
-      const { data: row } = await sb.from('saved_data').select('*').eq('id', entryId).maybeSingle();
+      const { data: row } = await sb.from('dream_matrix').select('*').eq('id', entryId).maybeSingle();
       if (row){
         d.charState     = row.character_data || null;
         d.bingoScore    = (row.bingo_data && row.bingo_data.score) || 0;
@@ -357,7 +357,7 @@
   // ── PHOTO EDITOR ──────────────────────────────────────────
   // deps = { sb, getEntryId(), getUserId(), onChange(), status(msg,color) }
   // Owns its own modal (appended to <body> once). open() shows it; remove(url)
-  // drops a photo. Both write saved_data.matrix_images + matrix-photos bucket.
+  // drops a photo. Both write dream_matrix.matrix_images + matrix-photos bucket.
   function createPhotoEditor(deps){
     deps = deps || {};
     const status = deps.status || function(){};
@@ -450,11 +450,11 @@
         const publicUrl = pub && pub.publicUrl;
         if (!publicUrl) throw new Error('could not resolve image url');
         // Append {url,quadrant} (read-modify-write).
-        const { data: row, error: readErr } = await sb.from('saved_data').select('matrix_images').eq('id', entryId).maybeSingle();
+        const { data: row, error: readErr } = await sb.from('dream_matrix').select('matrix_images').eq('id', entryId).maybeSingle();
         if (readErr) throw readErr;
         const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
         const next = [...current, { url: publicUrl, quadrant: draft.quadrant }];
-        const { error: updErr } = await sb.from('saved_data').update({ matrix_images: next }).eq('id', entryId);
+        const { error: updErr } = await sb.from('dream_matrix').update({ matrix_images: next }).eq('id', entryId);
         if (updErr) throw updErr;
         close();
         status('photo added ✓', '#6ab86a');
@@ -471,11 +471,11 @@
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
       if (!url || !userId || !entryId) return;
       try {
-        const { data: row } = await sb.from('saved_data').select('matrix_images').eq('id', entryId).maybeSingle();
+        const { data: row } = await sb.from('dream_matrix').select('matrix_images').eq('id', entryId).maybeSingle();
         const imgs = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
         const next = imgs.filter(i => !(i && i.url === url));
         if (next.length === imgs.length) { deps.onChange && deps.onChange(); return; }
-        const { error } = await sb.from('saved_data').update({ matrix_images: next }).eq('id', entryId);
+        const { error } = await sb.from('dream_matrix').update({ matrix_images: next }).eq('id', entryId);
         if (error) throw error;
       } catch (err) {
         console.error('[matrix-render] photo remove failed:', err);
@@ -493,7 +493,7 @@
 
   // ── JOURNAL EDITOR ────────────────────────────────────────
   // deps = { sb, getEntryId(), onChange(), status(msg,color) }
-  // Edits saved_data.journal_messages. Saving replaces with a single message; clearing removes all.
+  // Edits dream_matrix.journal_messages. Saving replaces with a single message; clearing removes all.
   function createJournalEditor(deps){
     deps = deps || {};
     const status = deps.status || function(){};
@@ -542,7 +542,7 @@
         ? [{ id: crypto.randomUUID(), text: trimmed, image_url: null, created_at: new Date().toISOString() }]
         : [];
       try {
-        const { error } = await sb.from('saved_data')
+        const { error } = await sb.from('dream_matrix')
           .update({ journal_messages: messages })
           .eq('id', entryId);
         if (error) throw error;

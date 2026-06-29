@@ -339,7 +339,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   <span class="nav-title">adventure archive</span>
   <div style="display:flex;align-items:center;gap:4px;">
     <span class="nav-btn" onclick="handleBack()">← back</span>
-    <span class="nav-btn" onclick="window.location.href='../matrix/adventure-matrix.html'"> track today →</span>
+    <span class="nav-btn" onclick="window.location.href='dream-matrix.html'"> track today →</span>
   </div>
 </nav>
 
@@ -475,7 +475,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser   = null;
 let allGames      = [];
 let activeGameId  = null;
-let allSaves      = [];     // every saved_data row for the active game (asc by created_at)
+let allSaves      = [];     // every dream_matrix row for the active game (asc by created_at)
 let daysByKey     = {};     // 'YYYY-MM-DD' (local) -> [save, ...] sorted by created_at
 let viewYear      = new Date().getFullYear();
 let viewMonth     = new Date().getMonth();
@@ -836,7 +836,7 @@ function onGameChange() { activeGameId = document.getElementById('game-dropdown'
 
 async function loadEntries() {
   if (!activeGameId) return;
-  const { data } = await sb.from('saved_data')
+  const { data } = await sb.from('dream_matrix')
     .select('id, character_data, bingo_data, energy_score, map_phase, location_data, sidequest_data, journal_messages, matrix_images, created_at')
     .eq('game_id', activeGameId)
     .eq('user_id', currentUser.id)

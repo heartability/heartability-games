@@ -1195,7 +1195,7 @@ let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
 let currentStep    = null; // 'character' | 'bingo' | 'journal'
-let activeEntryId  = null; // one uuid per playthrough = one saved_data row
+let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row
 let activeSidequest = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 
 function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
@@ -1706,7 +1706,7 @@ function selectPhase(idx) {
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
 function stepBegin() {
   if (!activePhase) return;
-  activeEntryId = crypto.randomUUID();   // fresh saved_data row for this session
+  activeEntryId = crypto.randomUUID();   // fresh dream_matrix row for this session
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
@@ -1778,7 +1778,7 @@ function confirmSkipUnsent() {
 }
 
 // ── NATIVE JOURNAL (chat-style) ──────────────────────────
-// Each send appends a message to saved_data.journal_messages (jsonb) on this
+// Each send appends a message to dream_matrix.journal_messages (jsonb) on this
 // playthrough's row. Photo'd messages also push into matrix_images
 // (source:'journal') so matrix quadrant placement is untouched.
 const journal = { entries: [], pendingImage: null };
@@ -1856,7 +1856,7 @@ async function loadJournalEntries(){
 
   let rows = [];
   try {
-    const { data } = await sb.from('saved_data')
+    const { data } = await sb.from('dream_matrix')
       .select('id, journal_messages, matrix_images, created_at')
       .eq('game_id', activeGameId).eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
@@ -1938,7 +1938,7 @@ async function sendJournalMessage(){
   // 2) read current row, append, merge matrix_images
   let row = {};
   try {
-    const { data } = await sb.from('saved_data')
+    const { data } = await sb.from('dream_matrix')
       .select('journal_messages, matrix_images').eq('id', activeEntryId).maybeSingle();
     row = data || {};
   } catch(e){}
@@ -1948,7 +1948,7 @@ async function sendJournalMessage(){
 
   // 3) write
   try {
-    const { error } = await sb.from('saved_data').upsert({
+    const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId, game_id: activeGameId, user_id: currentUser.id,
       journal_messages: messages, matrix_images: imgs,
       updated_at: new Date().toISOString(),
@@ -2168,7 +2168,7 @@ async function assembleTodayMatrixData(entryId){
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
-    const { data: row } = await sb.from('saved_data').select('*')
+    const { data: row } = await sb.from('dream_matrix').select('*')
       .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
     if (row){
       d.charState    = row.character_data || null;
@@ -2272,14 +2272,14 @@ async function uploadMatrixPhoto(){
     const publicUrl = pub?.publicUrl;
     if (!publicUrl) throw new Error('could not resolve image url');
 
-    // Append {url,quadrant} to saved_data.matrix_images (read-modify-write).
-    const { data: row, error: readErr } = await sb.from('saved_data')
+    // Append {url,quadrant} to dream_matrix.matrix_images (read-modify-write).
+    const { data: row, error: readErr } = await sb.from('dream_matrix')
       .select('matrix_images').eq('id', activeEntryId).maybeSingle();
     if (readErr) throw readErr;
     const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
     const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant }];
 
-    const { error: updErr } = await sb.from('saved_data')
+    const { error: updErr } = await sb.from('dream_matrix')
       .update({ matrix_images: next }).eq('id', activeEntryId);
     if (updErr) throw updErr;
 
@@ -2299,12 +2299,12 @@ async function uploadMatrixPhoto(){
 async function removeMatrixPhoto(url){
   if (!url || !currentUser || !activeEntryId) return;
   try {
-    const { data: row } = await sb.from('saved_data')
+    const { data: row } = await sb.from('dream_matrix')
       .select('matrix_images').eq('id', activeEntryId).maybeSingle();
     const imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
     const next = imgs.filter(i => !(i && i.url === url));
     if (next.length === imgs.length) { await renderMatrix(); return; }  // nothing matched
-    const { error } = await sb.from('saved_data')
+    const { error } = await sb.from('dream_matrix')
       .update({ matrix_images: next }).eq('id', activeEntryId);
     if (error) throw error;
   } catch (err) {
@@ -2390,7 +2390,7 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Character state received — save to saved_data ───
+  // ── Character state received — save to dream_matrix ───
   if (msg.type === 'char_state') {
     const charState = msg.state || {};
     if (!charState.body) {
@@ -2419,7 +2419,7 @@ window.addEventListener('message', async e => {
                        tint:    z.tint    || null };
     }
 
-    const { error } = await sb.from('saved_data').upsert({
+    const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId,
       game_id: activeGameId, user_id: currentUser.id,
       map_phase: activePhase,
@@ -2441,7 +2441,7 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // ── Bingo state received — save to saved_data ───────
+  // ── Bingo state received — save to dream_matrix ───────
   if (msg.type === 'bingo_state') {
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
@@ -2453,7 +2453,7 @@ window.addEventListener('message', async e => {
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
 
-    const { error } = await sb.from('saved_data').upsert({
+    const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId,
       game_id: activeGameId, user_id: currentUser.id,
       bingo_data: bingoPayload, energy_score: energyScore,
