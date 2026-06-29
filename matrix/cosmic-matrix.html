@@ -1240,6 +1240,7 @@ window.addEventListener('message', async e=>{
         updated_at: new Date().toISOString(),
       }, { onConflict:'game_id,map_phase' });
       if (error) throw error;
+      completedData.set(activePhase, charState);
       showStatus('character saved ✓','#6ab86a'); setSave(false); stepBingo();
     } catch(err){ console.error('[char save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
     return;
