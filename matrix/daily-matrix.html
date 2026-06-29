@@ -1128,7 +1128,7 @@ let activeGameId    = null; // (dormant) — map code retained but unused in dai
 let activeGameData  = null; // (dormant)
 let activePhase     = null;
 let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 'done'
-let activeEntryId   = null; // one uuid per day = one daily_tracker row
+let activeEntryId   = null; // one uuid per day = one daily_matrix row
 let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
 let activeSidequest = null; // {name,terrain,feeling,tint,cat} for today's location
 
@@ -1363,7 +1363,7 @@ async function startToday() {
 
   let existing = null;
   try {
-    const { data } = await sb.from('daily_tracker')
+    const { data } = await sb.from('daily_matrix')
       .select('*')
       .eq('user_id', currentUser.id)
       .eq('entry_date', activeEntryDate)
@@ -1654,7 +1654,7 @@ function selectPhase(idx) {
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
 function stepBegin() {
   if (!activePhase) return;
-  activeEntryId   = crypto.randomUUID();   // fresh daily_tracker row for today
+  activeEntryId   = crypto.randomUUID();   // fresh daily_matrix row for today
   activeEntryDate = activeEntryDate || localTodayStr();
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
@@ -1798,7 +1798,7 @@ async function loadJournalEntries(){
 
   let rows = [];
   try {
-    const { data } = await sb.from('daily_tracker')
+    const { data } = await sb.from('daily_matrix')
       .select('id, journal_messages, created_at')
       .eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
@@ -1829,7 +1829,7 @@ async function loadJournalEntries(){
 
 // (journal photo helpers removed — text-only)
 
-// Append one message to today's daily_tracker row. Returns true on success.
+// Append one message to today's daily_matrix row. Returns true on success.
 async function sendJournalMessage(){
   const msgEl   = document.getElementById('jrc-msg');
   const sendBtn = document.getElementById('jrc-send');
@@ -1844,7 +1844,7 @@ async function sendJournalMessage(){
   // 1) read current row, append
   let row = {};
   try {
-    const { data } = await sb.from('daily_tracker')
+    const { data } = await sb.from('daily_matrix')
       .select('journal_messages').eq('id', activeEntryId).maybeSingle();
     row = data || {};
   } catch(e){}
@@ -1852,7 +1852,7 @@ async function sendJournalMessage(){
 
   // 2) write
   try {
-    const { error } = await sb.from('daily_tracker').upsert({
+    const { error } = await sb.from('daily_matrix').upsert({
       id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate,
       journal_messages: messages,
       updated_at: new Date().toISOString(),
@@ -2047,7 +2047,7 @@ function buildAdventureMatrix(data, seedStr){
   </div>`;
 }
 
-// Assemble a day's saved data from daily_tracker by its row id.
+// Assemble a day's saved data from daily_matrix by its row id.
 async function assembleTodayMatrixData(entryId){
   const d = {
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
@@ -2058,7 +2058,7 @@ async function assembleTodayMatrixData(entryId){
     bingoScore: 0, charState: null, journalText: '', matrixImages: [],
   };
   try {
-    const { data: row } = await sb.from('daily_tracker').select('*')
+    const { data: row } = await sb.from('daily_matrix').select('*')
       .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
     if (row){
       d.charState    = row.character_data || null;
@@ -2191,7 +2191,7 @@ window.addEventListener('message', async e => {
                        tint:    z.tint    || null };
     }
 
-    const { error } = await sb.from('daily_tracker').upsert({
+    const { error } = await sb.from('daily_matrix').upsert({
       id: activeEntryId,
       user_id: currentUser.id,
       entry_date: activeEntryDate,
@@ -2226,7 +2226,7 @@ window.addEventListener('message', async e => {
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
 
-    const { error } = await sb.from('daily_tracker').upsert({
+    const { error } = await sb.from('daily_matrix').upsert({
       id: activeEntryId,
       user_id: currentUser.id,
       entry_date: activeEntryDate,
