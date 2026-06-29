@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adventure Matrix — Heartability</title>
+<title>Daily Tracker — Heartability</title>
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
@@ -957,8 +957,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 </div>
 <div class="save-status-bar" id="save-status-bar"></div>
 
-<!-- ADD NEW BUTTON — shown on map selector screen -->
-<button class="add-new-btn" id="add-new-btn" onclick="stepNewGame()">+ add new</button>
+<!-- (add-new map button removed — daily tracker has no map grid) -->
 
 <!-- LOGIN MODAL — direct form, no iframe -->
 <div class="login-modal-overlay" id="login-modal">
@@ -1011,14 +1010,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 <div class="sq-overlay" id="sq-overlay">
   <div class="sq-card">
     <div class="sq-head">
-      <span class="sq-title">build a sidequest</span>
+      <span class="sq-title">today's location</span>
       <button class="sq-close" onclick="closeSidequestBuilder()">×</button>
     </div>
-    <div class="sq-sub">a secret world you fall into.</div>
-    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this location">
+    <div class="sq-sub">the single place that holds today.</div>
+    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this place">
     <div class="sq-body">
       <div class="sq-preview-col">
-        <div class="sq-section-label">your sidequest</div>
+        <div class="sq-section-label">your place</div>
         <div class="sq-map-frame" id="sq-map-frame"></div>
       </div>
       <div class="sq-controls-col">
@@ -1030,50 +1029,12 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     </div>
     <div class="sq-actions">
       <button class="sq-btn ghost" onclick="closeSidequestBuilder()">cancel</button>
-      <button class="sq-btn" id="sq-confirm" disabled onclick="confirmSidequest()">enter sidequest →</button>
+      <button class="sq-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
     </div>
   </div>
 </div>
 
-<!-- PHOTO UPLOAD — adds a picture to a chosen quadrant of the matrix -->
-<div class="photo-overlay" id="photo-overlay">
-  <div class="photo-card">
-    <div class="photo-head">
-      <span class="photo-title">✦ add a photo</span>
-      <button class="photo-close" onclick="closePhotoUpload()">×</button>
-    </div>
-    <div class="photo-sub">pick an image and choose where it lands on your matrix.</div>
-
-    <label class="photo-drop">
-      <input type="file" id="photo-file" accept="image/*" hidden onchange="onPhotoPicked(event)">
-      <div class="photo-preview" id="photo-preview">
-        <span class="photo-drop-hint">tap to choose an image</span>
-      </div>
-    </label>
-
-    <div class="photo-quad-label">which quadrant?</div>
-    <div class="photo-quad-grid" id="photo-quad-grid">
-      <button class="photo-quad" data-q="external-action"  onclick="pickQuadrant('external-action',this)"><b>map</b><span>external · action</span></button>
-      <button class="photo-quad" data-q="external-feeling" onclick="pickQuadrant('external-feeling',this)"><b>character</b><span>external · feeling</span></button>
-      <button class="photo-quad" data-q="internal-action"  onclick="pickQuadrant('internal-action',this)"><b>heart</b><span>internal · action</span></button>
-      <button class="photo-quad" data-q="internal-feeling" onclick="pickQuadrant('internal-feeling',this)"><b>journal</b><span>internal · feeling</span></button>
-    </div>
-
-    <div class="photo-status" id="photo-status"></div>
-    <button class="photo-add-btn" id="photo-add-btn" disabled onclick="uploadMatrixPhoto()">add to matrix</button>
-  </div>
-</div>
-<!-- MEMBER GATE -->
-<div class="member-gate-overlay" id="member-gate-overlay">
-  <div class="member-gate">
-    <div class="member-gate-title">adventure matrix</div>
-    <div class="member-gate-text">the adventure matrix is for dream members. free members have access to the daily tracker.</div>
-    <div class="member-gate-btns">
-      <button class="member-gate-btn" onclick="window.location.href='daily-tracker.html'">free tracker →</button>
-      <button class="member-gate-btn ghost" onclick="window.location.href='../users/membership.html'">upgrade now</button>
-    </div>
-  </div>
-</div>
+<!-- (photo upload + member gate removed — free daily tracker, text journal only) -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1160,45 +1121,25 @@ async function popupSignup(e) {
 }
 
 // ── MATRIX PHOTO UPLOADS ──────────────────────────────────
-// ⚠️ Set this to YOUR existing Supabase Storage bucket name.
-//    The bucket needs: authenticated INSERT allowed + public read.
-//    (If the bucket is private, swap getPublicUrl → createSignedUrl below.)
-const MATRIX_PHOTO_BUCKET = 'matrix-photos';
-
-// Convert a stored public URL back to its in-bucket path so storage.remove()
-// can act on it. Returns null for anything not in this bucket (e.g. legacy URLs).
-function matrixPhotoPath(url){
-  if (typeof url !== 'string') return null;
-  const marker = `/object/public/${MATRIX_PHOTO_BUCKET}/`;
-  const i = url.indexOf(marker);
-  if (i === -1) return null;
-  let p = url.slice(i + marker.length);
-  const q = p.indexOf('?'); if (q !== -1) p = p.slice(0, q);   // strip any query string
-  try { p = decodeURIComponent(p); } catch(e){}
-  return p || null;
-}
-
-// Best-effort delete of one or more stored photos. Storage cleanup should never
-// block or fail a save, so this swallows its own errors (just logs them).
-async function deleteMatrixPhotoFiles(urls){
-  const paths = (urls || []).map(matrixPhotoPath).filter(Boolean);
-  if (!paths.length) return;
-  try {
-    await sb.storage.from(MATRIX_PHOTO_BUCKET).remove(paths);
-  } catch(err){
-    console.error('[matrix photo] storage delete failed:', err);
-  }
-}
+// (Supabase Storage / photo helpers removed — free daily tracker is text-only.)
 
 // ── SESSION STATE ─────────────────────────────────────────
-let activeGameId   = null;
-let activeGameData = null;
-let activePhase    = null;
-let currentStep    = null; // 'character' | 'bingo' | 'journal'
-let activeEntryId  = null; // one uuid per playthrough = one saved_data row
-let activeSidequest = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
+let activeGameId    = null; // (dormant) — map code retained but unused in daily tracker
+let activeGameData  = null; // (dormant)
+let activePhase     = null;
+let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 'done'
+let activeEntryId   = null; // one uuid per day = one daily_tracker row
+let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
+let activeSidequest = null; // {name,terrain,feeling,tint,cat} for today's location
 
-function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
+// User's LOCAL calendar day — the daily limit resets at local midnight.
+function localTodayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 // ── LOGIN MODAL ───────────────────────────────────────────
 function showLoginModal() {
@@ -1257,21 +1198,17 @@ async function lmSignup() {
   // onAuthStateChange will handle the rest
 }
 
-// Listen for auth changes from the login iframe
+// Listen for auth changes from the login form
 sb.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_IN' && session && !currentUser) {
     currentUser = session.user;
     closeLoginModal();
-    let isPaid = false;
     try {
       const { data: profile } = await sb.from('user-profiles')
-        .select('username, membership_status').eq('id', currentUser.id).single();
-      if (profile?.username) updateGearMenu(profile.username);
-      else updateGearMenu(currentUser.email);
-      isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+        .select('username').eq('id', currentUser.id).single();
+      updateGearMenu(profile?.username || currentUser.email);
     } catch(e) {}
-    if (!isPaid) { showMemberGate(); return; }
-    stepLoadGame();
+    startToday();
   }
 });
 
@@ -1411,49 +1348,60 @@ function showAddNew(visible) {
   // add-new-btn is now rendered inline in the map grid panel
 }
 
-// ── STEP 1: go straight to map selector ──────────────────
-function stepInitial() {
-  stepLoadGame();
-}
-
-// ── DELETE MAP ────────────────────────────────────────────
-async function deleteMap(gameId, mapName) {
-  if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
-  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
-  stepLoadGame();
-}
-
-// ── STEP 2A: NEW GAME ─────────────────────────────────────
-function stepNewGame() {
-  showAddNew(false);
-  currentStep = 'map';
-  setBubble('build a map to begin!', []);
-  const src = '../games/treasure-map.html?mode=new&loop=true';
-  showIframe(src);
-  setSaveBtnVisible(true, 'continue →');
-}
-
-// ── STEP 2B: LOAD GAME ────────────────────────────────────
-async function stepLoadGame() {
+// ── STEP 1: today's flow ──────────────────────────────────
+// On open: if the user already has an entry for their LOCAL day, show the
+// finished matrix + "see you tomorrow". Otherwise, build today's location.
+async function startToday() {
   if (!currentUser) {
-    setBubble('log in to load your maps', []);
-    showAddNew(false);
+    setBubble('log in to begin');
     showLoginModal();
     return;
   }
-  setBubble('which dream are we chasing?', []);
-  setSaveBtnVisible(false);
-  showAddNew(true);
+  activeEntryDate = localTodayStr();
+  setBubble('one moment…');
+  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">finding your day…</div></div>');
 
-  let games = [];
+  let existing = null;
   try {
-    const { data } = await sb.from('games').select('*')
-      .eq('user_id', currentUser.id).eq('status','active')
-      .in('map_type', ['spiral','square'])
-      .order('updated_at',{ascending:false}).limit(8);
-    games = data || [];
-  } catch(e){}
-  renderMapGrid(games);
+    const { data } = await sb.from('daily_tracker')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .eq('entry_date', activeEntryDate)
+      .maybeSingle();
+    existing = data || null;
+  } catch(e){ console.error('[daily] today lookup failed', e); }
+
+  if (existing) {
+    await showSeeYouTomorrow(existing);
+  } else {
+    stepBuildLocation();
+  }
+}
+
+// Already tracked today — daily limit reached. Show the saved matrix.
+async function showSeeYouTomorrow(row) {
+  currentStep   = 'done';
+  activeEntryId = row.id;
+  activePhase   = null;
+  _matrixSeed   = row.id;
+  setBubble("you've tracked today — see you tomorrow ✨");
+  setSaveBtnVisible(false);
+  const data = await assembleTodayMatrixData(row.id);
+  data.seeYouTomorrow = true;
+  showPanel(buildAdventureMatrix(data, _matrixSeed));
+}
+
+// Step one of a fresh day: build the single location that represents today.
+function stepBuildLocation() {
+  currentStep = 'location';
+  setBubble("where did today take you?");
+  setSaveBtnVisible(false);
+  // Friendly fallback panel behind the builder so closing it isn't a dead end.
+  showPanel(`<div class="step-panel" style="justify-content:center;text-align:center;gap:16px;">
+      <div style="font-size:20px;">build the place that holds today</div>
+      <button class="phase-select-btn" style="max-width:240px;" onclick="openLocationBuilder()">map today →</button>
+    </div>`);
+  openLocationBuilder();
 }
 
 function formatUpdated(dateStr) {
@@ -1706,10 +1654,11 @@ function selectPhase(idx) {
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
 function stepBegin() {
   if (!activePhase) return;
-  activeEntryId = crypto.randomUUID();   // fresh saved_data row for this session
+  activeEntryId   = crypto.randomUUID();   // fresh daily_tracker row for today
+  activeEntryDate = activeEntryDate || localTodayStr();
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
-  const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
+  const src  = `../games/infinity-mirror.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
@@ -1719,7 +1668,7 @@ function stepBegin() {
 function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
-  const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
+  const src  = `../games/bingo.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'continue →');
 }
@@ -1750,7 +1699,7 @@ function skipJournal() {
 // reveal a confirm row and don't advance until they pick.
 async function saveJournalEntry() {
   const msgEl = document.getElementById('jrc-msg');
-  const hasUnsent = !!((msgEl && msgEl.value.trim()) || journal.pendingImage);
+  const hasUnsent = !!(msgEl && msgEl.value.trim());
   if (hasUnsent) {
     document.getElementById('jrc-confirm')?.classList.add('open');
     showJournalStatus('you have unsent notes', false);
@@ -1773,7 +1722,6 @@ async function confirmSendAndContinue() {
 function confirmSkipUnsent() {
   const msgEl = document.getElementById('jrc-msg');
   if (msgEl) msgEl.value = '';
-  removeJournalImage();
   finishJournal();
 }
 
@@ -1781,28 +1729,22 @@ function confirmSkipUnsent() {
 // Each send appends a message to saved_data.journal_messages (jsonb) on this
 // playthrough's row. Photo'd messages also push into matrix_images
 // (source:'journal') so matrix quadrant placement is untouched.
-const journal = { entries: [], pendingImage: null };
+const journal = { entries: [] };
 
 function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
     <div class="jrc-window">
       <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
       <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">Upload a picture to your daily moodboard, or just write.<br>A park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence.<br>What do you want to remember?</div>
+        <div class="jrc-empty" id="jrc-empty">Write today down.<br>A park you passed through, a flower you appreciated, a matcha that hit the spot, a thought you don't want to lose.<br>What do you want to remember?</div>
       </div>
       <div class="jrc-input-area">
-        <div class="jrc-img-chip" id="jrc-img-chip">
-          <img id="jrc-img-preview" src="" alt="attached">
-          <button class="jrc-img-x" onclick="removeJournalImage()" title="remove photo">✕</button>
-        </div>
         <div class="jrc-msg-row">
           <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what needs to be put on record about today?" maxlength="4000"></textarea>
           <div class="jrc-btn-stack">
-            <button class="jrc-plus-btn" id="jrc-plus" title="add a photo" onclick="document.getElementById('jr-file').click()">+</button>
             <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
           </div>
         </div>
-        <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
         <div class="jrc-status" id="jrc-status"></div>
         <div class="jrc-confirm" id="jrc-confirm">
           <span>you've got notes you haven't sent —</span>
@@ -1849,21 +1791,21 @@ function jrcMaybeDivider(container, dayLabel){
 }
 
 async function loadJournalEntries(){
-  journal.entries = []; journal.pendingImage = null;
+  journal.entries = [];
   const dateEl = document.getElementById('jrc-date');
   if (dateEl) dateEl.textContent = jrcDay();
-  if (!currentUser || !activeGameId) return;
+  if (!currentUser) return;
 
   let rows = [];
   try {
-    const { data } = await sb.from('saved_data')
-      .select('id, journal_messages, matrix_images, created_at')
-      .eq('game_id', activeGameId).eq('user_id', currentUser.id)
+    const { data } = await sb.from('daily_tracker')
+      .select('id, journal_messages, created_at')
+      .eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
     rows = data || [];
   } catch(e){ console.error('[journal load]', e); }
 
-  // Past rows with any journal content, plus this playthrough's row even if blank.
+  // Past days with any journal content, plus today's row even if blank.
   rows = rows.filter(r => r.id === activeEntryId || jrcRowMessages(r).length);
   journal.entries = rows;
 
@@ -1885,72 +1827,34 @@ async function loadJournalEntries(){
   jrcScrollBottom();
 }
 
-function onJournalImagePicked(e){
-  const file = e.target.files && e.target.files[0]; if (!file) return;
-  if (!file.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    journal.pendingImage = { file, base64: ev.target.result };
-    document.getElementById('jrc-img-preview').src = ev.target.result;
-    document.getElementById('jrc-img-chip').classList.add('has-img');
-  };
-  reader.readAsDataURL(file);
-}
-function removeJournalImage(){
-  journal.pendingImage = null;
-  const chip = document.getElementById('jrc-img-chip');
-  if (chip){ chip.classList.remove('has-img'); document.getElementById('jrc-img-preview').src = ''; }
-  const f = document.getElementById('jr-file'); if (f) f.value = '';
-}
+// (journal photo helpers removed — text-only)
 
-// Append one message to the current playthrough's row. Returns true on success.
+// Append one message to today's daily_tracker row. Returns true on success.
 async function sendJournalMessage(){
   const msgEl   = document.getElementById('jrc-msg');
   const sendBtn = document.getElementById('jrc-send');
   const text = (msgEl?.value || '').trim();
-  if (!text && !journal.pendingImage) return false;          // nothing to send
+  if (!text) return false;                                   // nothing to send
   if (!(currentUser && activeEntryId)){ showJournalStatus('not signed in', false); return false; }
 
   if (sendBtn) sendBtn.disabled = true;
 
-  // 1) upload the staged photo, if any
-  let imageUrl = null;
-  if (journal.pendingImage){
-    try {
-      const file = journal.pendingImage.file;
-      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-      const path = `${currentUser.id}/${activeEntryId}/journal-${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await sb.storage.from(MATRIX_PHOTO_BUCKET)
-        .upload(path, file, { contentType:file.type, upsert:false });
-      if (upErr) throw upErr;
-      const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
-      imageUrl = pub?.publicUrl || null;
-    } catch(err){
-      console.error('[journal image] upload failed:', err);
-      showJournalStatus('couldn’t attach photo — try again', false);
-      if (sendBtn) sendBtn.disabled = false;
-      return false;
-    }
-  }
+  const message = { id: crypto.randomUUID(), text, created_at: new Date().toISOString() };
 
-  const message = { id: crypto.randomUUID(), text, image_url: imageUrl, created_at: new Date().toISOString() };
-
-  // 2) read current row, append, merge matrix_images
+  // 1) read current row, append
   let row = {};
   try {
-    const { data } = await sb.from('saved_data')
-      .select('journal_messages, matrix_images').eq('id', activeEntryId).maybeSingle();
+    const { data } = await sb.from('daily_tracker')
+      .select('journal_messages').eq('id', activeEntryId).maybeSingle();
     row = data || {};
   } catch(e){}
-  const messages  = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
-  let imgs = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-  if (imageUrl) imgs = imgs.concat([{ url:imageUrl, quadrant:'internal-feeling', source:'journal' }]);
+  const messages = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
 
-  // 3) write
+  // 2) write
   try {
-    const { error } = await sb.from('saved_data').upsert({
-      id: activeEntryId, game_id: activeGameId, user_id: currentUser.id,
-      journal_messages: messages, matrix_images: imgs,
+    const { error } = await sb.from('daily_tracker').upsert({
+      id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate,
+      journal_messages: messages,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
     if (error) throw error;
@@ -1961,7 +1865,7 @@ async function sendJournalMessage(){
     return false;
   }
 
-  // 4) reflect in the scroll
+  // 3) reflect in the scroll
   const container = document.getElementById('jrc-messages');
   const empty = document.getElementById('jrc-empty');
   if (empty) empty.style.display = 'none';
@@ -1969,7 +1873,6 @@ async function sendJournalMessage(){
   container.appendChild(renderJournalMessage(message, true));
 
   if (msgEl) msgEl.value = '';
-  removeJournalImage();
   document.getElementById('jrc-confirm')?.classList.remove('open');
   if (sendBtn) sendBtn.disabled = false;
   showJournalStatus('saved ✓', true);
@@ -2120,23 +2023,15 @@ function buildAdventureMatrix(data, seedStr){
   const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-journal-text">${_escapeHtml(preview)}</div></div>` : '';
 
-  // Photos — placed inside their assigned quadrant, spaced on a 2-col grid so
-  // each photo's main body stays visible (only edges may overlap).
-  const quadCount = {};
-  let photos = '';
-  (data.matrixImages||[]).forEach(img => {
-    if (!img || !img.url) return;
-    const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
-    const n = quadCount[q] || 0; quadCount[q] = n + 1;
-    const slot = photoSlot(q, n);
-    photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
-  });
+  const caption = data.seeYouTomorrow
+    ? `<div class="matrix-date" style="font-size:13px;opacity:.7;margin-top:2px;">today's entry · see you tomorrow ✨</div>`
+    : '';
 
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
+      ${caption}
     </div>
-    <button class="matrix-photo-btn" onclick="openPhotoUpload()">+</button>
     <div class="matrix-frame">
       <div class="adv-matrix">
         <div class="adv-grid"></div>
@@ -2147,28 +2042,23 @@ function buildAdventureMatrix(data, seedStr){
         <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
         <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
         ${mapItem}${bingoItem}${charItem}${journalItem}
-        ${photos}
       </div>
     </div>
   </div>`;
 }
 
-// Assemble this playthrough's saved data from the DB by its row id.
-// (archive gathers its own data separately.)
+// Assemble a day's saved data from daily_tracker by its row id.
 async function assembleTodayMatrixData(entryId){
   const d = {
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
-    mapName: activeGameData?.map_name || 'my map',
-    mapType: activeGameData?.map_type || 'spiral',
-    zones: (activeGameData?.map_data||{}).zones || [],
-    mapPhase: null,                              // selected phase — used by single-phase matrix render
-    locationData: null,                          // {terrain,feeling,tint} of the selected place — self-contained
-    sidequestData: null,                         // sidequest snapshot {terrain,feeling,tint,name} when phase==='sidequest'
+    mapName: 'today',
+    mapPhase: null,
+    locationData: null,                          // {terrain,feeling,tint} of today's place
+    sidequestData: null,                         // today's location snapshot {terrain,feeling,tint,name}
     bingoScore: 0, charState: null, journalText: '', matrixImages: [],
-    archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
-    const { data: row } = await sb.from('saved_data').select('*')
+    const { data: row } = await sb.from('daily_tracker').select('*')
       .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
     if (row){
       d.charState    = row.character_data || null;
@@ -2179,9 +2069,12 @@ async function assembleTodayMatrixData(entryId){
       d.journalText  = (Array.isArray(row.journal_messages)
         ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
         : '');
-      // All matrix photos — manual uploads AND journal images — now live in
-      // matrix_images, each tagged to a quadrant (journal images: 'internal-feeling').
-      d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+      if (row.entry_date){
+        // Render the matrix under the day it was actually saved (local-safe).
+        const [y,m,dd] = String(row.entry_date).split('-').map(Number);
+        if (y && m && dd) d.dateLabel = new Date(y, m-1, dd)
+          .toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      }
     }
   } catch(e){}
   return d;
@@ -2189,142 +2082,21 @@ async function assembleTodayMatrixData(entryId){
 
 async function stepDone() {
   currentStep = 'done';
-  setBubble("your entry is complete!");
+  setBubble("today is tracked — see you tomorrow ✨");
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
-  _matrixSeed = `${activeGameId}|${activeEntryId}`;
-  await renderMatrix();
+  _matrixSeed = activeEntryId;
+  await renderMatrix(true);
 }
 
-// Re-assemble + redraw the matrix in place (used after adding a photo).
+// Re-assemble + redraw the matrix in place.
 let _matrixSeed = 'matrix';
-async function renderMatrix() {
+async function renderMatrix(seeYouTomorrow) {
   const data = await assembleTodayMatrixData(activeEntryId);
+  if (seeYouTomorrow) data.seeYouTomorrow = true;
   showPanel(buildAdventureMatrix(data, _matrixSeed));
 }
 
-// ── MATRIX PHOTO UPLOAD ───────────────────────────────────
-let photoDraft = { file:null, quadrant:null };
-
-function openPhotoUpload(){
-  photoDraft = { file:null, quadrant:null };
-  document.getElementById('photo-file').value = '';
-  document.getElementById('photo-preview').innerHTML =
-    '<span class="photo-drop-hint">tap to choose an image</span>';
-  document.querySelectorAll('.photo-quad.selected').forEach(el => el.classList.remove('selected'));
-  const st = document.getElementById('photo-status');
-  st.textContent = ''; st.style.color = '#8a7a5a';
-  document.getElementById('photo-add-btn').textContent = 'add to matrix';
-  refreshPhotoAdd();
-  document.getElementById('photo-overlay').classList.add('open');
-}
-function closePhotoUpload(){
-  document.getElementById('photo-overlay').classList.remove('open');
-}
-function onPhotoPicked(e){
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  const st = document.getElementById('photo-status');
-  if (!file.type.startsWith('image/')){
-    st.style.color = '#E8478B'; st.textContent = 'that file isn’t an image';
-    photoDraft.file = null; refreshPhotoAdd(); return;
-  }
-  photoDraft.file = file;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('photo-preview').innerHTML = `<img src="${ev.target.result}" alt="">`;
-  };
-  reader.readAsDataURL(file);
-  st.textContent = '';
-  refreshPhotoAdd();
-}
-function pickQuadrant(q, el){
-  photoDraft.quadrant = q;
-  document.querySelectorAll('.photo-quad').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  refreshPhotoAdd();
-}
-function refreshPhotoAdd(){
-  document.getElementById('photo-add-btn').disabled = !(photoDraft.file && photoDraft.quadrant);
-}
-
-async function uploadMatrixPhoto(){
-  if (!(photoDraft.file && photoDraft.quadrant)) return;
-  const st  = document.getElementById('photo-status');
-  const btn = document.getElementById('photo-add-btn');
-  if (!currentUser){
-    st.style.color = '#E8478B'; st.textContent = 'sign in to save photos';
-    return;
-  }
-  btn.disabled = true; btn.textContent = 'uploading…';
-  st.style.color = '#8a7a5a'; st.textContent = 'uploading…';
-
-  try {
-    const file = photoDraft.file;
-    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-    const path = `${currentUser.id}/${activeEntryId}/${crypto.randomUUID()}.${ext}`;
-
-    const { error: upErr } = await sb.storage
-      .from(MATRIX_PHOTO_BUCKET)
-      .upload(path, file, { contentType: file.type, upsert: false });
-    if (upErr) throw upErr;
-
-    const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
-    const publicUrl = pub?.publicUrl;
-    if (!publicUrl) throw new Error('could not resolve image url');
-
-    // Append {url,quadrant} to saved_data.matrix_images (read-modify-write).
-    const { data: row, error: readErr } = await sb.from('saved_data')
-      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
-    if (readErr) throw readErr;
-    const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-    const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant }];
-
-    const { error: updErr } = await sb.from('saved_data')
-      .update({ matrix_images: next }).eq('id', activeEntryId);
-    if (updErr) throw updErr;
-
-    closePhotoUpload();
-    showRoomStatus('photo added ✓', '#6ab86a');
-    await renderMatrix();
-  } catch (err) {
-    console.error('[matrix photo] upload failed:', err);
-    st.style.color = '#E8478B';
-    st.textContent = err?.message ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
-    btn.disabled = false; btn.textContent = 'add to matrix';
-  }
-}
-
-// Remove a photo from the matrix: drop its reference from matrix_images, then
-// delete the file from storage. Keyed by url (UUID filenames are unique).
-async function removeMatrixPhoto(url){
-  if (!url || !currentUser || !activeEntryId) return;
-  try {
-    const { data: row } = await sb.from('saved_data')
-      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
-    const imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-    const next = imgs.filter(i => !(i && i.url === url));
-    if (next.length === imgs.length) { await renderMatrix(); return; }  // nothing matched
-    const { error } = await sb.from('saved_data')
-      .update({ matrix_images: next }).eq('id', activeEntryId);
-    if (error) throw error;
-  } catch (err) {
-    console.error('[matrix photo] remove failed:', err);
-    showRoomStatus('couldn’t remove photo — try again', '#E8478B');
-    return;
-  }
-  await deleteMatrixPhotoFiles([url]);   // best-effort storage cleanup
-  showRoomStatus('photo removed', '#8a7a5a');
-  await renderMatrix();
-}
-
-// One delegated listener handles every photo's ✕ (the panel's innerHTML is
-// rebuilt on each render, so per-button listeners would be lost).
-document.getElementById('content-panel').addEventListener('click', e => {
-  const btn = e.target.closest('.adv-photo-remove');
-  if (!btn) return;
-  e.stopPropagation();
-  removeMatrixPhoto(btn.dataset.url);
-});
+// (matrix photo upload + remove handlers removed — text-only free tracker)
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
 window.addEventListener('message', async e => {
@@ -2419,16 +2191,17 @@ window.addEventListener('message', async e => {
                        tint:    z.tint    || null };
     }
 
-    const { error } = await sb.from('saved_data').upsert({
+    const { error } = await sb.from('daily_tracker').upsert({
       id: activeEntryId,
-      game_id: activeGameId, user_id: currentUser.id,
+      user_id: currentUser.id,
+      entry_date: activeEntryDate,
       map_phase: activePhase,
       location_data: locationData,
       sidequest_data: sidequestData,
       character_data: charState,
     }, { onConflict: 'id' });
     saved = !error;
-    if (error) showRoomStatus('save failed', '#E8478B');
+    if (error) { console.error('[daily save]', error); showRoomStatus('save failed', '#E8478B'); }
 
     if (saved) {
       showRoomStatus('character saved ✓', '#6ab86a');
@@ -2453,9 +2226,10 @@ window.addEventListener('message', async e => {
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
 
-    const { error } = await sb.from('saved_data').upsert({
+    const { error } = await sb.from('daily_tracker').upsert({
       id: activeEntryId,
-      game_id: activeGameId, user_id: currentUser.id,
+      user_id: currentUser.id,
+      entry_date: activeEntryDate,
       bingo_data: bingoPayload, energy_score: energyScore,
     }, { onConflict: 'id' });
 
@@ -2563,6 +2337,8 @@ function openSidequestBuilder() {
 function closeSidequestBuilder() {
   document.getElementById('sq-overlay').classList.remove('open');
 }
+// Daily tracker step one uses this same builder under a friendlier name.
+const openLocationBuilder = openSidequestBuilder;
 
 function sidequestPickTerrain(id) {
   sqDraft.terrain = id;
@@ -2616,7 +2392,7 @@ function renderSidequestPreview() {
 function confirmSidequest() {
   if (!(sqDraft.terrain && sqDraft.feeling)) return;
   activeSidequest = {
-    name:    document.getElementById('sq-name').value.trim() || 'a secret place',
+    name:    document.getElementById('sq-name').value.trim() || 'today',
     terrain: sqDraft.terrain,
     feeling: sqDraft.feeling,
     tint:    sqDraft.tint,
@@ -2630,20 +2406,21 @@ function confirmSidequest() {
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
   buildSidequestPalette();
-  let isPaid = false;
   try {
     const { data:{ session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
     if (currentUser) {
       const { data: profile } = await sb.from('user-profiles')
-        .select('username, membership_status').eq('id', currentUser.id).single();
-      if (profile?.username) updateGearMenu(profile.username);
-      else updateGearMenu(currentUser.email);
-      isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+        .select('username').eq('id', currentUser.id).single();
+      updateGearMenu(profile?.username || currentUser.email);
     }
   } catch(e) {}
-  if (!isPaid) { showMemberGate(); return; }
-  stepInitial();
+  if (!currentUser) {
+    setBubble('log in to begin');
+    showLoginModal();
+    return;
+  }
+  startToday();
 }
 
 init();

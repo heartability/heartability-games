@@ -729,11 +729,10 @@ html, body {
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display = 'none';
       manageBtn.style.display  = 'inline-block';
-    } else if (status === 'basic') {
-      membershipEl.textContent = 'basic member';
+    } else if (status === 'dream') {
+      membershipEl.textContent = 'dream member';
       membershipEl.style.color = 'var(--purple)';
-      upgradeBtn.textContent   = 'upgrade';
-      upgradeBtn.style.display = 'inline-block';
+      upgradeBtn.style.display = 'none';
       manageBtn.style.display  = 'inline-block';
     } else {
       membershipEl.textContent = 'free member';

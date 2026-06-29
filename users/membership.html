@@ -430,7 +430,7 @@ document.addEventListener('click', e => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${currentSession.access_token}`
           },
-          body: JSON.stringify({ priceId, tier: 'community', paymentMode: 'subscription' })
+          body: JSON.stringify({ priceId, tier: 'dream', paymentMode: 'subscription' })
         }
       );
       const { url, error } = await res.json();
