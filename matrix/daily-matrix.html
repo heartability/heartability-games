@@ -778,18 +778,18 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-section-label { font-size:12px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 6px; }
 
 /* terrain palette */
-.sq-palette { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.sq-palette { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:14px; }
 .sq-terrain {
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:5px 6px; background:#f0ead6; cursor:pointer; user-select:none;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:8px 6px; background:#f0ead6; cursor:pointer; user-select:none;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
   transition:filter .1s;
 }
 .sq-terrain:hover { filter:brightness(1.06); }
 .sq-terrain.active { border-color:var(--aqua); outline:2px solid var(--aqua); outline-offset:1px; background:#e0f0f0; }
-.sq-terrain img { width:34px; height:28px; object-fit:contain; pointer-events:none; }
-.sq-terrain span { font-size:10px; color:#5a4a2a; letter-spacing:.4px; pointer-events:none; }
+.sq-terrain img { width:60px; height:50px; object-fit:contain; pointer-events:none; }
+.sq-terrain span { font-size:11px; color:#5a4a2a; letter-spacing:.4px; pointer-events:none; }
 
 /* climates + feeling chips */
 .sq-climates { display:flex; flex-direction:column; gap:8px; }
@@ -819,7 +819,16 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-climate.windy .sq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
 .sq-climate.snowy .sq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
 
-.sq-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+.sq-actions { display:none; }
+.sq-foot {
+  position:fixed;
+  bottom:0; left:0; right:0;
+  height:calc(21% - 44px);
+  display:none; align-items:center; justify-content:center;
+  gap:16px; z-index:301; pointer-events:none;
+}
+.sq-overlay.open .sq-foot { display:flex; }
+.sq-foot > * { pointer-events:all; }
 .sq-btn {
   padding:10px 18px; font-family:var(--font-hand); font-size:15px; cursor:pointer;
   border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
@@ -1036,10 +1045,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
         <div class="sq-climates" id="sq-climates"></div>
       </div>
     </div>
-    <div class="sq-actions">
-      <button class="sq-btn ghost" onclick="closeSidequestBuilder()">cancel</button>
-      <button class="sq-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
-    </div>
+    <div class="sq-actions"></div>
+  </div>
+  <div class="sq-foot">
+    <button class="sq-btn ghost" onclick="closeSidequestBuilder()">cancel</button>
+    <button class="sq-btn save-continue-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
   </div>
 </div>
 
