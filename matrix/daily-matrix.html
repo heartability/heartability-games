@@ -244,7 +244,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .char-heart {
   position:fixed; left:4vw; bottom:6vh;
   width:clamp(100px,14vw,220px);
-  z-index:20; cursor:default;
+  z-index:400; cursor:default;
 }
 .char-heart .char-img {
   display:block; width:100%; height:auto;
@@ -772,11 +772,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   align-items:start;
 }
 @media (max-width:640px){ .sq-body { grid-template-columns:1fr; } }
-.sq-preview-col { min-width:0; }
+.sq-preview-col { min-width:0; align-self:stretch; display:flex; flex-direction:column; }
 .sq-terrain-col { min-width:0; }
 .sq-climate-col { grid-column: 1 / -1; min-width:0; }
 .sq-map-frame {
-  width:100%; aspect-ratio:4/3; max-height:160px;
+  flex:1; width:100%; aspect-ratio:1/1;
   background:#e8e0c8;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
