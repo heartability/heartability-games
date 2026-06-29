@@ -601,6 +601,17 @@ body.game-mode .char-heart {
 }
 .popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 16px; padding: 4px; line-height: 1; }
 .popup-close:hover { color: var(--blue); }
+
+/* MATRIX PICKER */
+.matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
+.matrix-picker-overlay.open { display: flex; }
+.matrix-picker-popup { background: var(--cream); border: 2px solid var(--aqua); box-shadow: 4px 6px 0 rgba(0,0,0,.15); width: min(92vw, 400px); overflow: hidden; }
+.matrix-picker-titlebar { height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555; }
+.matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
+.matrix-pick-btn { font-family: var(--font-hand); font-size: clamp(16px,2vw,20px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: left; transition: background .1s; }
+.matrix-pick-btn:hover { background: #4a5bc4; }
+.matrix-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
+.matrix-pick-btn small { display: block; font-size: clamp(11px,1.2vw,13px); opacity: .75; margin-top: 2px; }
 .login-popup-tabs { display: flex; border-bottom: 2px solid #ccc; background: #e8e3da; }
 .popup-tab {
   flex: 1; padding: 8px; font-family: var(--font-hand); font-size: 14px;
@@ -716,8 +727,32 @@ body.game-mode .char-heart {
   <img src="../assets/elements/about.png" alt="About Heartability">
 </div>
 
+<!-- MATRIX PICKER POPUP -->
+<div class="matrix-picker-overlay" id="matrix-picker-overlay">
+  <div class="matrix-picker-popup">
+    <div class="matrix-picker-titlebar">
+      <span>choose your matrix</span>
+      <span class="popup-close" onclick="closeMatrixPicker()">×</span>
+    </div>
+    <div class="matrix-picker-body">
+      <button class="matrix-pick-btn" onclick="window.location.href='../matrix/daily-matrix.html'">
+        daily matrix
+        <small>track today's mood, location &amp; character</small>
+      </button>
+      <button class="matrix-pick-btn" onclick="window.location.href='../matrix/dream-matrix.html'">
+        dream matrix
+        <small>explore your map and journal your journey</small>
+      </button>
+      <button class="matrix-pick-btn" onclick="window.location.href='../matrix/cosmic-matrix.html'">
+        cosmic matrix
+        <small>walk the season's moon phases</small>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MATRIX LINKS -->
-<div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="window.location.href='../matrix/dream-matrix.html'">
+<div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="openMatrixPicker()">
   <img src="../assets/elements/exclaim.png" alt="Track today">
   <div class="cal-month" id="cal-month"></div>
   <div class="cal-day"   id="cal-day"></div>
@@ -1065,6 +1100,13 @@ function handleGamePopupOverlayClick(e) {
 }
 
 // ── Login popup helpers ────────────────────────────────────
+function openMatrixPicker()  { document.getElementById('matrix-picker-overlay').classList.add('open'); }
+function closeMatrixPicker() { document.getElementById('matrix-picker-overlay').classList.remove('open'); }
+document.addEventListener('click', e => {
+  const overlay = document.getElementById('matrix-picker-overlay');
+  if (overlay?.classList.contains('open') && e.target === overlay) closeMatrixPicker();
+});
+
 function openLoginPopup(title) {
   document.getElementById('login-popup-title').textContent = title || 'welcome';
   document.getElementById('login-overlay').classList.add('open');
