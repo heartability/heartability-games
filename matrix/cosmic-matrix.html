@@ -75,6 +75,20 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .season-title{ font-family:var(--font-hand); font-size:clamp(24px,3.4vw,34px); color:var(--ink); }
 .season-sub{ font-family:var(--font-hand); font-size:clamp(13px,1.5vw,16px); letter-spacing:2px; color:var(--blue); }
 
+/* MAP OVERLAYS — fixed title + progress bar, only visible on season map */
+#map-season-title{ position:fixed; top:52px; left:clamp(12px,2vw,28px); font-family:var(--font-hand);
+  font-size:clamp(28px,3.8vw,46px); color:rgba(201,255,245,0.85); z-index:15; pointer-events:none; display:none; }
+#map-progress{ position:fixed; top:52px; right:clamp(12px,2vw,28px); z-index:15; pointer-events:none;
+  display:none; background:rgba(201,255,245,0.10); border:1px solid rgba(201,255,245,0.28);
+  padding:6px 10px 8px; min-width:180px; }
+#map-progress-label{ font-family:var(--font-hand); font-size:9px; color:rgba(201,255,245,0.7);
+  letter-spacing:1.5px; margin-bottom:4px; }
+#map-progress-track{ width:100%; height:12px; background:rgba(255,255,255,0.10);
+  border:1px solid rgba(255,255,255,0.18); position:relative; }
+#map-score-fill{ height:100%; background:linear-gradient(90deg,#E8478B,#f3a0c4); width:0%; transition:width .3s; }
+#map-score-label{ font-family:var(--font-hand); font-size:9px; color:rgba(201,255,245,0.7);
+  text-align:right; margin-top:2px; }
+
 /* TIMELINE */
 .timeline{ width:100%; max-width:520px; margin:10px auto 0; position:relative; }
 .timeline::before{ content:""; position:absolute; left:22px; top:14px; bottom:14px; width:2px;
@@ -270,6 +284,13 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 <div class="content-panel" id="content-panel"></div>
 
+<div id="map-season-title"></div>
+<div id="map-progress">
+  <div id="map-progress-label">SEASON PROGRESS</div>
+  <div id="map-progress-track"><div id="map-score-fill"></div></div>
+  <div id="map-score-label">0 of 24</div>
+</div>
+
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="bubble">reading the sky…</div>
   <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
@@ -364,8 +385,8 @@ function showStatus(msg,color){ const el=$('status'); el.textContent=msg; el.sty
   clearTimeout(el._t); el._t=setTimeout(()=>el.textContent='',3000); }
 function setSave(visible,label='continue →'){ const bar=$('save-bar'),btn=$('save-btn');
   bar.classList.toggle('visible',visible); if(btn){ btn.innerHTML=label; btn.disabled=false; } }
-function showPanel(html){ const p=$('content-panel'); p.className='content-panel active'; p.innerHTML=`<div class="panel-scroll">${html}</div>`; }
-function showIframe(src){ const p=$('content-panel'); p.className='content-panel active iframe-mode';
+function showPanel(html){ showMapOverlays(false); const p=$('content-panel'); p.className='content-panel active'; p.innerHTML=`<div class="panel-scroll">${html}</div>`; }
+function showIframe(src){ showMapOverlays(false); const p=$('content-panel'); p.className='content-panel active iframe-mode';
   p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`; }
 
 function phases(){ return (activeMapData?.phases || []).slice().sort((a,b)=>Date.parse(a.opens_utc)-Date.parse(b.opens_utc)); }
@@ -724,6 +745,11 @@ const CHAR_FULL_ASSETS = {
 function resolveCharAsset(v){ return !v ? null : (v.includes('/') ? v : (CHAR_FULL_ASSETS[v]||null)); }
 
 // ── SEASON MAP (main view) ───────────────────────────────────
+function showMapOverlays(visible){
+  document.getElementById('map-season-title').style.display = visible ? 'block' : 'none';
+  document.getElementById('map-progress').style.display = visible ? 'block' : 'none';
+}
+
 function renderSeasonMap(){
   currentStep = null; activePhase = null;
   setSave(false);
@@ -731,6 +757,7 @@ function renderSeasonMap(){
   const p = $('content-panel');
   p.className = 'content-panel active map-mode';
   p.innerHTML = buildSeasonMapSVG();
+  showMapOverlays(true);
 }
 
 let _mapPhases = [];
@@ -857,8 +884,16 @@ function buildSeasonMapSVG(){
     }
   });
 
+  // update fixed HTML overlays
+  const titleEl = document.getElementById('map-season-title');
+  if (titleEl) titleEl.textContent = titleText;
+  const scoreEl = document.getElementById('map-score-fill');
+  const scoreLabel = document.getElementById('map-score-label');
+  if (scoreEl) scoreEl.style.width = Math.round((score/24)*100)+'%';
+  if (scoreLabel) scoreLabel.textContent = score+' of 24';
+
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;overflow:visible;">
-    ${defs}${aurora}${nodes}${meter}${title}
+    ${defs}${aurora}${nodes}
   </svg>`;
 }
 
