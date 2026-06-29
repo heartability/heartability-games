@@ -1198,16 +1198,27 @@ async function lmSignup() {
   // onAuthStateChange will handle the rest
 }
 
-// Listen for auth changes from the login form
+// Listen for auth changes
 sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    currentUser = session?.user || null;
+    if (currentUser) {
+      sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
+        .then(({ data: p }) => updateGearMenu(p?.username || currentUser.email))
+        .catch(() => updateGearMenu(currentUser.email));
+      startToday();
+    } else {
+      setBubble('log in to begin');
+      showLoginModal();
+    }
+    return;
+  }
   if (event === 'SIGNED_IN' && session && !currentUser) {
     currentUser = session.user;
     closeLoginModal();
-    try {
-      const { data: profile } = await sb.from('user-profiles')
-        .select('username').eq('id', currentUser.id).single();
-      updateGearMenu(profile?.username || currentUser.email);
-    } catch(e) {}
+    sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
+      .then(({ data: p }) => updateGearMenu(p?.username || currentUser.email))
+      .catch(() => updateGearMenu(currentUser.email));
     startToday();
   }
 });
@@ -2400,28 +2411,9 @@ function confirmSidequest() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
-async function init() {
+function init() {
   buildSidequestPalette();
-  try {
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000));
-    const { data:{ session } } = await Promise.race([sb.auth.getSession(), timeout]);
-    currentUser = session?.user || null;
-    if (currentUser) {
-      sb.from('user-profiles')
-        .select('username').eq('id', currentUser.id).single()
-        .then(({ data: profile }) => updateGearMenu(profile?.username || currentUser.email))
-        .catch(() => updateGearMenu(currentUser.email));
-    }
-  } catch(e) {
-    localStorage.removeItem('sb-rrdfltqnrnvmqemyrfaj-auth-token');
-    currentUser = null;
-  }
-  if (!currentUser) {
-    setBubble('log in to begin');
-    showLoginModal();
-    return;
-  }
-  startToday();
+  // auth handled entirely by onAuthStateChange (INITIAL_SESSION fires immediately)
 }
 
 init();
