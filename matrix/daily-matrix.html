@@ -2403,7 +2403,8 @@ function confirmSidequest() {
 async function init() {
   buildSidequestPalette();
   try {
-    const { data:{ session } } = await sb.auth.getSession();
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000));
+    const { data:{ session } } = await Promise.race([sb.auth.getSession(), timeout]);
     currentUser = session?.user || null;
     if (currentUser) {
       sb.from('user-profiles')
@@ -2411,7 +2412,10 @@ async function init() {
         .then(({ data: profile }) => updateGearMenu(profile?.username || currentUser.email))
         .catch(() => updateGearMenu(currentUser.email));
     }
-  } catch(e) {}
+  } catch(e) {
+    await sb.auth.signOut();
+    currentUser = null;
+  }
   if (!currentUser) {
     setBubble('log in to begin');
     showLoginModal();
