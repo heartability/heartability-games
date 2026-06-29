@@ -2413,7 +2413,7 @@ async function init() {
         .catch(() => updateGearMenu(currentUser.email));
     }
   } catch(e) {
-    await sb.auth.signOut();
+    localStorage.removeItem('sb-rrdfltqnrnvmqemyrfaj-auth-token');
     currentUser = null;
   }
   if (!currentUser) {

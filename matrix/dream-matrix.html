@@ -394,7 +394,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .phase-drawer-close:hover { color:#444; }
 .login-modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.5);
-  z-index:300; display:none; align-items:center; justify-content:center;
+  z-index:400; display:none; align-items:center; justify-content:center;
 }
 .login-modal-overlay.open { display:flex; }
 .login-modal-window {
@@ -2646,7 +2646,7 @@ async function init() {
       isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
     }
   } catch(e) {
-    await sb.auth.signOut();
+    localStorage.removeItem('sb-rrdfltqnrnvmqemyrfaj-auth-token');
     currentUser = null;
   }
   if (!isPaid) { showMemberGate(); return; }
