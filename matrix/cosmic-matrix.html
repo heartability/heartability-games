@@ -511,7 +511,7 @@ async function loadSeason(){
 }
 
 function showSeasonSelector(tpls){
-  setBubble('choose your season.');
+  setBubble('choose a season.');
   setSave(false);
   const now = nowMs();
   const slots = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0))
