@@ -528,7 +528,7 @@ function showSeasonSelector(tpls){
           + ' – ' + new Date(t.map_data.season_end_utc).toLocaleDateString('en-US',{month:'short',day:'numeric'})
         : '';
       return `<div class="map-slot" onclick="selectSeason(${i})" data-idx="${i}">
-        <div class="slot-name">${t.title||t.season}</div>
+        <div class="slot-name">${(t.title||t.season).replace(/\s*(season\s*)?\d{4}/i,'')}</div>
         ${dates ? `<div class="slot-updated">${dates}</div>` : ''}
         <div class="slot-updated">${phases} moon phases</div>
         ${badge}
