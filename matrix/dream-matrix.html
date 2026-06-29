@@ -2632,19 +2632,32 @@ function confirmSidequest() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
+function readStoredUser() {
+  // Read + decode JWT directly — no network call, never hangs
+  try {
+    const raw = localStorage.getItem('sb-rrdfltqnrnvmqemyrfaj-auth-token');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const token = parsed?.access_token;
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (Date.now() > payload.exp * 1000) return null; // expired
+    return parsed.user || { id: payload.sub, email: payload.email };
+  } catch(e) { return null; }
+}
+
 async function init() {
   buildSidequestPalette();
+  currentUser = readStoredUser();
+  if (!currentUser) { showMemberGate(); return; }
+
   let isPaid = false;
   try {
-    const { data: { user }, error } = await sb.auth.getUser();
-    if (user && !error) {
-      currentUser = user;
-      const { data: profile } = await sb.from('user-profiles')
-        .select('username, membership_status').eq('id', currentUser.id).single();
-      if (profile?.username) updateGearMenu(profile.username);
-      else updateGearMenu(currentUser.email);
-      isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
-    }
+    const { data: profile } = await sb.from('user-profiles')
+      .select('username, membership_status').eq('id', currentUser.id).single();
+    if (profile?.username) updateGearMenu(profile.username);
+    else updateGearMenu(currentUser.email);
+    isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
   } catch(e) {}
   if (!isPaid) { showMemberGate(); return; }
   stepInitial();
