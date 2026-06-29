@@ -658,24 +658,30 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   flex:1; overflow-y:auto; padding:14px 16px;
   display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth;
 }
-.jrc-msg { display:flex; flex-direction:column; gap:3px; max-width:80%; }
-.jrc-msg.today { align-self:flex-end; align-items:flex-end; }
-.jrc-msg.past  { align-self:flex-start; align-items:flex-start; }
+.jrc-msg-wrap { display:flex; align-items:flex-start; gap:8px; }
+.jrc-msg-wrap.right { flex-direction:row-reverse; align-self:flex-end; }
+.jrc-msg-wrap.left  { flex-direction:row; align-self:flex-start; }
+.jrc-avatar { flex-shrink:0; width:52px; height:52px; border-radius:50%; overflow:hidden; position:relative; border:1.5px solid #ccc; background:#f0ebe2; }
+.jrc-avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.jrc-msg { display:flex; flex-direction:column; gap:3px; max-width:72%; }
+.jrc-msg-wrap.right .jrc-msg { align-items:flex-end; }
+.jrc-msg-wrap.left  .jrc-msg { align-items:flex-start; }
 .jrc-bubble {
-  padding:9px 13px; font-family:var(--font-hand); font-size:clamp(12px,1.4vw,16px);
+  padding:11px 16px; font-family:var(--font-hand); font-size:clamp(14px,1.6vw,19px);
   line-height:1.5; word-break:break-word; user-select:text;
 }
-.jrc-msg.today .jrc-bubble { background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
-.jrc-msg.past  .jrc-bubble { background:#fff; color:#222; border:1.5px solid #ccc; }
-.jrc-bubble img { display:block; width:180px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
-.jrc-msg.past .jrc-bubble img { border-color:#e3ddd2; }
-.jrc-meta { font-size:clamp(9px,.9vw,11px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
+.jrc-msg-wrap.right .jrc-bubble { background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
+.jrc-msg-wrap.left  .jrc-bubble { background:#fff; color:#222; border:1.5px solid #ccc; }
+.jrc-bubble img { display:block; width:210px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
+.jrc-msg-wrap.left .jrc-bubble img { border-color:#e3ddd2; }
+.jrc-meta { font-size:clamp(11px,1vw,13px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
 .jrc-empty {
   margin:auto; text-align:center; color:#9a8a6a; font-style:italic;
-  font-size:clamp(11px,1.2vw,14px); line-height:1.6; max-width:84%; padding:24px 0;
+  font-size:clamp(13px,1.4vw,16px); line-height:1.6; max-width:84%; padding:24px 0;
 }
 .jrc-date-divider { display:flex; align-items:center; gap:10px; padding:2px 0; align-self:stretch; }
-.jrc-date-divider span { font-size:10px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
+.jrc-date-divider span { font-size:12px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
+.jrc-date-divider .divider-location { font-size:13px; color:#a09080; font-family:var(--font-hand); white-space:nowrap; }
 .jrc-date-divider::before, .jrc-date-divider::after { content:''; flex:1; height:1px; background:#ddd; }
 .jrc-input-area {
   flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px;
@@ -1840,14 +1846,24 @@ function jrcRowMessages(row){
   return arr.slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 }
 
-function renderJournalMessage(msg, isToday){
-  const el = document.createElement('div');
-  el.className = 'jrc-msg ' + (isToday ? 'today' : 'past');
-  if (msg.id) el.dataset.id = msg.id;
+function buildAvatar(charData){
+  if (!charData) return '<div class="jrc-avatar"></div>';
+  const layers = ['body','eyes','mouth','hair','shoes','acc'];
+  const imgs = layers.map(k => charData[k] && CHAR_FULL_ASSETS[charData[k]]
+    ? `<img src="${CHAR_FULL_ASSETS[charData[k]]}" alt="">`
+    : '').join('');
+  return `<div class="jrc-avatar">${imgs}</div>`;
+}
+
+function renderJournalMessage(msg, side, charData){
+  const wrap = document.createElement('div');
+  wrap.className = 'jrc-msg-wrap ' + (side === 'right' ? 'right' : 'left');
+  if (msg.id) wrap.dataset.id = msg.id;
   const img = msg.image_url ? `<img src="${jrcEscape(msg.image_url)}" alt="" onerror="this.style.display='none'">` : '';
   const txt = msg.text ? `<span class="jrc-bubble-txt">${jrcEscape(msg.text)}</span>` : '';
-  el.innerHTML = `<div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div>`;
-  return el;
+  const avatar = buildAvatar(charData);
+  wrap.innerHTML = `${avatar}<div class="jrc-msg"><div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div></div>`;
+  return wrap;
 }
 
 function jrcScrollBottom(){
@@ -1855,13 +1871,13 @@ function jrcScrollBottom(){
   if (c) c.scrollTop = c.scrollHeight;
 }
 
-// Append a date divider to the scroll only when the day changes.
-function jrcMaybeDivider(container, dayLabel){
+function jrcMaybeDivider(container, dayLabel, location){
   const last = [...container.querySelectorAll('.jrc-date-divider span')].pop();
   if (last && last.textContent === dayLabel) return;
   const div = document.createElement('div');
   div.className = 'jrc-date-divider';
-  div.innerHTML = `<span>${dayLabel}</span>`;
+  const locHtml = location ? `<span class="divider-location">${jrcEscape(location)}</span> · ` : '';
+  div.innerHTML = `${locHtml}<span>${dayLabel}</span>`;
   container.appendChild(div);
 }
 
@@ -1874,27 +1890,28 @@ async function loadJournalEntries(){
   let rows = [];
   try {
     const { data } = await sb.from('dream_matrix')
-      .select('id, journal_messages, matrix_images, created_at')
+      .select('id, journal_messages, matrix_images, created_at, character_data, location_data')
       .eq('game_id', activeGameId).eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
     rows = data || [];
   } catch(e){ console.error('[journal load]', e); }
 
-  // Past rows with any journal content, plus this playthrough's row even if blank.
   rows = rows.filter(r => r.id === activeEntryId || jrcRowMessages(r).length);
   journal.entries = rows;
 
   const container = document.getElementById('jrc-messages');
   const empty = document.getElementById('jrc-empty');
   if (!container) return;
-  container.querySelectorAll('.jrc-msg, .jrc-date-divider').forEach(e=>e.remove());
+  container.querySelectorAll('.jrc-msg-wrap, .jrc-date-divider').forEach(e=>e.remove());
 
   let anyMsg = false;
-  rows.forEach(row => {
-    const isToday = row.id === activeEntryId;
+  rows.forEach((row, i) => {
+    const side = i % 2 === 0 ? 'left' : 'right';
+    const charData = row.character_data || null;
+    const location = row.location_data?.terrain || row.location_data?.location || '';
     jrcRowMessages(row).forEach(msg => {
-      jrcMaybeDivider(container, jrcDay(msg.created_at || row.created_at));
-      container.appendChild(renderJournalMessage(msg, isToday));
+      jrcMaybeDivider(container, jrcDay(msg.created_at || row.created_at), location);
+      container.appendChild(renderJournalMessage(msg, side, charData));
       anyMsg = true;
     });
   });
@@ -1982,8 +1999,13 @@ async function sendJournalMessage(){
   const container = document.getElementById('jrc-messages');
   const empty = document.getElementById('jrc-empty');
   if (empty) empty.style.display = 'none';
-  jrcMaybeDivider(container, jrcDay(message.created_at));
-  container.appendChild(renderJournalMessage(message, true));
+  const _rowIdx = journal.entries.findIndex(r => r.id === activeEntryId);
+  const _side = _rowIdx % 2 === 0 ? 'left' : 'right';
+  const _activeRow = journal.entries[_rowIdx] || {};
+  const _loc = _activeRow.location_data?.terrain || _activeRow.location_data?.location || '';
+  const _char = _activeRow.character_data || null;
+  jrcMaybeDivider(container, jrcDay(message.created_at), _loc);
+  container.appendChild(renderJournalMessage(message, _side, _char));
 
   if (msgEl) msgEl.value = '';
   removeJournalImage();
