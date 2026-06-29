@@ -537,13 +537,25 @@ function showSeasonSelector(tpls){
   // stash for selectSeason
   window._cosmicSeasonList = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0));
   const p = $('content-panel');
-  p.className = 'content-panel active map-mode';
-  p.innerHTML = `
-    <div class="season-head" style="color:#c9fff5;">
-      <div class="season-title" style="color:#c9fff5;">cosmic matrix</div>
-      <div class="season-sub" style="color:rgba(201,255,245,0.7);">choose your season</div>
-    </div>
-    <div class="map-grid" style="margin-top:14px;">${slots}</div>`;
+  // static placeholder cards for upcoming seasons
+  const placeholders = [
+    { name: 'Leo Season 2026', dates: 'Jul 22 – Aug 22' },
+    { name: 'Virgo Season 2026', dates: 'Aug 23 – Sep 22' },
+  ].map(p => `<div class="map-slot" style="opacity:.5;cursor:default;pointer-events:none;">
+    <div class="slot-name">${p.name}</div>
+    <div class="slot-updated">${p.dates}</div>
+    <span class="slot-badge upcoming">upcoming</span>
+  </div>`).join('');
+
+  const panel = $('content-panel');
+  panel.className = 'content-panel active map-mode';
+  panel.innerHTML = `
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <span style="font-family:var(--font-hand);font-size:clamp(22px,2.4vw,30px);color:#c9fff5;">choose your season</span>
+      </div>
+      <div class="map-grid">${slots}${placeholders}</div>
+    </div>`;
 }
 
 async function selectSeason(idx){
