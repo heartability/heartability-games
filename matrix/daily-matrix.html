@@ -2410,9 +2410,10 @@ async function init() {
     const { data:{ session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
     if (currentUser) {
-      const { data: profile } = await sb.from('user-profiles')
-        .select('username').eq('id', currentUser.id).single();
-      updateGearMenu(profile?.username || currentUser.email);
+      sb.from('user-profiles')
+        .select('username').eq('id', currentUser.id).single()
+        .then(({ data: profile }) => updateGearMenu(profile?.username || currentUser.email))
+        .catch(() => updateGearMenu(currentUser.email));
     }
   } catch(e) {}
   if (!currentUser) {
