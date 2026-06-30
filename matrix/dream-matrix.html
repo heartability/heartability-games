@@ -2179,8 +2179,8 @@ function buildDreamMatrix(data, seedStr){
   // MAP → top-left quadrant (external + action)
   // Show ONLY the day's chosen destination (sidequest_data → location_data),
   // not the entire map.
-  const dayLoc = data.sidequestData || data.locationData || {};
-  const mapCap = data.sidequestData?.name || data.mapName || 'my map';
+  const dayLoc = data.dreamCameTrueData || data.sidequestData || data.locationData || {};
+  const mapCap = data.dreamCameTrueData?.name || data.sidequestData?.name || data.mapName || 'my map';
   const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
       <div class="adv-cap">${_escapeHtml(mapCap)}</div></div>`;
@@ -2257,7 +2257,8 @@ async function assembleTodayMatrixData(entryId){
       d.bingoScore   = row.bingo_data?.score || 0;
       d.mapPhase     = row.map_phase || null;
       d.locationData = row.location_data || null;
-      d.sidequestData= row.sidequest_data || null;
+      d.sidequestData      = row.sidequest_data       || null;
+      d.dreamCameTrueData  = row.dream_came_true_data  || null;
       d.journalText  = (Array.isArray(row.journal_messages)
         ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
         : '');
@@ -2274,6 +2275,14 @@ async function stepDone() {
   setBubble("your entry is complete!");
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
   _matrixSeed = `${activeGameId}|${activeEntryId}`;
+
+  // Mark the map complete so it no longer appears on the map selector
+  if (activePhase === 'dream_came_true' && activeGameId) {
+    await sb.from('games')
+      .update({ status: 'complete', updated_at: new Date().toISOString() })
+      .eq('id', activeGameId).eq('user_id', currentUser.id);
+  }
+
   await renderMatrix();
 }
 
@@ -2485,7 +2494,7 @@ window.addEventListener('message', async e => {
 
     // Resolve the place for this entry: a self-contained snapshot (terrain +
     // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
-    let mapLocation = null, sidequestData = null, locationData = null;
+    let mapLocation = null, sidequestData = null, dreamCameTrueData = null, locationData = null;
     if (activePhase === 'sidequest' && activeSidequest) {
       mapLocation   = activeSidequest.terrain || null;
       sidequestData = activeSidequest;
@@ -2493,11 +2502,11 @@ window.addEventListener('message', async e => {
                         feeling: activeSidequest.feeling || null,
                         tint:    activeSidequest.tint    || null };
     } else if (activePhase === 'dream_came_true' && activeDreamCameTrue) {
-      mapLocation   = activeDreamCameTrue.terrain || null;
-      sidequestData = activeDreamCameTrue;
-      locationData  = { terrain: activeDreamCameTrue.terrain || null,
-                        feeling: activeDreamCameTrue.feeling || null,
-                        tint:    activeDreamCameTrue.tint    || null };
+      mapLocation       = activeDreamCameTrue.terrain || null;
+      dreamCameTrueData = activeDreamCameTrue;
+      locationData      = { terrain: activeDreamCameTrue.terrain || null,
+                            feeling: activeDreamCameTrue.feeling || null,
+                            tint:    activeDreamCameTrue.tint    || null };
     } else if (activePhase && activeGameData?.map_data?.zones) {
       const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
       const z = activeGameData.map_data.zones[idx] || {};
@@ -2513,6 +2522,7 @@ window.addEventListener('message', async e => {
       map_phase: activePhase,
       location_data: locationData,
       sidequest_data: sidequestData,
+      dream_came_true_data: dreamCameTrueData,
       character_data: charState,
     }, { onConflict: 'id' });
     saved = !error;
@@ -2749,6 +2759,7 @@ function openDctBuilder() {
   document.getElementById('dct-confirm').disabled = true;
   document.getElementById('dct-overlay').classList.add('open');
 }
+
 function closeDctBuilder() {
   document.getElementById('dct-overlay').classList.remove('open');
 }
