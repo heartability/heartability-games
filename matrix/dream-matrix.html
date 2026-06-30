@@ -835,6 +835,13 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 }
 .phase-key-item.sidequest-item:hover { background:var(--blue); color:#fff; border-style:solid; }
 
+/* dream came true entry in the phase key */
+.phase-key-item.dct-item {
+  border-color:#E8478B; border-style:dashed; color:#E8478B;
+  background:#fdf0f5; margin-top:6px;
+}
+.phase-key-item.dct-item:hover { background:#E8478B; color:#fff; border-style:solid; }
+
 @media (prefers-reduced-motion: reduce) {
   .sq-terrain, .sq-chip, .sq-btn { transition:none; }
 }
@@ -1041,6 +1048,34 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   </div>
 </div>
 
+<!-- DREAM CAME TRUE BUILDER — celebration location for a completed goal -->
+<div class="sq-overlay" id="dct-overlay">
+  <div class="sq-card">
+    <div class="sq-head">
+      <span class="sq-title" style="color:#E8478B;">my dream came true</span>
+      <button class="sq-close" onclick="closeDctBuilder()">×</button>
+    </div>
+    <div class="sq-sub">build a place that captures what it feels like to arrive.</div>
+    <input class="sq-name" id="dct-name" type="text" maxlength="60" placeholder="name this place">
+    <div class="sq-body">
+      <div class="sq-preview-col">
+        <div class="sq-section-label">your destination</div>
+        <div class="sq-map-frame" id="dct-map-frame"></div>
+      </div>
+      <div class="sq-controls-col">
+        <div class="sq-section-label">terrain</div>
+        <div class="sq-palette" id="dct-palette"></div>
+        <div class="sq-section-label">emotional climate</div>
+        <div class="sq-climates" id="dct-climates"></div>
+      </div>
+    </div>
+    <div class="sq-actions">
+      <button class="sq-btn ghost" onclick="closeDctBuilder()">cancel</button>
+      <button class="sq-btn" id="dct-confirm" disabled onclick="confirmDct()" style="background:#E8478B;border-color:#c43070;box-shadow:2px 2px 0 #a02060;">enter this world →</button>
+    </div>
+  </div>
+</div>
+
 <!-- PHOTO UPLOAD — adds a picture to a chosen quadrant of the matrix -->
 <div class="photo-overlay" id="photo-overlay">
   <div class="photo-card">
@@ -1218,7 +1253,8 @@ let activeGameData = null;
 let activePhase    = null;
 let currentStep    = null; // 'character' | 'bingo' | 'journal'
 let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row
-let activeSidequest = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
+let activeSidequest    = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
+let activeDreamCameTrue = null; // {name,terrain,feeling,tint,cat} when dream-came-true phase is taken
 
 function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
 
@@ -1630,6 +1666,7 @@ function stepPhaseSelect() {
   if (!activeGameData) return;
   activePhase = null;
   activeSidequest = null;
+  activeDreamCameTrue = null;
   showAddNew(false);
   const mapType = activeGameData.map_type || 'spiral';
   const mapData = activeGameData.map_data || {};
@@ -1656,6 +1693,11 @@ function stepPhaseSelect() {
   keyItems += `<div class="phase-key-item sidequest-item" onclick="openSidequestBuilder()">
       <span class="phase-key-num">✦</span>
       <span>sidequest — fall into a secret little world</span>
+    </div>`;
+  // Dream came true phase — celebration location for a completed goal
+  keyItems += `<div class="phase-key-item dct-item" onclick="openDctBuilder()">
+      <span class="phase-key-num">✓</span>
+      <span>my dream came true</span>
     </div>`;
 
   const isMobile = window.innerWidth <= 768;
@@ -2450,6 +2492,12 @@ window.addEventListener('message', async e => {
       locationData  = { terrain: activeSidequest.terrain || null,
                         feeling: activeSidequest.feeling || null,
                         tint:    activeSidequest.tint    || null };
+    } else if (activePhase === 'dream_came_true' && activeDreamCameTrue) {
+      mapLocation   = activeDreamCameTrue.terrain || null;
+      sidequestData = activeDreamCameTrue;
+      locationData  = { terrain: activeDreamCameTrue.terrain || null,
+                        feeling: activeDreamCameTrue.feeling || null,
+                        tint:    activeDreamCameTrue.tint    || null };
     } else if (activePhase && activeGameData?.map_data?.zones) {
       const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
       const z = activeGameData.map_data.zones[idx] || {};
@@ -2473,7 +2521,11 @@ window.addEventListener('message', async e => {
     if (saved) {
       showRoomStatus('character saved ✓', '#6ab86a');
       setSaveBtnVisible(false);
-      stepBingo();
+      if (activePhase === 'dream_came_true') {
+        stepJournal();
+      } else {
+        stepBingo();
+      }
     } else {
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
@@ -2667,6 +2719,101 @@ function confirmSidequest() {
   stepBegin();   // mints the entry id and continues into character → bingo → journal
 }
 
+// ── DREAM CAME TRUE BUILDER ───────────────────────────────
+let dctDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+
+function buildDctPalette() {
+  const pal = document.getElementById('dct-palette');
+  pal.innerHTML = TERRAIN_ORDER.map(id => `
+    <div class="sq-terrain" id="dct-terrain-${id}" onclick="dctPickTerrain('${id}')">
+      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
+      <span>${id}</span>
+    </div>`).join('');
+  const cl = document.getElementById('dct-climates');
+  cl.innerHTML = WEATHER_CATS.map(cat => `
+    <div class="sq-climate ${cat.id}">
+      <div class="sq-climate-head">${cat.label}</div>
+      <div class="sq-chips">
+        ${cat.feelings.map(f => `<span class="sq-chip" id="dct-chip-${f}"
+            onclick="dctPickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openDctBuilder() {
+  dctDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+  document.getElementById('dct-name').value = '';
+  document.querySelectorAll('#dct-overlay .sq-terrain.active, #dct-overlay .sq-chip.active')
+    .forEach(el => el.classList.remove('active'));
+  renderDctPreview();
+  document.getElementById('dct-confirm').disabled = true;
+  document.getElementById('dct-overlay').classList.add('open');
+}
+function closeDctBuilder() {
+  document.getElementById('dct-overlay').classList.remove('open');
+}
+
+function dctPickTerrain(id) {
+  dctDraft.terrain = id;
+  document.querySelectorAll('#dct-palette .sq-terrain').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dct-terrain-${id}`)?.classList.add('active');
+  renderDctPreview();
+  refreshDctConfirm();
+}
+function dctPickFeeling(feeling, cat, tint) {
+  dctDraft.feeling = feeling; dctDraft.cat = cat; dctDraft.tint = tint;
+  document.querySelectorAll('#dct-climates .sq-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dct-chip-${feeling}`)?.classList.add('active');
+  renderDctPreview();
+  refreshDctConfirm();
+}
+function refreshDctConfirm() {
+  document.getElementById('dct-confirm').disabled = !(dctDraft.terrain && dctDraft.feeling);
+}
+
+function renderDctPreview() {
+  const R = 50, cx = 150, cy = 110;
+  let defs = '', body = '';
+  if (dctDraft.tint) {
+    defs += `<radialGradient id="dcttint" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${dctDraft.tint}" stop-opacity="1"/>
+      <stop offset="55%" stop-color="${dctDraft.tint}" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="${dctDraft.tint}" stop-opacity="0"/></radialGradient>`;
+    body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#dcttint)"/>`;
+  }
+  if (dctDraft.terrain && TERRAIN_IMGS[dctDraft.terrain]) {
+    defs += `<clipPath id="dctclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
+    body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
+      href="${TERRAIN_IMGS[dctDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#dctclip)"/>
+      <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#E8478B" stroke-width="2"/>`;
+  } else {
+    body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
+      stroke="#E8478B" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#E8478B"
+        font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
+  }
+  if (dctDraft.feeling) {
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
+      font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dctDraft.feeling}</text>`;
+  }
+  document.getElementById('dct-map-frame').innerHTML =
+    `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${body}</svg>`;
+}
+
+function confirmDct() {
+  if (!(dctDraft.terrain && dctDraft.feeling)) return;
+  activeDreamCameTrue = {
+    name:    document.getElementById('dct-name').value.trim() || 'my dream place',
+    terrain: dctDraft.terrain,
+    feeling: dctDraft.feeling,
+    tint:    dctDraft.tint,
+    cat:     dctDraft.cat,
+  };
+  activePhase = 'dream_came_true';
+  closeDctBuilder();
+  stepBegin();  // character → journal → matrix (bingo skipped for this phase)
+}
+
 // ── INIT ──────────────────────────────────────────────────
 function readStoredSession() {
   try {
@@ -2682,6 +2829,7 @@ function readStoredSession() {
 
 async function init() {
   buildSidequestPalette();
+  buildDctPalette();
   const stored = readStoredSession();
   if (!stored) { showMemberGate(); return; }
   currentUser = stored.user;
