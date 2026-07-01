@@ -1280,8 +1280,6 @@ function formatUpdated(dateStr) {
   return 'last updated ' + new Date(dateStr).toLocaleDateString('en-US', { month:'short', day:'numeric' });
 }
 
-}
-
 // The matrix map item shows ONLY the day's chosen destination (one terrain +
 // tint glow + feeling), not the whole map. loc = {terrain, feeling, tint}.
 function buildSingleLocationSVG(loc){
@@ -1308,8 +1306,6 @@ function buildSingleLocationSVG(loc){
       + `font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${_escapeHtml(loc.feeling)}</text>`;
   }
   return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
-}
-
 }
 
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
@@ -1781,8 +1777,6 @@ window.addEventListener('message', async e => {
       btn.innerHTML = 'continue →';
     }
     return;
-  }
-
   }
 
   // ── Character state received — save to saved_data ───
