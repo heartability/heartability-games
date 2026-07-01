@@ -741,14 +741,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .jrc-confirm-skip:hover { color:#E8478B; }
 
 /* ── SIDEQUEST BUILDER MODAL ── */
-.sq-overlay {
+.dq-overlay {
   position:fixed; inset:0; z-index:300;
   background:none;
   display:none; align-items:flex-start; justify-content:flex-start;
   padding:0;
 }
-.sq-overlay.open { display:flex; }
-.sq-card {
+.dq-overlay.open { display:flex; }
+.dq-card {
   position:fixed;
   top:var(--bw-top); left:var(--bw-left);
   width:var(--bw-width); height:var(--bw-height);
@@ -759,111 +759,111 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
   padding:18px 20px; font-family:var(--font-hand);
 }
-.sq-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
-.sq-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue); }
-.sq-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
-.sq-close:hover { color:#E8478B; }
-.sq-sub { font-size:13px; color:#8a7a5a; margin-bottom:12px; }
-.sq-name {
+.dq-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
+.dq-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue); }
+.dq-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.dq-close:hover { color:#E8478B; }
+.dq-sub { font-size:20px; color:#000; margin-bottom:12px; }
+.dq-name {
   width:100%; font-family:var(--font-hand); font-size:15px; color:#3a2e1e;
   padding:8px 10px; margin-bottom:14px;
   background:#fdf6e3; border:2px solid #8a7a5a;
   border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
-.sq-name::placeholder { color:rgba(138,122,90,.55); font-style:italic; }
-.sq-body {
+.dq-name::placeholder { color:rgba(138,122,90,.55); font-style:italic; }
+.dq-body {
   display:grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto 1fr;
   gap:16px 24px;
   align-items:start;
 }
-@media (max-width:640px){ .sq-body { grid-template-columns:1fr; } }
-.sq-preview-col { min-width:0; display:flex; flex-direction:column; align-items:center; }
-.sq-terrain-col { min-width:0; }
-.sq-climate-col { grid-column: 1 / -1; min-width:0; }
-.sq-map-frame {
+@media (max-width:640px){ .dq-body { grid-template-columns:1fr; } }
+.dq-preview-col { min-width:0; display:flex; flex-direction:column; align-items:center; }
+.dq-terrain-col { min-width:0; }
+.dq-climate-col { grid-column: 1 / -1; min-width:0; }
+.dq-map-frame {
   width:min(100%, 300px); aspect-ratio:1/1;
   background:#e8e0c8;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
-.sq-map-frame svg { width:100%; height:100%; display:block; }
-.sq-section-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 8px; }
+.dq-map-frame svg { width:100%; height:100%; display:block; }
+.dq-section-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 8px; }
 
 /* terrain palette */
-.sq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
-.sq-terrain {
+.dq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+.dq-terrain {
   display:flex; flex-direction:column; align-items:center; gap:3px;
   padding:8px 6px; background:#f0ead6; cursor:pointer; user-select:none;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
   transition:filter .1s;
 }
-.sq-terrain:hover { filter:brightness(1.06); }
-.sq-terrain.active { border-color:var(--aqua); outline:2px solid var(--aqua); outline-offset:1px; background:#e0f0f0; }
-.sq-terrain img { width:60px; height:50px; object-fit:contain; pointer-events:none; }
-.sq-terrain span { font-size:11px; color:#5a4a2a; letter-spacing:.4px; pointer-events:none; }
+.dq-terrain:hover { filter:brightness(1.06); }
+.dq-terrain.active { border-color:var(--aqua); outline:2px solid var(--aqua); outline-offset:1px; background:#e0f0f0; }
+.dq-terrain img { width:60px; height:50px; object-fit:contain; pointer-events:none; }
+.dq-terrain span { font-size:11px; color:#5a4a2a; letter-spacing:.4px; pointer-events:none; }
 
 /* climates + feeling chips */
-.sq-climates { display:flex; flex-direction:column; gap:8px; }
-.sq-climate {
+.dq-climates { display:flex; flex-direction:column; gap:8px; }
+.dq-climate {
   padding:7px 9px;
   border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
-.sq-climate.sunny { background:#f2e6a8; border-color:#715f04; }
-.sq-climate.rainy { background:#ae87e2; border-color:#260156; }
-.sq-climate.windy { background:#a3eac9; border-color:#046957; }
-.sq-climate.snowy { background:#6cd1ea; border-color:#033f50; }
-.sq-climate-head { font-size:clamp(26px,3vw,36px); margin-bottom:8px; }
-.sq-climate.sunny .sq-climate-head { color:#715f04; }
-.sq-climate.rainy .sq-climate-head { color:#260156; }
-.sq-climate.windy .sq-climate-head { color:#046957; }
-.sq-climate.snowy .sq-climate-head { color:#033f50; }
-.sq-chips { display:flex; flex-wrap:wrap; gap:5px; }
-.sq-chip {
+.dq-climate.sunny { background:#f2e6a8; border-color:#715f04; }
+.dq-climate.rainy { background:#ae87e2; border-color:#260156; }
+.dq-climate.windy { background:#a3eac9; border-color:#046957; }
+.dq-climate.snowy { background:#6cd1ea; border-color:#033f50; }
+.dq-climate-head { font-size:clamp(26px,3vw,36px); margin-bottom:8px; }
+.dq-climate.sunny .dq-climate-head { color:#715f04; }
+.dq-climate.rainy .dq-climate-head { color:#260156; }
+.dq-climate.windy .dq-climate-head { color:#046957; }
+.dq-climate.snowy .dq-climate-head { color:#033f50; }
+.dq-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.dq-chip {
   padding:5px 14px; font-family:var(--font-hand); font-size:clamp(16px,1.8vw,22px); letter-spacing:.4px;
   cursor:pointer; user-select:none; border:2px solid; transition:filter .1s;
 }
-.sq-chip:hover { filter:brightness(.92); }
-.sq-chip.active { outline:2px solid #111; outline-offset:1px; }
-.sq-climate.sunny .sq-chip { background:#f8edb8; border-color:#715f04; color:#715f04; }
-.sq-climate.rainy .sq-chip { background:#c9b3e7; border-color:#260156; color:#260156; }
-.sq-climate.windy .sq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
-.sq-climate.snowy .sq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
+.dq-chip:hover { filter:brightness(.92); }
+.dq-chip.active { outline:2px solid #111; outline-offset:1px; }
+.dq-climate.sunny .dq-chip { background:#f8edb8; border-color:#715f04; color:#715f04; }
+.dq-climate.rainy .dq-chip { background:#c9b3e7; border-color:#260156; color:#260156; }
+.dq-climate.windy .dq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
+.dq-climate.snowy .dq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
 
-.sq-actions { display:none; }
-.sq-foot {
+.dq-actions { display:none; }
+.dq-foot {
   position:fixed;
   bottom:0; left:0; right:0;
   height:calc(21% - 44px);
   display:none; align-items:center; justify-content:center;
   gap:16px; z-index:301; pointer-events:none;
 }
-.sq-overlay.open .sq-foot { display:flex; }
-.sq-foot > * { pointer-events:all; }
-.sq-btn {
+.dq-overlay.open .dq-foot { display:flex; }
+.dq-foot > * { pointer-events:all; }
+.dq-btn {
   padding:10px 18px; font-family:var(--font-hand); font-size:15px; cursor:pointer;
   border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
   transition:all .05s;
 }
-.sq-btn:hover { background:#4a5bc4; }
-.sq-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.sq-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; box-shadow:2px 2px 0 #3a4aaa; }
-.sq-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
-.sq-btn.ghost:hover { border-color:var(--blue); color:var(--blue); background:none; }
+.dq-btn:hover { background:#4a5bc4; }
+.dq-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.dq-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; box-shadow:2px 2px 0 #3a4aaa; }
+.dq-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
+.dq-btn.ghost:hover { border-color:var(--blue); color:var(--blue); background:none; }
 
-/* sidequest entry in the phase key */
-.phase-key-item.sidequest-item {
+/* dayquest entry in the phase key */
+.phase-key-item.dayquest-item {
   border-color:var(--blue); border-style:dashed; color:var(--blue);
   background:#f0edfa; margin-top:8px;
 }
-.phase-key-item.sidequest-item:hover { background:var(--blue); color:#fff; border-style:solid; }
+.phase-key-item.dayquest-item:hover { background:var(--blue); color:#fff; border-style:solid; }
 
 @media (prefers-reduced-motion: reduce) {
-  .sq-terrain, .sq-chip, .sq-btn { transition:none; }
+  .dq-terrain, .dq-chip, .dq-btn { transition:none; }
 }
 
 /* ── MEMBER GATE ── */
@@ -1040,31 +1040,31 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 </div>
 
 <!-- SIDEQUEST BUILDER — secret one-location phase -->
-<div class="sq-overlay" id="sq-overlay">
-  <div class="sq-card">
-    <div class="sq-head">
-      <span class="sq-title">today's location</span>
+<div class="dq-overlay" id="dq-overlay">
+  <div class="dq-card">
+    <div class="dq-head">
+      <span class="dq-title">Begin your entry</span>
     </div>
-    <div class="sq-sub">create a place that describes how today felt</div>
-    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this place">
-    <div class="sq-body">
-      <div class="sq-preview-col">
-        <div class="sq-section-label">your place</div>
-        <div class="sq-map-frame" id="sq-map-frame"></div>
+    <div class="dq-sub">create a place that describes how today felt</div>
+    <input class="dq-name" id="dq-name" type="text" maxlength="60" placeholder="name this place">
+    <div class="dq-body">
+      <div class="dq-preview-col">
+        <div class="dq-section-label">your place</div>
+        <div class="dq-map-frame" id="dq-map-frame"></div>
       </div>
-      <div class="sq-terrain-col">
-        <div class="sq-section-label">terrain</div>
-        <div class="sq-palette" id="sq-palette"></div>
+      <div class="dq-terrain-col">
+        <div class="dq-section-label">terrain</div>
+        <div class="dq-palette" id="dq-palette"></div>
       </div>
-      <div class="sq-climate-col">
-        <div class="sq-section-label">emotional climate</div>
-        <div class="sq-climates" id="sq-climates"></div>
+      <div class="dq-climate-col">
+        <div class="dq-section-label">emotional climate</div>
+        <div class="dq-climates" id="dq-climates"></div>
       </div>
     </div>
-    <div class="sq-actions"></div>
+    <div class="dq-actions"></div>
   </div>
-  <div class="sq-foot">
-    <button class="save-continue-btn" id="sq-confirm" disabled onclick="confirmSidequest()">begin today →</button>
+  <div class="dq-foot">
+    <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">begin today →</button>
   </div>
 </div>
 
@@ -1174,7 +1174,7 @@ let activePhase     = null;
 let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 'done'
 let activeEntryId   = null; // one uuid per day = one daily_matrix row
 let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
-let activeSidequest = null; // {name,terrain,feeling,tint,cat} for today's location
+let activeDayquest = null; // {name,terrain,feeling,tint,cat} for today's location
 
 // User's LOCAL calendar day — the daily limit resets at local midnight.
 function localTodayStr(){
@@ -1336,7 +1336,7 @@ const TERRAIN_IMGS = {
   waterfall:"../assets/elements/maps/waterfall.png",
 };
 
-// Ordered terrain list + climates (mirrors treasure-map) — used by the sidequest builder.
+// Ordered terrain list + climates (mirrors treasure-map) — used by the dayquest builder.
 const TERRAIN_ORDER = ['mountains','forest','orchard','meadow','dunes','pond','river','ocean','waterfall','spring','plateau'];
 const WEATHER_CATS = [
   { id:"sunny", label:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"] },
@@ -1594,7 +1594,7 @@ async function selectMap(gameId) {
 function stepPhaseSelect() {
   if (!activeGameData) return;
   activePhase = null;
-  activeSidequest = null;
+  activeDayquest = null;
   showAddNew(false);
   const mapType = activeGameData.map_type || 'spiral';
   const mapData = activeGameData.map_data || {};
@@ -1618,9 +1618,9 @@ function stepPhaseSelect() {
     </div>`;
   }
   // Secret phase — opens the one-location builder instead of selecting a map zone
-  keyItems += `<div class="phase-key-item sidequest-item" onclick="openSidequestBuilder()">
+  keyItems += `<div class="phase-key-item dayquest-item" onclick="openDayquestBuilder()">
       <span class="phase-key-num">✦</span>
-      <span>sidequest — fall into a secret little world</span>
+      <span>dayquest — fall into a secret little world</span>
     </div>`;
 
   const isMobile = window.innerWidth <= 768;
@@ -1676,7 +1676,7 @@ function closePhaseDrawer() {
 
 function selectPhase(idx) {
   activePhase = `zone_${idx+1}`;
-  activeSidequest = null;   // picking a normal zone clears any sidequest draft
+  activeDayquest = null;   // picking a normal zone clears any dayquest draft
   document.querySelectorAll('.phase-key-item').forEach((el,i) =>
     el.classList.toggle('selected', i===idx));
   // Highlight zone circle in SVG
@@ -2056,10 +2056,10 @@ function buildDailyMatrix(data, seedStr){
   const pct = (a,b) => (a + rnd()*(b-a)).toFixed(1);
 
   // MAP → top-left quadrant (external + action)
-  // Show ONLY the day's chosen destination (sidequest_data → location_data),
+  // Show ONLY the day's chosen destination from location_data,
   // not the entire map.
-  const dayLoc = data.sidequestData || data.locationData || {};
-  const mapCap = data.sidequestData?.name || data.mapName || 'my map';
+  const dayLoc = data.locationData || {};
+  const mapCap = data.locationData?.name || data.mapName || 'my map';
   const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
       <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
       <div class="adv-cap">${_escapeHtml(mapCap)}</div></div>`;
@@ -2105,9 +2105,7 @@ async function assembleTodayMatrixData(entryId){
   const d = {
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
     mapName: 'today',
-    mapPhase: null,
-    locationData: null,                          // {terrain,feeling,tint} of today's place
-    sidequestData: null,                         // today's location snapshot {terrain,feeling,tint,name}
+    locationData: null,                          // {name,terrain,feeling,tint,cat} of today's place
     bingoScore: 0, charState: null, journalText: '', matrixImages: [],
   };
   try {
@@ -2116,9 +2114,7 @@ async function assembleTodayMatrixData(entryId){
     if (row){
       d.charState    = row.character_data || null;
       d.bingoScore   = row.bingo_data?.score || 0;
-      d.mapPhase     = row.map_phase || null;
       d.locationData = row.location_data || null;
-      d.sidequestData= row.sidequest_data || null;
       d.journalText  = (Array.isArray(row.journal_messages)
         ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
         : '');
@@ -2226,31 +2222,21 @@ window.addEventListener('message', async e => {
     }
     let saved = false;
 
-    // Resolve the place for this entry: a self-contained snapshot (terrain +
-    // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
-    let mapLocation = null, sidequestData = null, locationData = null;
-    if (activePhase === 'sidequest' && activeSidequest) {
-      mapLocation   = activeSidequest.terrain || null;
-      sidequestData = activeSidequest;
-      locationData  = { terrain: activeSidequest.terrain || null,
-                        feeling: activeSidequest.feeling || null,
-                        tint:    activeSidequest.tint    || null };
-    } else if (activePhase && activeGameData?.map_data?.zones) {
-      const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
-      const z = activeGameData.map_data.zones[idx] || {};
-      mapLocation  = z.terrain || null;
-      locationData = { terrain: z.terrain || null,
-                       feeling: z.feeling || null,
-                       tint:    z.tint    || null };
-    }
+    // Build location_data from the dayquest — full snapshot so matrix/archive
+    // can redraw without any other reference.
+    const locationData = activeDayquest ? {
+      name:    activeDayquest.name    || null,
+      terrain: activeDayquest.terrain || null,
+      feeling: activeDayquest.feeling || null,
+      tint:    activeDayquest.tint    || null,
+      cat:     activeDayquest.cat     || null,
+    } : null;
 
     const { error } = await sb.from('daily_matrix').upsert({
       id: activeEntryId,
       user_id: currentUser.id,
       entry_date: activeEntryDate,
-      map_phase: activePhase,
       location_data: locationData,
-      sidequest_data: sidequestData,
       character_data: charState,
     }, { onConflict: 'id' });
     saved = !error;
@@ -2356,77 +2342,77 @@ function buildSquareSVG(zones) {
 
 // ── INIT ──────────────────────────────────────────────────
 // ── SIDEQUEST BUILDER ─────────────────────────────────────
-let sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+let dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
 
-function buildSidequestPalette() {
+function buildDayquestPalette() {
   // terrain thumbnails
-  const pal = document.getElementById('sq-palette');
+  const pal = document.getElementById('dq-palette');
   pal.innerHTML = TERRAIN_ORDER.map(id => `
-    <div class="sq-terrain" id="sq-terrain-${id}" onclick="sidequestPickTerrain('${id}')">
+    <div class="dq-terrain" id="dq-terrain-${id}" onclick="dayquestPickTerrain('${id}')">
       <img src="${TERRAIN_IMGS[id]}" alt="${id}">
       <span>${id}</span>
     </div>`).join('');
   // climate groups with feeling chips
-  const cl = document.getElementById('sq-climates');
+  const cl = document.getElementById('dq-climates');
   cl.innerHTML = WEATHER_CATS.map(cat => `
-    <div class="sq-climate ${cat.id}">
-      <div class="sq-climate-head">${cat.label}</div>
-      <div class="sq-chips">
-        ${cat.feelings.map(f => `<span class="sq-chip" id="sq-chip-${f}"
-            onclick="sidequestPickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+    <div class="dq-climate ${cat.id}">
+      <div class="dq-climate-head">${cat.label}</div>
+      <div class="dq-chips">
+        ${cat.feelings.map(f => `<span class="dq-chip" id="dq-chip-${f}"
+            onclick="dayquestPickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
       </div>
     </div>`).join('');
 }
 
-function openSidequestBuilder() {
-  sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
-  document.getElementById('sq-name').value = '';
-  document.querySelectorAll('.sq-terrain.active, .sq-chip.active')
+function openDayquestBuilder() {
+  dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+  document.getElementById('dq-name').value = '';
+  document.querySelectorAll('.dq-terrain.active, .dq-chip.active')
     .forEach(el => el.classList.remove('active'));
-  renderSidequestPreview();
-  document.getElementById('sq-confirm').disabled = true;
-  document.getElementById('sq-overlay').classList.add('open');
+  renderDayquestPreview();
+  document.getElementById('dq-confirm').disabled = true;
+  document.getElementById('dq-overlay').classList.add('open');
 }
-function closeSidequestBuilder() {
-  document.getElementById('sq-overlay').classList.remove('open');
+function closeDayquestBuilder() {
+  document.getElementById('dq-overlay').classList.remove('open');
 }
 // Daily tracker step one uses this same builder under a friendlier name.
-const openLocationBuilder = openSidequestBuilder;
+const openLocationBuilder = openDayquestBuilder;
 
-function sidequestPickTerrain(id) {
-  sqDraft.terrain = id;
-  document.querySelectorAll('.sq-terrain').forEach(el => el.classList.remove('active'));
-  document.getElementById(`sq-terrain-${id}`)?.classList.add('active');
-  renderSidequestPreview();
-  refreshSidequestConfirm();
+function dayquestPickTerrain(id) {
+  dqDraft.terrain = id;
+  document.querySelectorAll('.dq-terrain').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dq-terrain-${id}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
 }
-function sidequestPickFeeling(feeling, cat, tint) {
-  sqDraft.feeling = feeling; sqDraft.cat = cat; sqDraft.tint = tint;
-  document.querySelectorAll('.sq-chip').forEach(el => el.classList.remove('active'));
-  document.getElementById(`sq-chip-${feeling}`)?.classList.add('active');
-  renderSidequestPreview();
-  refreshSidequestConfirm();
+function dayquestPickFeeling(feeling, cat, tint) {
+  dqDraft.feeling = feeling; dqDraft.cat = cat; dqDraft.tint = tint;
+  document.querySelectorAll('.dq-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dq-chip-${feeling}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
 }
-function refreshSidequestConfirm() {
+function refreshDayquestConfirm() {
   // terrain + feeling required; name optional
-  document.getElementById('sq-confirm').disabled = !(sqDraft.terrain && sqDraft.feeling);
+  document.getElementById('dq-confirm').disabled = !(dqDraft.terrain && dqDraft.feeling);
 }
 
 // One centered destination — terrain image + tint glow + feeling label
-function renderSidequestPreview() {
+function renderDayquestPreview() {
   const R = 50, cx = 150, cy = 110;
   let defs = '', body = '';
-  if (sqDraft.tint) {
+  if (dqDraft.tint) {
     defs += `<radialGradient id="sqtint" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="${sqDraft.tint}" stop-opacity="1"/>
-      <stop offset="55%" stop-color="${sqDraft.tint}" stop-opacity=".85"/>
-      <stop offset="100%" stop-color="${sqDraft.tint}" stop-opacity="0"/></radialGradient>`;
+      <stop offset="0%" stop-color="${dqDraft.tint}" stop-opacity="1"/>
+      <stop offset="55%" stop-color="${dqDraft.tint}" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="${dqDraft.tint}" stop-opacity="0"/></radialGradient>`;
     body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#sqtint)"/>`;
   }
-  if (sqDraft.terrain && TERRAIN_IMGS[sqDraft.terrain]) {
+  if (dqDraft.terrain && TERRAIN_IMGS[dqDraft.terrain]) {
     defs += `<clipPath id="sqclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
-      href="${TERRAIN_IMGS[sqDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqclip)"/>
+      href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqclip)"/>
       <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
@@ -2434,31 +2420,31 @@ function renderSidequestPreview() {
       <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#8a7a5a"
         font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
   }
-  if (sqDraft.feeling) {
+  if (dqDraft.feeling) {
     body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
-      font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${sqDraft.feeling}</text>`;
+      font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dqDraft.feeling}</text>`;
   }
-  document.getElementById('sq-map-frame').innerHTML =
+  document.getElementById('dq-map-frame').innerHTML =
     `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${body}</svg>`;
 }
 
-function confirmSidequest() {
-  if (!(sqDraft.terrain && sqDraft.feeling)) return;
-  activeSidequest = {
-    name:    document.getElementById('sq-name').value.trim() || 'today',
-    terrain: sqDraft.terrain,
-    feeling: sqDraft.feeling,
-    tint:    sqDraft.tint,
-    cat:     sqDraft.cat,
+function confirmDayquest() {
+  if (!(dqDraft.terrain && dqDraft.feeling)) return;
+  activeDayquest = {
+    name:    document.getElementById('dq-name').value.trim() || 'today',
+    terrain: dqDraft.terrain,
+    feeling: dqDraft.feeling,
+    tint:    dqDraft.tint,
+    cat:     dqDraft.cat,
   };
-  activePhase = 'sidequest';
-  closeSidequestBuilder();
+  activePhase = 'dayquest';
+  closeDayquestBuilder();
   stepBegin();   // mints the entry id and continues into character → bingo → journal
 }
 
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
-  buildSidequestPalette();
+  buildDayquestPalette();
   if (_storedRaw?.user) {
     currentUser = _storedRaw.user;
     sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
