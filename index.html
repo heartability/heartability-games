@@ -61,6 +61,17 @@ body {
   pointer-events: none;
 }
 
+/* ── DREAMS BANNER — full-width, anchored R-L ── */
+.dreams-banner {
+  position: fixed;
+  top 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
 /* ── CASTLE — centered, clickable ── */
 .castle-link {
   position: fixed;
@@ -210,6 +221,13 @@ body {
   <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
   <img class="heartability-banner"
        src="assets/elements/heartability.png"
+       alt="">
+</picture>
+
+<picture>
+  <source media="(max-width: 768px)" srcset="assets/elements/explore-dreams-m.png">
+  <img class="dreams-banner"
+       src="assets/elements/explore-dreams.png"
        alt="">
 </picture>
 
