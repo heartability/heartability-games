@@ -27,104 +27,62 @@
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
 
-/* ══════════════════════════════════════════════════
-   TUNABLE KNOBS — adjust these, nothing else needed
-══════════════════════════════════════════════════ */
-:root {
-  /* The point on the castle (as % down its own image) that lands at the
-     pages center. ~98% = the castle's BASE sits on the centerline.
-     Lower the % to drop the castle; raise it to lift it further. */
-  --castle-anchor: 80%;
-
-  --toggle-loop: 7s;   /* full logo<->castle crossfade cycle */
-  --ease-breath: cubic-bezier(0.37, 0, 0.63, 1); /* gentle sine-like in/out */
-}
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   width: 100vw;
   height: 100vh;
-  /* Sky gradient locked to the viewport edges, stretched to fill any size
-     (fixed attachment + 100% 100% => no cropping or bottom cut-off). */
-  background: #000 url("assets/elements/home-sky.png") no-repeat;
-  background-size: 100% 100%;
-  background-position: center;
+  background: url("assets/elements/home-sky.png") no-repeat center center / cover;
   font-family: "ZoesHandwriting", cursive;
   overflow: hidden;
   position: relative;
   user-select: none;
 }
 
-/* ── SCENE ── */
-.scene {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1;
-}
-
-/* ── PORTAL ──────────────────────────────────────────
-   portal-wrap     — positions the portal on the page
-   castle-link     — fills portal-inner, whole oval is clickable
-   castle-img / portal-logo — share ONE optical center, breathing swap
-─────────────────────────────────────────────────── */
-.portal-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(520px, 72vw, 900px);
-  z-index: 2;
-}
-.portal-inner {
-  position: relative;
+/* ── WELCOME BANNER — full-width, anchored L+R ── */
+.welcome-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
 }
 
+/* ── CASTLE — centered, clickable ── */
 .castle-link {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
   cursor: pointer;
   text-decoration: none;
-  z-index: 4;
-}
-
-.castle-img {  position: absolute;
-  top: 65vh;
-  left: 50vw;
   display: block;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
-
 .castle-img {
-  width: 45vw;
+  display: block;
+  width: clamp(320px, 44vw, 760px);
   height: auto;
-  animation: castleBreathe var(--toggle-loop) var(--ease-breath) infinite;
+  filter: drop-shadow(0 8px 24px rgba(80, 60, 140, 0.35));
+  transition: filter 0.2s ease;
 }
-
-/* Reveal castle on hover */
-.castle-link:hover .castle-img  { animation: none; opacity: 1; }
-
-@keyframes castleBreathe {
-  0%         { opacity: 0; }
-  25%        { opacity: 0; }
-  50%        { opacity: 1; }
-  75%        { opacity: 0; }
-  100%       { opacity: 0; }
+.castle-link:hover .castle-img {
+  filter: drop-shadow(0 8px 32px rgba(120, 80, 200, 0.55));
 }
 
 /* ── HEART CHARACTER ── */
 .heart-guide-wrap {
-  position: absolute;
-  bottom: 8vh;
-  left: 4vw;
+  position: fixed;
+  bottom: 4vh;
+  left: 3vw;
   z-index: 5;
   cursor: pointer;
   pointer-events: all;
 }
 .heart-guide-img {
-  width: 15vw;
+  width: clamp(80px, 12vw, 180px);
   height: auto;
   display: block;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
@@ -137,9 +95,9 @@ body {
 
 /* ── SPEECH BUBBLE ── */
 .heart-bubble-wrap {
-  position: absolute;
-  bottom: 22vh;
-  left: 19vw;
+  position: fixed;
+  bottom: 18vh;
+  left: 15vw;
   z-index: 6;
 }
 .heart-bubble-wrap .speech-bubble {
@@ -149,7 +107,7 @@ body {
   padding: 14px 24px;
   font-family: "ZoesHandwriting", cursive;
   font-size: clamp(10px, 1.4vw, 16px);
-  color: #000000;
+  color: #000;
   text-align: center;
   line-height: 1.4;
   filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
@@ -182,45 +140,45 @@ body {
 
 /* ══════════════════════════════════════════════════
    MOBILE
-   Higher % = lower on screen. Lower % = higher on screen.
 ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
+  body {
+    background-image: url("assets/elements/home-sky-m.png");
+    background-size: cover;
+    background-position: center top;
+  }
 
-  .castle-img  { width: clamp(120px, 55vw, 375px); }
+  .castle-img {
+    width: clamp(220px, 80vw, 420px);
+  }
 
   .heart-guide-wrap {
     bottom: 2vh;
-    left: 6vw;
+    left: 4vw;
   }
-  .heart-guide-img { width: 25vw; }
+  .heart-guide-img { width: clamp(60px, 20vw, 120px); }
 
-  /* Speech bubble hidden by default, shown on heart tap */
   .heart-bubble-wrap {
     display: none;
-    bottom: 10vh;
-    left: 25vw;
+    bottom: 16vh;
+    left: 24vw;
   }
   .heart-bubble-wrap.visible { display: block; }
   .heart-bubble-wrap .speech-bubble {
     font-size: clamp(12px, 3.5vw, 18px);
     min-width: 140px;
-    max-width: 45vw;
+    max-width: 50vw;
   }
 
   .copyright { font-size: 5px; }
-
 }
 
 /* ══════════════════════════════════════════════════
-   REDUCED MOTION — static fallback
-   Freeze every loop, show the wordmark, hide the castle.
-   (Hover-to-reveal-castle still works.)
+   REDUCED MOTION
 ══════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .castle-img,
-  .heart-guide-img,
-  .castle-img  { opacity: 0; }
+  .heart-guide-img { animation: none; }
 }
 
 </style>
@@ -229,41 +187,38 @@ body {
 
 <h1 class="sr-only">Heartability</h1>
 
-<div class="scene">
+<!-- Welcome banner: stretches full width L→R; mobile version via <picture> -->
+<picture>
+  <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
+  <img class="welcome-banner"
+       src="assets/elements/welcome-home.png"
+       alt="">
+</picture>
 
-  <!-- Portal -->
-  <div class="portal-wrap">
-    <div class="portal-inner">
+<!-- Castle: centered, anchored to bottom -->
+<a class="castle-link" href="game-select.html" aria-label="Enter Heartability">
+  <img class="castle-img"
+       src="assets/elements/castle.png"
+       alt="Castle — click to enter">
+</a>
 
-      <!-- Castle link -->
-      <a class="castle-link" href="../games/game-room.html" aria-label="Enter Heartability">
-        <img class="castle-img"
-             src="assets/elements/castle.png"
-             alt="Castle — click to enter">
-      </a>
+<!-- Heart guide — bottom left -->
+<div class="heart-guide-wrap" id="heartGuideWrap">
+  <img class="heart-guide-img"
+       src="assets/elements/guides/heart.png"
+       alt="Heart guide character">
+</div>
 
-    </div>
-  </div>
-
-  <!-- Heart guide — bottom left -->
-  <div class="heart-guide-wrap" id="heartGuideWrap">
-    <img class="heart-guide-img"
-         src="assets/elements/guides/heart.png"
-         alt="Heart guide character">
-  </div>
-
-  <!-- Speech bubble -->
-  <div class="heart-bubble-wrap" id="heartBubbleWrap">
-    <div class="speech-bubble">welcome to heartability!</div>
-  </div>
-
+<!-- Speech bubble -->
+<div class="heart-bubble-wrap" id="heartBubbleWrap">
+  <div class="speech-bubble">welcome to heartability!</div>
 </div>
 
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
-
-  /* ── Mobile: tap heart to toggle speech bubble ── */
+(function () {
+  /* Mobile: tap heart to toggle speech bubble */
   const heartGuide = document.getElementById('heartGuideWrap');
   const bubbleWrap = document.getElementById('heartBubbleWrap');
 
@@ -273,7 +228,6 @@ body {
     }
   });
 
-  /* Tap anywhere else to dismiss */
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768 &&
         !heartGuide.contains(e.target) &&
@@ -281,8 +235,7 @@ body {
       bubbleWrap.classList.remove('visible');
     }
   });
-
-})();
+}());
 </script>
 </body>
 </html>
