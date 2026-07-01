@@ -67,53 +67,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 }
 @media (max-width:600px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
 
-.map-slot {
-  border: 2px solid #ccc; background: #fdf6e3;
-  cursor: pointer; display: flex; flex-direction: column;
-  align-items: stretch;
-  padding: 8px 8px 6px; gap: 5px;
-  font-family: var(--font-hand); text-align: center;
-  transition: border-color .15s, box-shadow .12s, transform .1s;
-  position: relative;
-  aspect-ratio: 4/5;
-}
-.map-slot:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
-.map-slot.empty { border-style: dashed; border-color: #e0e0e0; cursor: default; background: transparent; }
-.map-slot.empty:hover { transform: none; box-shadow: none; border-color: #e0e0e0; }
-
 /* Wall nav buttons — archive / profile links inside back wall */
-.wall-nav-btn {
-  background: none;
-  border: 1.5px solid var(--blue);
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: var(--blue);
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: background .12s, color .12s;
-}
-.wall-nav-btn:hover { background: var(--blue); color: #fff; }
 
 /* Add new button — inside back wall, bottom right corner */
-.add-new-btn {
-  position: fixed;
-  bottom: calc(21% + 12px);
-  right: calc(15% + 12px);
-  z-index: 20;
-  padding: 10px 18px;
-  background: var(--blue);
-  border: 2px solid #4a5bc4;
-  box-shadow: 3px 3px 0 #3a4aaa;
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #fff;
-  cursor: pointer;
-  transition: all .05s;
-  display: none;
-}
-.add-new-btn.visible { display: block; }
-.add-new-btn:hover { background: #4a5bc4; }
-.add-new-btn:active { box-shadow: none; transform: translate(3px,3px); }
 .slot-name    { font-size: 12px; color: #333; line-height: 1.2; word-break: break-word; font-weight: 600; flex-shrink: 0; }
 .slot-updated { font-size: 10px; color: #bbb; flex-shrink: 0; }
 .slot-preview {
@@ -125,57 +81,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 /* Delete button on map slot */
 .slot-delete {
   position:absolute; top:5px; right:6px;
-  font-size:13px; color:#ccc; background:none; border:none;
-  cursor:pointer; line-height:1; padding:2px 4px;
-  transition:color .12s; z-index:2;
-}
-.slot-delete:hover { color:#E8478B; }
-
-/* Phase select */
-.phase-wrap {
-  flex:1; position:relative; display:flex; gap:10px;
-  align-items:stretch; overflow:hidden;
-}
-.phase-map-area {
-  flex:1 1 58%; min-width:0; position:relative;
-  background:#e8e0c8;
-  border:2px solid #8a7a5a; border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
-  border-left-color:#c8b88a; border-top-color:#c8b88a;
-  overflow:hidden;
-}
-.phase-map-area svg { width:100%; height:100%; display:block; }
-
-/* Phase key — full-height right column (no longer overlapping the map) */
-.phase-key {
-  flex:0 0 42%; min-width:230px; max-width:440px;
-  align-self:stretch; max-height:100%;
-  background:transparent;
-  border:none;
-  padding:14px 16px; overflow-y:auto;
-  display:flex; flex-direction:column;
-  font-family:var(--font-hand);
-}
-.phase-key-title { font-size:12px; color:#aaa; letter-spacing:.3px; margin-bottom:8px; }
-.phase-key-item {
-  display:flex; gap:8px; align-items:flex-start;
-  padding:7px 10px; margin-bottom:5px;
-  border:1.5px solid #ccc; background:#fdf6e3;
-  cursor:pointer; font-size:13px; color:#555; line-height:1.4;
-  transition:all .1s;
-}
-.phase-key-item:hover { border-color:var(--blue); color:var(--blue); background:#f0edfa; }
-.phase-key-item.selected { border-color:var(--blue); background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa; }
-.phase-key-num { font-size:11px; opacity:.55; min-width:14px; padding-top:2px; }
-
-.begin-btn {
-  padding:12px 18px; background:var(--blue);
-  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:16px; color:#fff;
-  cursor:pointer; margin-top:10px; transition:all .05s; width:100%;
-}
-.begin-btn:hover { background:#4a5bc4; }
-.begin-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.begin-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; }
 
 /* Step header bar */
 .step-header {
@@ -355,10 +260,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
   .char-heart { display:none; }
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
-  .phase-key { width:180px; font-size:12px; }
-  .map-grid { grid-template-columns:repeat(2,1fr); }
   .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
-  .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
     top: 80px !important;
     left: 16px !important;
@@ -371,34 +273,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 }
 
 /* ── MOBILE PHASE SELECT ── */
-.phase-key-drawer {
-  position:absolute; bottom:0; left:0; right:0;
-  background:#f5f0ea; border-top:2px solid #bbb;
-  max-height:0; overflow:hidden;
-  transition:max-height .35s ease;
-  z-index:5;
-}
-.phase-key-drawer.open { max-height:80vh; overflow-y:auto; }
-.phase-select-btn {
-  position:absolute; bottom:12px; right:12px; z-index:6;
-  padding:10px 16px;
-  background:var(--blue); border:2px solid #4a5bc4;
-  box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:14px; color:#fff;
-  cursor:pointer; transition:all .05s;
-}
-.phase-select-btn:hover { background:#4a5bc4; }
-.phase-select-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.phase-drawer-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 14px; border-bottom:1px solid #ddd;
-  font-family:var(--font-hand); font-size:13px; color:#aaa;
-}
-.phase-drawer-close {
-  cursor:pointer; font-size:18px; color:#bbb;
-  padding:2px 4px; transition:color .15s;
-}
-.phase-drawer-close:hover { color:#444; }
 .login-modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.5);
   z-index:300; display:none; align-items:center; justify-content:center;
@@ -855,11 +729,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .dq-btn.ghost:hover { border-color:var(--blue); color:var(--blue); background:none; }
 
 /* dayquest entry in the phase key */
-.phase-key-item.dayquest-item {
-  border-color:var(--blue); border-style:dashed; color:var(--blue);
-  background:#f0edfa; margin-top:8px;
-}
-.phase-key-item.dayquest-item:hover { background:var(--blue); color:#fff; border-style:solid; }
 
 @media (prefers-reduced-motion: reduce) {
   .dq-terrain, .dq-chip, .dq-btn { transition:none; }
@@ -1166,8 +1035,6 @@ async function popupSignup(e) {
 // (Supabase Storage / photo helpers removed — free daily tracker is text-only.)
 
 // ── SESSION STATE ─────────────────────────────────────────
-let activeGameId    = null; // (dormant) — map code retained but unused in daily tracker
-let activeGameData  = null; // (dormant)
 let activePhase     = null;
 let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 'done'
 let activeEntryId   = null; // one uuid per day = one daily_matrix row
@@ -1218,7 +1085,6 @@ async function lmLogin() {
     lmShowMsg('lm-login-msg', error.message, 'error');
     btn.disabled = false; btn.textContent = 'enter';
   }
-  // onAuthStateChange handles success → closeLoginModal + stepLoadGame
 }
 
 async function lmSignup() {
@@ -1286,11 +1152,8 @@ async function saveAndContinue() {
   const iframe = document.getElementById('game-iframe');
   if (!iframe) { btn.disabled = false; return; }
 
-  if (currentStep === 'map') {
-    // Tell treasure-map to report its state; matrix handles the DB write on map_ready
-    iframe.contentWindow.postMessage({ type: 'save_map' }, '*');
-  } else {
-    // Request current state from character builder or bingo
+  // Request current state from character builder or bingo
+  {
     iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
     // Fallback: re-enable if no response in 5s
     const label = currentStep === 'character'
@@ -1309,22 +1172,6 @@ async function saveAndContinue() {
 }
 
 // ── ZONE PROMPTS ──────────────────────────────────────────
-const SPIRAL_PROMPTS = [
-  "phase one — I am starting",
-  "phase two — I am progressing",
-  "phase three — I am being tested",
-];
-const SQUARE_PROMPTS = [
-  "corner one — I am trying something new",
-  "corner two — I am making progress",
-  "corner three — I made a mistake",
-  "corner four — I learned something",
-];
-
-// Spiral zone polar positions (same as treasure-map)
-const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
-const SQUARE_POS   = [ {x:160,y:114},{x:340,y:114},{x:340,y:286},{x:160,y:286} ];
-const SQUARE_LABELS= ['1','2','3','4'];
 const TERRAIN_IMGS = {
   dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
   meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
@@ -1386,10 +1233,6 @@ function showIframe(src, prompt) {
   document.getElementById('wall-btns').classList.remove('active');
 }
 
-// ── ADD NEW BUTTON visibility ─────────────────────────────
-function showAddNew(visible) {
-  // add-new-btn is now rendered inline in the map grid panel
-}
 
 // ── STEP 1: today's flow ──────────────────────────────────
 // On open: if the user already has an entry for their LOCAL day, show the
@@ -1452,66 +1295,6 @@ function formatUpdated(dateStr) {
 // positions, full radial-halo tint, clipped terrain, bold feeling labels.
 // interactive=true adds phase numbers + click targets (phase-select screen);
 // the matrix and map thumbnails call it read-only (no numbers, no clicks).
-const SPIRAL_ZONE_POS = [ {x:245,y:230}, {x:372,y:288}, {x:150,y:75} ];
-function spiralZonesSVG(zones, opts){
-  zones = zones || []; opts = opts || {};
-  const interactive = !!opts.interactive;
-  const R = 36;
-  let defs = '<defs>', body = '', hits = '';
-  SPIRAL_ZONE_POS.forEach((p,i) => {
-    const z = zones[i] || {};
-    const hasTerrain = !!(z.terrain && TERRAIN_IMGS[z.terrain]);
-    if (z.tint) {
-      defs += `<radialGradient id="sg${i}" cx="50%" cy="50%" r="50%">`
-        + `<stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>`
-        + `<stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>`
-        + `<stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/></radialGradient>`;
-      body += `<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sg${i})" pointer-events="none"/>`;
-    }
-    if (hasTerrain) {
-      defs += `<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sc${i})" pointer-events="none"/>`;
-    } else {
-      body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
-      if (interactive) body += `<text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
-    }
-    if (z.feeling) {
-      body += `<text x="${p.x}" y="${p.y+R+18}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="15" font-weight="bold" pointer-events="none">${z.feeling}</text>`;
-    }
-    if (interactive) {
-      hits += `<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}" fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
-    }
-  });
-  defs += '</defs>';
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">`
-    + defs
-    + `<line x1="250" y1="0" x2="250" y2="400" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`
-    + `<line x1="0" y1="200" x2="500" y2="200" stroke="rgba(138,122,90,.15)" stroke-width="1"/>`
-    + `<image href="../assets/elements/spiral-3.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>`
-    + body + hits + `</svg>`;
-}
-
-function buildPreviewSVG(mapType, zones) {
-  const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
-  const SQUARE_POS   = [{x:160,y:114},{x:340,y:114},{x:340,y:286},{x:160,y:286}];
-  const R = 22;
-
-  if (mapType === 'square') {
-    let circles = '';
-    SQUARE_POS.forEach((p, i) => {
-      const z = zones[i] || {};
-      const fill = z.tint || 'rgba(200,196,180,0.85)';
-      circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
-      if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
-    });
-    return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-      <image href="../assets/elements/square-1.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
-      ${circles}
-    </svg>`;
-  }
-
-  // Spiral — shared renderer (read-only: full tint, terrain, feelings; no numbers)
-  return spiralZonesSVG(zones, { interactive:false });
 }
 
 // The matrix map item shows ONLY the day's chosen destination (one terrain +
@@ -1542,151 +1325,6 @@ function buildSingleLocationSVG(loc){
   return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
 }
 
-function renderMapGrid(games) {
-  let slots = '';
-  for (let i = 0; i < 8; i++) {
-    const g = games[i];
-    if (g) {
-      const zones   = (g.map_data || {}).zones || [];
-      const preview = buildPreviewSVG(g.map_type || 'spiral', zones);
-      const updated = formatUpdated(g.updated_at);
-      const safeName = (g.map_name || 'untitled').replace(/'/g, "\\'");
-      slots += `<div class="map-slot" onclick="selectMap('${g.id}')">
-        <button class="slot-delete" title="delete map"
-          onclick="event.stopPropagation(); deleteMap('${g.id}','${safeName}')">×</button>
-        <div class="slot-name">${g.map_name || 'untitled'}</div>
-        <div class="slot-preview">${preview}</div>
-        ${updated ? `<div class="slot-updated">${updated}</div>` : ''}
-      </div>`;
-    } else {
-      slots += `<div class="map-slot empty"></div>`;
-    }
-  }
-
-  const html = `<div class="step-panel">
-    <div style="width:100%;text-align:center;margin-bottom:14px;">
-      <span style="font-family:var(--font-hand);font-size:clamp(22px,2.4vw,30px);color:#333;">your maps</span>
-    </div>
-    <div style="display:inline-flex;flex-direction:column;align-items:flex-end;">
-      <div class="map-grid">${slots}</div>
-      <button class="add-new-btn" style="position:static;display:block;margin-top:10px;" onclick="stepNewGame()">+ add new</button>
-    </div>
-  </div>`;
-  showPanel(html);
-}
-
-// ── STEP 3: SELECT MAP → PHASE SELECT ────────────────────
-async function selectMap(gameId) {
-  let game = null;
-  try {
-    const { data } = await sb.from('games').select('*').eq('id',gameId).eq('user_id',currentUser.id).single();
-    game = data;
-  } catch(e){}
-  if (!game) return;
-  activeGameId   = gameId;
-  activeGameData = game;
-  activePhase    = null;
-  stepPhaseSelect();
-}
-
-function stepPhaseSelect() {
-  if (!activeGameData) return;
-  activePhase = null;
-  activeDayquest = null;
-  showAddNew(false);
-  const mapType = activeGameData.map_type || 'spiral';
-  const mapData = activeGameData.map_data || {};
-  const zones   = mapData.zones || [];
-  const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
-  const zoneCount = mapType === 'square' ? 4 : 3;
-
-  setBubble(`what are you navigating today?`, []);
-  setSaveBtnVisible(false);
-
-  const svgContent = mapType === 'square'
-    ? buildSquareSVG(zones)
-    : buildSpiralSVG(zones);
-
-  let keyItems = '';
-  for (let i=0; i<zoneCount; i++) {
-    const label = mapType === 'square' ? SQUARE_LABELS[i] : (i+1);
-    keyItems += `<div class="phase-key-item" id="key-${i}" onclick="selectPhase(${i})">
-      <span class="phase-key-num">${label}.</span>
-      <span>${prompts[i]}</span>
-    </div>`;
-  }
-  // Secret phase — opens the one-location builder instead of selecting a map zone
-  keyItems += `<div class="phase-key-item dayquest-item" onclick="openDayquestBuilder()">
-      <span class="phase-key-num">✦</span>
-      <span>dayquest — fall into a secret little world</span>
-    </div>`;
-
-  const isMobile = window.innerWidth <= 768;
-
-  const html = `<div class="step-panel" style="padding:12px;">
-    <div class="step-header">
-      <span class="step-back" onclick="stepLoadGame()">← back</span>
-      <span class="step-header-title">${activeGameData.map_name||'your map'}</span>
-      <span></span>
-    </div>
-    <div class="phase-wrap" style="position:relative;">
-      <div class="phase-map-area" id="phase-map-area" style="${isMobile ? 'flex:1;' : ''}">
-        ${svgContent}
-      </div>
-      ${isMobile ? `
-        <!-- Mobile: floating button + bottom drawer -->
-        <button class="phase-select-btn" id="phase-select-btn" onclick="openPhaseDrawer()">
-          select phase →
-        </button>
-        <div class="phase-key-drawer" id="phase-key-drawer">
-          <div class="phase-drawer-header">
-            <span>where are you today?</span>
-            <span class="phase-drawer-close" onclick="closePhaseDrawer()">&#x2715;</span>
-          </div>
-          <div style="padding:10px 12px;">
-            ${keyItems}
-            <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
-          </div>
-        </div>
-      ` : `
-        <!-- Desktop: side-by-side key -->
-        <div class="phase-key">
-          <div class="phase-key-title">where are you today?</div>
-          ${keyItems}
-          <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
-        </div>
-      `}
-    </div>
-  </div>`;
-  showPanel(html);
-}
-
-function openPhaseDrawer() {
-  document.getElementById('phase-key-drawer')?.classList.add('open');
-  const btn = document.getElementById('phase-select-btn');
-  if (btn) btn.style.display = 'none';
-}
-function closePhaseDrawer() {
-  document.getElementById('phase-key-drawer')?.classList.remove('open');
-  const btn = document.getElementById('phase-select-btn');
-  if (btn) btn.style.display = '';
-}
-
-function selectPhase(idx) {
-  activePhase = `zone_${idx+1}`;
-  activeDayquest = null;   // picking a normal zone clears any dayquest draft
-  document.querySelectorAll('.phase-key-item').forEach((el,i) =>
-    el.classList.toggle('selected', i===idx));
-  // Highlight zone circle in SVG
-  document.querySelectorAll('.zone-hit').forEach((el,i) => {
-    const circle = document.getElementById(`zone-circle-${i}`);
-    if (circle) circle.setAttribute('stroke', i===idx ? '#6579e2' : 'transparent');
-    const bg = document.getElementById(`zone-bg-${i}`);
-    if (bg) bg.setAttribute('fill', i===idx ? 'rgba(101,121,226,0.25)' : 'rgba(200,196,180,0)');
-  });
-  document.getElementById('begin-btn').disabled = false;
-  // On mobile, keep drawer open so user can tap begin
-  if (window.innerWidth <= 768) openPhaseDrawer();
 }
 
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
@@ -2160,53 +1798,6 @@ window.addEventListener('message', async e => {
     return;
   }
 
-  // Game reported its map state — matrix owns the DB write
-  if (msg.type === 'map_ready') {
-    const { map_name, map_type, map_data } = msg;
-    const btn = document.getElementById('save-continue-btn');
-
-    if (!activeGameId) {
-      // New map — INSERT into games
-      const { data: newGame, error } = await sb.from('games').insert({
-        user_id: currentUser.id,
-        map_name: map_name || 'my map',
-        map_type: map_type || 'spiral',
-        map_data: map_data || { zones: [] },
-        status: 'active',
-      }).select().single();
-      if (error) {
-        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
-        return;
-      }
-      activeGameId   = newGame.id;
-      activeGameData = { id: newGame.id, map_name, map_type, map_data: map_data || { zones: [] } };
-    } else {
-      // Existing map — UPDATE games
-      const { error } = await sb.from('games')
-        .update({ map_name, map_type, map_data, updated_at: new Date().toISOString() })
-        .eq('id', activeGameId).eq('user_id', currentUser.id);
-      if (error) {
-        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
-        return;
-      }
-      activeGameData = { ...activeGameData, map_name, map_type, map_data: map_data || { zones: [] } };
-    }
-
-    activePhase = null;
-    setSaveBtnVisible(false);
-    showRoomStatus('map saved ✓', '#6ab86a');
-    stepPhaseSelect();
-    return;
-  }
-
-  // Map save failed — re-enable button with reason
-  if (msg.type === 'map_save_failed') {
-    const btn = document.getElementById('save-continue-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-    showRoomStatus(msg.reason || 'add a goal name and some terrain first', '#E8478B');
-    return;
   }
 
   // ── Character state received — save to saved_data ───
@@ -2284,61 +1875,7 @@ window.addEventListener('message', async e => {
 
 });
 
-// ── SVG BUILDERS (read-only, zone click = phase select) ──
-function buildSpiralSVG(zones) {
-  return spiralZonesSVG(zones, { interactive:true });
-}
 
-function buildSquareSVG(zones) {
-  const R=36;
-  let defs='<defs>';
-  let circles='';
-  let hits='';
-
-  SQUARE_POS.forEach((p,i)=>{
-    const z=zones[i]||{};
-    const hasTerrain=!!(z.terrain&&TERRAIN_IMGS[z.terrain]);
-    if(z.tint){
-      defs+=`<radialGradient id="sqg${i}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${z.tint}" stop-opacity="1"/>
-        <stop offset="55%" stop-color="${z.tint}" stop-opacity=".85"/>
-        <stop offset="100%" stop-color="${z.tint}" stop-opacity="0"/>
-      </radialGradient>`;
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sqg${i})" pointer-events="none"/>`;
-    }
-    if(hasTerrain){
-      defs+=`<clipPath id="sqc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-    }
-    circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
-      fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
-    if(hasTerrain){
-      circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
-        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet"
-        clip-path="url(#sqc${i})" pointer-events="none"/>`;
-    } else {
-      circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
-        fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
-        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle"
-          fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="22" pointer-events="none">${SQUARE_LABELS[i]}</text>`;
-    }
-    if(z.feeling){
-      circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle"
-        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
-        pointer-events="none">${z.feeling}</text>`;
-    }
-    hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
-      fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
-  });
-  defs+='</defs>';
-
-  return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-    ${defs}
-    <image href="../assets/elements/square-1.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
-    ${circles}${hits}
-  </svg>`;
-}
-
-// ── INIT ──────────────────────────────────────────────────
 // ── DAYQUEST BUILDER ─────────────────────────────────────
 let dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
 
