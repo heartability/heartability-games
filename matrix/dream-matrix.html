@@ -1933,7 +1933,7 @@ async function loadJournalEntries(){
   try {
     const { data } = await sb.from('dream_matrix')
       .select('id, journal_messages, matrix_images, created_at, character_data, location_data')
-      .eq('game_id', activeGameId).eq('user_id', currentUser.id)
+      .eq('map_id', activeGameId).eq('user_id', currentUser.id)
       .order('created_at',{ ascending:true }).limit(60);
     rows = data || [];
   } catch(e){ console.error('[journal load]', e); }
@@ -2026,7 +2026,10 @@ async function sendJournalMessage(){
   // 3) write
   try {
     const { error } = await sb.from('dream_matrix').upsert({
-      id: activeEntryId, game_id: activeGameId, user_id: currentUser.id,
+      id: activeEntryId, map_id: activeGameId, user_id: currentUser.id,
+      map_name: activeGameData?.map_name || null,
+      map_type: activeGameData?.map_type || null,
+      map_data: activeGameData?.map_data || null,
       journal_messages: messages, matrix_images: imgs,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
@@ -2517,7 +2520,10 @@ window.addEventListener('message', async e => {
 
     const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId,
-      game_id: activeGameId, user_id: currentUser.id,
+      map_id: activeGameId, user_id: currentUser.id,
+      map_name: activeGameData?.map_name || null,
+      map_type: activeGameData?.map_type || null,
+      map_data: activeGameData?.map_data || null,
       map_phase: activePhase,
       location_data: locationData,
       sidequest_data: sidequestData,
@@ -2555,7 +2561,10 @@ window.addEventListener('message', async e => {
 
     const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId,
-      game_id: activeGameId, user_id: currentUser.id,
+      map_id: activeGameId, user_id: currentUser.id,
+      map_name: activeGameData?.map_name || null,
+      map_type: activeGameData?.map_type || null,
+      map_data: activeGameData?.map_data || null,
       bingo_data: bingoPayload, energy_score: energyScore,
     }, { onConflict: 'id' });
 

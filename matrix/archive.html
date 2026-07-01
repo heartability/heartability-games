@@ -837,7 +837,7 @@ async function loadEntries() {
   if (!activeGameId) return;
   const { data } = await sb.from('dream_matrix')
     .select('id, character_data, bingo_data, energy_score, map_phase, location_data, sidequest_data, journal_messages, matrix_images, created_at')
-    .eq('game_id', activeGameId)
+    .eq('map_id', activeGameId)
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending:true });
   allSaves = data || [];
