@@ -39,12 +39,23 @@ body {
   user-select: none;
 }
 
-/* ── WELCOME BANNER — full-width, anchored L+R ── */
+/* ── WELCOME BANNER — anchored L ── */
 .welcome-banner {
   position: fixed;
   top: 10vh;
   left: 0;
-  width: 100%;
+  width: 15%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── HEARTABILITY BANNER — full-width, anchored R ── */
+.heartability-banner {
+  position: fixed;
+  bottom: 10vh;
+  right: 0;
+  width: 15%;
   height: auto;
   z-index: 1;
   pointer-events: none;
@@ -192,6 +203,13 @@ body {
   <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
   <img class="welcome-banner"
        src="assets/elements/welcome-home.png"
+       alt="">
+</picture>
+
+<picture>
+  <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
+  <img class="heartability-banner"
+       src="assets/elements/heartability.png"
        alt="">
 </picture>
 
