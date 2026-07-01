@@ -32,6 +32,7 @@
 body {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background: url("assets/elements/home-sky.png") no-repeat center center / cover;
   font-family: "ZoesHandwriting", cursive;
   overflow: hidden;
@@ -64,7 +65,7 @@ body {
 /* ── DREAMS BANNER — full-width, anchored R-L ── */
 .dreams-banner {
   position: fixed;
-  top 0;
+  top: 0;
   right: 0;
   width: 100%;
   height: auto;
@@ -169,7 +170,11 @@ body {
     background-image: url("assets/elements/home-sky-m.png");
     background-size: cover;
     background-position: center top;
+    height: 100dvh;
   }
+
+  .heartability-banner,
+  .dreams-banner { display: none; }
 
   .castle-img {
     width: clamp(220px, 80vw, 420px);
@@ -217,12 +222,9 @@ body {
        alt="">
 </picture>
 
-<picture>
-  <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
-  <img class="heartability-banner"
-       src="assets/elements/heartability.png"
-       alt="">
-</picture>
+<img class="heartability-banner"
+     src="assets/elements/heartability.png"
+     alt="">
 
 <picture>
   <source media="(max-width: 768px)" srcset="assets/elements/explore-dreams-m.png">
