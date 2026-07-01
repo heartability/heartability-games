@@ -91,18 +91,15 @@ body {
 }
 
 .castle-img {  position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
 }
 
-/* Castle: positioned so the point at var(--castle-anchor) down its image
-   lands on the page center (~96% => the castle base sits at center). */
 .castle-img {
   width: 45vw;
   height: auto;
-  transform-origin: 50% var(--castle-anchor);
   transform: translate(-50%, calc(0% - var(--castle-anchor))) scale(1);
   animation: castleBreathe var(--toggle-loop) var(--ease-breath) infinite;
 }
