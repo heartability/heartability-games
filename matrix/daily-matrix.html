@@ -35,8 +35,15 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .content-panel.active:not(.iframe-mode) { background:transparent; border:none; box-shadow:none; }
 
 /* ── IFRAME PANEL ── */
-.game-iframe { width:100%; height:100%; border:none; display:block; }
-.content-panel.iframe-mode { border:3px solid #111; box-shadow:inset 0 0 0 2px var(--aqua); }
+.game-iframe { width:100%; flex:1; min-height:0; border:none; display:block; }
+.content-panel.iframe-mode { border:3px solid #111; box-shadow:inset 0 0 0 2px var(--aqua); background:#f0ead6; flex-direction:column; }
+.iframe-prompt {
+  flex-shrink:0; padding:10px 18px 8px;
+  border-bottom:1px solid rgba(0,0,0,.08);
+  font-family:var(--font-hand);
+}
+.iframe-prompt-title { font-size:clamp(15px,1.6vw,19px); color:#3a2e1e; }
+.iframe-prompt-sub   { font-size:clamp(11px,1.1vw,13px); color:#8a7a5a; margin-top:2px; }
 
 /* ── STEP PANELS (map grid, phase select) ── */
 .step-panel {
@@ -1038,7 +1045,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     <div class="sq-head">
       <span class="sq-title">today's location</span>
     </div>
-    <div class="sq-sub">the single place that holds today.</div>
+    <div class="sq-sub">create a place that describes how today felt</div>
     <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this place">
     <div class="sq-body">
       <div class="sq-preview-col">
@@ -1371,9 +1378,12 @@ function hidePanel() {
   panel.classList.remove('active', 'iframe-mode');
   panel.innerHTML = '';
 }
-function showIframe(src) {
+function showIframe(src, prompt) {
   const panel = document.getElementById('content-panel');
-  panel.innerHTML = `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+  const header = prompt
+    ? `<div class="iframe-prompt"><div class="iframe-prompt-sub">${prompt}</div></div>`
+    : '';
+  panel.innerHTML = header + `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
   document.getElementById('wall-btns').classList.remove('active');
 }
@@ -1689,7 +1699,7 @@ function stepBegin() {
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
   const src  = `../games/infinity-mirror.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src);
+  showIframe(src, 'create a character that represents your vibe today');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
@@ -1699,7 +1709,7 @@ function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src);
+  showIframe(src, 'how are you feeling today?');
   setSaveBtnVisible(true, 'continue →');
 }
 
@@ -1764,7 +1774,8 @@ const journal = { entries: [] };
 function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
     <div class="jrc-window">
-      <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
+      <div class="jrc-titlebar">what needs to be put on record<span class="jrc-date" id="jrc-date"></span></div>
+      <div style="padding:6px 16px 8px;font-family:var(--font-hand);font-size:clamp(11px,1.1vw,13px);color:#8a7a5a;border-bottom:1px solid #ddd;">what do you want to remember from today?</div>
       <div class="jrc-messages" id="jrc-messages">
         <div class="jrc-empty" id="jrc-empty">Write today down.<br>A park you passed through, a flower you appreciated, a matcha that hit the spot, a thought you don't want to lose.<br>What do you want to remember?</div>
       </div>
