@@ -33,11 +33,19 @@ body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: url("assets/elements/home-sky.png") no-repeat center center / cover;
   font-family: "ZoesHandwriting", cursive;
   overflow: scroll;
   position: relative;
   user-select: none;
+}
+
+/* Fixed bg pseudo-element always fills the true visual viewport on iOS Safari */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("assets/elements/home-sky.png") no-repeat center center / cover;
+  z-index: -1;
 }
 
 /* ── WELCOME BANNER — anchored L ── */
@@ -167,10 +175,12 @@ body {
 @media (max-width: 768px) {
 
   body {
-    background-image: url("assets/elements/home-sky-m.png");
-    background-size: cover;
-    background-position: center top;
     height: 100dvh;
+  }
+
+  body::before {
+    background-image: url("assets/elements/home-sky-m.png");
+    background-position: center top;
   }
 
   .heartability-banner { display: none; }
