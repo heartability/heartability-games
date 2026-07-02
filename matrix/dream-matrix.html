@@ -337,6 +337,71 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   pointer-events: none;
 }
 
+/* ── PHASE SELECT (vertical layout) ── */
+.phase-select-panel {
+  padding: 10px 12px;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.phase-map-block {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  border: 2px solid #c8b88a; overflow: hidden;
+  background: #e8e0c8;
+}
+.phase-map-svg { flex: 1; min-height: 0; overflow: hidden; }
+.phase-map-svg svg { width: 100%; height: 100%; display: block; }
+.phase-desc {
+  flex-shrink: 0; padding: 8px 14px;
+  font-family: var(--font-hand); font-size: clamp(13px,1.4vw,17px);
+  color: #5a4a2a; text-align: center;
+  border-top: 1px solid #c8b88a; min-height: 36px;
+  background: #e8e0c8;
+}
+.phase-bottom-section {
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 6px;
+  background: rgba(200,192,174,.25); border: 1.5px solid #d4cbb8;
+  padding: 8px;
+}
+.phase-tiles-row { display: flex; gap: 6px; }
+.phase-tile {
+  flex: 1; aspect-ratio: 1;
+  border: 2px solid #ccc; background: #fdf6e3;
+  cursor: pointer; overflow: hidden;
+  display: flex; flex-direction: column; align-items: stretch;
+  transition: border-color .12s, box-shadow .12s, transform .1s;
+}
+.phase-tile:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 2px 2px 0 var(--blue); }
+.phase-tile.selected { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); background: rgba(101,121,226,.08); }
+.phase-tile-img {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: #e8e0c8;
+}
+.phase-tile-img img { width: 100%; height: 100%; object-fit: cover; }
+.phase-tile-num {
+  font-family: var(--font-hand); font-size: clamp(18px,2.2vw,28px); color: #5a4a2a;
+}
+.phase-tile-feeling {
+  flex-shrink: 0; padding: 3px 4px;
+  font-family: var(--font-hand); font-size: clamp(9px,1vw,12px);
+  color: #5a4a2a; text-align: center;
+  background: rgba(255,255,255,.7);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.phase-special-bars { display: flex; gap: 6px; }
+.phase-bar {
+  flex: 1; padding: 9px 12px;
+  font-family: var(--font-hand); font-size: clamp(12px,1.3vw,15px);
+  cursor: pointer; text-align: center;
+  border: 2px dashed #ccc; background: #fdf6e3;
+  transition: all .12s;
+}
+.phase-bar-sidequest { border-color: var(--blue); color: var(--blue); }
+.phase-bar-sidequest:hover { background: var(--blue); color: #fff; border-style: solid; }
+.phase-bar-dct { border-color: #E8478B; color: #E8478B; }
+.phase-bar-dct:hover { background: #E8478B; color: #fff; border-style: solid; }
+
 /* ── MOBILE ── */
 @media (max-width:768px) {
   :root {
@@ -1680,74 +1745,47 @@ function stepPhaseSelect() {
   activeSidequest = null;
   activeDreamCameTrue = null;
   showAddNew(false);
-  const mapType = activeGameData.map_type || 'spiral';
-  const mapData = activeGameData.map_data || {};
-  const zones   = mapData.zones || [];
-  const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
+  const mapType  = activeGameData.map_type || 'spiral';
+  const zones    = (activeGameData.map_data || {}).zones || [];
+  const prompts  = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
   const zoneCount = mapType === 'square' ? 4 : 3;
 
   setBubble(`what are you navigating today?`, []);
   setSaveBtnVisible(false);
 
-  const svgContent = mapType === 'square'
-    ? buildSquareSVG(zones)
-    : buildSpiralSVG(zones);
+  const svgContent = mapType === 'square' ? buildSquareSVG(zones) : buildSpiralSVG(zones);
 
-  let keyItems = '';
-  for (let i=0; i<zoneCount; i++) {
-    const label = mapType === 'square' ? SQUARE_LABELS[i] : (i+1);
-    keyItems += `<div class="phase-key-item" id="key-${i}" onclick="selectPhase(${i})">
-      <span class="phase-key-num">${label}.</span>
-      <span>${prompts[i]}</span>
+  let tiles = '';
+  for (let i = 0; i < zoneCount; i++) {
+    const z = zones[i] || {};
+    const label = mapType === 'square' ? SQUARE_LABELS[i] : (i + 1);
+    const imgInner = z.terrain && TERRAIN_IMGS[z.terrain]
+      ? `<img src="${TERRAIN_IMGS[z.terrain]}" alt="${z.terrain}">`
+      : `<span class="phase-tile-num">${label}</span>`;
+    const feeling = z.feeling ? `<span class="phase-tile-feeling">${z.feeling}</span>` : '';
+    tiles += `<div class="phase-tile" id="phase-tile-${i}" onclick="selectPhase(${i})">
+      <div class="phase-tile-img">${imgInner}</div>${feeling}
     </div>`;
   }
-  // Secret phase — opens the one-location builder instead of selecting a map zone
-  keyItems += `<div class="phase-key-item sidequest-item" onclick="openSidequestBuilder()">
-      <span class="phase-key-num">✦</span>
-      <span>sidequest — fall into a secret little world</span>
-    </div>`;
-  // Dream came true phase — celebration location for a completed goal
-  keyItems += `<div class="phase-key-item dct-item" onclick="openDctBuilder()">
-      <span class="phase-key-num">✓</span>
-      <span>my dream came true</span>
-    </div>`;
 
-  const isMobile = window.innerWidth <= 768;
-
-  const html = `<div class="step-panel" style="padding:12px;">
+  const html = `<div class="step-panel phase-select-panel">
     <div class="step-header">
       <span class="step-back" onclick="stepLoadGame()">← back</span>
-      <span class="step-header-title">${activeGameData.map_name||'your map'}</span>
+      <span class="step-header-title">${activeGameData.map_name || 'your map'}</span>
       <span></span>
     </div>
-    <div class="phase-wrap" style="position:relative;">
-      <div class="phase-map-area" id="phase-map-area" style="${isMobile ? 'flex:1;' : ''}">
-        ${svgContent}
-      </div>
-      ${isMobile ? `
-        <!-- Mobile: floating button + bottom drawer -->
-        <button class="phase-select-btn" id="phase-select-btn" onclick="openPhaseDrawer()">
-          select phase →
-        </button>
-        <div class="phase-key-drawer" id="phase-key-drawer">
-          <div class="phase-drawer-header">
-            <span>where are you today?</span>
-            <span class="phase-drawer-close" onclick="closePhaseDrawer()">&#x2715;</span>
-          </div>
-          <div style="padding:10px 12px;">
-            ${keyItems}
-            <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
-          </div>
-        </div>
-      ` : `
-        <!-- Desktop: side-by-side key -->
-        <div class="phase-key">
-          <div class="phase-key-title">where are you today?</div>
-          ${keyItems}
-          <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">begin →</button>
-        </div>
-      `}
+    <div class="phase-map-block">
+      <div class="phase-map-svg">${svgContent}</div>
+      <div class="phase-desc" id="phase-desc">pick a phase to begin</div>
     </div>
+    <div class="phase-bottom-section">
+      <div class="phase-tiles-row">${tiles}</div>
+      <div class="phase-special-bars">
+        <div class="phase-bar phase-bar-sidequest" onclick="openSidequestBuilder()">✦ sidequest — fall into a secret little world</div>
+        <div class="phase-bar phase-bar-dct" onclick="openDctBuilder()">✓ my dream came true</div>
+      </div>
+    </div>
+    <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">continue →</button>
   </div>`;
   showPanel(html);
 }
@@ -1765,19 +1803,25 @@ function closePhaseDrawer() {
 
 function selectPhase(idx) {
   activePhase = `zone_${idx+1}`;
-  activeSidequest = null;   // picking a normal zone clears any sidequest draft
-  document.querySelectorAll('.phase-key-item').forEach((el,i) =>
-    el.classList.toggle('selected', i===idx));
-  // Highlight zone circle in SVG
-  document.querySelectorAll('.zone-hit').forEach((el,i) => {
+  activeSidequest = null;
+  activeDreamCameTrue = null;
+  const mapType = activeGameData?.map_type || 'spiral';
+  const prompts = mapType === 'square' ? SQUARE_PROMPTS : SPIRAL_PROMPTS;
+
+  const descEl = document.getElementById('phase-desc');
+  if (descEl) descEl.textContent = prompts[idx] || '';
+
+  document.querySelectorAll('.phase-tile').forEach((el, i) =>
+    el.classList.toggle('selected', i === idx));
+
+  document.querySelectorAll('.zone-hit').forEach((el, i) => {
     const circle = document.getElementById(`zone-circle-${i}`);
-    if (circle) circle.setAttribute('stroke', i===idx ? '#6579e2' : 'transparent');
+    if (circle) circle.setAttribute('stroke', i === idx ? '#6579e2' : 'transparent');
     const bg = document.getElementById(`zone-bg-${i}`);
-    if (bg) bg.setAttribute('fill', i===idx ? 'rgba(101,121,226,0.25)' : 'rgba(200,196,180,0)');
+    if (bg) bg.setAttribute('fill', i === idx ? 'rgba(101,121,226,0.25)' : 'rgba(200,196,180,0)');
   });
+
   document.getElementById('begin-btn').disabled = false;
-  // On mobile, keep drawer open so user can tap begin
-  if (window.innerWidth <= 768) openPhaseDrawer();
 }
 
 // ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
