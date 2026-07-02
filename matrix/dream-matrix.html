@@ -1517,7 +1517,7 @@ async function stepLoadGame() {
       if (!r.map_id || seen.has(r.map_id)) return false;
       seen.add(r.map_id);
       return true;
-    }).slice(0, 8);
+    }).slice(0, 8).map(r => ({ ...r, id: r.map_id }));
   } catch(e){}
   renderMapGrid(games);
 }
