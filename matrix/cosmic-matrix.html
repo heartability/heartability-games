@@ -89,6 +89,16 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 #map-score-label{ font-family:var(--font-hand); font-size:9px; color:rgba(201,255,245,0.7);
   text-align:right; margin-top:2px; }
 
+/* DECAN PREVIEW — shown at wheel centre when an open decan is selected */
+.phase-preview{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(360px,70%); text-align:center; pointer-events:none; z-index:6; }
+.phase-preview-desc{ font-family:var(--font-hand); font-size:clamp(15px,1.8vw,19px);
+  color:rgba(255,255,255,0.92); line-height:1.5; margin-bottom:10px; }
+.phase-preview-transits{ display:flex; flex-direction:column; gap:3px; }
+.phase-preview-transit{ font-family:var(--font-hand); font-size:clamp(12px,1.3vw,14px);
+  color:rgba(201,255,245,0.8); }
+.phase-preview .muted{ color:rgba(255,255,255,0.4); font-style:italic; }
+
 /* TIMELINE */
 .timeline{ width:100%; max-width:520px; margin:10px auto 0; position:relative; }
 .timeline::before{ content:""; position:absolute; left:22px; top:14px; bottom:14px; width:2px;
@@ -816,21 +826,54 @@ function showMapOverlays(visible){
 }
 
 function renderSeasonMap(){
-  currentStep = null; activePhase = null;
+  currentStep = null; activePhase = null; _selectedPhaseKey = null;
   setSave(false);
-  setBubble('choose a moon phase to track.');
+  setBubble('choose a decan to track.');
   const p = $('content-panel');
   p.className = 'content-panel active map-mode';
-  p.innerHTML = buildSeasonMapSVG();
+  p.innerHTML = buildSeasonMapView();
   showMapOverlays(true);
 }
 
 let _mapPhases = [];
+let _selectedPhaseKey = null;
 function handleMapClick(i){
   const ph = _mapPhases[i];
   if (!ph) return;
-  if (completedSet.has(ph.map_phase)) showPhaseJournalForKey(ph.map_phase);
-  else if (isOpen(ph)) selectPhase(ph.map_phase);
+  if (completedSet.has(ph.map_phase)) return showPhaseJournalForKey(ph.map_phase);
+  if (isOpen(ph)) selectPreview(ph.map_phase);
+}
+
+// Click on an open decan: show its description + transits and reveal the
+// continue bar. Actually entering the character step waits for "continue →".
+function selectPreview(key){
+  _selectedPhaseKey = key;
+  const ph = phaseByKey(key);
+  setBubble(ph ? `step into ${ph.location}?` : 'choose a decan to track.');
+  setSave(true, 'continue →');
+  const p = $('content-panel');
+  p.className = 'content-panel active map-mode';
+  p.innerHTML = buildSeasonMapView();
+  showMapOverlays(true);
+}
+
+// Wraps the SVG wheel with an HTML preview panel (description + transits)
+// for whichever decan is selected — SVG text can't wrap prose cleanly.
+function buildSeasonMapView(){
+  const svg = buildSeasonMapSVG();
+  const ph = _selectedPhaseKey ? phaseByKey(_selectedPhaseKey) : null;
+  if (!ph) return `<div style="position:relative;width:100%;height:100%;">${svg}</div>`;
+  const transitsHtml = (Array.isArray(ph.transits) && ph.transits.length)
+    ? ph.transits.map(t=>`<div class="phase-preview-transit">${escSvg(t.name||'')}</div>`).join('')
+    : '<div class="phase-preview-transit muted">no transits</div>';
+  const descHtml = ph.description ? escSvg(ph.description) : '<span class="muted">no description</span>';
+  return `<div style="position:relative;width:100%;height:100%;">
+    ${svg}
+    <div class="phase-preview">
+      <div class="phase-preview-desc">${descHtml}</div>
+      <div class="phase-preview-transits">${transitsHtml}</div>
+    </div>
+  </div>`;
 }
 
 function buildSeasonMapSVG(){
@@ -933,8 +976,10 @@ function buildSeasonMapSVG(){
         ${labelSvg}
       </g>`;
     } else if (open){
+      const isSel = ph.map_phase === _selectedPhaseKey;
       nodes += `<g onclick="handleMapClick(${i})" style="cursor:pointer">
         <circle cx="${x}" cy="${y}" r="${R+48}" fill="url(#hg${i})" pointer-events="none"/>
+        ${isSel?`<circle cx="${x}" cy="${y}" r="${R+8}" fill="none" stroke="#E8478B" stroke-width="2" opacity="0.75" pointer-events="none"/>`:''}
         <circle cx="${x}" cy="${y}" r="${R}" fill="transparent" stroke="#c9fff5" stroke-width="1.8" ${isCur?'':'stroke-dasharray="5 3"'}/>
         ${terrainImg}
         <text x="${x}" y="${y+5}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="14" fill="rgba(201,255,245,0.9)" pointer-events="none">${escSvg(ph.phase||String(i+1))}</text>
@@ -1297,6 +1342,7 @@ function stepDone(){
 async function saveAndContinue(){
   const btn = $('save-btn'); btn.disabled = true; btn.textContent='saving…';
 
+  if (currentStep === null && _selectedPhaseKey){ selectPhase(_selectedPhaseKey); return; }
   if (currentStep === 'journal'){ await saveJournalEntry(); return; }
 
   const iframe = $('game-iframe');
