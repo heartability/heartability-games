@@ -344,12 +344,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   gap: 8px;
 }
 .phase-map-block {
-  flex: 1; min-height: 0;
   display: flex; flex-direction: column;
   border: 2px solid #c8b88a; overflow: hidden;
-  background: #e8e0c8;
+  background: #e8e0c8; flex-shrink: 0;
 }
-.phase-map-svg { flex: 1; min-height: 0; overflow: hidden; }
+.phase-map-svg { aspect-ratio: 1; overflow: hidden; }
 .phase-map-svg svg { width: 100%; height: 100%; display: block; }
 .phase-desc {
   flex-shrink: 0; padding: 8px 14px;
@@ -1757,14 +1756,9 @@ function stepPhaseSelect() {
 
   let tiles = '';
   for (let i = 0; i < zoneCount; i++) {
-    const z = zones[i] || {};
-    const label = mapType === 'square' ? SQUARE_LABELS[i] : (i + 1);
-    const imgInner = z.terrain && TERRAIN_IMGS[z.terrain]
-      ? `<img src="${TERRAIN_IMGS[z.terrain]}" alt="${z.terrain}">`
-      : `<span class="phase-tile-num">${label}</span>`;
-    const feeling = z.feeling ? `<span class="phase-tile-feeling">${z.feeling}</span>` : '';
+    const label = mapType === 'square' ? `corner ${i + 1}` : `phase ${i + 1}`;
     tiles += `<div class="phase-tile" id="phase-tile-${i}" onclick="selectPhase(${i})">
-      <div class="phase-tile-img">${imgInner}</div>${feeling}
+      <span class="phase-tile-num">${label}</span>
     </div>`;
   }
 
