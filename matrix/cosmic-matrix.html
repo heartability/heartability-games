@@ -585,19 +585,22 @@ async function loadSeason(){
 }
 
 // ── ZODIAC WHEEL — 12 signs as a colored ring, replaces the old flat list ──
+// Ordered clockwise from 12 o'clock to match a standard natal-chart wheel
+// (Aries sits at 9 o'clock / the ascendant). Colors follow elemental groups:
+// fire=red, earth=green, air=aqua, water=blue — reusing the app's core palette.
 const SIGNS = [
-  { id:'aries',       symbol:'♈', name:'aries' },
-  { id:'taurus',      symbol:'♉', name:'taurus' },
-  { id:'gemini',      symbol:'♊', name:'gemini' },
-  { id:'cancer',      symbol:'♋', name:'cancer' },
-  { id:'leo',         symbol:'♌', name:'leo' },
-  { id:'virgo',       symbol:'♍', name:'virgo' },
-  { id:'libra',       symbol:'♎', name:'libra' },
-  { id:'scorpio',     symbol:'♏', name:'scorpio' },
-  { id:'sagittarius', symbol:'♐', name:'sagittarius' },
-  { id:'capricorn',   symbol:'♑', name:'capricorn' },
-  { id:'aquarius',    symbol:'♒', name:'aquarius' },
-  { id:'pisces',      symbol:'♓', name:'pisces' },
+  { id:'capricorn',   symbol:'♑', name:'capricorn',   color:'#4caf7d' }, // earth
+  { id:'sagittarius', symbol:'♐', name:'sagittarius', color:'#e85555' }, // fire
+  { id:'scorpio',     symbol:'♏', name:'scorpio',     color:'#6579e2' }, // water
+  { id:'libra',       symbol:'♎', name:'libra',       color:'#83d2e6' }, // air
+  { id:'virgo',       symbol:'♍', name:'virgo',       color:'#4caf7d' }, // earth
+  { id:'leo',         symbol:'♌', name:'leo',         color:'#e85555' }, // fire
+  { id:'cancer',      symbol:'♋', name:'cancer',      color:'#6579e2' }, // water
+  { id:'gemini',      symbol:'♊', name:'gemini',      color:'#83d2e6' }, // air
+  { id:'taurus',      symbol:'♉', name:'taurus',      color:'#4caf7d' }, // earth
+  { id:'aries',       symbol:'♈', name:'aries',       color:'#e85555' }, // fire
+  { id:'pisces',      symbol:'♓', name:'pisces',      color:'#6579e2' }, // water
+  { id:'aquarius',    symbol:'♒', name:'aquarius',    color:'#83d2e6' }, // air
 ];
 
 function showZodiacWheel(tpls){
@@ -615,7 +618,9 @@ function showZodiacWheel(tpls){
     </div>`;
 }
 
-function tplForSign(tpls, signId){ return (tpls||[]).find(t => (t.season||'').toLowerCase() === signId) || null; }
+// tpl.season is a slug like "cancer-2026" — match on its leading word.
+function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
+function tplForSign(tpls, signId){ return (tpls||[]).find(t => seasonSignId(t.season) === signId) || null; }
 
 function buildZodiacWheelSVG(tpls){
   const W=620, H=620, CX=310, CY=310, R=270, r=120, N=SIGNS.length;
@@ -624,8 +629,7 @@ function buildZodiacWheelSVG(tpls){
     const tpl  = tplForSign(tpls, s.id);
     const a0   = (Math.PI*2*i/N) - Math.PI/2;
     const a1   = (Math.PI*2*(i+1)/N) - Math.PI/2;
-    const hue  = i*(360/N);
-    const fill = `hsl(${hue},60%,${tpl?55:28}%)`;
+    const fill = s.color;
     const ox0=(CX+R*Math.cos(a0)).toFixed(1), oy0=(CY+R*Math.sin(a0)).toFixed(1);
     const ox1=(CX+R*Math.cos(a1)).toFixed(1), oy1=(CY+R*Math.sin(a1)).toFixed(1);
     const ix1=(CX+r*Math.cos(a1)).toFixed(1), iy1=(CY+r*Math.sin(a1)).toFixed(1);
