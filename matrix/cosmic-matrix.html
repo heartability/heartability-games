@@ -355,7 +355,10 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
    COSMIC MATRIX — orchestration spine
    Paid-gated. Sole writer of cosmic_matrix + cosmic_bingo.
    Flow per phase:  select → character (iframe) → cosmic bingo (iframe) → journal.
-   Entry identity is (game_id, map_phase): upsert on that key → no dup spiral nodes.
+   No `games` table — cosmic_bingo is the season anchor (1 row per user per
+   season, holds the cloned map_data); cosmic_matrix's per-phase rows just
+   carry that same map_id. Entry identity is (map_id, map_phase): upsert on
+   that key → no dup nodes.
    ============================================================ */
 
 // ── SUPABASE (same project as adventure-matrix) ─────────────
@@ -370,9 +373,9 @@ const UPGRADE_URL = '../users/membership.html';     // TODO: confirm your pricin
 // ── STATE ───────────────────────────────────────────────────
 let currentUser    = null;
 let activeTemplate = null;   // cosmic_templates row
-let activeGameId   = null;   // per-user cloned games row id
+let activeMapId    = null;   // cosmic_bingo.map_id — groups this season's rows
 let activeMapData  = null;   // the season's map_data (phases + windows)
-let activePhase    = null;   // map_phase key, e.g. 'moon_scorpio'
+let activePhase    = null;   // map_phase key, e.g. 'sun_cancer_1'
 let currentStep    = null;   // 'character' | 'bingo' | 'journal'
 let completedSet   = new Set();   // map_phase keys that have a character row
 let completedData  = new Map();   // map_phase → character_data
@@ -657,55 +660,59 @@ async function openZodiacSeason(signId){
 async function openSeason(tpl){
   activeTemplate = tpl;
   activeMapData  = tpl.map_data;
-  await ensureCosmicGame(tpl);
-  if (!activeGameId){ showStatus('could not open this season — try again','#E8478B'); return; }
+  await ensureCosmicSeason(tpl);
+  if (!activeMapId){ showStatus('could not open this season — try again','#E8478B'); return; }
   await loadProgress();
   renderSeasonMap();
 }
 
-// Clone the season template into a per-user games row exactly once.
-async function ensureCosmicGame(tpl){
+// Clone the season template into the user's cosmic_bingo row exactly once.
+// cosmic_bingo is the season anchor (1 row per user per season): it holds
+// the map_id every cosmic_matrix phase row groups under, plus the map_data
+// clone and the bingo board itself — so this also primes cosmicBoard.
+async function ensureCosmicSeason(tpl){
   const season = tpl.map_data?.season || tpl.season;
-  let game=null;
+  let row=null;
   try {
-    const { data } = await sb.from('games').select('*')
-      .eq('user_id', currentUser.id).eq('map_type','cosmic');
-    game = (data||[]).find(g => g.map_data?.season === season) || null;
+    const { data } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
+    row = (data||[]).find(r => r.map_data?.season === season) || null;
   } catch(e){}
 
-  if (!game){
+  if (!row){
     try {
-      const { data, error } = await sb.from('games').insert({
+      const { data, error } = await sb.from('cosmic_bingo').insert({
+        map_id: crypto.randomUUID(),
         user_id: currentUser.id,
-        map_name: tpl.title || season,
-        map_type: 'cosmic',
         map_data: tpl.map_data,     // carries season + phases; map_data->>'season' powers the unique index
-        status: 'active',
+        bingo_data: { marked:null },
       }).select().single();
       if (error) throw error;
-      game = data;
+      row = data;
     } catch(err){
       // Surface the real reason (constraint, RLS, etc.) — don't hide it.
-      console.error('[cosmic clone] games insert failed:', err?.message || err, err);
+      console.error('[cosmic clone] cosmic_bingo insert failed:', err?.message || err, err);
       // A unique-index race is the one benign case: re-fetch the row that won.
       try {
-        const { data } = await sb.from('games').select('*')
-          .eq('user_id', currentUser.id).eq('map_type','cosmic');
-        game = (data||[]).find(g => g.map_data?.season === season) || null;
+        const { data } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
+        row = (data||[]).find(r => r.map_data?.season === season) || null;
       } catch(e){}
     }
   }
-  if (game){ activeGameId = game.id; activeMapData = game.map_data || activeMapData; }
+  if (row){
+    activeMapId   = row.map_id;
+    activeMapData = row.map_data || activeMapData;
+    cosmicBoard   = row.bingo_data || { marked:null };
+  }
 }
 
-// Which phases are already lived (have a character row) + the season board.
+// Which phases are already lived (have a character row).
 async function loadProgress(){
   completedSet = new Set();
   completedData = new Map();
   try {
     const { data } = await sb.from('cosmic_matrix')
       .select('map_phase, character_data')
-      .eq('game_id', activeGameId).eq('user_id', currentUser.id);
+      .eq('map_id', activeMapId).eq('user_id', currentUser.id);
     (data||[]).forEach(r=>{
       if (r.character_data){
         completedSet.add(r.map_phase);
@@ -713,11 +720,6 @@ async function loadProgress(){
       }
     });
   } catch(e){}
-  try {
-    const { data } = await sb.from('cosmic_bingo')
-      .select('bingo_data').eq('game_id', activeGameId).eq('user_id', currentUser.id).maybeSingle();
-    cosmicBoard = data?.bingo_data || { marked:null };
-  } catch(e){ cosmicBoard = { marked:null }; }
 }
 
 // ── TERRAIN IMAGES (match treasure-map.html TERRAIN_IMGS) ───
@@ -982,7 +984,7 @@ async function showPhaseJournal(phaseKey){
   try {
     const { data } = await sb.from('cosmic_matrix')
       .select('journal_messages,updated_at')
-      .eq('game_id',activeGameId).eq('map_phase',phaseKey).eq('user_id',currentUser.id)
+      .eq('map_id',activeMapId).eq('map_phase',phaseKey).eq('user_id',currentUser.id)
       .maybeSingle();
     const msgs = jrcRowMessages(data||{});
     const container = $('pj-messages');
@@ -1029,7 +1031,7 @@ function stepCharacter(){
   currentStep = 'character';
   const p = phaseByKey(activePhase);
   setBubble(`who are you in the ${p.location}?`);
-  showIframe(`../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`);
+  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&phase=${activePhase}&loop=true&mode=cloud`);
   setSave(true,'loading…'); $('save-btn').disabled = true;
 }
 
@@ -1132,13 +1134,13 @@ async function loadJournalEntries(){
   journal.entries=[]; journal.pendingImage=null;
   const dateEl=document.getElementById('jrc-date');
   if(dateEl) dateEl.textContent=jrcDay();
-  if(!currentUser||!activeGameId) return;
+  if(!currentUser||!activeMapId) return;
 
   let rows=[];
   try {
     const { data } = await sb.from('cosmic_matrix')
       .select('map_phase,journal_messages,matrix_images,updated_at')
-      .eq('game_id',activeGameId).eq('user_id',currentUser.id)
+      .eq('map_id',activeMapId).eq('user_id',currentUser.id)
       .order('updated_at',{ascending:true});
     rows=data||[];
   } catch(e){ console.error('[journal load]',e); }
@@ -1195,7 +1197,7 @@ async function sendJournalMessage(){
   const sendBtn=document.getElementById('jrc-send');
   const text=(msgEl?.value||'').trim();
   if(!text&&!journal.pendingImage) return false;
-  if(!(currentUser&&activeGameId&&activePhase)){ showJournalStatus('not signed in',false); return false; }
+  if(!(currentUser&&activeMapId&&activePhase)){ showJournalStatus('not signed in',false); return false; }
   if(sendBtn) sendBtn.disabled=true;
 
   let imageUrl=null;
@@ -1203,7 +1205,7 @@ async function sendJournalMessage(){
     try {
       const file=journal.pendingImage.file;
       const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-      const path=`${currentUser.id}/${activeGameId}/${activePhase}/journal-${crypto.randomUUID()}.${ext}`;
+      const path=`${currentUser.id}/${activeMapId}/${activePhase}/journal-${crypto.randomUUID()}.${ext}`;
       const { error:upErr } = await sb.storage.from(MATRIX_PHOTO_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
       if(upErr) throw upErr;
       const { data:pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
@@ -1221,7 +1223,7 @@ async function sendJournalMessage(){
   let currentRow={};
   try {
     const { data } = await sb.from('cosmic_matrix')
-      .select('journal_messages,matrix_images').eq('game_id',activeGameId).eq('map_phase',activePhase).maybeSingle();
+      .select('journal_messages,matrix_images').eq('map_id',activeMapId).eq('map_phase',activePhase).maybeSingle();
     currentRow=data||{};
   } catch(e){}
   const messages=(Array.isArray(currentRow.journal_messages)?currentRow.journal_messages:[]).concat([message]);
@@ -1231,11 +1233,11 @@ async function sendJournalMessage(){
   const loc=phaseByKey(activePhase);
   try {
     const { error } = await sb.from('cosmic_matrix').upsert({
-      game_id:activeGameId, user_id:currentUser.id, map_phase:activePhase,
+      map_id:activeMapId, user_id:currentUser.id, map_phase:activePhase,
       journal_messages:messages, matrix_images:imgs,
       location_data:{sign:loc?.sign||null,location:loc?.location||null,opens_utc:loc?.opens_utc||null},
       updated_at:new Date().toISOString(),
-    },{onConflict:'game_id,map_phase'});
+    },{onConflict:'map_id,map_phase'});
     if(error) throw error;
   } catch(err){
     console.error('[journal send]',err);
@@ -1325,18 +1327,18 @@ window.addEventListener('message', async e=>{
     return;
   }
 
-  // character state → cosmic_matrix (idempotent on game_id, map_phase)
+  // character state → cosmic_matrix (idempotent on map_id, map_phase)
   if (msg.type==='char_state'){
     const charState = msg.state || {};
     if (!charState.body){ showStatus('pick a body first!','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
     const loc = phaseByKey(activePhase);
     try {
       const { error } = await sb.from('cosmic_matrix').upsert({
-        game_id: activeGameId, user_id: currentUser.id, map_phase: activePhase,
+        map_id: activeMapId, user_id: currentUser.id, map_phase: activePhase,
         character_data: charState,
         location_data: { sign:loc?.sign||null, location:loc?.location||null, opens_utc:loc?.opens_utc||null },
         updated_at: new Date().toISOString(),
-      }, { onConflict:'game_id,map_phase' });
+      }, { onConflict:'map_id,map_phase' });
       if (error) throw error;
       completedData.set(activePhase, charState);
       showStatus('character saved ✓','#6ab86a'); setSave(false); stepBingo();
@@ -1344,7 +1346,7 @@ window.addEventListener('message', async e=>{
     return;
   }
 
-  // season bingo board → cosmic_bingo (one row per user+game)
+  // season bingo board → cosmic_bingo (one row per user+season)
   if (msg.type==='bingo_state'){
     const { marked, score } = msg;
     cosmicBoard = { marked, score };
@@ -1353,9 +1355,9 @@ window.addEventListener('message', async e=>{
     _bingoRequested = false;
     try {
       const { error } = await sb.from('cosmic_bingo').upsert({
-        game_id: activeGameId, user_id: currentUser.id,
+        map_id: activeMapId, user_id: currentUser.id,
         bingo_data: { marked, score }, updated_at: new Date().toISOString(),
-      }, { onConflict:'user_id,game_id' });
+      }, { onConflict:'user_id,map_id' });
       if (error) throw error;
       showStatus('board saved ✓','#6ab86a'); setSave(false); stepJournal();
     } catch(err){ console.error('[bingo save]',err); showStatus('save failed','#E8478B'); _bingoRequested=false; const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
