@@ -123,20 +123,6 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gate-btn:hover{ background:#4a5bc4; }
 .gate-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 
-/* SEASON SELECTOR */
-.map-grid{ display:grid; grid-template-columns:repeat(3,minmax(200px,320px)); gap:18px; justify-content:center; padding:4px; }
-@media (max-width:600px){ .map-grid{ grid-template-columns:repeat(2,1fr); } }
-.map-slot{ border:2px solid #ccc; background:var(--cream); cursor:pointer; display:flex; flex-direction:column;
-  padding:20px 18px 16px; gap:8px; font-family:var(--font-hand); text-align:center;
-  transition:border-color .15s, box-shadow .12s, transform .1s; }
-.map-slot:hover{ border-color:var(--blue); box-shadow:2px 2px 0 var(--blue); transform:translateY(-2px); }
-.slot-name{ font-size:clamp(22px,2.4vw,28px); color:var(--ink); font-weight:600; line-height:1.2; }
-.slot-updated{ font-size:16px; color:#bbb; }
-.slot-badge{ display:inline-block; font-size:16px; letter-spacing:.5px; padding:4px 12px; margin-top:2px; }
-.slot-badge.active{ color:var(--aqua); border:1px solid var(--aqua); }
-.slot-badge.past{ color:#bbb; border:1px solid #ddd; }
-.slot-badge.upcoming{ color:var(--blue); border:1px solid var(--blue); }
-
 /* PLANET SELECTOR */
 .planet-grid{ display:flex; flex-wrap:wrap; gap:30px 26px; justify-content:center; padding:10px; max-width:840px; }
 .planet-slot{ position:relative; width:126px; display:flex; flex-direction:column; align-items:center; gap:9px; }
@@ -594,60 +580,72 @@ async function loadSeason(){
 
   // ?season= param: bypass selector (dev/direct link)
   if (param){ return openSeason(tpls[0]); }
-  // Always show selector at root URL
-  showSeasonSelector(tpls);
+  // Always show the zodiac wheel at root URL
+  showZodiacWheel(tpls);
 }
 
-function showSeasonSelector(tpls){
-  setBubble('choose a season.');
-  setSave(false);
-  const now = nowMs();
-  const slots = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0))
-    .map((t,i)=>{
-      const s=Date.parse(t.map_data?.season_start_utc), e=Date.parse(t.map_data?.season_end_utc);
-      const isActive = s && e && now>=s && now<e;
-      const isPast   = e && now>=e;
-      const badge    = isActive ? '<span class="slot-badge active">now</span>'
-                     : isPast   ? '<span class="slot-badge past">past</span>'
-                     :            '<span class="slot-badge upcoming">upcoming</span>';
-      const phases   = Array.isArray(t.map_data?.phases) ? t.map_data.phases.length : '?';
-      const dates    = (t.map_data?.season_start_utc && t.map_data?.season_end_utc)
-        ? new Date(t.map_data.season_start_utc).toLocaleDateString('en-US',{month:'short',day:'numeric'})
-          + ' – ' + new Date(t.map_data.season_end_utc).toLocaleDateString('en-US',{month:'short',day:'numeric'})
-        : '';
-      return `<div class="map-slot" onclick="selectSeason(${i})" data-idx="${i}">
-        <div class="slot-name">${(t.title||t.season).replace(/\s*(season\s*)?\d{4}/i,'')}</div>
-        ${dates ? `<div class="slot-updated">${dates}</div>` : ''}
-        <div class="slot-updated">${phases} moon phases</div>
-        ${badge}
-      </div>`;
-    }).join('');
-  // stash for selectSeason
-  window._cosmicSeasonList = tpls.slice().sort((a,b)=>Date.parse(b.map_data?.season_start_utc||0)-Date.parse(a.map_data?.season_start_utc||0));
-  const p = $('content-panel');
-  // static placeholder cards for upcoming seasons
-  const placeholders = [
-    { name: 'Leo', dates: 'Jul 22 – Aug 22' },
-    { name: 'Virgo', dates: 'Aug 23 – Sep 22' },
-  ].map(p => `<div class="map-slot" style="opacity:.5;cursor:default;pointer-events:none;">
-    <div class="slot-name">${p.name}</div>
-    <div class="slot-updated">${p.dates}</div>
-    <span class="slot-badge upcoming">upcoming</span>
-  </div>`).join('');
+// ── ZODIAC WHEEL — 12 signs as a colored ring, replaces the old flat list ──
+const SIGNS = [
+  { id:'aries',       symbol:'♈', name:'aries' },
+  { id:'taurus',      symbol:'♉', name:'taurus' },
+  { id:'gemini',      symbol:'♊', name:'gemini' },
+  { id:'cancer',      symbol:'♋', name:'cancer' },
+  { id:'leo',         symbol:'♌', name:'leo' },
+  { id:'virgo',       symbol:'♍', name:'virgo' },
+  { id:'libra',       symbol:'♎', name:'libra' },
+  { id:'scorpio',     symbol:'♏', name:'scorpio' },
+  { id:'sagittarius', symbol:'♐', name:'sagittarius' },
+  { id:'capricorn',   symbol:'♑', name:'capricorn' },
+  { id:'aquarius',    symbol:'♒', name:'aquarius' },
+  { id:'pisces',      symbol:'♓', name:'pisces' },
+];
 
+function showZodiacWheel(tpls){
+  setBubble('choose a sign.');
+  setSave(false);
+  window._zodiacTpls = tpls;
   const panel = $('content-panel');
   panel.className = 'content-panel active map-mode';
   panel.innerHTML = `
     <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
-      <div style="text-align:center;margin-bottom:36px;">
-        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a season</span>
+      <div style="text-align:center;margin-bottom:14px;">
+        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a sign</span>
       </div>
-      <div class="map-grid">${slots}${placeholders}</div>
+      ${buildZodiacWheelSVG(tpls)}
     </div>`;
 }
 
-async function selectSeason(idx){
-  const tpl = window._cosmicSeasonList?.[idx];
+function tplForSign(tpls, signId){ return (tpls||[]).find(t => (t.season||'').toLowerCase() === signId) || null; }
+
+function buildZodiacWheelSVG(tpls){
+  const W=620, H=620, CX=310, CY=310, R=270, r=120, N=SIGNS.length;
+  let wedges = '';
+  SIGNS.forEach((s,i)=>{
+    const tpl  = tplForSign(tpls, s.id);
+    const a0   = (Math.PI*2*i/N) - Math.PI/2;
+    const a1   = (Math.PI*2*(i+1)/N) - Math.PI/2;
+    const hue  = i*(360/N);
+    const fill = `hsl(${hue},60%,${tpl?55:28}%)`;
+    const ox0=(CX+R*Math.cos(a0)).toFixed(1), oy0=(CY+R*Math.sin(a0)).toFixed(1);
+    const ox1=(CX+R*Math.cos(a1)).toFixed(1), oy1=(CY+R*Math.sin(a1)).toFixed(1);
+    const ix1=(CX+r*Math.cos(a1)).toFixed(1), iy1=(CY+r*Math.sin(a1)).toFixed(1);
+    const ix0=(CX+r*Math.cos(a0)).toFixed(1), iy0=(CY+r*Math.sin(a0)).toFixed(1);
+    const path = `M${ox0},${oy0} A${R},${R} 0 0 1 ${ox1},${oy1} L${ix1},${iy1} A${r},${r} 0 0 0 ${ix0},${iy0} Z`;
+    const mid = (a0+a1)/2, labelR = (R+r)/2;
+    const lx=(CX+labelR*Math.cos(mid)).toFixed(1), ly=(CY+labelR*Math.sin(mid)).toFixed(1);
+    const clickAttr = tpl ? `onclick="openZodiacSeason('${s.id}')"` : '';
+    const hoverAttr = tpl ? '' : `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"`;
+    wedges += `<g ${clickAttr} ${hoverAttr} style="cursor:${tpl?'pointer':'default'}" opacity="${tpl?1:0.4}">
+      <path d="${path}" fill="${fill}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
+      <text x="${lx}" y="${ly-6}" text-anchor="middle" font-size="26" fill="#fff" pointer-events="none">${s.symbol}</text>
+      <text x="${lx}" y="${ly+16}" text-anchor="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#fff" pointer-events="none">${s.name}</text>
+    </g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">${wedges}</svg>`;
+}
+
+async function openZodiacSeason(signId){
+  const tpl = tplForSign(window._zodiacTpls, signId);
   if (!tpl) return;
   await openSeason(tpl);
 }
