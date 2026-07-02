@@ -818,11 +818,17 @@ async function refreshMatrixView() {
 
 // ── GAME LOADING + ENTRIES ────────────────────────────────
 async function loadGames() {
-  const { data } = await sb.from('games')
-    .select('id, map_name, map_type, map_data, status, updated_at')
+  const { data } = await sb.from('dream_matrix')
+    .select('id, map_id, map_name, map_type, map_data, updated_at')
     .eq('user_id', currentUser.id)
-    .order('updated_at', { ascending:false });
-  allGames = data || [];
+    .not('map_name', 'is', null)
+    .order('updated_at', { ascending: false });
+  const seen = new Set();
+  allGames = (data || []).filter(r => {
+    if (!r.map_id || seen.has(r.map_id)) return false;
+    seen.add(r.map_id);
+    return true;
+  }).map(r => ({ ...r, id: r.map_id }));
   const dd = document.getElementById('game-dropdown');
   dd.innerHTML = '';
   allGames.forEach(g => {
@@ -899,7 +905,7 @@ async function selectMapForArchive(gameId) {
 }
 async function deleteMapFromArchive(gameId, mapName) {
   if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
-  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  await sb.from('dream_matrix').delete().eq('map_id', gameId).eq('user_id', currentUser.id);
   allGames = allGames.filter(g => g.id !== gameId);
   renderMapSelectorGrid();
 }

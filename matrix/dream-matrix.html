@@ -1478,7 +1478,7 @@ function stepInitial() {
 // ── DELETE MAP ────────────────────────────────────────────
 async function deleteMap(gameId, mapName) {
   if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
-  await sb.from('games').delete().eq('id', gameId).eq('user_id', currentUser.id);
+  await sb.from('dream_matrix').delete().eq('map_id', gameId).eq('user_id', currentUser.id);
   stepLoadGame();
 }
 
@@ -1506,11 +1506,18 @@ async function stepLoadGame() {
 
   let games = [];
   try {
-    const { data } = await sb.from('games').select('*')
-      .eq('user_id', currentUser.id).eq('status','active')
+    const { data } = await sb.from('dream_matrix')
+      .select('id, map_id, map_name, map_type, map_data, updated_at')
+      .eq('user_id', currentUser.id)
+      .not('map_name', 'is', null)
       .in('map_type', ['spiral','square'])
-      .order('updated_at',{ascending:false}).limit(8);
-    games = data || [];
+      .order('updated_at', { ascending: false });
+    const seen = new Set();
+    games = (data || []).filter(r => {
+      if (!r.map_id || seen.has(r.map_id)) return false;
+      seen.add(r.map_id);
+      return true;
+    }).slice(0, 8);
   } catch(e){}
   renderMapGrid(games);
 }
@@ -1649,15 +1656,20 @@ function renderMapGrid(games) {
 }
 
 // ── STEP 3: SELECT MAP → PHASE SELECT ────────────────────
-async function selectMap(gameId) {
+async function selectMap(mapId) {
   let game = null;
   try {
-    const { data } = await sb.from('games').select('*').eq('id',gameId).eq('user_id',currentUser.id).single();
+    const { data } = await sb.from('dream_matrix')
+      .select('map_name, map_type, map_data')
+      .eq('map_id', mapId).eq('user_id', currentUser.id)
+      .not('map_name', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(1).maybeSingle();
     game = data;
   } catch(e){}
   if (!game) return;
-  activeGameId   = gameId;
-  activeGameData = game;
+  activeGameId   = mapId;
+  activeGameData = { id: mapId, map_name: game.map_name, map_type: game.map_type, map_data: game.map_data };
   activePhase    = null;
   stepPhaseSelect();
 }
@@ -2278,13 +2290,6 @@ async function stepDone() {
   showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
   _matrixSeed = `${activeGameId}|${activeEntryId}`;
 
-  // Mark the map complete so it no longer appears on the map selector
-  if (activePhase === 'dream_came_true' && activeGameId) {
-    await sb.from('games')
-      .update({ status: 'complete', updated_at: new Date().toISOString() })
-      .eq('id', activeGameId).eq('user_id', currentUser.id);
-  }
-
   await renderMatrix();
 }
 
@@ -2440,33 +2445,9 @@ window.addEventListener('message', async e => {
     const btn = document.getElementById('save-continue-btn');
 
     if (!activeGameId) {
-      // New map — INSERT into games
-      const { data: newGame, error } = await sb.from('games').insert({
-        user_id: currentUser.id,
-        map_name: map_name || 'my map',
-        map_type: map_type || 'spiral',
-        map_data: map_data || { zones: [] },
-        status: 'active',
-      }).select().single();
-      if (error) {
-        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
-        return;
-      }
-      activeGameId   = newGame.id;
-      activeGameData = { id: newGame.id, map_name, map_type, map_data: map_data || { zones: [] } };
-    } else {
-      // Existing map — UPDATE games
-      const { error } = await sb.from('games')
-        .update({ map_name, map_type, map_data, updated_at: new Date().toISOString() })
-        .eq('id', activeGameId).eq('user_id', currentUser.id);
-      if (error) {
-        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
-        return;
-      }
-      activeGameData = { ...activeGameData, map_name, map_type, map_data: map_data || { zones: [] } };
+      activeGameId = crypto.randomUUID();
     }
+    activeGameData = { id: activeGameId, map_name: map_name || 'my map', map_type: map_type || 'spiral', map_data: map_data || { zones: [] } };
 
     activePhase = null;
     setSaveBtnVisible(false);
