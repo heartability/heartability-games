@@ -153,8 +153,6 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .planet-slot.locked .planet-halo{ opacity:.18; filter:blur(4px) grayscale(.5); }
 .planet-slot.locked .planet-disc{ opacity:.45; cursor:default; }
 .planet-slot.locked .planet-name{ color:rgba(201,255,245,0.4); }
-.planet-lock{ position:absolute; bottom:-4px; right:-4px; font-size:13px; background:rgba(10,10,20,.6);
-  border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; z-index:2; }
 
 /* JOURNAL (chat-style, matches adventure) */
 .jrc-panel{ width:100%; height:100%; padding:8px; display:flex; flex-direction:column; overflow:hidden; }
@@ -562,10 +560,10 @@ function showPlanetSelector(){
   setSave(false);
   const cards = PLANETS.map(p=>{
     const halo = `radial-gradient(circle, ${hexA(p.color,0.9)} 0%, ${hexA(p.color,0.55)} 45%, ${hexA(p.color,0)} 75%)`;
-    return `<div class="planet-slot ${p.locked?'locked':'unlocked'}" ${p.locked?'':`onclick="selectPlanet('${p.id}')"`}>
+    const hover = p.locked ? `onmouseenter="setBubble('coming soon')" onmouseleave="setBubble('choose a planetary body.')"` : '';
+    return `<div class="planet-slot ${p.locked?'locked':'unlocked'}" ${p.locked?hover:`onclick="selectPlanet('${p.id}')"`}>
       <div class="planet-halo" style="background:${halo}"></div>
       <div class="planet-disc">${p.symbol}</div>
-      ${p.locked?'<div class="planet-lock">🔒</div>':''}
       <div class="planet-name">${p.name}</div>
       ${p.locked?'<div class="planet-soon">coming soon</div>':''}
     </div>`;
