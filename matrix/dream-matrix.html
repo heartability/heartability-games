@@ -1565,14 +1565,16 @@ async function stepLoadGame() {
   let games = [];
   try {
     const { data } = await sb.from('dream_matrix')
-      .select('id, map_id, map_name, map_type, map_data, updated_at')
+      .select('id, map_id, map_name, map_type, map_data, updated_at, map_completed')
       .eq('user_id', currentUser.id)
       .not('map_name', 'is', null)
       .in('map_type', ['spiral','square'])
       .order('updated_at', { ascending: false });
     const seen = new Set();
+    const completed = new Set();
+    (data || []).forEach(r => { if (r.map_id && r.map_completed) completed.add(r.map_id); });
     games = (data || []).filter(r => {
-      if (!r.map_id || seen.has(r.map_id)) return false;
+      if (!r.map_id || seen.has(r.map_id) || completed.has(r.map_id)) return false;
       seen.add(r.map_id);
       return true;
     }).slice(0, 8).map(r => ({ ...r, id: r.map_id }));
@@ -2543,6 +2545,7 @@ window.addEventListener('message', async e => {
       location_data: locationData,
       sidequest_data: sidequestData,
       character_data: charState,
+      map_completed: activePhase === 'dream_came_true' ? true : undefined,
     }, { onConflict: 'id' });
     saved = !error;
     if (error) showRoomStatus('save failed', '#E8478B');
