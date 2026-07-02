@@ -137,6 +137,25 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .slot-badge.past{ color:#bbb; border:1px solid #ddd; }
 .slot-badge.upcoming{ color:var(--blue); border:1px solid var(--blue); }
 
+/* PLANET SELECTOR */
+.planet-grid{ display:flex; flex-wrap:wrap; gap:30px 26px; justify-content:center; padding:10px; max-width:840px; }
+.planet-slot{ position:relative; width:126px; display:flex; flex-direction:column; align-items:center; gap:9px; }
+.planet-halo{ position:absolute; top:38px; left:50%; width:170px; height:170px; transform:translate(-50%,-50%);
+  border-radius:50%; pointer-events:none; filter:blur(4px); opacity:.55; transition:opacity .2s; }
+.planet-disc{ position:relative; width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:38px; color:#fff; background:rgba(10,10,25,0.32); border:2px solid rgba(255,255,255,0.4);
+  transition:transform .15s, border-color .15s, box-shadow .15s; }
+.planet-name{ font-family:var(--font-hand); font-size:14px; letter-spacing:.5px; color:rgba(201,255,245,0.85); text-align:center; }
+.planet-soon{ font-family:var(--font-hand); font-size:9px; letter-spacing:1.5px; color:rgba(201,255,245,0.4); text-transform:uppercase; }
+.planet-slot.unlocked .planet-disc{ cursor:pointer; border-color:rgba(255,255,255,0.65); }
+.planet-slot.unlocked:hover .planet-disc{ transform:translateY(-4px) scale(1.06); box-shadow:0 8px 20px rgba(0,0,0,.35); }
+.planet-slot.unlocked:hover .planet-halo{ opacity:.85; }
+.planet-slot.locked .planet-halo{ opacity:.18; filter:blur(4px) grayscale(.5); }
+.planet-slot.locked .planet-disc{ opacity:.45; cursor:default; }
+.planet-slot.locked .planet-name{ color:rgba(201,255,245,0.4); }
+.planet-lock{ position:absolute; bottom:-4px; right:-4px; font-size:13px; background:rgba(10,10,20,.6);
+  border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; z-index:2; }
+
 /* JOURNAL (chat-style, matches adventure) */
 .jrc-panel{ width:100%; height:100%; padding:8px; display:flex; flex-direction:column; overflow:hidden; }
 .jrc-window{ width:100%; height:100%; background:#f5f0ea;
@@ -421,7 +440,7 @@ async function init(){
   const paid = !!status && status !== 'free';
   if (!paid){ return showUpgradeGate(); }
 
-  await loadSeason();
+  showPlanetSelector();
 }
 
 sb.auth.onAuthStateChange((event, session)=>{
@@ -520,6 +539,50 @@ function showNoSeason(){
     <div class="gate-text">there's no published cosmic season at the moment. check back when the next one begins.</div>
     <button class="gate-btn" onclick="window.location.href='${LOGIN_URL}'">back to the castle →</button>
   </div>`);
+}
+
+// ── PLANET SELECTOR (entry screen — planetary body, then zodiac) ──
+// Colors follow classical planet associations; Sun/Mercury/Venus/Mars/Jupiter
+// reuse the CHAR_FULL body-color palette so the whole app shares one language.
+const PLANETS = [
+  { id:'sun',     symbol:'☉', name:'sun',     color:'#f5d033', locked:false },
+  { id:'moon',    symbol:'☽', name:'moon',    color:'#cfe3ea', locked:true  },
+  { id:'mercury', symbol:'☿', name:'mercury', color:'#f0922b', locked:true  },
+  { id:'venus',   symbol:'♀', name:'venus',   color:'#4caf7d', locked:true  },
+  { id:'mars',    symbol:'♂', name:'mars',    color:'#e85555', locked:true  },
+  { id:'jupiter', symbol:'♃', name:'jupiter', color:'#a04bc4', locked:true  },
+  { id:'saturn',  symbol:'♄', name:'saturn',  color:'#5a5470', locked:true  },
+];
+function hexA(hex, alpha){ // hex "#rrggbb" + alpha 0-1 → "#rrggbbaa"
+  const v = Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,'0');
+  return hex + v;
+}
+function showPlanetSelector(){
+  setBubble('choose a planetary body.');
+  setSave(false);
+  const cards = PLANETS.map(p=>{
+    const halo = `radial-gradient(circle, ${hexA(p.color,0.9)} 0%, ${hexA(p.color,0.55)} 45%, ${hexA(p.color,0)} 75%)`;
+    return `<div class="planet-slot ${p.locked?'locked':'unlocked'}" ${p.locked?'':`onclick="selectPlanet('${p.id}')"`}>
+      <div class="planet-halo" style="background:${halo}"></div>
+      <div class="planet-disc">${p.symbol}</div>
+      ${p.locked?'<div class="planet-lock">🔒</div>':''}
+      <div class="planet-name">${p.name}</div>
+      ${p.locked?'<div class="planet-soon">coming soon</div>':''}
+    </div>`;
+  }).join('');
+  const panel = $('content-panel');
+  panel.className = 'content-panel active map-mode';
+  panel.innerHTML = `
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="text-align:center;margin-bottom:36px;">
+        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a planetary body</span>
+      </div>
+      <div class="planet-grid">${cards}</div>
+    </div>`;
+}
+function selectPlanet(id){
+  if (id !== 'sun') return; // only the sun's path is live for now
+  loadSeason();
 }
 
 // ── SEASON LOAD + CLONE-ON-FIRST-OPEN ───────────────────────
