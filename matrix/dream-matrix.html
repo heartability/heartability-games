@@ -165,7 +165,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   padding: 14px 40px; background: var(--blue);
   border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa;
   font-family: var(--font-hand); font-size: clamp(15px,1.8vw,20px); color: #fff;
-  cursor: pointer; transition: all .05s; letter-spacing: .3px; width: 100%;
+  cursor: pointer; transition: all .05s; letter-spacing: .3px;
 }
 .begin-btn:hover { background:#4a5bc4; }
 .begin-btn:active { box-shadow:none; transform:translate(2px,2px); }
@@ -342,13 +342,17 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .phase-select-panel {
   padding: 10px 12px;
   justify-content: flex-start;
+  align-items: center;
   gap: 8px;
+}
+.phase-select-inner {
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(100%, 420px);
 }
 .phase-map-block {
   display: flex; flex-direction: column;
   border: 2px solid #c8b88a; overflow: hidden;
   background: #e8e0c8; flex-shrink: 0;
-  width: min(75%, 420px); align-self: center;
 }
 .phase-map-svg { aspect-ratio: 1; overflow: hidden; }
 .phase-map-svg svg { width: 100%; height: 100%; display: block; }
@@ -1759,18 +1763,20 @@ function stepPhaseSelect() {
       <span class="step-header-title">${activeGameData.map_name || 'your map'}</span>
       <span></span>
     </div>
-    <div class="phase-map-block">
-      <div class="phase-map-svg">${svgContent}</div>
-      <div class="phase-desc" id="phase-desc">pick a phase to begin</div>
-    </div>
-    <div class="phase-bottom-section">
-      <div class="phase-tiles-row">${tiles}</div>
-      <div class="phase-special-bars">
-        <div class="phase-bar phase-bar-sidequest" onclick="openSidequestBuilder()">✦ sidequest — fall into a secret little world</div>
-        <div class="phase-bar phase-bar-dct" onclick="openDctBuilder()">✓ my dream came true</div>
+    <div class="phase-select-inner">
+      <div class="phase-map-block">
+        <div class="phase-map-svg">${svgContent}</div>
+        <div class="phase-desc" id="phase-desc">pick a phase to begin</div>
       </div>
+      <div class="phase-bottom-section">
+        <div class="phase-tiles-row">${tiles}</div>
+        <div class="phase-special-bars">
+          <div class="phase-bar phase-bar-sidequest" onclick="openSidequestBuilder()">✦ sidequest — fall into a secret little world</div>
+          <div class="phase-bar phase-bar-dct" onclick="openDctBuilder()">✓ my dream came true</div>
+        </div>
+      </div>
+      <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">continue →</button>
     </div>
-    <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">continue →</button>
   </div>`;
   showPanel(html);
 }
