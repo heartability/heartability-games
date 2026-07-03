@@ -208,7 +208,16 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 }
 
 /* WEATHER CATEGORIES */
-.weather-categories { display: flex; flex-direction: column; gap: 8px; }
+.weather-categories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  gap: 8px;
+}
+@media (max-width: 680px) {
+  .weather-categories { grid-template-columns: 1fr; grid-auto-flow: row; }
+}
 .weather-category {
   padding: 8px 10px;
   border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
@@ -391,13 +400,8 @@ body, .wall { background: transparent; }
 
       <div class="two-col">
 
-        <!-- SIDE PANEL — name input + mode toggle + terrain + feelings -->
+        <!-- SIDE PANEL — mode toggle + terrain -->
         <div class="side-panel">
-
-          <div>
-            <div class="section-header">name your dream</div>
-            <input class="map-input" id="mapName" type="text" placeholder="i dream of..." maxlength="60" oninput="onNameInput()">
-          </div>
 
           <!-- Map shape selector with label -->
           <div>
@@ -412,11 +416,6 @@ body, .wall { background: transparent; }
             <div class="section-header">terrain</div>
             <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
             <div class="palette-items" id="terrainPalette"></div>
-          </div>
-
-          <div>
-            <div class="section-header">feelings</div>
-            <div class="weather-categories" id="weatherCategories"></div>
           </div>
 
         </div>
@@ -459,6 +458,12 @@ body, .wall { background: transparent; }
         </div>
 
       </div>
+
+      <div class="feelings-section">
+        <div class="section-header">feelings</div>
+        <div class="weather-categories" id="weatherCategories"></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -567,7 +572,6 @@ function setMode(mode) {
     squareEl.style.display = 'block';
     btnSq.classList.add('mode-active');
     btnSp.classList.remove('mode-active');
-    document.getElementById("mapName").value = squareState.name || "";
     renderSquareZones();
     squareActiveZone = null;
   } else {
@@ -575,7 +579,6 @@ function setMode(mode) {
     squareEl.style.display = 'none';
     btnSp.classList.add('mode-active');
     btnSq.classList.remove('mode-active');
-    document.getElementById("mapName").value = spiralState.name || "";
     renderZoneCircles();
     activeZone = null;
   }
@@ -594,23 +597,14 @@ function setMode(mode) {
   prompt.style.display = 'block';
 }
 
-function onNameInput() {
-  if (currentMode === 'spiral') spiralSaveState();
-  else squareSaveState();
-}
-
 // ── SPIRAL STATE ──────────────────────────────────────────────────────────
-let spiralState = { name:"", zones:[{},{},{}] };
+let spiralState = { zones:[{},{},{}] };
 let activeZone  = null;
 let ZONE_POSITIONS = [];
 
 function spiralLoadState() {
   // No persistence — always start with a fresh map each visit.
   while (spiralState.zones.length < 3) spiralState.zones.push({});
-}
-function spiralSaveState() {
-  // Keep in-memory name in sync; nothing is written to storage.
-  spiralState.name = document.getElementById("mapName").value;
 }
 function updateSpiralStatus() {
   const prompt = document.getElementById("zonePrompt");
@@ -632,16 +626,12 @@ function selectZone(i) {
 }
 
 // ── SQUARE STATE ──────────────────────────────────────────────────────────
-let squareState     = { name:"", zones:[{},{},{},{}] };
+let squareState     = { zones:[{},{},{},{}] };
 let squareActiveZone = null;
 
 function squareLoadState() {
   // No persistence — always start with a fresh map each visit.
   while (squareState.zones.length < 4) squareState.zones.push({});
-}
-function squareSaveState() {
-  // Keep in-memory name in sync; nothing is written to storage.
-  squareState.name = document.getElementById("mapName").value;
 }
 function updateSquareStatus() {
   const prompt = document.getElementById("zonePrompt");
@@ -733,18 +723,12 @@ function renderZoneCircles() {
     circle.style.cursor = 'pointer';
     zoneGroup.appendChild(circle);
     if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
-      const clipId = `clip-z${i}`;
-      const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-      clip.setAttribute('id', clipId);
-      const cc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      cc.setAttribute('cx', pos.x); cc.setAttribute('cy', pos.y); cc.setAttribute('r', R - 2);
-      clip.appendChild(cc); defs.appendChild(clip);
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
       img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
       img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
       img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      img.setAttribute('clip-path', `url(#${clipId})`); img.style.pointerEvents = 'none';
+      img.style.pointerEvents = 'none';
       zoneGroup.appendChild(img);
     }
     if (!hasTerrain || isActive) {
@@ -829,18 +813,12 @@ function renderSquareZones() {
     circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
     zoneGroup.appendChild(circle);
     if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
-      const clipId = `sq-clip-${i}`;
-      const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-      clip.setAttribute('id', clipId);
-      const cc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      cc.setAttribute('cx', pos.x); cc.setAttribute('cy', pos.y); cc.setAttribute('r', R - 2);
-      clip.appendChild(cc); defs.appendChild(clip);
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
       img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
       img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
       img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      img.setAttribute('clip-path', `url(#${clipId})`); img.style.pointerEvents = 'none';
+      img.style.pointerEvents = 'none';
       zoneGroup.appendChild(img);
     }
     if (!hasTerrain || isActive) {
@@ -916,11 +894,11 @@ function selectTerrain(t, el) {
   document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
   el.classList.add("active");
   if (currentMode === 'spiral') {
-    if (activeZone !== null) { spiralState.zones[activeZone].terrain = t.id; spiralSaveState(); renderZoneCircles(); }
+    if (activeZone !== null) { spiralState.zones[activeZone].terrain = t.id; renderZoneCircles(); }
     return;
   }
   if (currentMode === 'square') {
-    if (squareActiveZone !== null) { squareState.zones[squareActiveZone].terrain = t.id; squareSaveState(); renderSquareZones(); }
+    if (squareActiveZone !== null) { squareState.zones[squareActiveZone].terrain = t.id; renderSquareZones(); }
     return;
   }
 }
@@ -952,7 +930,7 @@ function selectFeeling(feeling, cat, el) {
       spiralState.zones[activeZone].feeling = feeling;
       spiralState.zones[activeZone].tint    = cat.tint;
       spiralState.zones[activeZone].cat     = cat.id;
-      spiralSaveState(); renderZoneCircles();
+      renderZoneCircles();
     }
     return;
   }
@@ -961,7 +939,7 @@ function selectFeeling(feeling, cat, el) {
       squareState.zones[squareActiveZone].feeling = feeling;
       squareState.zones[squareActiveZone].tint    = cat.tint;
       squareState.zones[squareActiveZone].cat     = cat.id;
-      squareSaveState(); renderSquareZones();
+      renderSquareZones();
     }
     return;
   }
@@ -971,12 +949,11 @@ function selectFeeling(feeling, cat, el) {
 function clearMap() {
   document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
   document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
-  document.getElementById("mapName").value = "";
   if (currentMode === 'spiral') {
-    spiralState = { name:"", zones:[{},{},{}] }; spiralSaveState();
+    spiralState = { zones:[{},{},{}] };
     activeZone = null; renderZoneCircles(); updateSpiralStatus();
   } else {
-    squareState = { name:"", zones:[{},{},{},{}] }; squareSaveState();
+    squareState = { zones:[{},{},{},{}] };
     squareActiveZone = null; renderSquareZones(); updateSquareStatus();
   }
 }
@@ -986,13 +963,8 @@ function reportMapState() {
   const isSpiral = currentMode === 'spiral';
   const mapState = isSpiral ? spiralState : squareState;
   const mapType  = currentMode;
-  const mapName  = (document.getElementById("mapName").value || mapState.name || '').trim();
   const mapData  = { ...mapState, type: mapType };
 
-  if (!mapName) {
-    try { window.parent.postMessage({ type: 'map_save_failed', reason: 'name your dream first' }, '*'); } catch(e) {}
-    return;
-  }
   const missingTerrain = mapState.zones.some(z => !z.terrain);
   const missingFeeling = mapState.zones.some(z => !z.feeling);
   if (missingTerrain || missingFeeling) {
@@ -1004,7 +976,7 @@ function reportMapState() {
     try { window.parent.postMessage({ type: 'map_save_failed', reason }, '*'); } catch(e) {}
     return;
   }
-  try { window.parent.postMessage({ type: 'map_ready', map_name: mapName, map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
+  try { window.parent.postMessage({ type: 'map_ready', map_type: mapType, map_data: mapData }, '*'); } catch(e) {}
 }
 
 spiralLoadState();
@@ -1013,7 +985,6 @@ buildTerrain();
 buildWeather();
 buildSpiralSVG();
 buildSquareSVG();
-document.getElementById("mapName").value = spiralState.name || "";
 updateSpiralStatus();
 
 // ── Listen for matrix triggering the state report ─────────

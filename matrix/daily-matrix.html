@@ -1281,9 +1281,8 @@ function buildSingleLocationSVG(loc){
     body += `<circle cx="${cx}" cy="${cy}" r="${R+44}" fill="url(#locglow)"/>`;
   }
   if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
-    defs += `<clipPath id="locclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
-      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#locclip)"/>`;
+      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
   }
@@ -1909,9 +1908,8 @@ function renderDayquestPreview() {
     body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#sqtint)"/>`;
   }
   if (dqDraft.terrain && TERRAIN_IMGS[dqDraft.terrain]) {
-    defs += `<clipPath id="sqclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
-      href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqclip)"/>`;
+      href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
       stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5 4"/>
