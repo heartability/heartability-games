@@ -439,6 +439,17 @@ const LINES = [
 let marked = new Array(25).fill(false);
 let dragging = false;
 
+function shuffle(arr) {
+  const a = arr.slice();
+  for(let i=a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+const shuffledSquares = shuffle(SQUARES);
+
 function load() { /* no-op — board always starts blank */ }
 
 function save() { /* no-op — state is in-memory only */ }
@@ -453,7 +464,7 @@ function buildGrid() {
 
     const txt = document.createElement("div");
     txt.className = "cell-text";
-    txt.textContent = i===12 ? "you are alive" : SQUARES[i<12?i:i-1];
+    txt.textContent = i===12 ? "you are alive" : shuffledSquares[i<12?i:i-1];
     cell.appendChild(txt);
 
     const heart = document.createElement("div");

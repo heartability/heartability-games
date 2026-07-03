@@ -405,6 +405,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   </div>
   <span class="nav-title">matrix archive</span>
   <div style="display:flex;align-items:center;gap:4px;">
+    <span class="nav-btn" id="play-link" style="display:none;"></span>
     <span class="nav-btn" onclick="window.location.href='../games/game-room.html'"> game room→</span>
   </div>
 </nav>
@@ -685,6 +686,22 @@ function showToast(msg, color) {
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ── TABS ──────────────────────────────────────────────────
+// Live-game deep links shown in the nav bar, per active tab (Completed/Archetypes
+// have no "continue playing" destination, so the link just stays hidden).
+const LIVE_GAME_LINKS = {
+  daily:  { href: 'daily-matrix.html',  label: 'daily matrix →' },
+  dream:  { href: 'dream-matrix.html',  label: 'dream matrix →' },
+  cosmic: { href: 'cosmic-matrix.html', label: 'cosmic matrix →' },
+};
+function updatePlayLink(){
+  const el = document.getElementById('play-link');
+  const cfg = LIVE_GAME_LINKS[activeTab];
+  if (!cfg) { el.style.display = 'none'; return; }
+  el.textContent = cfg.label;
+  el.onclick = () => window.location.href = cfg.href;
+  el.style.display = '';
+}
+
 function switchTab(tab){
   if (LOCKED_TABS.includes(tab) && !isPaid){
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
@@ -694,6 +711,7 @@ function switchTab(tab){
   document.getElementById('gate-overlay').classList.remove('open');
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  updatePlayLink();
 
   document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='completed'||tab==='daily') ? 'block' : 'none';
   document.getElementById('tab-cosmic').style.display    = tab==='cosmic'    ? 'block' : 'none';
@@ -1249,11 +1267,24 @@ async function loadArchetypeTab(){
   renderArchMainGrid();
 }
 function renderArchCard(a, onClick){
-  const btn = document.createElement('button');
-  btn.className = 'arch-card'; btn.type = 'button';
-  btn.innerHTML = `${MatrixRender.buildCharStack(a)}<div class="arch-card-name">${escapeHtml(a.name || 'unnamed')}</div>`;
-  btn.onclick = onClick;
-  return btn;
+  // A plain div (not <button>) so the delete control can be a real nested
+  // <button> without invalid button-in-button markup — same pattern as .map-slot.
+  const card = document.createElement('div');
+  card.className = 'arch-card';
+  const safeName = (a.name || 'unnamed').replace(/'/g, "\\'");
+  card.innerHTML = `<button class="slot-delete" type="button" title="delete archetype" onclick="event.stopPropagation();deleteArchetype('${a.id}','${safeName}')">×</button>
+    ${MatrixRender.buildCharStack(a)}<div class="arch-card-name">${escapeHtml(a.name || 'unnamed')}</div>`;
+  card.onclick = onClick;
+  return card;
+}
+async function deleteArchetype(archetypeId, name){
+  if (!confirm(`delete "${name}"?\nentries that already used this archetype keep their look — you just won't be able to pick it again.`)) return;
+  const { error } = await sb.from('character_archetypes').delete().eq('id', archetypeId).eq('user_id', currentUser.id);
+  if (error) { console.error('[archetypes] delete failed:', error); showToast('couldn’t delete — try again', '#E8478B'); return; }
+  allArchetypes = allArchetypes.filter(a => a.id !== archetypeId);
+  showToast('archetype deleted', '#8a7a5a');
+  const onAllScreen = document.getElementById('arch-all-view').style.display !== 'none';
+  if (onAllScreen) showArchAll(); else renderArchMainGrid();
 }
 function renderArchMainGrid(){
   const grid = document.getElementById('arch-grid');
