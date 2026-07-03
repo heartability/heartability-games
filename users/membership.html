@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../assets/css/modal.css">
   <script src="../assets/js/modal.js" defer></script>
   <title>Membership — Heartability</title>
+  <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
   <style>
 
 @font-face {
@@ -55,9 +56,9 @@ html, body {
   font-size: clamp(16px, 1.6vw, 20px);
   color: #111;
 }
-.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; color: inherit; text-decoration: none; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 .gear-wrap { position: relative; }
 .gear-btn { width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 3px; transition: background 0.15s; padding: 3px; }
 .gear-btn:hover { background: rgba(0,0,0,0.08); }
@@ -297,10 +298,10 @@ html, body {
       <button class="gear-item" id="gear-logout">sign out</button>
     </div>
   </div>
-  <span class="nav-title">membership options</span>
+  <h1 class="nav-title">membership options</h1>
   <div style="display:flex;align-items:center;gap:4px;">
-    <span class="nav-btn" onclick="history.length > 1 ? history.back() : window.location.href='profile.html'">← back</span>
-    <span class="nav-btn" onclick="window.location.href='../index.html'">home →</span>
+    <a class="nav-btn" href="profile.html" onclick="if(history.length>1){history.back();return false;}">← back</a>
+    <a class="nav-btn" href="../index.html">home →</a>
   </div>
 </nav>
 

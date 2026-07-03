@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
 <title>The Secret Garden — Heartability</title>
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
 <style>
 
 @font-face {
@@ -60,10 +61,12 @@ html, body {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 2px;
+  color: inherit;
+  text-decoration: none;
   transition: background 0.15s;
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 
 /* ── GARDEN ELEMENTS ── */
 .garden-el {
@@ -163,8 +166,8 @@ html, body {
 
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
-  <span class="nav-btn" id="nav-back">← back</span>
-  <span class="nav-title">secret garden</span>
+  <a class="nav-btn" id="nav-back" href="../games/game-room.html">← back</a>
+  <h1 class="nav-title">secret garden</h1>
   <span class="nav-btn" id="nav-next">next →</span>
 </nav>
 
@@ -226,7 +229,7 @@ html, body {
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
   /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click',  () => { history.length > 1 ? history.back() : window.location.href = '../games/game-room.html'; });
+  document.getElementById('nav-back').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
 
   document.getElementById('nav-next').addEventListener('click',   nextRoom);
 

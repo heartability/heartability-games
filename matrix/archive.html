@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
 <title>Archive — Heartability</title>
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
@@ -45,8 +46,9 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   position:absolute; left:50%; transform:translateX(-50%);
   pointer-events:none; white-space:nowrap;
   font-family:var(--font-hand); font-size:clamp(16px,1.6vw,20px);
+  margin:0; font-weight:normal;
 }
-.nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; }
+.nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
 /* ── Gear dropdown ── */
@@ -406,10 +408,10 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
       <button class="gear-item" id="gear-logout">sign out</button>
     </div>
   </div>
-  <span class="nav-title">matrix archive</span>
+  <h1 class="nav-title">matrix archive</h1>
   <div style="display:flex;align-items:center;gap:4px;">
     <span class="nav-btn" id="play-link" style="display:none;"></span>
-    <span class="nav-btn" onclick="window.location.href='../games/game-room.html'"> game room→</span>
+    <a class="nav-btn" href="../games/game-room.html"> game room→</a>
   </div>
 </nav>
 
