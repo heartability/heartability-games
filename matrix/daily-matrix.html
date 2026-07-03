@@ -403,6 +403,33 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
 .adv-char-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
 
+/* Archetype picker — reuse a saved cast member or build a new one */
+.arch-picker-loading { padding: 20px; font-family: var(--font-hand); color: #8a7a5a; }
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 180px));
+  gap: 12px;
+  padding: 4px;
+  justify-content: flex-start;
+}
+@media (max-width:600px) { .arch-grid { grid-template-columns: repeat(2, 1fr); } }
+.arch-card {
+  border: 2px solid #ccc; background: #fdf6e3;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: stretch;
+  padding: 8px 8px 6px; gap: 5px;
+  font-family: var(--font-hand); text-align: center;
+  transition: border-color .15s, box-shadow .12s, transform .1s;
+  position: relative;
+  aspect-ratio: 4/5;
+}
+.arch-card:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
+.arch-card-name { font-size: 15px; color: #3a2e1e; }
+.arch-card-new { border-style: dashed; border-color: #c8b88a; justify-content: center; align-items: center; }
+.arch-card-new:hover { border-color: var(--blue); }
+.arch-card-plus { font-size: 40px; line-height: 1; color: #c8b88a; }
+.arch-card-new:hover .arch-card-plus { color: var(--blue); }
+
 .adv-journal {
   width:clamp(150px,18vw,230px);
   background:rgba(255,255,255,.72); border:1.5px solid #c8b88a;
@@ -1293,17 +1320,114 @@ function buildSingleLocationSVG(loc){
   return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
 }
 
-// ── STEP 4: BEGIN → CHARACTER BUILDER ────────────────────
+// ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
 function stepBegin() {
   if (!activePhase) return;
   activeEntryId   = crypto.randomUUID();   // fresh daily_matrix row for today
   activeEntryDate = activeEntryDate || localTodayStr();
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
+  showArchetypePicker();
+}
+
+function openCharacterBuilder() {
   const src  = `../games/infinity-mirror.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src, 'create a character that represents your vibe today');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
+}
+
+// ── ARCHETYPE PICKER — reuse a saved cast member or build new ─
+async function showArchetypePicker() {
+  const panel = document.getElementById('content-panel');
+  panel.className = 'content-panel active';
+  panel.innerHTML = `<div class="arch-picker-loading">loading your cast…</div>`;
+  document.getElementById('wall-btns').classList.remove('active');
+  setSaveBtnVisible(false);
+
+  const { data, error } = await sb.from('character_archetypes')
+    .select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (error) console.error('[archetypes] fetch failed:', error);
+  renderArchetypePicker(data || []);
+}
+
+function renderArchetypePicker(archetypes) {
+  if (currentStep !== 'character') return;
+  const panel = document.getElementById('content-panel');
+  const cards = archetypes.map(a => `
+    <button class="arch-card" data-id="${a.id}" type="button">
+      ${_buildCharStack(a)}
+      <div class="arch-card-name">${_escapeHtml(a.name || 'unnamed')}</div>
+    </button>`).join('');
+  panel.innerHTML = `
+    <div class="arch-picker">
+      <div class="arch-grid">
+        ${cards}
+        <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
+          <div class="arch-card-plus">+</div>
+          <div class="arch-card-name">create new</div>
+        </button>
+      </div>
+    </div>`;
+  panel.querySelectorAll('.arch-card[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const a = archetypes.find(x => x.id === btn.dataset.id);
+      if (a) useArchetype(a);
+    });
+  });
+  document.getElementById('arch-new-btn').addEventListener('click', openCharacterBuilder);
+}
+
+async function useArchetype(archetype) {
+  const charState = {
+    name: archetype.name, body: archetype.body,
+    hair: archetype.hair, eyes: archetype.eyes, mouth: archetype.mouth,
+  };
+  await saveCharacterAndAdvance(charState, { fork: false });
+}
+
+// Saves charState to daily_matrix and advances the flow. When fork is true
+// (built fresh via the character builder), also adds it to the user's
+// reusable cast — picking a saved archetype never touches that table again.
+async function saveCharacterAndAdvance(charState, { fork }) {
+  // Build location_data from the dayquest — full snapshot so matrix/archive
+  // can redraw without any other reference.
+  const locationData = activeDayquest ? {
+    name:    activeDayquest.name    || null,
+    terrain: activeDayquest.terrain || null,
+    feeling: activeDayquest.feeling || null,
+    tint:    activeDayquest.tint    || null,
+    cat:     activeDayquest.cat     || null,
+  } : null;
+
+  const { error } = await sb.from('daily_matrix').upsert({
+    id: activeEntryId,
+    user_id: currentUser.id,
+    entry_date: activeEntryDate,
+    location_data: locationData,
+    character_data: charState,
+  }, { onConflict: 'id' });
+
+  if (error) {
+    console.error('[daily save]', error);
+    showRoomStatus('save failed', '#E8478B');
+    const btn = document.getElementById('save-continue-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+    return;
+  }
+
+  if (fork) {
+    const { error: forkErr } = await sb.from('character_archetypes').insert({
+      user_id: currentUser.id, name: charState.name || null,
+      body: charState.body, hair: charState.hair,
+      eyes: charState.eyes, mouth: charState.mouth,
+    });
+    if (forkErr) console.error('[archetypes] save failed:', forkErr);
+  }
+
+  showRoomStatus('character saved ✓', '#6ab86a');
+  setSaveBtnVisible(false);
+  stepBingo();
 }
 
 // ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
@@ -1410,7 +1534,7 @@ function jrcRowMessages(row){
 
 function buildAvatar(charData){
   if (!charData) return '<div class="jrc-avatar"></div>';
-  const layers = ['body','eyes','mouth','hair','shoes','acc'];
+  const layers = ['body','eyes','mouth','hair'];
   const imgs = layers.map(k => charData[k] && CHAR_FULL_ASSETS[charData[k]]
     ? `<img src="${CHAR_FULL_ASSETS[charData[k]]}" alt="">`
     : '').join('');
@@ -1600,17 +1724,6 @@ const CHAR_FULL_ASSETS = {
   hair_wings:    "../assets/characters-full/06.04-BLUE_HAIR.png",
   hair_pigtails: "../assets/characters-full/07.04-PIGTAIL_HAIR.png",
   hair_wideray:  "../assets/characters-full/08.04-WIDE_RAY.png",
-
-  acc_rollerblades: "../assets/characters-full/09.02-ROLLERBLADES.png",
-  acc_sneakers:     "../assets/characters-full/09.03-SNEAKERS.png",
-  acc_heels:        "../assets/characters-full/09.01-HIGH_HEELS.png",
-  acc_sandals:      "../assets/characters-full/09.04-SANDALS.png",
-  acc_devil:        "../assets/characters-full/10.01-DEVIL.png",
-  acc_angel:        "../assets/characters-full/10.02-HALO.png",
-  acc_birthday:     "../assets/characters-full/10.03-BIRTHDAY.png",
-  acc_swearword:    "../assets/characters-full/10.05-SENSOR.png",
-  acc_rainstorm:    "../assets/characters-full/10-RAINSTORM.png",
-  acc_rainbow:      "../assets/characters-full/10.04-RAINBOW.png",
 };
 
 function _buildCharStack(charState){
@@ -1619,14 +1732,12 @@ function _buildCharStack(charState){
   // A value already containing "/" is treated as a ready URL (forward-compatible).
   const resolve = v => !v ? null
     : (typeof v === 'string' && v.includes('/') ? v : (CHAR_FULL_ASSETS[v] || null));
-  // Same back→front order as the mirror: body, shoes, hair, eyes, mouth, acc (acc on top).
+  // Same back→front order as the mirror: body, hair, eyes, mouth.
   const layers = [
     charState.body,
-    charState.shoes,
     charState.hair,
     charState.eyes,
     charState.mouth,
-    charState.acc,
   ].map(resolve).filter(Boolean);
   if(!layers.length) return '';
   return `<div class="adv-char-stack">${layers.map(s=>`<img src="${s}" alt="" onerror="this.style.display='none'">`).join('')}</div>`;
@@ -1773,36 +1884,7 @@ window.addEventListener('message', async e => {
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
-    let saved = false;
-
-    // Build location_data from the dayquest — full snapshot so matrix/archive
-    // can redraw without any other reference.
-    const locationData = activeDayquest ? {
-      name:    activeDayquest.name    || null,
-      terrain: activeDayquest.terrain || null,
-      feeling: activeDayquest.feeling || null,
-      tint:    activeDayquest.tint    || null,
-      cat:     activeDayquest.cat     || null,
-    } : null;
-
-    const { error } = await sb.from('daily_matrix').upsert({
-      id: activeEntryId,
-      user_id: currentUser.id,
-      entry_date: activeEntryDate,
-      location_data: locationData,
-      character_data: charState,
-    }, { onConflict: 'id' });
-    saved = !error;
-    if (error) { console.error('[daily save]', error); showRoomStatus('save failed', '#E8478B'); }
-
-    if (saved) {
-      showRoomStatus('character saved ✓', '#6ab86a');
-      setSaveBtnVisible(false);
-      stepBingo();
-    } else {
-      const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'continue →';
-    }
+    await saveCharacterAndAdvance(charState, { fork: true });
     return;
   }
 
