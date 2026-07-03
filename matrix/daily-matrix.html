@@ -1418,13 +1418,15 @@ async function useArchetype(archetype) {
     name: archetype.name, body: archetype.body,
     hair: archetype.hair, eyes: archetype.eyes, mouth: archetype.mouth,
   };
-  await saveCharacterAndAdvance(charState, { fork: false });
+  await saveCharacterAndAdvance(charState, { fork: false, archetypeId: archetype.id });
 }
 
 // Saves charState to daily_matrix and advances the flow. When fork is true
 // (built fresh via the character builder), also adds it to the user's
 // reusable cast — picking a saved archetype never touches that table again.
-async function saveCharacterAndAdvance(charState, { fork }) {
+// archetypeId links the entry back to character_archetypes for the archive's
+// per-archetype location history; forked entries get their id after insert.
+async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
   // Build location_data from the dayquest — full snapshot so matrix/archive
   // can redraw without any other reference.
   const locationData = activeDayquest ? {
@@ -1435,12 +1437,26 @@ async function saveCharacterAndAdvance(charState, { fork }) {
     cat:     activeDayquest.cat     || null,
   } : null;
 
+  // New archetypes are inserted before the matrix row so the row can be
+  // stamped with the real archetype_id in the same save.
+  let finalArchetypeId = archetypeId || null;
+  if (fork) {
+    const { data: newArch, error: forkErr } = await sb.from('character_archetypes').insert({
+      user_id: currentUser.id, name: charState.name || null,
+      body: charState.body, hair: charState.hair,
+      eyes: charState.eyes, mouth: charState.mouth,
+    }).select().single();
+    if (forkErr) console.error('[archetypes] save failed:', forkErr);
+    else finalArchetypeId = newArch.id;
+  }
+
   const { error } = await sb.from('daily_matrix').upsert({
     id: activeEntryId,
     user_id: currentUser.id,
     entry_date: activeEntryDate,
     location_data: locationData,
     character_data: charState,
+    archetype_id: finalArchetypeId,
   }, { onConflict: 'id' });
 
   if (error) {
@@ -1449,15 +1465,6 @@ async function saveCharacterAndAdvance(charState, { fork }) {
     const btn = document.getElementById('save-continue-btn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
     return;
-  }
-
-  if (fork) {
-    const { error: forkErr } = await sb.from('character_archetypes').insert({
-      user_id: currentUser.id, name: charState.name || null,
-      body: charState.body, hair: charState.hair,
-      eyes: charState.eyes, mouth: charState.mouth,
-    });
-    if (forkErr) console.error('[archetypes] save failed:', forkErr);
   }
 
   showRoomStatus('character saved ✓', '#6ab86a');

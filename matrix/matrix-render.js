@@ -285,13 +285,15 @@
     </div>`;
   }
 
-  // ── ASSEMBLE: load a dream_matrix row by id → render model ──
-  // gameData = { map_name, map_type, map_data } for the row's parent game.
-  async function assemble(sb, entryId, gameData){
+  // ── ASSEMBLE: load a matrix row by id → render model ──
+  // gameData = { map_name, map_type, map_data } for the row's parent game (dream only).
+  // table defaults to 'dream_matrix'; pass 'daily_matrix' for daily entries (no map/zones).
+  async function assemble(sb, entryId, gameData, table){
+    table = table || 'dream_matrix';
     const g = gameData || {};
     const d = {
       dateLabel: '',
-      mapName: g.map_name || 'my map',
+      mapName: g.map_name || (table === 'daily_matrix' ? 'today' : 'my map'),
       mapType: g.map_type || 'spiral',
       zones: (g.map_data || {}).zones || [],
       mapPhase: null, locationData: null, sidequestData: null,
@@ -299,7 +301,7 @@
     };
     if (!sb || !entryId) return d;
     try {
-      const { data: row } = await sb.from('dream_matrix').select('*').eq('id', entryId).maybeSingle();
+      const { data: row } = await sb.from(table).select('*').eq('id', entryId).maybeSingle();
       if (row){
         d.charState     = row.character_data || null;
         d.bingoScore    = (row.bingo_data && row.bingo_data.score) || 0;
@@ -310,8 +312,13 @@
           ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
           : '');
         d.matrixImages  = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-        // dateLabel reflects the SAVE's local day, not "today".
-        if (row.created_at) {
+        // dateLabel reflects the SAVE's local day, not "today". Daily rows are
+        // dated by entry_date (a plain YYYY-MM-DD), so prefer it when present.
+        if (row.entry_date) {
+          const [y,m,dd] = String(row.entry_date).split('-').map(Number);
+          if (y && m && dd) d.dateLabel = new Date(y, m-1, dd)
+            .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        } else if (row.created_at) {
           d.dateLabel = new Date(row.created_at)
             .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
         }
@@ -364,6 +371,7 @@
   function createPhotoEditor(deps){
     deps = deps || {};
     const status = deps.status || function(){};
+    const table  = deps.table || 'dream_matrix';
     let draft = { file:null, quadrant:null };
 
     const overlay = document.createElement('div');
@@ -453,11 +461,11 @@
         const publicUrl = pub && pub.publicUrl;
         if (!publicUrl) throw new Error('could not resolve image url');
         // Append {url,quadrant} (read-modify-write).
-        const { data: row, error: readErr } = await sb.from('dream_matrix').select('matrix_images').eq('id', entryId).maybeSingle();
+        const { data: row, error: readErr } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
         if (readErr) throw readErr;
         const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
         const next = [...current, { url: publicUrl, quadrant: draft.quadrant }];
-        const { error: updErr } = await sb.from('dream_matrix').update({ matrix_images: next }).eq('id', entryId);
+        const { error: updErr } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
         if (updErr) throw updErr;
         close();
         status('photo added ✓', '#6ab86a');
@@ -474,11 +482,11 @@
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
       if (!url || !userId || !entryId) return;
       try {
-        const { data: row } = await sb.from('dream_matrix').select('matrix_images').eq('id', entryId).maybeSingle();
+        const { data: row } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
         const imgs = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
         const next = imgs.filter(i => !(i && i.url === url));
         if (next.length === imgs.length) { deps.onChange && deps.onChange(); return; }
-        const { error } = await sb.from('dream_matrix').update({ matrix_images: next }).eq('id', entryId);
+        const { error } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
         if (error) throw error;
       } catch (err) {
         console.error('[matrix-render] photo remove failed:', err);
@@ -495,11 +503,13 @@
   }
 
   // ── JOURNAL EDITOR ────────────────────────────────────────
-  // deps = { sb, getEntryId(), onChange(), status(msg,color) }
-  // Edits dream_matrix.journal_messages. Saving replaces with a single message; clearing removes all.
+  // deps = { sb, getEntryId(), onChange(), status(msg,color), table }
+  // Edits <table>.journal_messages (defaults to dream_matrix). Saving replaces
+  // with a single message; clearing removes all.
   function createJournalEditor(deps){
     deps = deps || {};
     const status = deps.status || function(){};
+    const table  = deps.table || 'dream_matrix';
 
     const overlay = document.createElement('div');
     overlay.className = 'mr-jr-overlay';
@@ -545,7 +555,7 @@
         ? [{ id: crypto.randomUUID(), text: trimmed, image_url: null, created_at: new Date().toISOString() }]
         : [];
       try {
-        const { error } = await sb.from('dream_matrix')
+        const { error } = await sb.from(table)
           .update({ journal_messages: messages })
           .eq('id', entryId);
         if (error) throw error;
@@ -743,6 +753,7 @@
     createPhotoEditor,
     createJournalEditor,
     buildMapSVG,
+    buildCharStack,
     // exposed for reuse/testing
     CHAR_FULL_ASSETS,
     TERRAIN_IMGS,

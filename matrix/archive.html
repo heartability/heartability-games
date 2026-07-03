@@ -69,8 +69,26 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 }
 .gear-item:hover { background:rgba(0,0,0,0.07); }
 
+/* ── TAB BAR ── */
+.tab-bar {
+  position:fixed; top:44px; left:0; right:0; height:42px; z-index:190;
+  background:var(--cream-dk); border-bottom:2px solid #ccc;
+  display:flex; align-items:stretch; justify-content:center;
+  overflow-x:auto;
+}
+.tab-btn {
+  background:none; border:none; border-right:1.5px solid rgba(0,0,0,.08);
+  font-family:var(--font-hand); font-size:clamp(13px,1.5vw,16px); color:#777;
+  padding:0 18px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition:background .12s, color .12s; white-space:nowrap;
+}
+.tab-btn:hover { background:rgba(101,121,226,.08); color:#333; }
+.tab-btn.active { background:var(--purple); color:#fff; }
+.tab-lock { width:12px; height:12px; opacity:.65; display:none; }
+.tab-btn.active .tab-lock { opacity:.95; }
+
 .page-wrap {
-  min-height:100dvh; padding:80px 20px 48px;
+  min-height:100dvh; padding:120px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
 .page-body {
@@ -106,6 +124,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   padding:0 16px; font-family:var(--font-hand); font-size:clamp(13px,1.4vw,16px); color:#555;
 }
 .window-body { padding:20px 20px 24px; }
+.win-back-btn { cursor:pointer; color:var(--purple); text-decoration:underline; margin-right:8px; }
+.win-back-btn:hover { color:var(--purple-dk); }
 
 /* Map window */
 #map-window { display:flex; flex-direction:column; }
@@ -115,6 +135,10 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   overflow:hidden; min-height:280px;
 }
 .map-svg-wrap svg { width:100%; height:100%; display:block; }
+.daily-window-empty {
+  text-align:center; padding:32px 20px; margin:auto;
+  font-family:var(--font-hand); font-style:italic; color:#bbb; font-size:15px; line-height:1.7;
+}
 
 /* ── GRAPH (line) ── */
 .graph-col { display:flex; flex-direction:column; gap:8px; min-width:0; }
@@ -242,6 +266,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .day-close:hover { color:var(--purple); }
 .day-back { cursor:pointer; font-family:var(--font-hand); font-size:14px; color:#888; padding:2px 4px; }
 .day-back:hover { color:var(--purple); }
+.day-view-more { cursor:pointer; font-family:var(--font-hand); font-size:14px; color:var(--purple); padding:2px 4px; text-decoration:underline; }
+.day-view-more:hover { color:var(--purple-dk); }
 
 .day-body { flex:1; overflow-y:auto; }
 
@@ -267,7 +293,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 /* ── MAP SELECTOR SCREEN ── */
 #map-selector {
   display:none; position:fixed; inset:0;
-  padding-top:44px; background:#e8e3da; z-index:50; overflow-y:auto;
+  padding-top:84px; background:#e8e3da; z-index:50; overflow-y:auto;
   align-items:center; justify-content:center;
 }
 .map-sel-inner { max-width:900px; margin:0 auto; padding:28px clamp(16px,3vw,48px) 48px; }
@@ -305,6 +331,47 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 }
 .slot-delete:hover { color:#E8478B; }
 
+/* ── ARCHETYPE PICKER (reuses the in-game card style) ── */
+.arch-picker-loading { padding:20px; font-family:var(--font-hand); color:#8a7a5a; }
+.arch-grid { display:grid; grid-template-columns:repeat(4, minmax(120px,180px)); gap:12px; padding:4px; justify-content:center; }
+@media (max-width:600px) { .arch-grid { grid-template-columns:repeat(2,1fr); } }
+.arch-card {
+  border:2px solid #ccc; background:#fdf6e3; cursor:pointer; display:flex; flex-direction:column;
+  align-items:stretch; padding:8px 8px 6px; gap:5px; font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s; position:relative; aspect-ratio:4/5;
+}
+.arch-card:hover { border-color:var(--purple); box-shadow:2px 2px 0 var(--purple); transform:translateY(-2px); }
+.arch-card-name { font-size:15px; color:#3a2e1e; }
+.arch-card-new { border-style:dashed; border-color:#c8b88a; justify-content:center; align-items:center; }
+.arch-card-new:hover { border-color:var(--purple); }
+.arch-card-plus { font-size:32px; line-height:1; color:#c8b88a; font-family:var(--font-game); }
+.arch-card-new:hover .arch-card-plus { color:var(--purple); }
+.arch-history-header { display:flex; flex-direction:column; align-items:center; width:140px; margin:0 auto 18px; }
+
+/* ── MEMBER GATE ── */
+.member-gate-overlay {
+  position:fixed; inset:0; z-index:600; background:rgba(40,32,24,.55);
+  display:none; align-items:center; justify-content:center; padding:18px;
+}
+.member-gate-overlay.open { display:flex; }
+.member-gate {
+  width:min(420px,92vw); background:var(--cream);
+  box-shadow:0 0 0 3px var(--purple), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
+  padding:26px 26px 22px; display:flex; flex-direction:column; gap:14px; text-align:center;
+}
+.member-gate-title { font-family:var(--font-hand); font-size:clamp(20px,2.5vw,28px); color:var(--purple); }
+.member-gate-text { font-family:var(--font-hand); font-size:clamp(13px,1.4vw,16px); color:#555; line-height:1.5; }
+.member-gate-btns { display:flex; flex-direction:column; gap:10px; }
+.member-gate-btn {
+  font-family:var(--font-hand); font-size:15px; color:#fff; background:var(--purple);
+  border:2px solid var(--purple-dk); box-shadow:2px 2px 0 var(--purple-sh);
+  padding:10px 18px; cursor:pointer; transition:all .05s;
+}
+.member-gate-btn:hover { background:var(--purple-dk); }
+.member-gate-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.member-gate-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
+.member-gate-btn.ghost:hover { border-color:var(--purple); color:var(--purple); }
+
 /* ── TOAST ── */
 #toast {
   position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
@@ -321,7 +388,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   color:var(--aqua); text-shadow:0 0 20px rgba(131,210,230,.6);
   background:#e8e3da; z-index:999;
 }
-#main-content { display:none; }
 </style>
 </head>
 <body>
@@ -342,96 +408,150 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   </div>
 </nav>
 
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-btn" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+  <button class="tab-btn" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+  <button class="tab-btn" data-tab="daily" onclick="switchTab('daily')">daily</button>
+  <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
+  <button class="tab-btn" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+</div>
+
 <div id="loading-state">loading your archive...</div>
 
-<!-- MAP SELECTOR -->
-<div id="map-selector">
-  <div class="map-sel-inner">
-    <div class="map-sel-window">
-      <div class="map-sel-titlebar">your maps</div>
-      <div class="map-grid" id="map-grid"></div>
+<!-- SHARED VIEW: dream / completed / daily all drive this same map+graph+calendar system -->
+<div id="shared-view">
+
+  <!-- MAP SELECTOR (dream + completed only) -->
+  <div id="map-selector">
+    <div class="map-sel-inner">
+      <div class="map-sel-window">
+        <div class="map-sel-titlebar" id="map-sel-title">your maps</div>
+        <div class="map-grid" id="map-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+    <div class="page-body" id="main-content">
+
+      <!-- TOP ROW: map (or daily matrix card) + line graph -->
+      <div class="top-row">
+        <!-- MAP WINDOW -->
+        <div class="window" id="map-window">
+          <div class="window-titlebar">
+            <span>
+              <span class="win-back-btn" id="win-back-btn" onclick="backToSelector()" style="display:none;">← your maps</span>
+              <span id="map-window-label">Map of: </span><span id="map-window-title">your map</span>
+            </span>
+            <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
+          </div>
+          <div class="map-window-body">
+            <div class="map-svg-wrap" id="map-svg-wrap"></div>
+          </div>
+        </div>
+
+        <!-- GRAPH -->
+        <div class="graph-col">
+          <select id="game-dropdown" onchange="onGameChange()" style="display:none;"></select>
+          <div class="window" id="graph-window">
+            <div class="window-titlebar">
+              <span>energy over time</span>
+              <div class="graph-toggle">
+                <button class="graph-toggle-btn active" id="toggle-week" onclick="setGraphMode('week')">week</button>
+                <button class="graph-toggle-btn" id="toggle-month" onclick="setGraphMode('month')">month</button>
+              </div>
+            </div>
+            <div class="graph-area">
+              <div class="graph-week-nav">
+                <button class="week-nav-btn" id="graph-prev-week" onclick="graphNav(1)" title="earlier">◄</button>
+                <span id="week-label" style="font-family:var(--font-game);font-size:11px;color:#aaa;"></span>
+                <button class="week-nav-btn" id="graph-next-week" onclick="graphNav(-1)" title="later">►</button>
+              </div>
+              <div class="graph-plot-row">
+                <div class="graph-y" id="graph-y"></div>
+                <div class="graph-svg-wrap" id="graph-svg-wrap"></div>
+              </div>
+              <div class="graph-x-labels" id="graph-x-labels"></div>
+            </div>
+            <div class="phase-legend">
+              <div class="legend-line"><span class="legend-swatch"></span> a dot for each day you showed up — the line stays unbroken across the days you missed</div>
+            </div>
+            <div class="empty-month" id="graph-empty" style="display:none;">
+              no energy data yet — complete the daily loop to build your graph
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="window" id="cal-window">
+        <div class="window-titlebar">
+          <button class="month-btn" onclick="changeMonth(-1)">◄</button>
+          <div class="month-label" id="month-label"></div>
+          <button class="month-btn" onclick="changeMonth(1)">►</button>
+        </div>
+        <div class="window-body">
+          <div class="cal-header">
+            <div class="cal-day-label">SUN</div><div class="cal-day-label">MON</div>
+            <div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div>
+            <div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div>
+            <div class="cal-day-label">SAT</div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+            <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
+          </div>
+          <div class="empty-month" id="cal-empty" style="display:none;">no entries for this map yet</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
-<div class="page-wrap">
-  <div class="page-body" id="main-content">
-
-    <!-- TOP ROW: map + line graph -->
-    <div class="top-row">
-      <!-- MAP WINDOW -->
-      <div class="window" id="map-window">
-        <div class="window-titlebar">
-          <span>Map of: <span id="map-window-title">your map</span></span>
-          <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
-        </div>
-        <div class="map-window-body">
-          <div class="map-svg-wrap" id="map-svg-wrap"></div>
+<!-- COSMIC TAB: season launcher grid, no in-archive detail view -->
+<div id="tab-cosmic" style="display:none;">
+  <div class="page-wrap">
+    <div class="page-body" style="max-width:900px;">
+      <div class="window" id="cosmic-window">
+        <div class="window-titlebar"><span>your seasons</span></div>
+        <div class="window-body">
+          <div class="map-grid" id="cosmic-grid"></div>
+          <div class="empty-month" id="cosmic-empty" style="display:none;">no cosmic seasons started yet — open the cosmic matrix to begin one</div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-      <!-- GRAPH -->
-      <div class="graph-col">
-        <select id="game-dropdown" onchange="onGameChange()" style="display:none;"></select>
-        <div class="window" id="graph-window">
-          <div class="window-titlebar">
-            <span>energy over time</span>
-            <div class="graph-toggle">
-              <button class="graph-toggle-btn active" id="toggle-week" onclick="setGraphMode('week')">week</button>
-              <button class="graph-toggle-btn" id="toggle-month" onclick="setGraphMode('month')">month</button>
-            </div>
+<!-- ARCHETYPE TAB -->
+<div id="tab-archetype" style="display:none;">
+  <div class="page-wrap">
+    <div class="page-body" style="max-width:900px;">
+      <div class="window" id="arch-window">
+        <div class="window-titlebar"><span>your cast</span></div>
+        <div class="window-body">
+          <div id="arch-main-view"><div class="arch-grid" id="arch-grid"></div></div>
+          <div id="arch-all-view" style="display:none;">
+            <span class="day-back" onclick="showArchMain()">← back</span>
+            <div class="arch-grid" id="arch-all-grid" style="margin-top:14px;"></div>
           </div>
-          <div class="graph-area">
-            <div class="graph-week-nav">
-              <button class="week-nav-btn" id="graph-prev-week" onclick="graphNav(1)" title="earlier">◄</button>
-              <span id="week-label" style="font-family:var(--font-game);font-size:11px;color:#aaa;"></span>
-              <button class="week-nav-btn" id="graph-next-week" onclick="graphNav(-1)" title="later">►</button>
-            </div>
-            <div class="graph-plot-row">
-              <div class="graph-y" id="graph-y"></div>
-              <div class="graph-svg-wrap" id="graph-svg-wrap"></div>
-            </div>
-            <div class="graph-x-labels" id="graph-x-labels"></div>
-          </div>
-          <div class="phase-legend">
-            <div class="legend-line"><span class="legend-swatch"></span> a dot for each day you showed up — the line stays unbroken across the days you missed</div>
-          </div>
-          <div class="empty-month" id="graph-empty" style="display:none;">
-            no energy data yet — complete the daily loop to build your graph
+          <div id="arch-history-view" style="display:none;">
+            <span class="day-back" onclick="showArchFromHistory()">← back</span>
+            <div class="arch-history-header" id="arch-history-header"></div>
+            <div class="loc-list" id="arch-history-list"></div>
+            <div class="day-list-empty" id="arch-history-empty" style="display:none;">this archetype hasn't traveled anywhere yet</div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- CALENDAR -->
-    <div class="window" id="cal-window">
-      <div class="window-titlebar">
-        <button class="month-btn" onclick="changeMonth(-1)">◄</button>
-        <div class="month-label" id="month-label"></div>
-        <button class="month-btn" onclick="changeMonth(1)">►</button>
-      </div>
-      <div class="window-body">
-        <div class="cal-header">
-          <div class="cal-day-label">SUN</div><div class="cal-day-label">MON</div>
-          <div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div>
-          <div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div>
-          <div class="cal-day-label">SAT</div>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
-        <div style="display:flex;justify-content:flex-end;padding-top:8px;">
-          <span id="cal-entry-count" style="font-size:12px;color:#aaa;font-family:var(--font-game);"></span>
-        </div>
-        <div class="empty-month" id="cal-empty" style="display:none;">no entries for this map yet</div>
-      </div>
-    </div>
-
   </div>
 </div>
 
 <!-- DAY POPUP -->
 <div class="day-overlay" id="day-overlay" onclick="handleDayOverlayClick(event)">
   <div class="day-window">
-    <!-- VIEW 1: locations list -->
+    <!-- VIEW 1: locations list (dream + completed only; daily skips straight to VIEW 2) -->
     <div id="day-list-wrap" style="display:flex;flex-direction:column;flex:1;min-height:0;">
       <div class="day-titlebar">
         <span id="day-title">day</span>
@@ -446,13 +566,28 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     <!-- VIEW 2: embedded matrix -->
     <div id="day-matrix-wrap" style="display:none;flex-direction:column;flex:1;min-height:0;">
       <div class="day-titlebar">
-        <span class="day-back" onclick="backToList()">← all locations</span>
+        <span class="day-back" id="day-back-btn" onclick="backToList()">← all locations</span>
         <span id="matrix-loc-title" style="color:#777;"></span>
-        <span class="day-close" onclick="closeDayPopup()">✕</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="day-view-more" id="day-view-more-btn" onclick="viewMoreDaily()" style="display:none;">view more →</span>
+          <span class="day-close" onclick="closeDayPopup()">✕</span>
+        </span>
       </div>
       <div class="day-body">
         <div class="matrix-stage" id="matrix-stage"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER GATE (Dream / Cosmic / Completed) -->
+<div class="member-gate-overlay" id="gate-overlay">
+  <div class="member-gate">
+    <div class="member-gate-title" id="gate-title">members only</div>
+    <div class="member-gate-text" id="gate-text"></div>
+    <div class="member-gate-btns">
+      <button class="member-gate-btn ghost" type="button" onclick="hideGate()">back to archive</button>
+      <button class="member-gate-btn" type="button" onclick="window.location.href='../users/membership.html'">upgrade now</button>
     </div>
   </div>
 </div>
@@ -472,9 +607,15 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── STATE ─────────────────────────────────────────────────
 let currentUser   = null;
-let allGames      = [];
+let isPaid        = false;
+let activeTab     = null;               // 'dream' | 'cosmic' | 'daily' | 'archetype' | 'completed'
+const LOCKED_TABS = ['dream', 'cosmic', 'completed'];
+
+// currentMode drives the shared map+graph+calendar system: 'dream' | 'completed' | 'daily'
+let currentMode   = 'dream';
+let allGames      = [];     // for current mode ('dream'/'completed'): every dream_matrix map, deduped by map_id
 let activeGameId  = null;
-let allSaves      = [];     // every dream_matrix row for the active game (asc by created_at)
+let allSaves      = [];     // every row for the active game (dream/completed) or every daily_matrix row (daily)
 let daysByKey     = {};     // 'YYYY-MM-DD' (local) -> [save, ...] sorted by created_at
 let viewYear      = new Date().getFullYear();
 let viewMonth     = new Date().getMonth();
@@ -489,7 +630,14 @@ let activeDayKey  = null;
 let activeSaveId  = null;
 let lastMatrixData = null;
 let photoEditor   = null;
-let journalEditor = null;
+let journalEditor = null;        // dream_matrix notes
+let dailyJournalEditor = null;   // daily_matrix notes
+let dailyMatrixShown = false;    // has "view more" populated the persistent daily window yet?
+
+// cosmic + archetype state
+let cosmicMapIdToSeason = {};
+let allArchetypes = [];
+let archCameFromAll = false;
 
 // ── SINGLE SOURCE OF TRUTH: which local day a row belongs to ──
 // en-CA renders as YYYY-MM-DD, evaluated in the browser's local timezone.
@@ -506,6 +654,7 @@ function formatTime(ts) {
 function locationLabel(save) {
   if (save.sidequest_data && save.sidequest_data.name) return save.sidequest_data.name;
   const l = save.location_data || {};
+  if (l.name) return l.name;
   if (l.terrain && l.feeling) return `${l.terrain} of ${l.feeling}`;
   if (l.terrain || l.feeling) return l.terrain || l.feeling;
   if (save.map_phase) return save.map_phase.replace(/_/g,' ');
@@ -530,11 +679,54 @@ function showToast(msg, color) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(tab){
+  if (LOCKED_TABS.includes(tab) && !isPaid){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    showGate(tab);
+    return;
+  }
+  document.getElementById('gate-overlay').classList.remove('open');
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+
+  document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='completed'||tab==='daily') ? 'block' : 'none';
+  document.getElementById('tab-cosmic').style.display    = tab==='cosmic'    ? 'block' : 'none';
+  document.getElementById('tab-archetype').style.display = tab==='archetype' ? 'block' : 'none';
+
+  if (tab==='dream' || tab==='completed'){
+    currentMode = tab;
+    showMapSelectorForCurrentMode();
+  } else if (tab==='daily'){
+    enterDailyView();
+  } else if (tab==='cosmic'){
+    loadCosmicTab();
+  } else if (tab==='archetype'){
+    loadArchetypeTab();
+  }
+}
+function showGate(tab){
+  const copy = {
+    dream:     { title:'dream matrix archive', text:'the dream matrix archive is for paid members. free members can still browse the daily tracker and their cast of archetypes.' },
+    cosmic:    { title:'cosmic matrix archive', text:'the cosmic matrix archive is for paid members — one season, one ritual, one archive to look back on.' },
+    completed: { title:'completed maps',        text:'finished dream maps are archived here for paid members.' },
+  }[tab] || { title:'members only', text:'this part of the archive is for paid members.' };
+  document.getElementById('gate-title').textContent = copy.title;
+  document.getElementById('gate-text').textContent = copy.text;
+  document.getElementById('gate-overlay').classList.add('open');
+}
+function hideGate(){
+  document.getElementById('gate-overlay').classList.remove('open');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+}
 
 // ── WHOLE-MAP SVG — delegated to the shared module ────────
 function renderMap() {
   const game = allGames.find(g => g.id === activeGameId);
   if (!game) return;
+  document.getElementById('map-window-label').textContent = 'Map of: ';
   document.getElementById('map-window-title').textContent = game.map_name || 'your map';
   document.getElementById('map-window-type').textContent  = (game.map_type || 'spiral') + ' map';
   document.getElementById('map-svg-wrap').innerHTML =
@@ -580,7 +772,9 @@ function renderCalendar() {
 
   document.getElementById('cal-entry-count').textContent =
     allSaves.length + (allSaves.length === 1 ? ' entry' : ' entries');
-  document.getElementById('cal-empty').style.display = allSaves.length ? 'none' : 'block';
+  const calEmpty = document.getElementById('cal-empty');
+  calEmpty.textContent = currentMode === 'daily' ? 'no daily entries yet' : 'no entries for this map yet';
+  calEmpty.style.display = allSaves.length ? 'none' : 'block';
 }
 function changeMonth(dir) {
   viewMonth += dir;
@@ -754,9 +948,18 @@ function paintGraph(slots, opts) {
 // ── DAY POPUP ─────────────────────────────────────────────
 function openDayPopup(dateStr) {
   activeDayKey = dateStr;
-  const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at)-new Date(b.created_at));
-  document.getElementById('day-title').textContent = formatDateLabel(dateStr);
+  const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at||a.entry_date) - new Date(b.created_at||b.entry_date));
 
+  if (currentMode === 'daily') {
+    if (!saves.length) return;
+    if (dailyMatrixShown) { showDailyMatrixWindow(saves[0].id); return; }
+    document.getElementById('day-title').textContent = formatDateLabel(dateStr);
+    document.getElementById('day-overlay').classList.add('open');
+    openMatrixView(saves[0].id);
+    return;
+  }
+
+  document.getElementById('day-title').textContent = formatDateLabel(dateStr);
   const list = document.getElementById('loc-list');
   list.innerHTML = '';
   if (!saves.length) {
@@ -778,7 +981,6 @@ function openDayPopup(dateStr) {
   showListView();
   document.getElementById('day-overlay').classList.add('open');
 }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function showListView() {
   document.getElementById('day-list-wrap').style.display = 'flex';
@@ -809,23 +1011,35 @@ async function openMatrixView(saveId) {
 }
 async function refreshMatrixView() {
   if (!activeSaveId) return;
-  const game = allGames.find(g => g.id === activeGameId);
-  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game);
-  const seed = `${activeGameId}|${activeSaveId}`;
+  const table = currentMode === 'daily' ? 'daily_matrix' : 'dream_matrix';
+  const game  = currentMode === 'daily' ? null : allGames.find(g => g.id === activeGameId);
+  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, table);
+  const seed = `${table}|${activeGameId||'x'}|${activeSaveId}`;
+  const opts = currentMode === 'daily'
+    ? { showAddPhoto:false, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true }
+    : { showAddPhoto:true,  showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true };
   document.getElementById('matrix-stage').innerHTML =
-    MatrixRender.buildHTML(lastMatrixData, seed, { showAddPhoto:true, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true });
+    MatrixRender.buildHTML(lastMatrixData, seed, opts);
+  document.getElementById('day-back-btn').style.display    = currentMode==='daily' ? 'none'   : '';
+  document.getElementById('day-view-more-btn').style.display = currentMode==='daily' ? 'inline' : 'none';
 }
 
-// ── GAME LOADING + ENTRIES ────────────────────────────────
-async function loadGames() {
+// ── GAME LOADING + ENTRIES (dream / completed) ────────────
+async function loadGamesForMode(mode) {
   const { data } = await sb.from('dream_matrix')
-    .select('id, map_id, map_name, map_type, map_data, updated_at')
+    .select('id, map_id, map_name, map_type, map_data, updated_at, map_completed')
     .eq('user_id', currentUser.id)
     .not('map_name', 'is', null)
+    .in('map_type', ['spiral','square'])
     .order('updated_at', { ascending: false });
+  const completed = new Set();
+  (data || []).forEach(r => { if (r.map_id && r.map_completed) completed.add(r.map_id); });
   const seen = new Set();
   allGames = (data || []).filter(r => {
     if (!r.map_id || seen.has(r.map_id)) return false;
+    const isCompleted = completed.has(r.map_id);
+    if (mode === 'completed' && !isCompleted) return false;
+    if (mode === 'dream' && isCompleted) return false;
     seen.add(r.map_id);
     return true;
   }).map(r => ({ ...r, id: r.map_id }));
@@ -865,11 +1079,14 @@ async function loadEntries() {
   renderGraph();
 }
 
-// ── MAP SELECTOR ──────────────────────────────────────────
-function showMapSelector() {
+// ── MAP SELECTOR (dream / completed) ──────────────────────
+async function showMapSelectorForCurrentMode(){
   viewingSelector = true;
   document.getElementById('map-selector').style.display = 'flex';
   document.getElementById('main-content').style.display = 'none';
+  document.getElementById('map-sel-title').textContent = currentMode === 'completed' ? 'completed maps' : 'your maps';
+  document.getElementById('map-grid').innerHTML = '<div class="arch-picker-loading">loading…</div>';
+  await loadGamesForMode(currentMode);
   renderMapSelectorGrid();
 }
 function renderMapSelectorGrid() {
@@ -894,6 +1111,8 @@ function renderMapSelectorGrid() {
       const empty=document.createElement('div'); empty.className='map-slot empty'; grid.appendChild(empty);
     }
   }
+  document.getElementById('map-sel-title').textContent =
+    (currentMode === 'completed' ? 'completed maps' : 'your maps') + (allGames.length ? '' : ' — none yet');
 }
 async function selectMapForArchive(gameId) {
   activeGameId=gameId; viewingSelector=false;
@@ -902,12 +1121,231 @@ async function selectMapForArchive(gameId) {
   await loadEntries();
   ls.style.display='none';
   document.getElementById('main-content').style.display='flex';
+  document.getElementById('win-back-btn').style.display='inline';
+}
+function backToSelector(){
+  document.getElementById('win-back-btn').style.display = 'none';
+  showMapSelectorForCurrentMode();
 }
 async function deleteMapFromArchive(gameId, mapName) {
   if (!confirm(`delete "${mapName}"?\nthis will remove the map and all its entries. this cannot be undone.`)) return;
   await sb.from('dream_matrix').delete().eq('map_id', gameId).eq('user_id', currentUser.id);
   allGames = allGames.filter(g => g.id !== gameId);
   renderMapSelectorGrid();
+}
+
+// ── DAILY TAB ─────────────────────────────────────────────
+async function enterDailyView(){
+  currentMode = 'daily';
+  dailyMatrixShown = false;
+  document.getElementById('map-selector').style.display = 'none';
+  document.getElementById('main-content').style.display = 'flex';
+  document.getElementById('win-back-btn').style.display = 'none';
+  document.getElementById('map-window-label').textContent = '';
+  document.getElementById('map-window-title').textContent = 'pick a day below';
+  document.getElementById('map-window-type').textContent = '';
+  document.getElementById('map-svg-wrap').innerHTML = '<div class="daily-window-empty">click a day on the calendar to preview it here</div>';
+  await loadDailyEntries();
+  renderCalendar();
+  renderGraph();
+}
+async function loadDailyEntries(){
+  const { data } = await sb.from('daily_matrix')
+    .select('id, character_data, bingo_data, energy_score, location_data, journal_messages, matrix_images, entry_date')
+    .eq('user_id', currentUser.id)
+    .order('entry_date', { ascending:true });
+  allSaves = data || [];
+  daysByKey = {};
+  allSaves.forEach(s => { if (s.entry_date) daysByKey[s.entry_date] = [s]; });
+  weekPage = 0;
+  graphMonth = new Date().getMonth();
+  graphYear  = new Date().getFullYear();
+}
+function viewMoreDaily(){
+  const id = activeSaveId;
+  closeDayPopup();
+  showDailyMatrixWindow(id);
+}
+async function showDailyMatrixWindow(saveId){
+  activeSaveId = saveId;
+  dailyMatrixShown = true;
+  const save = allSaves.find(s => s.id === saveId);
+  document.getElementById('map-window-label').textContent = '';
+  document.getElementById('map-window-title').textContent = save ? formatDateLabel(save.entry_date) : 'your day';
+  document.getElementById('map-window-type').textContent = 'daily entry';
+  document.getElementById('map-svg-wrap').innerHTML = '<div class="daily-window-empty">loading…</div>';
+  const data = await MatrixRender.assemble(sb, saveId, null, 'daily_matrix');
+  document.getElementById('map-svg-wrap').innerHTML =
+    MatrixRender.buildHTML(data, `daily|${saveId}`, { showAddPhoto:false, showEditNotes:false, showFrame:false });
+}
+
+// ── COSMIC TAB ────────────────────────────────────────────
+async function loadCosmicTab(){
+  const grid = document.getElementById('cosmic-grid');
+  grid.innerHTML = '<div class="arch-picker-loading">loading your seasons…</div>';
+  document.getElementById('cosmic-empty').style.display = 'none';
+
+  const { data: bingoRows } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
+  const seasons = (bingoRows || []).filter(r => r.map_data && r.map_data.season);
+  cosmicMapIdToSeason = {};
+  seasons.forEach(r => { cosmicMapIdToSeason[r.map_id] = r.map_data.season; });
+
+  let doneByMap = {};
+  if (seasons.length) {
+    const mapIds = seasons.map(s => s.map_id);
+    const { data: phaseRows } = await sb.from('cosmic_matrix')
+      .select('map_id, character_data')
+      .eq('user_id', currentUser.id)
+      .in('map_id', mapIds);
+    (phaseRows || []).forEach(r => { if (r.character_data) doneByMap[r.map_id] = (doneByMap[r.map_id] || 0) + 1; });
+  }
+
+  grid.innerHTML = '';
+  seasons.forEach(s => {
+    const total = (s.map_data.phases || []).length;
+    const done  = doneByMap[s.map_id] || 0;
+    const title = formatSeasonTitle(s.map_data.season);
+    const slot = document.createElement('div');
+    slot.className = 'map-slot';
+    slot.onclick = () => { window.location.href = `cosmic-matrix.html?season=${encodeURIComponent(s.map_data.season)}`; };
+    slot.innerHTML = `<div class="slot-name">${escapeHtml(title)}</div>
+      <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;font-family:var(--font-game);font-size:26px;color:var(--purple);">${done}/${total||'?'}</div>
+      <div class="slot-updated">${total && done>=total ? 'completed' : 'in progress'}</div>`;
+    grid.appendChild(slot);
+  });
+  document.getElementById('cosmic-empty').style.display = seasons.length ? 'none' : 'block';
+}
+function formatSeasonTitle(season){
+  return (season||'').split(/[^a-z0-9]+/i).filter(Boolean)
+    .map(w => /^\d+$/.test(w) ? w : (w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ');
+}
+async function ensureCosmicSeasonMap(){
+  if (Object.keys(cosmicMapIdToSeason).length) return;
+  const { data } = await sb.from('cosmic_bingo').select('map_id, map_data').eq('user_id', currentUser.id);
+  (data || []).forEach(r => { if (r.map_data && r.map_data.season) cosmicMapIdToSeason[r.map_id] = r.map_data.season; });
+}
+
+// ── ARCHETYPE TAB ─────────────────────────────────────────
+async function loadArchetypeTab(){
+  showArchMain();
+  document.getElementById('arch-grid').innerHTML = '<div class="arch-picker-loading">loading your cast…</div>';
+  const { data } = await sb.from('character_archetypes')
+    .select('*').eq('user_id', currentUser.id).order('created_at', { ascending:false });
+  allArchetypes = data || [];
+  renderArchMainGrid();
+}
+function renderArchCard(a, onClick){
+  const btn = document.createElement('button');
+  btn.className = 'arch-card'; btn.type = 'button';
+  btn.innerHTML = `${MatrixRender.buildCharStack(a)}<div class="arch-card-name">${escapeHtml(a.name || 'unnamed')}</div>`;
+  btn.onclick = onClick;
+  return btn;
+}
+function renderArchMainGrid(){
+  const grid = document.getElementById('arch-grid');
+  grid.innerHTML = '';
+  if (!allArchetypes.length){
+    grid.innerHTML = '<div class="day-list-empty">no archetypes yet — build one in any game to start your cast</div>';
+    return;
+  }
+  allArchetypes.slice(0,4).forEach(a => grid.appendChild(renderArchCard(a, () => openArchetypeHistory(a, false))));
+  if (allArchetypes.length > 4){
+    const more = document.createElement('button');
+    more.className = 'arch-card arch-card-new'; more.type = 'button';
+    more.innerHTML = `<div class="arch-card-plus">${allArchetypes.length}</div><div class="arch-card-name">view all →</div>`;
+    more.onclick = showArchAll;
+    grid.appendChild(more);
+  }
+}
+function showArchMain(){
+  archCameFromAll = false;
+  document.getElementById('arch-main-view').style.display = 'block';
+  document.getElementById('arch-all-view').style.display = 'none';
+  document.getElementById('arch-history-view').style.display = 'none';
+}
+function showArchAll(){
+  document.getElementById('arch-main-view').style.display = 'none';
+  document.getElementById('arch-all-view').style.display = 'block';
+  document.getElementById('arch-history-view').style.display = 'none';
+  const grid = document.getElementById('arch-all-grid');
+  grid.innerHTML = '';
+  allArchetypes.forEach(a => grid.appendChild(renderArchCard(a, () => openArchetypeHistory(a, true))));
+}
+function showArchFromHistory(){
+  if (archCameFromAll) showArchAll(); else showArchMain();
+}
+async function openArchetypeHistory(archetype, fromAll){
+  archCameFromAll = fromAll;
+  document.getElementById('arch-main-view').style.display = 'none';
+  document.getElementById('arch-all-view').style.display = 'none';
+  document.getElementById('arch-history-view').style.display = 'block';
+  document.getElementById('arch-history-header').innerHTML =
+    `${MatrixRender.buildCharStack(archetype)}<div class="arch-card-name" style="margin-top:6px;">${escapeHtml(archetype.name || 'unnamed')}</div>`;
+  const list = document.getElementById('arch-history-list');
+  const emptyEl = document.getElementById('arch-history-empty');
+  emptyEl.style.display = 'none';
+  list.innerHTML = '<div class="day-list-empty">gathering their travels…</div>';
+
+  const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
+    sb.from('dream_matrix')
+      .select('id, map_id, map_name, location_data, sidequest_data, map_phase, map_completed, created_at')
+      .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
+    sb.from('daily_matrix')
+      .select('id, entry_date, location_data, created_at')
+      .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
+    sb.from('cosmic_matrix')
+      .select('map_id, map_phase, location_data, updated_at')
+      .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
+  ]);
+
+  if (cosmicRes.data && cosmicRes.data.length) await ensureCosmicSeasonMap();
+
+  const rows = [];
+  (dreamRes.data || []).forEach(r => rows.push({
+    source:'dream', dateVal:new Date(r.created_at), label:locationLabel(r), raw:r,
+  }));
+  (dailyRes.data || []).forEach(r => rows.push({
+    source:'daily', dateVal:new Date(r.entry_date + 'T00:00:00'), label:locationLabel(r), raw:r,
+  }));
+  (cosmicRes.data || []).forEach(r => rows.push({
+    source:'cosmic', dateVal:new Date(r.updated_at),
+    label: [r.location_data && r.location_data.sign, r.location_data && r.location_data.location].filter(Boolean).join(' · ') || 'a season',
+    raw:r,
+  }));
+  rows.sort((a,b) => b.dateVal - a.dateVal);
+
+  list.innerHTML = '';
+  if (!rows.length){ emptyEl.style.display = 'block'; return; }
+  rows.forEach(row => {
+    const badge = row.source==='dream' ? 'dream matrix' : row.source==='daily' ? 'daily tracker' : 'cosmic matrix';
+    const el = document.createElement('div');
+    el.className = 'loc-row';
+    el.innerHTML = `<span class="loc-name">${escapeHtml(row.label)} <span style="color:#bbb;font-size:11px;">· ${badge}</span></span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span class="loc-time">${row.dateVal.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+        <span class="loc-arrow">→</span>
+      </span>`;
+    el.onclick = () => jumpToArchetypeRow(row);
+    list.appendChild(el);
+  });
+}
+async function jumpToArchetypeRow(row){
+  if (row.source === 'dream') {
+    const mode = row.raw.map_completed ? 'completed' : 'dream';
+    switchTab(mode);
+    await loadGamesForMode(mode);
+    if (!allGames.find(g => g.id === row.raw.map_id)) return;
+    await selectMapForArchive(row.raw.map_id);
+    openDayPopup(localDayKey(row.raw.created_at));
+  } else if (row.source === 'daily') {
+    switchTab('daily');
+    await enterDailyView();
+    openDayPopup(row.raw.entry_date);
+  } else if (row.source === 'cosmic') {
+    const season = cosmicMapIdToSeason[row.raw.map_id];
+    if (season) window.location.href = `cosmic-matrix.html?season=${encodeURIComponent(season)}`;
+  }
 }
 
 // ── NAV ───────────────────────────────────────────────────
@@ -919,39 +1357,51 @@ document.addEventListener('click', e => {
 document.getElementById('gear-logout').addEventListener('click', async () => {
   await sb.auth.signOut(); window.location.href='../users/login.html';
 });
-function handleBack() {
-  if (!viewingSelector) showMapSelector();
-  else (history.length>1 ? history.back() : window.location.href='../users/profile.html');
-}
 
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
   try { const { data:{ session } } = await sb.auth.getSession(); currentUser = session?.user || null; } catch(e){}
   if (!currentUser) { document.getElementById('loading-state').textContent='please log in to view your archive'; return; }
 
+  let profile = null;
+  try {
+    const { data } = await sb.from('user-profiles')
+      .select('username, membership_status').eq('id', currentUser.id).maybeSingle();
+    profile = data;
+  } catch(e){}
+  isPaid = !!(profile && profile.membership_status && profile.membership_status !== 'free');
+  document.querySelectorAll('.tab-lock').forEach(img => { img.style.display = isPaid ? 'none' : 'inline-block'; });
+
   // Editors + matrix event wiring (created once; delegation survives re-renders).
   photoEditor = MatrixRender.createPhotoEditor({
-    sb, getEntryId: () => activeSaveId, getUserId: () => currentUser.id,
+    sb, table:'dream_matrix', getEntryId: () => activeSaveId, getUserId: () => currentUser.id,
     onChange: refreshMatrixView, status: showToast,
   });
   journalEditor = MatrixRender.createJournalEditor({
-    sb, getEntryId: () => activeSaveId,
+    sb, table:'dream_matrix', getEntryId: () => activeSaveId,
+    onChange: refreshMatrixView, status: showToast,
+  });
+  dailyJournalEditor = MatrixRender.createJournalEditor({
+    sb, table:'daily_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: showToast,
   });
   MatrixRender.attachMatrix(document.getElementById('matrix-stage'), {
     onAddPhoto:    () => photoEditor.open(),
     onRemovePhoto: (url) => photoEditor.remove(url),
-    onEditNotes:   () => journalEditor.open(lastMatrixData ? lastMatrixData.journalText : ''),
+    onEditNotes:   () => (currentMode==='daily' ? dailyJournalEditor : journalEditor).open(lastMatrixData ? lastMatrixData.journalText : ''),
   });
 
-  await loadGames();
+  document.getElementById('loading-state').style.display='none';
+
   const params = new URLSearchParams(window.location.search);
-  const urlId  = params.get('game_id');
-  if (urlId && allGames.find(g => g.id === urlId)) {
-    await selectMapForArchive(urlId);
+  const urlGameId = params.get('game_id');
+
+  if (urlGameId && isPaid) {
+    switchTab('dream');
+    await loadGamesForMode('dream');
+    if (allGames.find(g => g.id === urlGameId)) await selectMapForArchive(urlGameId);
   } else {
-    document.getElementById('loading-state').style.display='none';
-    showMapSelector();
+    switchTab(isPaid ? 'dream' : 'daily');
   }
 }
 init();

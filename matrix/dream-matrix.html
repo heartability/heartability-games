@@ -1705,8 +1705,7 @@ function spiralZonesSVG(zones, opts){
       body += `<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sg${i})" pointer-events="none"/>`;
     }
     if (hasTerrain) {
-      defs += `<clipPath id="sc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sc${i})" pointer-events="none"/>`;
+      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`;
     } else {
       body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
       if (interactive) body += `<text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
@@ -1973,13 +1972,15 @@ async function useArchetype(archetype) {
     name: archetype.name, body: archetype.body,
     hair: archetype.hair, eyes: archetype.eyes, mouth: archetype.mouth,
   };
-  await saveCharacterAndAdvance(charState, { fork: false });
+  await saveCharacterAndAdvance(charState, { fork: false, archetypeId: archetype.id });
 }
 
 // Saves charState to dream_matrix and advances the flow. When fork is true
 // (built fresh via the character builder), also adds it to the user's
 // reusable cast — picking a saved archetype never touches that table again.
-async function saveCharacterAndAdvance(charState, { fork }) {
+// archetypeId links the entry back to character_archetypes for the archive's
+// per-archetype location history; forked entries get their id after insert.
+async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
   // Resolve the place for this entry: a self-contained snapshot (terrain +
   // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
   let sidequestData = null, locationData = null;
@@ -2001,6 +2002,19 @@ async function saveCharacterAndAdvance(charState, { fork }) {
                      tint:    z.tint    || null };
   }
 
+  // New archetypes are inserted before the matrix row so the row can be
+  // stamped with the real archetype_id in the same save.
+  let finalArchetypeId = archetypeId || null;
+  if (fork) {
+    const { data: newArch, error: forkErr } = await sb.from('character_archetypes').insert({
+      user_id: currentUser.id, name: charState.name || null,
+      body: charState.body, hair: charState.hair,
+      eyes: charState.eyes, mouth: charState.mouth,
+    }).select().single();
+    if (forkErr) console.error('[archetypes] save failed:', forkErr);
+    else finalArchetypeId = newArch.id;
+  }
+
   const { error } = await sb.from('dream_matrix').upsert({
     id: activeEntryId,
     map_id: activeGameId, user_id: currentUser.id,
@@ -2011,6 +2025,7 @@ async function saveCharacterAndAdvance(charState, { fork }) {
     location_data: locationData,
     sidequest_data: sidequestData,
     character_data: charState,
+    archetype_id: finalArchetypeId,
     map_completed: activePhase === 'dream_came_true' ? true : undefined,
   }, { onConflict: 'id' });
 
@@ -2019,15 +2034,6 @@ async function saveCharacterAndAdvance(charState, { fork }) {
     const btn = document.getElementById('save-continue-btn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
     return;
-  }
-
-  if (fork) {
-    const { error: forkErr } = await sb.from('character_archetypes').insert({
-      user_id: currentUser.id, name: charState.name || null,
-      body: charState.body, hair: charState.hair,
-      eyes: charState.eyes, mouth: charState.mouth,
-    });
-    if (forkErr) console.error('[archetypes] save failed:', forkErr);
   }
 
   showRoomStatus('character saved ✓', '#6ab86a');
@@ -2769,15 +2775,11 @@ function buildSquareSVG(zones) {
       </radialGradient>`;
       circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#sqg${i})" pointer-events="none"/>`;
     }
-    if(hasTerrain){
-      defs+=`<clipPath id="sqc${i}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-    }
     circles+=`<circle id="zone-bg-${i}" cx="${p.x}" cy="${p.y}" r="${R}"
       fill="rgba(200,196,180,0)" stroke="transparent" stroke-width="2.5"/>`;
     if(hasTerrain){
       circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
-        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet"
-        clip-path="url(#sqc${i})" pointer-events="none"/>`;
+        href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`;
     } else {
       circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
         fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>

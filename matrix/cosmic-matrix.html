@@ -968,7 +968,6 @@ function buildSeasonMapSVG(){
     const done=completedSet.has(ph.map_phase);
     const open=isOpen(ph);
     if (done || open){
-      defs += `<clipPath id="nc${i}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>`;
       const charData = done ? (completedData.get(ph.map_phase)||{}) : {};
       const tint = (done ? tintFromLocation(ph.location) : null) || '#c9fff5';
       const op   = done ? 0.85 : 0.4;
@@ -1023,7 +1022,7 @@ function buildSeasonMapSVG(){
 
     const terrainUrl = terrainFromLocation(ph.location);
     const terrainImg = terrainUrl
-      ? `<image href="${terrainUrl}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" clip-path="url(#nc${i})" pointer-events="none"/>`
+      ? `<image href="${terrainUrl}" x="${x-R}" y="${y-R}" width="${R*2}" height="${R*2}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`
       : '';
 
     if (done){
@@ -1198,32 +1197,39 @@ async function useArchetype(archetype){
     name: archetype.name, body: archetype.body,
     hair: archetype.hair, eyes: archetype.eyes, mouth: archetype.mouth,
   };
-  await saveCharacterAndAdvance(charState, { fork: false });
+  await saveCharacterAndAdvance(charState, { fork: false, archetypeId: archetype.id });
 }
 
 // Saves charState to cosmic_matrix and advances the flow. When fork is true
 // (built fresh via the character builder), also adds it to the user's
 // reusable cast — picking a saved archetype never touches that table again.
-async function saveCharacterAndAdvance(charState, { fork }){
+// archetypeId links the entry back to character_archetypes for the archive's
+// per-archetype location history; forked entries get their id after insert.
+async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
   const loc = phaseByKey(activePhase);
   try {
+    // New archetypes are inserted before the matrix row so the row can be
+    // stamped with the real archetype_id in the same save.
+    let finalArchetypeId = archetypeId || null;
+    if (fork) {
+      const { data: newArch, error: forkErr } = await sb.from('character_archetypes').insert({
+        user_id: currentUser.id, name: charState.name || null,
+        body: charState.body, hair: charState.hair,
+        eyes: charState.eyes, mouth: charState.mouth,
+      }).select().single();
+      if (forkErr) console.error('[archetypes] save failed:', forkErr);
+      else finalArchetypeId = newArch.id;
+    }
+
     const { error } = await sb.from('cosmic_matrix').upsert({
       map_id: activeMapId, user_id: currentUser.id, map_phase: activePhase,
       character_data: charState,
       location_data: { sign:loc?.sign||null, location:loc?.location||null, opens_utc:loc?.opens_utc||null },
+      archetype_id: finalArchetypeId,
       updated_at: new Date().toISOString(),
     }, { onConflict:'map_id,map_phase' });
     if (error) throw error;
     completedData.set(activePhase, charState);
-
-    if (fork) {
-      const { error: forkErr } = await sb.from('character_archetypes').insert({
-        user_id: currentUser.id, name: charState.name || null,
-        body: charState.body, hair: charState.hair,
-        eyes: charState.eyes, mouth: charState.mouth,
-      });
-      if (forkErr) console.error('[archetypes] save failed:', forkErr);
-    }
 
     showStatus('character saved ✓','#6ab86a'); setSave(false); stepBingo();
   } catch(err){ console.error('[char save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
