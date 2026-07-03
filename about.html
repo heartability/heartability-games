@@ -44,31 +44,24 @@ body {
   border: 0;
 }
 
-.page {
-  position: relative;
-  z-index: 1;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 6vh 6vw 10vh;
-  display: flex;
-  flex-direction: column;
-}
-
 /* ── HEADER: title + castle ── */
 .about-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 3vw;
+  padding: 6vh 5vw 0;
 }
 .about-title-img {
-  width: clamp(220px, 30vw, 360px);
+  width: clamp(220px, 26vw, 380px);
   height: auto;
   flex-shrink: 0;
 }
 .about-castle-img {
-  width: clamp(200px, 26vw, 340px);
+  width: clamp(200px, 22vw, 340px);
   height: auto;
   flex-shrink: 0;
   filter: drop-shadow(0 8px 24px rgba(40, 30, 90, 0.35));
@@ -76,6 +69,8 @@ body {
 
 /* ── THE GAMES ── */
 .section-title {
+  position: relative;
+  z-index: 1;
   font-family: "PFPixelscript", cursive;
   color: #fff;
   text-align: center;
@@ -83,6 +78,11 @@ body {
   margin: 8vh 0 5vh;
 }
 .games-row {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 5vw;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4vw;
@@ -104,27 +104,31 @@ body {
 
 /* ── THE MATRICES ── */
 .matrices-wrap {
-  display: flex;
-  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 2vw;
   margin: 8vh 0 2vh;
 }
 .about-matrices-img {
+  display: block;
   width: 100%;
-  max-width: 900px;
   height: auto;
 }
 
 /* ── HEART + FOOTER ── */
 .about-footer {
-  display: flex;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 4vw;
-  margin-top: 4vh;
-  flex-wrap: wrap;
+  gap: 3vw;
+  padding: 4vh 5vw 8vh;
 }
 
 .heart-link {
+  grid-column: 1;
+  justify-self: start;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -158,10 +162,13 @@ body {
 }
 
 .legal-links {
+  grid-column: 2;
+  justify-self: center;
   font-family: "ZoesHandwriting", cursive;
   font-size: clamp(14px, 1.6vw, 18px);
   color: #fff;
   text-align: center;
+  white-space: nowrap;
 }
 .legal-links a {
   color: #fff;
@@ -173,59 +180,54 @@ body {
    MOBILE
 ══════════════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .page { padding: 5vh 6vw 8vh; }
-  .about-header { flex-direction: column; align-items: center; text-align: center; }
-  .about-tagline { max-width: none; }
+  .about-header { flex-direction: column; align-items: center; text-align: center; gap: 4vh; padding-top: 5vh; }
   .about-castle-img { margin: 0 auto; }
-  .games-row { grid-template-columns: 1fr; gap: 6vh; }
-  .about-footer { flex-direction: column; gap: 3vh; }
+  .games-row { grid-template-columns: 1fr; gap: 6vh; padding: 0 8vw; }
+  .about-footer { display: flex; flex-direction: column; gap: 3vh; padding: 4vh 8vw 6vh; }
+  .heart-link, .legal-links { justify-self: center; }
 }
 
 </style>
 </head>
 <body>
 
-<div class="page">
+<header class="about-header">
+  <h1 class="sr-only">About Heartability — a virtual world designed with video game metaphors to help people rediscover their optimism</h1>
+  <img class="about-title-img" src="assets/elements/about-title.png" alt="About Heartability — heartability is a virtual world designed with video game metaphors to help people rediscover their optimism">
+  <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
+</header>
 
-  <header class="about-header">
-    <h1 class="sr-only">About Heartability — a virtual world designed with video game metaphors to help people rediscover their optimism</h1>
-    <img class="about-title-img" src="assets/elements/about-title.png" alt="About Heartability — heartability is a virtual world designed with video game metaphors to help people rediscover their optimism">
-    <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
-  </header>
-
-  <h2 class="section-title">the games</h2>
-  <div class="games-row">
-    <div class="game-col">
-      <div class="game-col-title">treasure<br>maps</div>
-      <div class="game-col-desc">track your progress chasing your dreams</div>
-    </div>
-    <div class="game-col">
-      <div class="game-col-title">infinity<br>mirror</div>
-      <div class="game-col-desc">explore your inner archetypes across different landscapes</div>
-    </div>
-    <div class="game-col">
-      <div class="game-col-title">self care<br>bingo</div>
-      <div class="game-col-desc">celebrate the care you give yourself every day</div>
-    </div>
+<h2 class="section-title">the games</h2>
+<div class="games-row">
+  <div class="game-col">
+    <div class="game-col-title">treasure<br>maps</div>
+    <div class="game-col-desc">track your progress chasing your dreams</div>
   </div>
-
-  <div class="matrices-wrap">
-    <img class="about-matrices-img" src="assets/elements/about-matricies.png" alt="The matrices — daily, dream, and cosmic">
+  <div class="game-col">
+    <div class="game-col-title">infinity<br>mirror</div>
+    <div class="game-col-desc">explore your inner archetypes across different landscapes</div>
   </div>
-
-  <footer class="about-footer">
-    <a class="heart-link" href="games/game-room.html" aria-label="Enter Heartability">
-      <img class="heart-img" src="assets/elements/guides/heart.png" alt="Heart guide">
-      <div class="speech-bubble">start dreaming</div>
-    </a>
-    <p class="legal-links">
-      <a href="legal/privacy-policy.html">privacy policy</a> &nbsp;
-      <a href="legal/refund-policy.html">refund</a> &nbsp;
-      <a href="legal/support.html">support</a>
-    </p>
-  </footer>
-
+  <div class="game-col">
+    <div class="game-col-title">self care<br>bingo</div>
+    <div class="game-col-desc">celebrate the care you give yourself every day</div>
+  </div>
 </div>
+
+<div class="matrices-wrap">
+  <img class="about-matrices-img" src="assets/elements/about-matricies.png" alt="The matrices — daily, dream, and cosmic">
+</div>
+
+<footer class="about-footer">
+  <a class="heart-link" href="games/game-room.html" aria-label="Enter Heartability">
+    <img class="heart-img" src="assets/elements/guides/heart.png" alt="Heart guide">
+    <div class="speech-bubble">start dreaming</div>
+  </a>
+  <p class="legal-links">
+    <a href="legal/privacy-policy.html">privacy policy</a> &nbsp;
+    <a href="legal/refund-policy.html">refund</a> &nbsp;
+    <a href="legal/support.html">support</a>
+  </p>
+</footer>
 
 </body>
 </html>

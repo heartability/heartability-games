@@ -40,7 +40,7 @@
   gap: 12px;
   padding: 8px 16px;
   font-family: var(--font-hand, "ZoesHandwriting", cursive);
-  font-size: 19px;
+  font-size: 21px;
   color: #333;
 }
 
@@ -48,7 +48,7 @@
   cursor: pointer;
   color: #999;
   font-family: var(--font-hand, "ZoesHandwriting", cursive);
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
   padding: 4px;
   flex-shrink: 0;
@@ -64,7 +64,7 @@
 
 .hg-modal-message {
   font-family: var(--font-hand, "ZoesHandwriting", cursive);
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.55;
   color: #222;
   white-space: pre-line;
@@ -78,7 +78,7 @@
 
 .hg-modal-btn {
   font-family: var(--font-hand, "ZoesHandwriting", cursive);
-  font-size: 17px;
+  font-size: 19px;
   color: #444;
   background: #d9d4cb;
   border: 2px solid #aaa;
@@ -107,6 +107,6 @@
 .hg-modal-btn-danger:hover { background: #c9433f; }
 
 @media (max-width: 480px) {
-  .hg-modal-titlebar { font-size: 18px; }
-  .hg-modal-message, .hg-modal-btn { font-size: 16px; }
+  .hg-modal-titlebar { font-size: 20px; }
+  .hg-modal-message, .hg-modal-btn { font-size: 18px; }
 }
