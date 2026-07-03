@@ -406,17 +406,6 @@ const FULL_ASSETS = {
   hair_wings:    "../assets/characters-full/06.04-BLUE_HAIR.png",
   hair_pigtails: "../assets/characters-full/07.04-PIGTAIL_HAIR.png",
   hair_wideray:  "../assets/characters-full/08.04-WIDE_RAY.png",
-
-  acc_rollerblades: "../assets/characters-full/09.02-ROLLERBLADES.png",
-  acc_sneakers:     "../assets/characters-full/09.03-SNEAKERS.png",
-  acc_heels:        "../assets/characters-full/09.01-HIGH_HEELS.png",
-  acc_sandals:      "../assets/characters-full/09.04-SANDALS.png",
-  acc_devil:        "../assets/characters-full/10.01-DEVIL.png",
-  acc_angel:        "../assets/characters-full/10.02-HALO.png",
-  acc_birthday:     "../assets/characters-full/10.03-BIRTHDAY.png",
-  acc_swearword:    "../assets/characters-full/10.05-SENSOR.png",
-  acc_rainstorm:    "../assets/characters-full/10-RAINSTORM.png",
-  acc_rainbow:      "../assets/characters-full/10.04-RAINBOW.png",
 };
 
 const BODIES = [
@@ -459,22 +448,8 @@ const MOUTHS = [
   { id:"mouth_grin",     label:"Grin" },
   { id:"mouth_smooch",   label:"Smooch" },
 ];
-const SHOES = [
-  { id:"acc_rollerblades", label:"Blades" },
-  { id:"acc_sneakers",     label:"Sneakers" },
-  { id:"acc_heels",        label:"Heels" },
-  { id:"acc_sandals",      label:"Sandals" },
-];
-const ACCS = [
-  { id:"acc_devil",        label:"Devil" },
-  { id:"acc_angel",        label:"Angel" },
-  { id:"acc_birthday",     label:"Birthday" },
-  { id:"acc_swearword",    label:"Sensor" },
-  { id:"acc_rainstorm",    label:"Rainstorm" },
-  { id:"acc_rainbow",      label:"Rainbow" },
-];
 
-let state = { name:"", body:null, hair:null, eyes:null, mouth:null, shoes:null, acc:null };
+let state = { name:"", body:null, hair:null, eyes:null, mouth:null };
 
 // ── No persistence ───────────────────────────────────────
 // Character resets on every visit — nothing is stored or restored.
@@ -492,29 +467,15 @@ function renderLayer(layerId, partId) {
 function render() {
   document.getElementById("mirrorEmpty").style.display = state.body ? "none" : "flex";
   renderLayer("layerBody",  state.body);
-  renderLayer("layerShoes", state.shoes);
   renderLayer("layerHair",  state.hair);
   renderLayer("layerEyes",  state.eyes);
   renderLayer("layerMouth", state.mouth);
-  // shoes and acc now have separate layers — both can show at once
-  renderLayer("layerAcc",   state.acc);
 
-  // summary
-  const find = (arr, id) => arr.find(x => x.id === id);
-  const parts = [
-    state.body  ? `body: <span>${find(BODIES,state.body)?.label}</span>` : null,
-    state.hair  ? `hair: <span>${find(HAIRS,state.hair)?.label}</span>` : null,
-    state.eyes  ? `eyes: <span>${find(EYES,state.eyes)?.label}</span>` : null,
-    state.mouth ? `mouth: <span>${find(MOUTHS,state.mouth)?.label}</span>` : null,
-    state.shoes ? `shoes: <span>${find(SHOES,state.shoes)?.label}</span>` : null,
-    state.acc   ? `accessory: <span>${find(ACCS,state.acc)?.label}</span>` : null,
-  ].filter(Boolean);
-  document.getElementById("summaryBox").innerHTML = parts.length ? parts.join(" · ") : "nothing selected yet";
   document.getElementById("charNameDisplay").textContent = state.name ? state.name.toUpperCase() : "";
 
   // active states
   document.querySelectorAll(".part-btn").forEach(b => b.classList.remove("active"));
-  ["body","hair","eyes","mouth","shoes","acc"].forEach(key => {
+  ["body","hair","eyes","mouth"].forEach(key => {
     if(state[key]) document.querySelector(`[data-id="${state[key]}"]`)?.classList.add("active");
   });
 }
@@ -557,23 +518,15 @@ window.addEventListener('message', e => {
 try { window.parent.postMessage({ type: 'iframe_ready', game: 'character' }, '*'); } catch(e) {}
 
 // ── Init ─────────────────────────────────────────────────
-async function init() {
+function init() {
   // Always start fresh — no saved character is restored.
 
   makeGrid("grid-body",  BODIES, "body",  false);
   makeGrid("grid-hair",  HAIRS,  "hair",  false);
   makeGrid("grid-eyes",  EYES,   "eyes",  false);
   makeGrid("grid-mouth", MOUTHS, "mouth", false);
-  makeGrid("grid-shoes", SHOES,  "shoes", false);
-  makeGrid("grid-acc",   ACCS,   "acc",   false);
   document.getElementById("charName").value = state.name || "";
   render();
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    currentUser = session?.user || null;
-    if (currentUser) {} // logged in
-  } catch(e) {}
 }
 
 init();
