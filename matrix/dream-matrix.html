@@ -1466,16 +1466,19 @@ const SPIRAL_THETA = [0.5, 9.4, 11.5, 13.3, 14.9];
 const SQUARE_POS   = [ {x:160,y:114},{x:340,y:114},{x:340,y:286},{x:160,y:286} ];
 const SQUARE_LABELS= ['1','2','3','4'];
 const TERRAIN_IMGS = {
-  dunes:"../assets/elements/maps/dunes.png", forest:"../assets/elements/maps/forest.png",
-  meadow:"../assets/elements/maps/meadow.png", mountains:"../assets/elements/maps/mountains.png",
-  ocean:"../assets/elements/maps/ocean.png", orchard:"../assets/elements/maps/orchard.png",
-  plateau:"../assets/elements/maps/plateau.png", pond:"../assets/elements/maps/pond.png",
-  river:"../assets/elements/maps/river.png", spring:"../assets/elements/maps/spring.png",
-  waterfall:"../assets/elements/maps/waterfall.png",
+  pond:"../assets/elements/maps/pond.png", waterfall:"../assets/elements/maps/waterfall.png",
+  spring:"../assets/elements/maps/spring.png", river:"../assets/elements/maps/river.png",
+  ocean:"../assets/elements/maps/ocean.png", glacier:"../assets/elements/maps/glacier.png",
+  marsh:"../assets/elements/maps/marsh.png", dunes:"../assets/elements/maps/dunes.png",
+  mountains:"../assets/elements/maps/mountains.png", cave:"../assets/elements/maps/cave.png",
+  cliff:"../assets/elements/maps/cliff.png", maze:"../assets/elements/maps/maze.png",
+  plateau:"../assets/elements/maps/plateau.png", valley:"../assets/elements/maps/valley.png",
+  meadow:"../assets/elements/maps/meadow.png", jungle:"../assets/elements/maps/jungle.png",
+  island:"../assets/elements/maps/island.png", forest:"../assets/elements/maps/forest.png",
 };
 
 // Ordered terrain list + climates (mirrors treasure-map) — used by the sidequest builder.
-const TERRAIN_ORDER = ['mountains','forest','orchard','meadow','dunes','pond','river','ocean','waterfall','spring','plateau'];
+const TERRAIN_ORDER = ['pond','waterfall','spring','river','ocean','glacier','marsh','dunes','mountains','cave','cliff','maze','plateau','valley','meadow','jungle','island','forest'];
 const WEATHER_CATS = [
   { id:"sunny", label:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"] },
   { id:"rainy", label:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret"] },
