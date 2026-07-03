@@ -1152,7 +1152,7 @@ async function enterDailyView(){
 }
 async function loadDailyEntries(){
   const { data, error } = await sb.from('daily_matrix')
-    .select('id, character_data, bingo_data, energy_score, location_data, journal_messages, matrix_images, entry_date')
+    .select('id, character_data, bingo_data, energy_score, location_data, journal_messages, entry_date')
     .eq('user_id', currentUser.id)
     .order('entry_date', { ascending:true });
   if (error) console.error('[daily archive] fetch failed:', error);
