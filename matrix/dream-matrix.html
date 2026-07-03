@@ -1764,10 +1764,8 @@ function buildSingleLocationSVG(loc){
     body += `<circle cx="${cx}" cy="${cy}" r="${R+44}" fill="url(#locglow)"/>`;
   }
   if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
-    defs += `<clipPath id="locclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
-      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#locclip)"/>`
-      + `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5"/>`;
+      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
   }
@@ -2871,10 +2869,8 @@ function renderSidequestPreview() {
     body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#sqtint)"/>`;
   }
   if (sqDraft.terrain && TERRAIN_IMGS[sqDraft.terrain]) {
-    defs += `<clipPath id="sqclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
-      href="${TERRAIN_IMGS[sqDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#sqclip)"/>
-      <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#8a7a5a" stroke-width="1.5"/>`;
+      href="${TERRAIN_IMGS[sqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
       stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5 4"/>
@@ -2967,10 +2963,8 @@ function renderDctPreview() {
     body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#dcttint)"/>`;
   }
   if (dctDraft.terrain && TERRAIN_IMGS[dctDraft.terrain]) {
-    defs += `<clipPath id="dctclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
-      href="${TERRAIN_IMGS[dctDraft.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#dctclip)"/>
-      <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#E8478B" stroke-width="2"/>`;
+      href="${TERRAIN_IMGS[dctDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
       stroke="#E8478B" stroke-width="1.5" stroke-dasharray="5 4"/>
