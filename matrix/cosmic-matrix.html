@@ -723,7 +723,7 @@ function buildZodiacWheelSVG(tpls){
     wedges += `<g ${clickAttr} ${hoverAttr} style="cursor:${tpl?'pointer':'default'}" opacity="${tpl?1:0.4}">
       <path d="${path}" fill="${fill}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
       <image href="../assets/elements/glyphs/${s.glyph}.png" x="${(lx-gs/2).toFixed(1)}" y="${(ly-gs/2).toFixed(1)}" width="${gs}" height="${gs}" pointer-events="none"/>
-      <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#000" pointer-events="none">${s.name}</text>
+      <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="18" fill="#000" pointer-events="none">${s.name}</text>
     </g>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">${wedges}</svg>`;
