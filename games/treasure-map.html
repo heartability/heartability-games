@@ -724,7 +724,7 @@ function renderZoneCircles() {
     circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
     if (hasTerrain) {
       circle.setAttribute('fill', 'transparent');
-      circle.setAttribute('stroke', isActive ? '#6579e2' : 'transparent');
+      circle.setAttribute('stroke', 'transparent');
     } else {
       circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
       circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
@@ -821,7 +821,7 @@ function renderSquareZones() {
     circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
     if (hasTerrain) {
       circle.setAttribute('fill', 'transparent');
-      circle.setAttribute('stroke', isActive ? '#6579e2' : 'transparent');
+      circle.setAttribute('stroke', 'transparent');
     } else {
       circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
       circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
