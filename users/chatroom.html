@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<script src="../assets/js/modal.js" defer></script>
 <title>Chat Room — Heartability</title>
 <style>
 
@@ -50,13 +53,13 @@ html, body {
   justify-content: space-between;
   padding: 0 clamp(12px, 2vw, 28px);
   font-family: var(--font-hand);
-  font-size: clamp(14px, 1.6vw, 20px);
+  font-size: clamp(16px, 1.6vw, 20px);
   color: #111;
 }
 .nav-title {
   position: absolute; left: 50%; transform: translateX(-50%);
   pointer-events: none; white-space: nowrap;
-  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px);
+  font-family: var(--font-hand); font-size: clamp(16px, 1.6vw, 20px);
 }
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
@@ -121,7 +124,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-hand);
-  font-size: clamp(14px, 1.6vw, 20px);
+  font-size: clamp(16px, 1.6vw, 20px);
   color: #333;
   letter-spacing: 0.5px;
   position: relative;
@@ -310,7 +313,7 @@ html, body {
    MOBILE
 ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .room-nav { font-size: clamp(12px, 3.5vw, 16px); }
+  .room-nav { font-size: clamp(14px, 3.5vw, 16px); }
   .page-body { padding: 12px; }
   .chat-window { width: 70vw; height: calc(80dvh - 44px - 24px); }
 }

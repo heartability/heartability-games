@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<script src="../assets/js/modal.js" defer></script>
 <title>Game Room — Heartability</title>
 <style>
 
@@ -81,7 +84,7 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
   background: #c9fff5; border-bottom: 2px solid var(--line-col);
   z-index: 200; display: flex; align-items: center; justify-content: space-between;
   padding: 0 clamp(12px, 2vw, 28px);
-  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 20px); color: #111;
+  font-family: var(--font-hand); font-size: clamp(16px, 1.6vw, 20px); color: #111;
 }
 .nav-title {
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -249,14 +252,14 @@ body.game-mode .char-heart {
 .howto-titlebar {
   height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 18px; color: #555;
 }
 .howto-body {
   padding: 20px 22px 18px;
   display: flex; flex-direction: column; gap: 16px;
 }
 .howto-steps {
-  font-family: var(--font-hand); font-size: clamp(14px, 1.4vw, 16px);
+  font-family: var(--font-hand); font-size: clamp(16px, 1.4vw, 17px);
   color: #333; line-height: 1.8;
   white-space: pre-line;
 }
@@ -286,7 +289,7 @@ body.game-mode .char-heart {
 .login-popup-titlebar {
   height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 18px; color: #555;
 }
 .popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 16px; padding: 4px; line-height: 1; }
 .popup-close:hover { color: var(--blue); }
@@ -295,15 +298,15 @@ body.game-mode .char-heart {
 .matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
 .matrix-picker-overlay.open { display: flex; }
 .matrix-picker-popup { background: #f5f0ea; box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
-.matrix-picker-titlebar { height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555; }
+.matrix-picker-titlebar { height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: 18px; color: #555; }
 .matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
 .matrix-pick-btn { font-family: var(--font-hand); font-size: clamp(16px,2vw,20px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: center; transition: background .1s; }
 .matrix-pick-btn:hover { background: #4a5bc4; }
 .matrix-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
-.matrix-pick-btn small { display: block; font-size: clamp(11px,1.2vw,13px); opacity: .75; margin-top: 2px; }
+.matrix-pick-btn small { display: block; font-size: clamp(13px,1.2vw,14px); opacity: .75; margin-top: 2px; }
 .login-popup-tabs { display: flex; border-bottom: 2px solid #ccc; background: #e8e3da; }
 .popup-tab {
-  flex: 1; padding: 8px; font-family: var(--font-hand); font-size: 14px;
+  flex: 1; padding: 8px; font-family: var(--font-hand); font-size: 16px;
   text-align: center; cursor: pointer; color: #888; background: none; border: none;
   border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s;
 }
@@ -312,20 +315,20 @@ body.game-mode .char-heart {
 .popup-form { display: none; flex-direction: column; gap: 12px; }
 .popup-form.active { display: flex; }
 .popup-field { display: flex; flex-direction: column; gap: 4px; }
-.popup-label { font-family: var(--font-hand); font-size: 12px; color: #aaa; }
+.popup-label { font-family: var(--font-hand); font-size: 14px; color: #aaa; }
 .popup-input {
-  font-family: var(--font-hand); font-size: 15px; color: #222; background: #f5f0ea;
+  font-family: var(--font-hand); font-size: 16px; color: #222; background: #f5f0ea;
   border: 1.5px solid #bbb; padding: 7px 10px; outline: none; transition: border-color 0.2s; user-select: text;
 }
 .popup-input:focus { border-color: var(--blue); }
 .popup-btn {
   padding: 9px; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
-  font-family: var(--font-hand); font-size: 15px; color: white; cursor: pointer; transition: all 0.05s; margin-top: 2px;
+  font-family: var(--font-hand); font-size: 16px; color: white; cursor: pointer; transition: all 0.05s; margin-top: 2px;
 }
 .popup-btn:hover { background: #4a5bc4; }
 .popup-btn:active { box-shadow: none; transform: translate(2px,2px); }
 .popup-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.popup-msg { font-size: 12px; font-family: var(--font-hand); padding: 6px 10px; display: none; }
+.popup-msg { font-size: 14px; font-family: var(--font-hand); padding: 6px 10px; display: none; }
 .popup-msg.error   { display: block; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.15); }
 .popup-msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.15); }
 
@@ -345,12 +348,12 @@ body.game-mode .char-heart {
 .game-popup-titlebar {
   height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; flex-shrink: 0;
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-  padding: 0 14px; font-family: var(--font-hand); font-size: 15px; color: #555;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 18px; color: #555;
 }
 .game-popup-titlebar-left  { display: flex; align-items: center; gap: 8px; justify-content: flex-start; }
 .game-popup-titlebar-right { display: flex; align-items: center; justify-content: flex-end; }
 .game-popup-howto {
-  font-size: 13px; color: var(--blue); cursor: pointer;
+  font-size: 14px; color: var(--blue); cursor: pointer;
   background: none; border: none; font-family: var(--font-hand); padding: 2px 4px;
 }
 .game-popup-howto:hover { text-decoration: underline; }
