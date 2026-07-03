@@ -262,21 +262,6 @@ html { background: transparent; }
   min-height: 28px;
 }
 
-.summary-box {
-  background: #e8e0c8;
-  border: 2px solid #8a7a5a;
-  border-right-color: #5a4a2a;
-  border-bottom-color: #5a4a2a;
-  border-left-color: #c8b88a;
-  border-top-color: #c8b88a;
-  padding: 8px 12px;
-  font-family: var(--font-game);
-  font-size: 13px;
-  color: var(--text-mid);
-  line-height: 1.8;
-}
-.summary-box span { color: var(--text-dark); }
-
 /* ── GAME ROOM OVERLAY ─────────────────────────────────────────── */
 @font-face {
   font-family: "ZoesHandwriting";
@@ -302,11 +287,6 @@ body, .wall { background: transparent; }
 <div class="room">
   <div class="wall">
     <div class="main-panel">
-      <div class="name-row">
-        <div class="section-label">name this archetype</div>
-        <input class="name-input" id="charName" maxlength="30" placeholder="name this archetype" oninput="onNameChange()" />
-      </div>
-
       <div class="two-col">
         <div class="selector-side">
           <div class="category-section">
@@ -325,49 +305,30 @@ body, .wall { background: transparent; }
             <div class="category-title">Mouth</div>
             <div class="parts-grid" id="grid-mouth"></div>
           </div>
-          <div class="category-section">
-            <div class="category-title">Shoes</div>
-            <div class="parts-grid" id="grid-shoes"></div>
-          </div>
-          <div class="category-section">
-            <div class="category-title">Accessories</div>
-            <div class="parts-grid" id="grid-acc"></div>
-          </div>
         </div>
 
         <div class="mirror-col">
           <div class="mirror-frame">
             <div class="char-layer layer-body"  id="layerBody"></div>
-            <div class="char-layer layer-shoes" id="layerShoes"></div>
             <div class="char-layer layer-hair"  id="layerHair"></div>
             <div class="char-layer layer-eyes"  id="layerEyes"></div>
             <div class="char-layer layer-mouth" id="layerMouth"></div>
-            <div class="char-layer layer-acc"   id="layerAcc"></div>
             <div class="mirror-empty" id="mirrorEmpty">
               <div class="mirror-empty-text">pick a body<br>to begin</div>
             </div>
           </div>
           <div class="char-name-display" id="charNameDisplay"></div>
-          <div class="summary-box" id="summaryBox">nothing selected yet</div>
+          <div class="name-row">
+            <div class="section-label">name this archetype</div>
+            <input class="name-input" id="charName" maxlength="30" placeholder="name this archetype" oninput="onNameChange()" />
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── Supabase ─────────────────────────────────────────────
-// ── URL params (set by chart-room daily loop) ─────────────
-const _params   = new URLSearchParams(window.location.search);
-const GAME_ID   = _params.get('game_id');
-const LOOP_MODE = _params.get('loop') === 'true';
-
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentUser = null;
-
 // All image paths are relative — just drop your PNGs in assets/characters/
 const ASSETS = {
   body_red:    "../assets/characters-thumbnail/01.01 RED_BODY.png",
