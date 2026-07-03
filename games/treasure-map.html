@@ -84,14 +84,15 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   align-items: start;
 }
 
-/* On mobile: stack with controls ABOVE map */
+/* On mobile: stack in a single column */
 @media (max-width: 680px) {
   .two-col {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
   }
-  .side-panel { order: 1; }
-  .map-col { order: 2; }
+  .map-shape-block { order: 1; }
+  .map-spacer { display: none; }
+  .map-block { order: 2; }
+  .terrain-block { order: 3; }
 }
 
 /* MAP CANVAS */
@@ -153,8 +154,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .map-item-label .terrain-name { display: block; }
 .map-item-label .feeling-name { display: block; font-size: 11px; color: #5a4a2a; }
 
-/* SIDE PANEL */
-.side-panel { display: flex; flex-direction: column; gap: 12px; }
 
 /* STATUS BAR */
 .status-bar {
@@ -400,35 +399,27 @@ body, .wall { background: transparent; }
 
       <div class="two-col">
 
-        <!-- SIDE PANEL — mode toggle + terrain -->
-        <div class="side-panel">
+        <!-- ROW 1, COL 1 — Map shape selector -->
+        <div class="map-shape-block">
+          <div class="map-shape-label">map shape</div>
+          <div class="mode-toggle" style="margin:0;">
+            <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
+            <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+          </div>
+        </div>
 
-          <!-- Map shape selector with label -->
-          <div>
-            <div class="map-shape-label">map shape</div>
-            <div class="mode-toggle" style="margin:0;">
-              <button class="rpg-btn mode-active" id="btn-spiral" onclick="setMode('spiral')">SPIRAL</button>
-              <button class="rpg-btn" id="btn-square" onclick="setMode('square')">SQUARE</button>
+        <!-- ROW 1, COL 2 — spacer so terrain lines up with the map below -->
+        <div class="map-spacer"></div>
+
+        <!-- ROW 2, COL 1 — Map -->
+        <div class="map-block">
+
+          <!-- Map header: label left, buttons right -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <div class="section-header" style="margin-bottom:0;">your map</div>
+            <div style="display:flex;gap:6px;">
             </div>
           </div>
-
-          <div class="palette-section">
-            <div class="section-header">terrain</div>
-            <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
-            <div class="palette-items" id="terrainPalette"></div>
-          </div>
-
-        </div>
-
-        <!-- MAP AREA -->
-        <div class="map-col">
-
-        <!-- Map header: label left, buttons right -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-          <div class="section-header" style="margin-bottom:0;">your map</div>
-          <div style="display:flex;gap:6px;">
-          </div>
-        </div>
 
           <!-- Spiral canvas (default) -->
           <div class="spiral-canvas" id="spiralCanvas" style="display:block;position:relative;">
@@ -455,6 +446,15 @@ body, .wall { background: transparent; }
             </div>
           </div>
 
+        </div>
+
+        <!-- ROW 2, COL 2 — Terrain -->
+        <div class="terrain-block">
+          <div class="section-header">terrain</div>
+          <div class="palette-section">
+            <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
+            <div class="palette-items" id="terrainPalette"></div>
+          </div>
         </div>
 
       </div>
