@@ -665,20 +665,21 @@ async function loadSeason(){
 // ── ZODIAC WHEEL — 12 signs as a colored ring, replaces the old flat list ──
 // Ordered clockwise from 12 o'clock to match a standard natal-chart wheel
 // (Aries sits at 9 o'clock / the ascendant). Colors follow elemental groups:
-// fire=red, earth=green, air=aqua, water=blue — reusing the app's core palette.
+// fire=f2e6a8, earth=b6e6cf, air=c9b3e7, water=a0d7e6.
+// glyph filenames live in assets/elements/glyphs/ — note "sagitarrius.png" is a typo in the asset itself.
 const SIGNS = [
-  { id:'capricorn',   symbol:'♑', name:'capricorn',   color:'#4caf7d' }, // earth
-  { id:'sagittarius', symbol:'♐', name:'sagittarius', color:'#e85555' }, // fire
-  { id:'scorpio',     symbol:'♏', name:'scorpio',     color:'#6579e2' }, // water
-  { id:'libra',       symbol:'♎', name:'libra',       color:'#83d2e6' }, // air
-  { id:'virgo',       symbol:'♍', name:'virgo',       color:'#4caf7d' }, // earth
-  { id:'leo',         symbol:'♌', name:'leo',         color:'#e85555' }, // fire
-  { id:'cancer',      symbol:'♋', name:'cancer',      color:'#6579e2' }, // water
-  { id:'gemini',      symbol:'♊', name:'gemini',      color:'#83d2e6' }, // air
-  { id:'taurus',      symbol:'♉', name:'taurus',      color:'#4caf7d' }, // earth
-  { id:'aries',       symbol:'♈', name:'aries',       color:'#e85555' }, // fire
-  { id:'pisces',      symbol:'♓', name:'pisces',      color:'#6579e2' }, // water
-  { id:'aquarius',    symbol:'♒', name:'aquarius',    color:'#83d2e6' }, // air
+  { id:'capricorn',   glyph:'capricorn',   name:'capricorn',   color:'#b6e6cf' }, // earth
+  { id:'sagittarius', glyph:'sagitarrius', name:'sagittarius', color:'#f2e6a8' }, // fire
+  { id:'scorpio',     glyph:'scorpio',     name:'scorpio',     color:'#a0d7e6' }, // water
+  { id:'libra',       glyph:'libra',       name:'libra',       color:'#c9b3e7' }, // air
+  { id:'virgo',       glyph:'virgo',       name:'virgo',       color:'#b6e6cf' }, // earth
+  { id:'leo',         glyph:'leo',         name:'leo',         color:'#f2e6a8' }, // fire
+  { id:'cancer',      glyph:'cancer',      name:'cancer',      color:'#a0d7e6' }, // water
+  { id:'gemini',      glyph:'gemini',      name:'gemini',      color:'#c9b3e7' }, // air
+  { id:'taurus',      glyph:'taurus',      name:'taurus',      color:'#b6e6cf' }, // earth
+  { id:'aries',       glyph:'aries',       name:'aries',       color:'#f2e6a8' }, // fire
+  { id:'pisces',      glyph:'pisces',      name:'pisces',      color:'#a0d7e6' }, // water
+  { id:'aquarius',    glyph:'aquarius',    name:'aquarius',    color:'#c9b3e7' }, // air
 ];
 
 function showZodiacWheel(tpls){
@@ -717,10 +718,11 @@ function buildZodiacWheelSVG(tpls){
     const lx=(CX+labelR*Math.cos(mid)).toFixed(1), ly=(CY+labelR*Math.sin(mid)).toFixed(1);
     const clickAttr = tpl ? `onclick="openZodiacSeason('${s.id}')"` : '';
     const hoverAttr = tpl ? '' : `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"`;
+    const gs = 34; // glyph size
     wedges += `<g ${clickAttr} ${hoverAttr} style="cursor:${tpl?'pointer':'default'}" opacity="${tpl?1:0.4}">
       <path d="${path}" fill="${fill}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
-      <text x="${lx}" y="${ly-6}" text-anchor="middle" font-size="26" fill="#fff" pointer-events="none">${s.symbol}</text>
-      <text x="${lx}" y="${ly+16}" text-anchor="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#fff" pointer-events="none">${s.name}</text>
+      <image href="../assets/elements/glyphs/${s.glyph}.png" x="${(lx-gs/2).toFixed(1)}" y="${(ly-10-gs/2).toFixed(1)}" width="${gs}" height="${gs}" pointer-events="none"/>
+      <text x="${lx}" y="${ly+20}" text-anchor="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#4a3f35" pointer-events="none">${s.name}</text>
     </g>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">${wedges}</svg>`;
