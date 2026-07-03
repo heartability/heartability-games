@@ -2714,6 +2714,12 @@ window.addEventListener('message', async e => {
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
+    if (!charState.name || !charState.name.trim()) {
+      showRoomStatus('name this archetype first!', '#E8478B');
+      const btn = document.getElementById('save-continue-btn');
+      btn.disabled = false; btn.innerHTML = 'continue →';
+      return;
+    }
     await saveCharacterAndAdvance(charState, { fork: true });
     return;
   }
