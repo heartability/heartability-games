@@ -702,7 +702,7 @@ function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)
 function tplForSign(tpls, signId){ return (tpls||[]).find(t => seasonSignId(t.season) === signId) || null; }
 
 function buildZodiacWheelSVG(tpls){
-  const W=620, H=620, CX=310, CY=310, R=270, r=120, N=SIGNS.length;
+  const W=760, H=760, CX=380, CY=380, R=340, r=150, N=SIGNS.length;
   let wedges = '';
   SIGNS.forEach((s,i)=>{
     const tpl  = tplForSign(tpls, s.id);
@@ -714,15 +714,16 @@ function buildZodiacWheelSVG(tpls){
     const ix1=(CX+r*Math.cos(a1)).toFixed(1), iy1=(CY+r*Math.sin(a1)).toFixed(1);
     const ix0=(CX+r*Math.cos(a0)).toFixed(1), iy0=(CY+r*Math.sin(a0)).toFixed(1);
     const path = `M${ox0},${oy0} A${R},${R} 0 0 1 ${ox1},${oy1} L${ix1},${iy1} A${r},${r} 0 0 0 ${ix0},${iy0} Z`;
-    const mid = (a0+a1)/2, labelR = (R+r)/2;
-    const lx=(CX+labelR*Math.cos(mid)).toFixed(1), ly=(CY+labelR*Math.sin(mid)).toFixed(1);
+    const mid = (a0+a1)/2, glyphR = (R+r)/2 - 15, textR = R - 32;
+    const lx=(CX+glyphR*Math.cos(mid)).toFixed(1), ly=(CY+glyphR*Math.sin(mid)).toFixed(1);
+    const tx=(CX+textR*Math.cos(mid)).toFixed(1), ty=(CY+textR*Math.sin(mid)).toFixed(1);
     const clickAttr = tpl ? `onclick="openZodiacSeason('${s.id}')"` : '';
     const hoverAttr = tpl ? '' : `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"`;
-    const gs = 34; // glyph size
+    const gs = 38; // glyph size
     wedges += `<g ${clickAttr} ${hoverAttr} style="cursor:${tpl?'pointer':'default'}" opacity="${tpl?1:0.4}">
       <path d="${path}" fill="${fill}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
-      <image href="../assets/elements/glyphs/${s.glyph}.png" x="${(lx-gs/2).toFixed(1)}" y="${(ly-10-gs/2).toFixed(1)}" width="${gs}" height="${gs}" pointer-events="none"/>
-      <text x="${lx}" y="${ly+20}" text-anchor="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#4a3f35" pointer-events="none">${s.name}</text>
+      <image href="../assets/elements/glyphs/${s.glyph}.png" x="${(lx-gs/2).toFixed(1)}" y="${(ly-gs/2).toFixed(1)}" width="${gs}" height="${gs}" pointer-events="none"/>
+      <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="13" fill="#000" pointer-events="none">${s.name}</text>
     </g>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">${wedges}</svg>`;
