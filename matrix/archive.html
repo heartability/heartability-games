@@ -654,10 +654,12 @@ function formatTime(ts) {
 }
 function locationLabel(save) {
   const l = save.location_data || {};
-  const isSidequest = !!save.sidequest_data;
+  let suffix = '';
+  if (save.map_phase === 'sidequest') suffix = ' (sidequest)';
+  else if (save.map_phase === 'dream_came_true') suffix = ' (dream came true)';
   if (l.name) return l.name;
-  if (l.terrain && l.feeling) return `the ${l.terrain} of ${l.feeling}` + (isSidequest ? ' (sidequest)' : '');
-  if (l.terrain || l.feeling) return (l.terrain || l.feeling) + (isSidequest ? ' (sidequest)' : '');
+  if (l.terrain && l.feeling) return `the ${l.terrain} of ${l.feeling}` + suffix;
+  if (l.terrain || l.feeling) return (l.terrain || l.feeling) + suffix;
   if (save.map_phase) return save.map_phase.replace(/_/g,' ');
   return 'a place';
 }
