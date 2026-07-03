@@ -653,11 +653,11 @@ function formatTime(ts) {
   return new Date(ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}).toLowerCase();
 }
 function locationLabel(save) {
-  if (save.sidequest_data && save.sidequest_data.name) return save.sidequest_data.name;
   const l = save.location_data || {};
+  const isSidequest = !!save.sidequest_data;
   if (l.name) return l.name;
-  if (l.terrain && l.feeling) return `${l.terrain} of ${l.feeling}`;
-  if (l.terrain || l.feeling) return l.terrain || l.feeling;
+  if (l.terrain && l.feeling) return `the ${l.terrain} of ${l.feeling}` + (isSidequest ? ' (sidequest)' : '');
+  if (l.terrain || l.feeling) return (l.terrain || l.feeling) + (isSidequest ? ' (sidequest)' : '');
   if (save.map_phase) return save.map_phase.replace(/_/g,' ');
   return 'a place';
 }
@@ -1149,6 +1149,8 @@ async function enterDailyView(){
   await loadDailyEntries();
   renderCalendar();
   renderGraph();
+  // Default preview: most recent entry (allSaves is entry_date-ascending, so the last one).
+  if (allSaves.length) await renderDailyMatrixWindow(allSaves[allSaves.length - 1].id);
 }
 async function loadDailyEntries(){
   const { data, error } = await sb.from('daily_matrix')
@@ -1168,9 +1170,12 @@ function viewMoreDaily(){
   closeDayPopup();
   showDailyMatrixWindow(id);
 }
-async function showDailyMatrixWindow(saveId){
+// Renders one daily entry's matrix into the persistent window. Does NOT flip
+// dailyMatrixShown — used both for the default "most recent entry" preview
+// (which should leave later day-clicks going through the popup as usual) and
+// by showDailyMatrixWindow (which does flip the flag, after "view more").
+async function renderDailyMatrixWindow(saveId){
   activeSaveId = saveId;
-  dailyMatrixShown = true;
   const save = allSaves.find(s => s.id === saveId);
   document.getElementById('map-window-label').textContent = '';
   document.getElementById('map-window-title').textContent = save ? formatDateLabel(save.entry_date) : 'your day';
@@ -1179,6 +1184,10 @@ async function showDailyMatrixWindow(saveId){
   const data = await MatrixRender.assemble(sb, saveId, null, 'daily_matrix');
   document.getElementById('map-svg-wrap').innerHTML =
     MatrixRender.buildHTML(data, `daily|${saveId}`, { showAddPhoto:false, showEditNotes:false, showFrame:false });
+}
+async function showDailyMatrixWindow(saveId){
+  dailyMatrixShown = true;
+  await renderDailyMatrixWindow(saveId);
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
