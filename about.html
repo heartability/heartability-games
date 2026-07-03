@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Heartability</title>
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: "ZoesHandwriting", cursive;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  background: url("assets/elements/gradient.png") no-repeat center center / cover;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 6vh 6vw 10vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER: title + castle ── */
+.about-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4vw;
+  flex-wrap: wrap;
+}
+.about-title-img {
+  width: clamp(280px, 40vw, 480px);
+  height: auto;
+  flex-shrink: 0;
+}
+.about-castle-img {
+  width: clamp(220px, 30vw, 400px);
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 24px rgba(40, 30, 90, 0.35));
+}
+
+/* ── THE GAMES ── */
+.section-title {
+  font-family: "PFPixelscript", cursive;
+  color: #fff;
+  text-align: center;
+  font-size: clamp(32px, 5.5vw, 40px);
+  margin: 8vh 0 5vh;
+}
+.games-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4vw;
+  text-align: center;
+}
+.game-col-title {
+  font-family: "PFPixelscript", cursive;
+  color: #fff;
+  font-size: clamp(20px, 2.4vw, 22px);
+  line-height: 2;
+  margin-bottom: 1.4vh;
+}
+.game-col-desc {
+  font-family: "ZoesHandwriting", cursive;
+  color: rgba(255,255,255,0.9);
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.5;
+}
+
+/* ── THE MATRICES ── */
+.matrices-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 8vh 0 2vh;
+}
+.about-matrices-img {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+}
+
+/* ── HEART + FOOTER ── */
+.about-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4vw;
+  margin-top: 4vh;
+  flex-wrap: wrap;
+}
+
+.heart-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.heart-img {
+  width: clamp(70px, 9vw, 120px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  animation: heartFloat 4s ease-in-out infinite;
+}
+@keyframes heartFloat {
+  0%,100% { transform: translateY(0px) rotate(-2deg); }
+  50%      { transform: translateY(-8px) rotate(2deg); }
+}
+.start-dreaming-btn {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50px;
+  padding: 10px 22px;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: #000;
+  white-space: nowrap;
+  transition: transform 0.15s ease;
+}
+.heart-link:hover .start-dreaming-btn { transform: translateY(-2px); }
+
+.legal-links {
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: #fff;
+  text-align: center;
+}
+.legal-links a {
+  color: #fff;
+  text-decoration: none;
+}
+.legal-links a:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════════════════
+   MOBILE
+══════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .page { padding: 5vh 6vw 8vh; }
+  .about-header { flex-direction: column; align-items: center; text-align: center; }
+  .about-tagline { max-width: none; }
+  .about-castle-img { margin: 0 auto; }
+  .games-row { grid-template-columns: 1fr; gap: 6vh; }
+  .about-footer { flex-direction: column; gap: 3vh; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header class="about-header">
+    <img class="about-title-img" src="assets/elements/about-title.png" alt="About Heartability — heartability is a virtual world designed with video game metaphors to help people rediscover their optimism">
+    <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
+  </header>
+
+  <h2 class="section-title">the games</h2>
+  <div class="games-row">
+    <div class="game-col">
+      <div class="game-col-title">treasure<br>maps</div>
+      <div class="game-col-desc">track your progress chasing your dreams</div>
+    </div>
+    <div class="game-col">
+      <div class="game-col-title">infinity<br>mirror</div>
+      <div class="game-col-desc">explore your inner archetypes across different landscapes</div>
+    </div>
+    <div class="game-col">
+      <div class="game-col-title">self care<br>bingo</div>
+      <div class="game-col-desc">celebrate the care you give yourself every day</div>
+    </div>
+  </div>
+
+  <div class="matrices-wrap">
+    <img class="about-matrices-img" src="assets/elements/about-matricies.png" alt="The matrices — daily, dream, and cosmic">
+  </div>
+
+  <footer class="about-footer">
+    <a class="heart-link" href="games/game-room.html" aria-label="Enter Heartability">
+      <img class="heart-img" src="assets/elements/guides/heart.png" alt="Heart guide">
+      <span class="start-dreaming-btn">start dreaming</span>
+    </a>
+    <p class="legal-links">
+      <a href="legal/privacy-policy.html">privacy policy</a> &nbsp;
+      <a href="legal/refund-policy.html">refund</a> &nbsp;
+      <a href="legal/support.html">support</a>
+    </p>
+  </footer>
+
+</div>
+
+</body>
+</html>
