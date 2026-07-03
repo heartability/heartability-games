@@ -71,24 +71,25 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 /* ── TAB BAR ── */
 .tab-bar {
-  position:fixed; top:44px; left:0; right:0; height:42px; z-index:190;
+  position:fixed; top:44px; left:0; right:0; height:46px; z-index:190;
   background:var(--cream-dk); border-bottom:2px solid #ccc;
-  display:flex; align-items:stretch; justify-content:center;
-  overflow-x:auto;
+  display:flex; align-items:stretch;
 }
 .tab-btn {
+  flex:1 1 0; min-width:0;
   background:none; border:none; border-right:1.5px solid rgba(0,0,0,.08);
-  font-family:var(--font-hand); font-size:clamp(13px,1.5vw,16px); color:#777;
-  padding:0 18px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  font-family:var(--font-hand); font-size:clamp(15px,2.1vw,22px); color:#777;
+  padding:0 10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
   transition:background .12s, color .12s; white-space:nowrap;
 }
+.tab-btn:last-child { border-right:none; }
 .tab-btn:hover { background:rgba(101,121,226,.08); color:#333; }
 .tab-btn.active { background:var(--purple); color:#fff; }
-.tab-lock { width:12px; height:12px; opacity:.65; display:none; }
+.tab-lock { width:14px; height:14px; opacity:.65; display:none; flex-shrink:0; }
 .tab-btn.active .tab-lock { opacity:.95; }
 
 .page-wrap {
-  min-height:100dvh; padding:120px 20px 48px;
+  min-height:100dvh; padding:124px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
 }
 .page-body {
@@ -293,7 +294,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 /* ── MAP SELECTOR SCREEN ── */
 #map-selector {
   display:none; position:fixed; inset:0;
-  padding-top:84px; background:#e8e3da; z-index:50; overflow-y:auto;
+  padding-top:88px; background:#e8e3da; z-index:50; overflow-y:auto;
   align-items:center; justify-content:center;
 }
 .map-sel-inner { max-width:900px; margin:0 auto; padding:28px clamp(16px,3vw,48px) 48px; }
@@ -409,9 +410,9 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 </nav>
 
 <div class="tab-bar" id="tab-bar">
+  <button class="tab-btn" data-tab="daily" onclick="switchTab('daily')">daily</button>
   <button class="tab-btn" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   <button class="tab-btn" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
-  <button class="tab-btn" data-tab="daily" onclick="switchTab('daily')">daily</button>
   <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
   <button class="tab-btn" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
 </div>
