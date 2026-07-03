@@ -125,9 +125,8 @@
       body += `<circle cx="${cx}" cy="${cy}" r="${R+44}" fill="url(#locglow)"/>`;
     }
     if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
-      defs += `<clipPath id="locclip"><circle cx="${cx}" cy="${cy}" r="${R-2}"/></clipPath>`;
       body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
-        + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#locclip)"/>`;
+        + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
     } else {
       body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
     }
@@ -158,9 +157,7 @@
       body += `<circle cx="${p.x}" cy="${p.y}" r="${R+48}" fill="url(#${gid})" pointer-events="none"/>`;
     }
     if (z.terrain && TERRAIN_IMGS[z.terrain]){
-      const cid = 'mc_' + Math.random().toString(36).slice(2,9);
-      defs += `<clipPath id="${cid}"><circle cx="${p.x}" cy="${p.y}" r="${R-2}"/></clipPath>`;
-      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${cid})" pointer-events="none"/>`;
+      body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`;
     } else {
       body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
     }
