@@ -1636,7 +1636,7 @@ function stepInitial() {
 // ── DELETE MAP ────────────────────────────────────────────
 async function deleteMap(gameId, mapName) {
   if (!await HGModal.confirm(`delete "${mapName}"?`, `this will remove the map and all its entries. this cannot be undone.`, { confirmLabel: 'delete', danger: true })) return;
-  await sb.from('dream_matrix').delete().eq('map_id', gameId).eq('user_id', currentUser.id);
+  await sb.from('dreams').delete().eq('id', gameId).eq('user_id', currentUser.id);
   stepLoadGame();
 }
 
@@ -1664,20 +1664,14 @@ async function stepLoadGame() {
 
   let games = [];
   try {
-    const { data } = await sb.from('dream_matrix')
-      .select('id, map_id, map_name, map_type, map_data, updated_at, map_completed')
+    const { data } = await sb.from('dreams').select('*')
       .eq('user_id', currentUser.id)
-      .not('map_name', 'is', null)
       .in('map_type', ['spiral','square'])
       .order('updated_at', { ascending: false });
-    const seen = new Set();
-    const completed = new Set();
-    (data || []).forEach(r => { if (r.map_id && r.map_completed) completed.add(r.map_id); });
-    games = (data || []).filter(r => {
-      if (!r.map_id || seen.has(r.map_id) || completed.has(r.map_id)) return false;
-      seen.add(r.map_id);
-      return true;
-    }).slice(0, 8).map(r => ({ ...r, id: r.map_id }));
+    const { data: completedRows } = await sb.from('dream_matrix')
+      .select('map_id').eq('user_id', currentUser.id).eq('map_completed', true);
+    const completed = new Set((completedRows || []).map(r => r.map_id));
+    games = (data || []).filter(g => !completed.has(g.id)).slice(0, 8);
   } catch(e){}
   renderMapGrid(games);
 }
@@ -1816,17 +1810,13 @@ function renderMapGrid(games) {
 async function selectMap(mapId) {
   let game = null;
   try {
-    const { data } = await sb.from('dream_matrix')
-      .select('map_name, map_type, map_data')
-      .eq('map_id', mapId).eq('user_id', currentUser.id)
-      .not('map_name', 'is', null)
-      .order('updated_at', { ascending: false })
-      .limit(1).maybeSingle();
+    const { data } = await sb.from('dreams').select('*')
+      .eq('id', mapId).eq('user_id', currentUser.id).single();
     game = data;
   } catch(e){}
   if (!game) return;
   activeGameId   = mapId;
-  activeGameData = { id: mapId, map_name: game.map_name, map_type: game.map_type, map_data: game.map_data };
+  activeGameData = game;
   activePhase    = null;
   stepPhaseSelect();
 }
@@ -2022,9 +2012,6 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
   const { error } = await sb.from('dream_matrix').upsert({
     id: activeEntryId,
     map_id: activeGameId, user_id: currentUser.id,
-    map_name: activeGameData?.map_name || null,
-    map_type: activeGameData?.map_type || null,
-    map_data: activeGameData?.map_data || null,
     map_phase: activePhase,
     location_data: locationData,
     sidequest_data: sidequestData,
@@ -2296,9 +2283,6 @@ async function sendJournalMessage(){
   try {
     const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId, map_id: activeGameId, user_id: currentUser.id,
-      map_name: activeGameData?.map_name || null,
-      map_type: activeGameData?.map_type || null,
-      map_data: activeGameData?.map_data || null,
       journal_messages: messages, matrix_images: imgs,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
@@ -2690,9 +2674,28 @@ window.addEventListener('message', async e => {
     const btn = document.getElementById('save-continue-btn');
 
     if (!activeGameId) {
-      activeGameId = crypto.randomUUID();
+      const { data: newGame, error } = await sb.from('dreams').insert({
+        user_id: currentUser.id,
+        map_name, map_type: map_type || 'spiral', map_data: map_data || { zones: [] },
+      }).select().single();
+      if (error) {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+        showRoomStatus('save failed — try again', '#E8478B');
+        return;
+      }
+      activeGameId   = newGame.id;
+      activeGameData = newGame;
+    } else {
+      const { error } = await sb.from('dreams')
+        .update({ map_name, map_type, map_data, updated_at: new Date().toISOString() })
+        .eq('id', activeGameId).eq('user_id', currentUser.id);
+      if (error) {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+        showRoomStatus('save failed — try again', '#E8478B');
+        return;
+      }
+      activeGameData = { ...activeGameData, map_name, map_type, map_data: map_data || { zones: [] } };
     }
-    activeGameData = { id: activeGameId, map_name, map_type: map_type || 'spiral', map_data: map_data || { zones: [] } };
 
     activePhase = null;
     setSaveBtnVisible(false);
@@ -2743,9 +2746,6 @@ window.addEventListener('message', async e => {
     const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId,
       map_id: activeGameId, user_id: currentUser.id,
-      map_name: activeGameData?.map_name || null,
-      map_type: activeGameData?.map_type || null,
-      map_data: activeGameData?.map_data || null,
       bingo_data: bingoPayload, energy_score: energyScore,
     }, { onConflict: 'id' });
 

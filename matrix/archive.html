@@ -1052,23 +1052,19 @@ async function refreshMatrixView() {
 
 // ── GAME LOADING + ENTRIES (dream / completed) ────────────
 async function loadGamesForMode(mode) {
-  const { data } = await sb.from('dream_matrix')
-    .select('id, map_id, map_name, map_type, map_data, updated_at, map_completed')
+  const { data } = await sb.from('dreams').select('*')
     .eq('user_id', currentUser.id)
-    .not('map_name', 'is', null)
     .in('map_type', ['spiral','square'])
     .order('updated_at', { ascending: false });
-  const completed = new Set();
-  (data || []).forEach(r => { if (r.map_id && r.map_completed) completed.add(r.map_id); });
-  const seen = new Set();
-  allGames = (data || []).filter(r => {
-    if (!r.map_id || seen.has(r.map_id)) return false;
-    const isCompleted = completed.has(r.map_id);
+  const { data: completedRows } = await sb.from('dream_matrix')
+    .select('map_id').eq('user_id', currentUser.id).eq('map_completed', true);
+  const completed = new Set((completedRows || []).map(r => r.map_id));
+  allGames = (data || []).filter(g => {
+    const isCompleted = completed.has(g.id);
     if (mode === 'completed' && !isCompleted) return false;
     if (mode === 'dream' && isCompleted) return false;
-    seen.add(r.map_id);
     return true;
-  }).map(r => ({ ...r, id: r.map_id }));
+  });
   const dd = document.getElementById('game-dropdown');
   dd.innerHTML = '';
   allGames.forEach(g => {
@@ -1155,7 +1151,7 @@ function backToSelector(){
 }
 async function deleteMapFromArchive(gameId, mapName) {
   if (!await HGModal.confirm(`delete "${mapName}"?`, `this will remove the map and all its entries. this cannot be undone.`, { confirmLabel: 'delete', danger: true })) return;
-  await sb.from('dream_matrix').delete().eq('map_id', gameId).eq('user_id', currentUser.id);
+  await sb.from('dreams').delete().eq('id', gameId).eq('user_id', currentUser.id);
   allGames = allGames.filter(g => g.id !== gameId);
   renderMapSelectorGrid();
 }
@@ -1338,7 +1334,7 @@ async function openArchetypeHistory(archetype, fromAll){
 
   const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
     sb.from('dream_matrix')
-      .select('id, map_id, map_name, location_data, sidequest_data, map_phase, map_completed, created_at')
+      .select('id, map_id, location_data, sidequest_data, map_phase, map_completed, created_at')
       .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
     sb.from('daily_matrix')
       .select('id, entry_date, location_data, created_at')
