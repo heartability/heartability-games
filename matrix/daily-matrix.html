@@ -1347,7 +1347,9 @@ function buildSingleLocationSVG(loc){
   }
   if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
-      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
+      + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`
+      + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a" `
+      + `font-family="ZoesHandwriting,cursive" font-size="13">${loc.terrain}</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
   }
@@ -2043,7 +2045,9 @@ function renderDayquestPreview() {
   }
   if (dqDraft.terrain && TERRAIN_IMGS[dqDraft.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
-      href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
+      href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>
+      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a"
+        font-family="ZoesHandwriting,cursive" font-size="13">${dqDraft.terrain}</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
       stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5 4"/>

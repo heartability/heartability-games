@@ -524,6 +524,8 @@ const TERRAIN = [
   { id:"forest",    label:"forest",    cat:"landscapes" },
 ];
 
+const TERRAIN_LABELS = Object.fromEntries(TERRAIN.map(t => [t.id, t.label]));
+
 const WEATHER_CATS = [
   { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"]          },
   { id:"rainy", label:"rainy", cls:"rainy", tint:"#c9b3e7",  feelings:["shadows","worry","fear","depression","regret"]      },
@@ -734,6 +736,12 @@ function renderZoneCircles() {
       img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       img.style.pointerEvents = 'none';
       zoneGroup.appendChild(img);
+      const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
+      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
+      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
+      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = TERRAIN_LABELS[zone.terrain] || zone.terrain;
+      zoneGroup.appendChild(terrainLabelEl);
     }
     if (!hasTerrain || isActive) {
       const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -824,6 +832,12 @@ function renderSquareZones() {
       img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       img.style.pointerEvents = 'none';
       zoneGroup.appendChild(img);
+      const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
+      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
+      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
+      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = TERRAIN_LABELS[zone.terrain] || zone.terrain;
+      zoneGroup.appendChild(terrainLabelEl);
     }
     if (!hasTerrain || isActive) {
       const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
