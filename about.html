@@ -32,6 +32,15 @@ body {
   position: relative;
   overflow-x: hidden;
   background: url("assets/elements/gradient.png") no-repeat center top / cover;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.about-main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -221,6 +230,8 @@ body {
 </head>
 <body>
 
+<main class="about-main">
+
 <header class="about-header">
   <h1 class="sr-only">About Heartability — a virtual world designed with video game metaphors to help people rediscover their optimism</h1>
   <img class="about-title-img" src="assets/elements/about-title.png" alt="About Heartability — heartability is a virtual world designed with video game metaphors to help people rediscover their optimism">
@@ -266,6 +277,8 @@ body {
     </div>
   </div>
 </div>
+
+</main>
 
 <footer class="about-footer">
   <a class="heart-link" href="games/game-room.html" aria-label="Enter Heartability">
