@@ -1249,7 +1249,10 @@ const _storedRaw = (() => {
 })();
 const _storedToken = _storedRaw?.access_token || null;
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+// `sb` gets rebuilt (not mutated — a client's headers are frozen at construction
+// time) once init() has a fresh token, so later sb.from() calls in this page
+// load carry a valid Authorization header too.
+let sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
   global: _storedToken ? { headers: { Authorization: `Bearer ${_storedToken}` } } : {}
 });
@@ -3015,24 +3018,74 @@ function confirmDct() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
+const AUTH_TOKEN_KEY = 'sb-rrdfltqnrnvmqemyrfaj-auth-token';
+
 function readStoredSession() {
   try {
-    const raw = localStorage.getItem('sb-rrdfltqnrnvmqemyrfaj-auth-token');
+    const raw = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     const token = parsed?.access_token;
     if (!token) return null;
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return { user: parsed.user || { id: payload.sub, email: payload.email }, token };
+    return {
+      user: parsed.user || { id: payload.sub, email: payload.email },
+      token,
+      refreshToken: parsed.refresh_token || null,
+      expiresAt: payload.exp || null,
+    };
   } catch(e) { return null; }
+}
+
+// Direct fetch — bypasses the Supabase client's auth queue entirely. Touching
+// sb.auth's internal lock with a stale/invalid stored session can hang forever
+// and block every later sb.from() call on the page, so refreshing is done by
+// hand here instead of via sb.auth.refreshSession()/getSession().
+async function refreshStoredSession(refreshToken) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.access_token) return null;
+    localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(data));
+    return data;
+  } catch(e) { return null; }
+}
+
+// Returns a stored session with a non-expired access token, refreshing it
+// first if needed. Clears the stored session on a failed refresh so a dead
+// session doesn't keep silently failing on every future page load.
+async function getFreshSession() {
+  const stored = readStoredSession();
+  if (!stored) return null;
+  const expiringSoon = stored.expiresAt && stored.expiresAt < Math.floor(Date.now() / 1000) + 30;
+  if (!expiringSoon) return stored;
+  if (!stored.refreshToken) { localStorage.removeItem(AUTH_TOKEN_KEY); return null; }
+  const refreshed = await refreshStoredSession(stored.refreshToken);
+  if (!refreshed) { localStorage.removeItem(AUTH_TOKEN_KEY); return null; }
+  return readStoredSession();
 }
 
 async function init() {
   buildSidequestPalette();
   buildDctPalette();
-  const stored = readStoredSession();
+  const stored = await getFreshSession();
   if (!stored) { showMemberGate(); return; }
   currentUser = stored.user;
+
+  // Rebuild sb only if the token actually changed (i.e. a refresh happened),
+  // so gameplay saves later in this page load (sb.from('dreams')/etc.) carry
+  // a valid header too, without spinning up a redundant client on every load.
+  if (stored.token !== _storedToken) {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${stored.token}` } }
+    });
+  }
 
   // Direct fetch — bypasses the Supabase client's auth queue entirely
   let isPaid = false;

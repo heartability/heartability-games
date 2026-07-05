@@ -247,7 +247,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   .thought-bubble { font-size:clamp(11px,3vw,14px); min-width:140px; left:calc(100% - 6px); }
   .save-continue-bar { height:auto; padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px)); bottom:0; z-index:30; background:var(--cream); border-top:2px solid var(--aqua); }
   /* leave room below the panel so the continue bar doesn't sit on top of it */
-  body:has(.save-continue-bar.visible) .content-panel:not(.iframe-mode) { --bw-height: calc(100dvh - 44px - 100px); }
+  body.save-bar-visible .content-panel:not(.iframe-mode) { --bw-height: calc(100dvh - 44px - 100px); }
   /* iframe-mode (character builder) was centered with overflow:visible, so any
      content taller than the viewport was unreachable — anchor it below the nav
      and let it scroll instead. */
@@ -1159,6 +1159,7 @@ function setSaveBtnVisible(visible, label='continue →') {
   const bar = document.getElementById('save-continue-bar');
   const btn = document.getElementById('save-continue-btn');
   bar.classList.toggle('visible', visible);
+  document.body.classList.toggle('save-bar-visible', visible);
   if (btn) {
     btn.innerHTML = label;
     btn.disabled = false;
