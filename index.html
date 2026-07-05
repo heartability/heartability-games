@@ -118,6 +118,8 @@ body {
   z-index: 6;
   cursor: pointer;
   pointer-events: all;
+  text-decoration: none;
+  display: inline-block; /* needed so absolute child anchors correctly */
 }
 .heart-guide-img {
   width: clamp(80px, 12vw, 180px);
@@ -131,12 +133,13 @@ body {
   50%      { transform: translateY(-10px) rotate(2deg); }
 }
 
-/* ── SPEECH BUBBLE ── */
+/* ── SPEECH BUBBLE — absolutely positioned relative to heart wrap ── */
 .heart-bubble-wrap {
-  position: fixed;
-  bottom: 18vh;
-  left: 15vw;
+  position: absolute;
+  left: calc(100% - 10px);
+  top: calc(50% - 40px);
   z-index: 7;
+  text-decoration: none;
 }
 .heart-bubble-wrap .speech-bubble {
   background: #fff;
@@ -151,6 +154,7 @@ body {
   filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   min-width: 180px;
   max-width: clamp(200px, 20vw, 300px);
+  white-space: nowrap;
 }
 
 /* ── COPYRIGHT ── */
@@ -210,14 +214,13 @@ body {
 
   .heart-bubble-wrap {
     display: none;
-    bottom: 16vh;
-    left: 24vw;
   }
   .heart-bubble-wrap.visible { display: block; }
   .heart-bubble-wrap .speech-bubble {
     font-size: clamp(12px, 3.5vw, 18px);
     min-width: 140px;
     max-width: 50vw;
+    white-space: normal;
   }
 
   .copyright { font-size: 5px; }
@@ -264,39 +267,40 @@ body {
 </a>
 
 <!-- Heart guide — bottom left, links to about page -->
-<a class="heart-guide-wrap" id="heartGuideWrap" href="about.html" aria-label="Learn more about us">
-  <img class="heart-guide-img"
-       src="assets/elements/guides/heart.png"
-       alt="Heart guide character">
-</a>
-
-<!-- Speech bubble -->
-<div class="heart-bubble-wrap" id="heartBubbleWrap">
-  <div class="speech-bubble">click me to learn more about us</div>
+<div class="heart-guide-wrap" id="heartGuideWrap">
+  <a href="about.html" aria-label="Learn more about us">
+    <img class="heart-guide-img"
+         src="assets/elements/guides/heart.png"
+         alt="Heart guide character">
+  </a>
+  <!-- Speech bubble sits to the right, also links to about -->
+  <a class="heart-bubble-wrap" id="heartBubbleWrap" href="about.html">
+    <div class="speech-bubble">click me to learn more about us</div>
+  </a>
 </div>
 
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
 (function () {
-  /* Mobile: first tap shows bubble, second tap follows the link */
+  if (window.innerWidth > 768) return;
+
+  /* Mobile: first tap on heart shows bubble; bubble itself navigates directly */
   const heartGuide = document.getElementById('heartGuideWrap');
   const bubbleWrap = document.getElementById('heartBubbleWrap');
 
-  if (window.innerWidth <= 768) {
-    heartGuide.addEventListener('click', (e) => {
-      if (!bubbleWrap.classList.contains('visible')) {
-        e.preventDefault();
-        bubbleWrap.classList.add('visible');
-      }
-    });
+  heartGuide.querySelector('a').addEventListener('click', (e) => {
+    if (!bubbleWrap.classList.contains('visible')) {
+      e.preventDefault();
+      bubbleWrap.classList.add('visible');
+    }
+  });
 
-    document.addEventListener('click', (e) => {
-      if (!heartGuide.contains(e.target) && !bubbleWrap.contains(e.target)) {
-        bubbleWrap.classList.remove('visible');
-      }
-    });
-  }
+  document.addEventListener('click', (e) => {
+    if (!heartGuide.contains(e.target)) {
+      bubbleWrap.classList.remove('visible');
+    }
+  });
 }());
 </script>
 </body>
