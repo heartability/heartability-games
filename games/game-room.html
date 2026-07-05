@@ -541,15 +541,15 @@ body.game-mode .char-heart {
 <div class="game-popup-overlay" id="game-popup-overlay" onclick="handleGamePopupOverlayClick(event)">
   <div class="game-popup" id="game-popup">
     <div class="game-popup-titlebar">
-      <div class="game-popup-titlebar-left">
+      <div class="game-popup-titlebar-left" id="game-popup-titlebar-left">
         <div class="bingo-mode-toggle" id="bingo-mode-toggle">
           <button class="bingo-mode-btn active" id="bingo-tab-sensory" onclick="switchBingoMode('sensory')">sensory</button>
           <button class="bingo-mode-btn" id="bingo-tab-cosmic" onclick="switchBingoMode('cosmic')">cosmic</button>
         </div>
+        <button class="game-popup-howto" id="game-popup-howto" onclick="reopenHowto()">how to play</button>
       </div>
-      <div class="game-popup-titlebar-center">
+      <div class="game-popup-titlebar-center" id="game-popup-titlebar-center">
         <span id="game-popup-title"></span>
-        <button class="game-popup-howto" onclick="reopenHowto()">how to play</button>
       </div>
       <div class="game-popup-titlebar-right">
         <span class="popup-close" onclick="closeGame()">&#x2715;</span>
@@ -706,9 +706,11 @@ const HOWTO_CONTENT = {
   'treasure-map': {
     title: 'treasure map',
     steps: `how to play:
-1. think of a dream you want to pursue
-2. close your eyes and imagine it coming true
-3. use the prompts in the map builder to build a metaphorical representation of how you feel now`
+1. think of a dream that you want to pursue
+2. choose a map shape that represents your dream:
+ spiral — this dream requires me to trust the universe
+ square — this dream requires me to develop new skills
+3. complete each phase by assigning it with a terrain and emotional climate`
   },
   'infinity-mirror': {
     title: 'infinity mirror',
@@ -774,11 +776,14 @@ function launchGame(slug) {
   popup.appendChild(iframe);
   overlay.classList.add('open');
   const toggle = document.getElementById('bingo-mode-toggle');
+  const howtoBtn = document.getElementById('game-popup-howto');
   if (slug === 'bingo') {
     toggle.classList.add('visible');
     setBingoTabActive('sensory');
+    document.getElementById('game-popup-titlebar-center').appendChild(howtoBtn);
   } else {
     toggle.classList.remove('visible');
+    document.getElementById('game-popup-titlebar-left').appendChild(howtoBtn);
   }
 }
 function closeGame() {
