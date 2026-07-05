@@ -148,55 +148,16 @@ body {
   width: 100%;
 }
 
-/* ── HEART + FOOTER ── */
+/* ── FOOTER ── */
 .about-footer {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 3vw;
+  display: flex;
+  justify-content: center;
   padding: 4vh 5vw 8vh;
 }
 
-.heart-link {
-  grid-column: 1;
-  justify-self: start;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  cursor: pointer;
-}
-.heart-img {
-  width: clamp(80px, 12vw, 180px);
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-  animation: heartFloat 4s ease-in-out infinite;
-}
-@keyframes heartFloat {
-  0%,100% { transform: translateY(0px) rotate(-2deg); }
-  50%      { transform: translateY(-8px) rotate(2deg); }
-}
-.speech-bubble {
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 50%;
-  padding: 14px 24px;
-  font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(10px, 1.4vw, 16px);
-  color: #000;
-  text-align: center;
-  line-height: 1.4;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
-  min-width: 180px;
-  max-width: clamp(200px, 20vw, 300px);
-}
-
 .legal-links {
-  grid-column: 2;
-  justify-self: center;
   font-family: "ZoesHandwriting", cursive;
   font-size: clamp(14px, 1.6vw, 18px);
   color: #fff;
@@ -281,10 +242,6 @@ body {
 </main>
 
 <footer class="about-footer">
-  <a class="heart-link" href="games/game-room.html" aria-label="Enter Heartability">
-    <img class="heart-img" src="assets/elements/guides/heart.png" alt="Heart guide">
-    <div class="speech-bubble">start dreaming</div>
-  </a>
   <p class="legal-links">
     <a href="legal/privacy-policy.html">privacy policy</a> &nbsp;
     <a href="legal/refund-policy.html">refund</a> &nbsp;
