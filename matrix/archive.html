@@ -38,7 +38,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 /* ── NAV ── */
 .room-nav {
   position:fixed; top:0; left:0; right:0; height:44px;
-  background:#4970fc; border-bottom:2px solid #111;
+  background:#6578e2; border-bottom:2px solid #111;
   z-index:200; display:flex; align-items:center; justify-content:space-between;
   padding:0 clamp(12px,2vw,28px);
   font-family:var(--font-hand); font-size:clamp(18px,1.6vw,22px); color:#fff;
@@ -63,13 +63,13 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .gear-btn img { width:22px; height:22px; display:block; }
 .gear-dropdown {
   position:absolute; top:calc(100% + 4px); left:0; min-width:170px;
-  background:var(--mint); border:2px solid #111;
+  background:#6578e2; border:2px solid #111;
   box-shadow:3px 4px 0 rgba(0,0,0,0.12);
   z-index:201; display:none; flex-direction:column; overflow:hidden;
 }
 .gear-dropdown.open { display:flex; }
 .gear-item {
-  font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333;
+  font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#fff;
   padding:9px 14px; cursor:pointer; border:none; background:none;
   text-align:left; white-space:nowrap; transition:background 0.12s;
 }
@@ -689,6 +689,11 @@ function showToast(msg, color) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
+// Save errors get a blocking popup instead of a fading toast; success still toasts.
+function statusRoute(msg, color) {
+  if (color === '#E8478B') { HGModal.alert('oops', msg); }
+  else { showToast(msg, color); }
+}
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ── TABS ──────────────────────────────────────────────────
@@ -1282,7 +1287,7 @@ function renderArchCard(a, onClick){
 async function deleteArchetype(archetypeId, name){
   if (!await HGModal.confirm(`delete "${name}"?`, `entries that already used this archetype keep their look — you just won't be able to pick it again.`, { confirmLabel: 'delete', danger: true })) return;
   const { error } = await sb.from('character_archetypes').delete().eq('id', archetypeId).eq('user_id', currentUser.id);
-  if (error) { console.error('[archetypes] delete failed:', error); showToast('couldn’t delete — try again', '#E8478B'); return; }
+  if (error) { console.error('[archetypes] delete failed:', error); HGModal.alert('oops', 'couldn’t delete — try again'); return; }
   allArchetypes = allArchetypes.filter(a => a.id !== archetypeId);
   showToast('archetype deleted', '#8a7a5a');
   const onAllScreen = document.getElementById('arch-all-view').style.display !== 'none';
@@ -1421,15 +1426,15 @@ async function init() {
   // Editors + matrix event wiring (created once; delegation survives re-renders).
   photoEditor = MatrixRender.createPhotoEditor({
     sb, table:'dream_matrix', getEntryId: () => activeSaveId, getUserId: () => currentUser.id,
-    onChange: refreshMatrixView, status: showToast,
+    onChange: refreshMatrixView, status: statusRoute,
   });
   journalEditor = MatrixRender.createJournalEditor({
     sb, table:'dream_matrix', getEntryId: () => activeSaveId,
-    onChange: refreshMatrixView, status: showToast,
+    onChange: refreshMatrixView, status: statusRoute,
   });
   dailyJournalEditor = MatrixRender.createJournalEditor({
     sb, table:'daily_matrix', getEntryId: () => activeSaveId,
-    onChange: refreshMatrixView, status: showToast,
+    onChange: refreshMatrixView, status: statusRoute,
   });
   MatrixRender.attachMatrix(document.getElementById('matrix-stage'), {
     onAddPhoto:    () => photoEditor.open(),

@@ -259,9 +259,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background .15s; padding:3px; }
 .gear-btn:hover { background:rgba(0,0,0,.08); }
 .gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#6578e2; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
 .gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#fff; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
 .gear-item:hover { background:rgba(0,0,0,.07); }
 .gear-music { display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 14px; border-top:1px solid rgba(0,0,0,.1); }
 .music-btn { cursor:pointer; background:none; border:none; padding:2px; opacity:.65; transition:opacity .15s; }
@@ -1195,7 +1195,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 <div class="photo-overlay" id="photo-overlay">
   <div class="photo-card">
     <div class="photo-head">
-      <span class="photo-title">✦ add a photo</span>
+      <span class="photo-title">add a photo</span>
       <button class="photo-close" onclick="closePhotoUpload()">×</button>
     </div>
     <div class="photo-sub">pick an image and choose where it lands on your matrix.</div>
@@ -1491,7 +1491,7 @@ async function saveAndContinue() {
     if (!mapName) {
       btn.disabled = false;
       btn.textContent = 'continue →';
-      showRoomStatus('name your dream first', '#E8478B');
+      HGModal.alert('oops', 'name your dream first');
       return;
     }
     // Tell treasure-map to report its state; matrix handles the DB write on map_ready
@@ -1509,7 +1509,7 @@ async function saveAndContinue() {
       if (b && b.disabled) {
         b.disabled = false;
         b.innerHTML = label;
-        showRoomStatus('something went wrong — try again', '#E8478B');
+        HGModal.alert('oops', 'something went wrong — try again');
       }
     }, 5000);
   }
@@ -2028,7 +2028,7 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
   }, { onConflict: 'id' });
 
   if (error) {
-    showRoomStatus('save failed', '#E8478B');
+    HGModal.alert('oops', 'save failed');
     const btn = document.getElementById('save-continue-btn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
     return;
@@ -2249,7 +2249,7 @@ async function sendJournalMessage(){
   const sendBtn = document.getElementById('jrc-send');
   const text = (msgEl?.value || '').trim();
   if (!text && !journal.pendingImage) return false;          // nothing to send
-  if (!(currentUser && activeEntryId)){ showJournalStatus('not signed in', false); return false; }
+  if (!(currentUser && activeEntryId)){ HGModal.alert('oops', 'not signed in'); return false; }
 
   if (sendBtn) sendBtn.disabled = true;
 
@@ -2267,7 +2267,7 @@ async function sendJournalMessage(){
       imageUrl = pub?.publicUrl || null;
     } catch(err){
       console.error('[journal image] upload failed:', err);
-      showJournalStatus('couldn’t attach photo — try again', false);
+      HGModal.alert('oops', 'couldn’t attach photo — try again');
       if (sendBtn) sendBtn.disabled = false;
       return false;
     }
@@ -2296,7 +2296,7 @@ async function sendJournalMessage(){
     if (error) throw error;
   } catch(err){
     console.error('[journal send] failed:', err);
-    showJournalStatus('something went wrong — try again', false);
+    HGModal.alert('oops', 'something went wrong — try again');
     if (sendBtn) sendBtn.disabled = false;
     return false;
   }
@@ -2642,7 +2642,7 @@ async function removeMatrixPhoto(url){
     if (error) throw error;
   } catch (err) {
     console.error('[matrix photo] remove failed:', err);
-    showRoomStatus('couldn’t remove photo — try again', '#E8478B');
+    HGModal.alert('oops', 'couldn’t remove photo — try again');
     return;
   }
   await deleteMatrixPhotoFiles([url]);   // best-effort storage cleanup
@@ -2687,7 +2687,7 @@ window.addEventListener('message', async e => {
       }).select().single();
       if (error) {
         if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
+        HGModal.alert('oops', 'save failed — try again');
         return;
       }
       activeGameId   = newGame.id;
@@ -2698,7 +2698,7 @@ window.addEventListener('message', async e => {
         .eq('id', activeGameId).eq('user_id', currentUser.id);
       if (error) {
         if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-        showRoomStatus('save failed — try again', '#E8478B');
+        HGModal.alert('oops', 'save failed — try again');
         return;
       }
       activeGameData = { ...activeGameData, map_name, map_type, map_data: map_data || { zones: [] } };
@@ -2715,7 +2715,7 @@ window.addEventListener('message', async e => {
   if (msg.type === 'map_save_failed') {
     const btn = document.getElementById('save-continue-btn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
-    showRoomStatus(msg.reason || 'add a location and feeling to every zone first', '#E8478B');
+    HGModal.alert('oops', msg.reason || 'add a location and feeling to every zone first');
     return;
   }
 
@@ -2723,13 +2723,13 @@ window.addEventListener('message', async e => {
   if (msg.type === 'char_state') {
     const charState = msg.state || {};
     if (!charState.body) {
-      showRoomStatus('pick a body first!', '#E8478B');
+      HGModal.alert('oops', 'pick a body first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
     if (!charState.name || !charState.name.trim()) {
-      showRoomStatus('name this archetype first!', '#E8478B');
+      HGModal.alert('oops', 'name this archetype first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
@@ -2742,7 +2742,7 @@ window.addEventListener('message', async e => {
   if (msg.type === 'bingo_state') {
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
-      showRoomStatus('check some squares first!', '#E8478B');
+      HGModal.alert('oops', 'check some squares first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
@@ -2761,7 +2761,7 @@ window.addEventListener('message', async e => {
       setSaveBtnVisible(false);
       stepJournal();
     } else {
-      showRoomStatus('save failed', '#E8478B');
+      HGModal.alert('oops', 'save failed');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
     }

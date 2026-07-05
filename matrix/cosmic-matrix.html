@@ -26,7 +26,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   font-family:var(--font-hand); color:var(--ink); }
 
 /* NAV (matches adventure) */
-.room-nav{ position:fixed; top:0; left:0; right:0; height:44px; background:#4970fc;
+.room-nav{ position:fixed; top:0; left:0; right:0; height:44px; background:#6578e2;
   border-bottom:2px solid var(--line); z-index:200; display:flex; align-items:center;
   justify-content:space-between; padding:0 clamp(12px,2vw,28px);
   font-family:var(--font-hand); font-size:clamp(18px,1.6vw,22px); color:#fff; }
@@ -37,9 +37,9 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background .15s; padding:3px; }
 .gear-btn:hover { background:rgba(0,0,0,.08); }
 .gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#6578e2; border:2px solid var(--line); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
 .gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#fff; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
 .gear-item:hover { background:rgba(0,0,0,.07); }
 
 /* CONTENT PANEL — sits where the back wall would be (outside: no wall, soft frame) */
@@ -750,7 +750,7 @@ async function openSeason(tpl){
   activeTemplate = tpl;
   activeMapData  = tpl.map_data;
   await ensureCosmicSeason(tpl);
-  if (!activeMapId){ showStatus('could not open this season — try again','#E8478B'); return; }
+  if (!activeMapId){ HGModal.alert('oops','could not open this season — try again'); return; }
   await loadProgress();
   renderSeasonMap();
 }
@@ -1246,7 +1246,7 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
     completedData.set(activePhase, charState);
 
     showStatus('character saved ✓','#6ab86a'); setSave(false); stepBingo();
-  } catch(err){ console.error('[char save]',err); showStatus('save failed','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+  } catch(err){ console.error('[char save]',err); HGModal.alert('oops','save failed'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
 }
 
 function stepBingo(){
@@ -1411,7 +1411,7 @@ async function sendJournalMessage(){
   const sendBtn=document.getElementById('jrc-send');
   const text=(msgEl?.value||'').trim();
   if(!text&&!journal.pendingImage) return false;
-  if(!(currentUser&&activeMapId&&activePhase)){ showJournalStatus('not signed in',false); return false; }
+  if(!(currentUser&&activeMapId&&activePhase)){ HGModal.alert('oops','not signed in'); return false; }
   if(sendBtn) sendBtn.disabled=true;
 
   let imageUrl=null;
@@ -1426,7 +1426,7 @@ async function sendJournalMessage(){
       imageUrl=pub?.publicUrl||null;
     } catch(err){
       console.error('[journal image]',err);
-      showJournalStatus("couldn't attach photo — try again",false);
+      HGModal.alert('oops',"couldn't attach photo — try again");
       if(sendBtn) sendBtn.disabled=false;
       return false;
     }
@@ -1455,7 +1455,7 @@ async function sendJournalMessage(){
     if(error) throw error;
   } catch(err){
     console.error('[journal send]',err);
-    showJournalStatus('something went wrong — try again',false);
+    HGModal.alert('oops','something went wrong — try again');
     if(sendBtn) sendBtn.disabled=false;
     return false;
   }
@@ -1503,7 +1503,7 @@ function stepDone(){
   justDoneKey = activePhase;
   completedSet.add(activePhase);
   setSave(false);
-  showStatus('phase complete ✦', '#E8478B');
+  showStatus('phase complete!', '#E8478B');
   renderSeasonMap();
 }
 
@@ -1520,7 +1520,7 @@ async function saveAndContinue(){
   iframe.contentWindow.postMessage({ type:'request_state' }, '*');
   clearTimeout(window._fb);
   window._fb = setTimeout(()=>{ if (btn.disabled){ btn.disabled=false;
-    btn.innerHTML='continue →'; showStatus('something went wrong — try again','#E8478B'); } }, 5000);
+    btn.innerHTML='continue →'; HGModal.alert('oops','something went wrong — try again'); } }, 5000);
 }
 
 // ── MESSAGE HANDLERS — iframes report, matrix writes ────────
@@ -1545,8 +1545,8 @@ window.addEventListener('message', async e=>{
   // character state → cosmic_matrix (idempotent on map_id, map_phase)
   if (msg.type==='char_state'){
     const charState = msg.state || {};
-    if (!charState.body){ showStatus('pick a body first!','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
-    if (!charState.name || !charState.name.trim()){ showStatus('name this archetype first!','#E8478B'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
+    if (!charState.body){ HGModal.alert('oops','pick a body first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
+    if (!charState.name || !charState.name.trim()){ HGModal.alert('oops','name this archetype first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
     await saveCharacterAndAdvance(charState, { fork: true });
     return;
   }
@@ -1565,7 +1565,7 @@ window.addEventListener('message', async e=>{
       }, { onConflict:'user_id,map_id' });
       if (error) throw error;
       showStatus('board saved ✓','#6ab86a'); setSave(false); stepJournal();
-    } catch(err){ console.error('[bingo save]',err); showStatus('save failed','#E8478B'); _bingoRequested=false; const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+    } catch(err){ console.error('[bingo save]',err); HGModal.alert('oops','save failed'); _bingoRequested=false; const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
     return;
   }
 });

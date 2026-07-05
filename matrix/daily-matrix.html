@@ -84,7 +84,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 /* ── NAV BAR ── */
 .room-nav {
   position:fixed; top:0; left:0; right:0; height:44px;
-  background:#4970fc; border-bottom:2px solid var(--line-col);
+  background:#6578e2; border-bottom:2px solid var(--line-col);
   z-index:200; display:flex; align-items:center;
   justify-content:space-between; padding:0 clamp(12px,2vw,28px);
   font-family:var(--font-hand); font-size:clamp(18px,1.6vw,22px); color:#fff;
@@ -98,9 +98,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gear-btn { width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:3px; transition:background .15s; padding:3px; }
 .gear-btn:hover { background:rgba(0,0,0,.08); }
 .gear-btn img { width:22px; height:22px; display:block; }
-.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#c9fff5; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
+.gear-dropdown { position:absolute; top:calc(100% + 4px); left:0; min-width:170px; background:#6578e2; border:2px solid var(--line-col); box-shadow:3px 4px 0 rgba(0,0,0,.12); z-index:201; display:none; flex-direction:column; overflow:hidden; }
 .gear-dropdown.open { display:flex; }
-.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#333; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
+.gear-item { font-family:var(--font-hand); font-size:clamp(13px,1.3vw,16px); color:#fff; padding:9px 14px; cursor:pointer; border:none; background:none; text-align:left; white-space:nowrap; transition:background .12s; }
 .gear-item:hover { background:rgba(0,0,0,.07); }
 .gear-music { display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 14px; border-top:1px solid rgba(0,0,0,.1); }
 .music-btn { cursor:pointer; background:none; border:none; padding:2px; opacity:.65; transition:opacity .15s; }
@@ -1189,7 +1189,7 @@ async function saveAndContinue() {
       if (b && b.disabled) {
         b.disabled = false;
         b.innerHTML = label;
-        showRoomStatus('something went wrong — try again', '#E8478B');
+        HGModal.alert('oops', 'something went wrong — try again');
       }
     }, 5000);
   }
@@ -1474,7 +1474,7 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
 
   if (error) {
     console.error('[daily save]', error);
-    showRoomStatus('save failed', '#E8478B');
+    HGModal.alert('oops', 'save failed');
     const btn = document.getElementById('save-continue-btn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
     return;
@@ -1669,7 +1669,7 @@ async function sendJournalMessage(){
   const sendBtn = document.getElementById('jrc-send');
   const text = (msgEl?.value || '').trim();
   if (!text) return false;                                   // nothing to send
-  if (!(currentUser && activeEntryId)){ showJournalStatus('not signed in', false); return false; }
+  if (!(currentUser && activeEntryId)){ HGModal.alert('oops', 'not signed in'); return false; }
 
   if (sendBtn) sendBtn.disabled = true;
 
@@ -1694,7 +1694,7 @@ async function sendJournalMessage(){
     if (error) throw error;
   } catch(err){
     console.error('[journal send] failed:', err);
-    showJournalStatus('something went wrong — try again', false);
+    HGModal.alert('oops', 'something went wrong — try again');
     if (sendBtn) sendBtn.disabled = false;
     return false;
   }
@@ -1934,13 +1934,13 @@ window.addEventListener('message', async e => {
   if (msg.type === 'char_state') {
     const charState = msg.state || {};
     if (!charState.body) {
-      showRoomStatus('pick a body first!', '#E8478B');
+      HGModal.alert('oops', 'pick a body first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
     }
     if (!charState.name || !charState.name.trim()) {
-      showRoomStatus('name this archetype first!', '#E8478B');
+      HGModal.alert('oops', 'name this archetype first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
@@ -1953,7 +1953,7 @@ window.addEventListener('message', async e => {
   if (msg.type === 'bingo_state') {
     const { marked: markedArr, score } = msg;
     if (!score || score === 0) {
-      showRoomStatus('check some squares first!', '#E8478B');
+      HGModal.alert('oops', 'check some squares first!');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
       return;
@@ -1973,7 +1973,7 @@ window.addEventListener('message', async e => {
       setSaveBtnVisible(false);
       stepJournal();
     } else {
-      showRoomStatus('save failed', '#E8478B');
+      HGModal.alert('oops', 'save failed');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
     }
