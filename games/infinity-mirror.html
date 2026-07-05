@@ -157,7 +157,7 @@ html { background: transparent; }
 
 .parts-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -176,6 +176,7 @@ html { background: transparent; }
   cursor: pointer;
   transition: filter 0.1s;
   width: 100%;
+  min-width: 0;
 }
 .part-btn:hover { filter: brightness(0.94); }
 .part-btn.active {
@@ -185,7 +186,8 @@ html { background: transparent; }
   background: #fff0e0;
 }
 .part-btn img {
-  width: 52px;
+  width: 100%;
+  max-width: 52px;
   height: 44px;
   object-fit: contain;
   pointer-events: none;
