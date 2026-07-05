@@ -272,6 +272,11 @@ body.game-mode .char-heart {
   color: #333; line-height: 1.8;
   white-space: pre-line;
 }
+.howto-sublist {
+  margin: 2px 0 2px 26px; padding: 0; list-style: disc;
+  font-size: 0.78em; line-height: 1.5; color: #555;
+}
+.howto-sublist li { margin-bottom: 2px; }
 .howto-play-btn {
   padding: 10px; background: var(--blue); border: 2px solid #4a5bc4;
   box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand);
@@ -707,10 +712,7 @@ const HOWTO_CONTENT = {
     title: 'treasure map',
     steps: `how to play:
 1. think of a dream that you want to pursue
-2. choose a map shape that represents your dream:
- spiral — this dream requires me to trust the universe
- square — this dream requires me to develop new skills
-3. complete each phase by assigning it with a terrain and emotional climate`
+2. choose a map shape that represents your dream:<ul class="howto-sublist"><li>spiral — this dream requires me to trust the universe</li><li>square — this dream requires me to develop new skills</li></ul>3. complete each phase by assigning it with a terrain and emotional climate`
   },
   'infinity-mirror': {
     title: 'infinity mirror',
@@ -735,7 +737,7 @@ function openGame(slug) {
   if (content) {
     pendingGameSlug = slug;
     document.getElementById('howto-title').textContent = content.title;
-    document.getElementById('howto-steps').textContent = content.steps;
+    document.getElementById('howto-steps').innerHTML = content.steps;
     launchGame(slug);
     document.getElementById('howto-overlay').classList.add('open');
   } else {
