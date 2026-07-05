@@ -88,15 +88,17 @@ html, body {
 
 /* ── PAGE ── */
 .page-wrap {
-  max-width: 640px;
-  margin: 0 auto;
+  min-height: 100dvh;
   padding: 64px 20px 70px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 22px;
 }
 
 .window {
+  width: min(92vw, 640px);
   background: var(--cream);
   box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
   overflow: hidden;
@@ -114,7 +116,8 @@ html, body {
   align-items: center;
   padding: 0 20px;
   font-family: var(--font-pixel);
-  font-size: clamp(14px, 1.5vw, 18px);
+  font-size: clamp(11px, 1.1vw, 13px);
+  line-height: 1;
   color: #333;
 }
 .window-body {
@@ -165,30 +168,6 @@ html, body {
 }
 .btn-upgrade-inline:hover  { background: var(--purple-dark); }
 .btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
-
-/* ── ACCESS STRIP ── */
-.access-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-.access-pill {
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1.5px solid #ddd;
-  color: #bbb;
-  background: #f9f7f3;
-}
-.access-pill.unlocked {
-  border-color: var(--purple);
-  color: var(--purple);
-  background: rgba(101,121,226,0.08);
-}
-.access-pill.unlocked::before { content: '✓ '; }
-.access-pill:not(.unlocked)::before { content: '🔒 '; font-size: 0.85em; }
 
 /* ── DELETION ── */
 .danger-block {
@@ -314,10 +293,12 @@ html, body {
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
           <button class="btn-upgrade-inline" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade</button>
-          <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()" style="display:none;">manage payments</button>
         </div>
       </div>
-      <div class="access-strip" id="access-strip"></div>
+      <div class="setting-row" id="row-manage-payments" style="display:none;">
+        <span class="setting-label">manage payments</span>
+        <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()">stripe subscriptions</button>
+      </div>
     </div>
   </div>
 
@@ -401,36 +382,23 @@ document.addEventListener('click', e => {
   function applyMembershipUI(status) {
     const membershipEl = document.getElementById('settings-membership');
     const upgradeBtn   = document.getElementById('btn-upgrade-settings');
-    const manageBtn    = document.getElementById('btn-manage-payments');
-    const strip        = document.getElementById('access-strip');
-
-    const access = {
-      free:     ['daily matrix'],
-      dream:    ['daily matrix', 'dream matrix', 'cosmic matrix'],
-      founding: ['daily matrix', 'dream matrix', 'cosmic matrix'],
-    };
-    const allFeatures = ['daily matrix', 'dream matrix', 'cosmic matrix'];
-    const unlocked = access[status] || access.free;
-
-    strip.innerHTML = allFeatures.map(f =>
-      `<span class="access-pill${unlocked.includes(f) ? ' unlocked' : ''}">${f}</span>`
-    ).join('');
+    const paymentsRow  = document.getElementById('row-manage-payments');
 
     if (status === 'founding') {
       membershipEl.textContent = 'founding member';
       membershipEl.style.color = 'var(--purple-dark)';
-      upgradeBtn.style.display = 'none';
-      manageBtn.style.display  = 'inline-block';
+      upgradeBtn.style.display  = 'none';
+      paymentsRow.style.display = 'flex';
     } else if (status === 'dream') {
       membershipEl.textContent = 'dream member';
       membershipEl.style.color = 'var(--purple)';
-      upgradeBtn.style.display = 'none';
-      manageBtn.style.display  = 'inline-block';
+      upgradeBtn.style.display  = 'none';
+      paymentsRow.style.display = 'flex';
     } else {
       membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
-      upgradeBtn.style.display = 'inline-block';
-      manageBtn.style.display  = 'none';
+      upgradeBtn.style.display  = 'inline-block';
+      paymentsRow.style.display = 'none';
     }
   }
 
