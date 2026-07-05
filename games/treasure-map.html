@@ -164,7 +164,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   background: #e8e0c8;
   border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
   border-left-color: #c8b88a; border-top-color: #c8b88a;
-  padding: 8px 12px; font-family: var(--font-hand); font-size: 15px; color: var(--text-mid);
+  padding: 8px 12px; font-family: var(--font-hand); font-size: 18.75px; color: var(--text-mid);
   min-height: 40px; line-height: 1.4;
 }
 .status-bar .status-active { color: var(--text-dark); font-size: 17px; }
@@ -442,18 +442,18 @@ body, .wall { background: transparent; }
             </svg>
           </div>
 
-          <!-- Zone prompt below canvas -->
-          <div style="margin-top:8px;">
+        </div>
+
+        <!-- ROW 2, COL 2 — Terrain -->
+        <div class="terrain-block">
+          <!-- Zone prompt above terrain options -->
+          <div style="margin-bottom:8px;">
             <div class="status-bar" id="zonePrompt" style="display:none;padding:8px 12px;">
               <div class="prompt-title" id="promptTitle"></div>
               <span id="promptText"></span>
             </div>
           </div>
 
-        </div>
-
-        <!-- ROW 2, COL 2 — Terrain -->
-        <div class="terrain-block">
           <div class="section-header">terrain</div>
           <div class="palette-section">
             <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
@@ -530,7 +530,7 @@ const WEATHER_CATS = [
   { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"]          },
   { id:"rainy", label:"rainy", cls:"rainy", tint:"#c9b3e7",  feelings:["shadows","worry","fear","depression","regret"]      },
   { id:"windy", label:"windy", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
-  { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock"]   },
+  { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness"]   },
 ];
 
 const ZONE_PROMPTS = [
