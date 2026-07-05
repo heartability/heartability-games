@@ -230,7 +230,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .jrc-input-area{ flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; flex-direction:column; gap:7px; background:#ede8e0; }
 .jrc-img-chip{ position:relative; width:70px; display:none; }
 .jrc-img-chip.has-img{ display:block; }
-.jrc-img-chip img{ width:100%; border:1.5px solid #c8b88a; display:block; object-fit:cover; aspect-ratio:1; }
+.jrc-img-chip img{ width:100%; height:auto; max-height:90px; border:1.5px solid #c8b88a; display:block; object-fit:contain; background:#f5f0ea; }
 .jrc-img-x{ position:absolute; top:-7px; right:-7px; width:18px; height:18px; padding:0; line-height:1;
   background:#fff; border:1.5px solid #ccc; border-radius:50%; cursor:pointer; font-size:10px; color:#888;
   display:flex; align-items:center; justify-content:center; }
