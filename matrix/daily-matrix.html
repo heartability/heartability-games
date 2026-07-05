@@ -736,16 +736,12 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .dq-climate.windy .dq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
 .dq-climate.snowy .dq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
 
-.dq-actions { display:none; }
 .dq-foot {
-  position:fixed;
-  bottom:0; left:0; right:0;
-  height:calc(21% - 44px);
   display:none; align-items:center; justify-content:center;
-  gap:16px; z-index:301; pointer-events:none;
+  gap:16px; margin-top:14px; padding-top:14px;
+  border-top:1px solid rgba(138,122,90,.35);
 }
 .dq-overlay.open .dq-foot { display:flex; }
-.dq-foot > * { pointer-events:all; }
 .dq-btn {
   padding:10px 18px; font-family:var(--font-hand); font-size:15px; cursor:pointer;
   border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
@@ -956,10 +952,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
         <div class="dq-climates" id="dq-climates"></div>
       </div>
     </div>
-    <div class="dq-actions"></div>
-  </div>
-  <div class="dq-foot">
-    <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">begin today →</button>
+    <div class="dq-foot">
+      <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">begin today →</button>
+    </div>
   </div>
 </div>
 
