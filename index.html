@@ -263,39 +263,40 @@ body {
        alt="Castle — click to enter">
 </a>
 
-<!-- Heart guide — bottom left -->
-<div class="heart-guide-wrap" id="heartGuideWrap">
+<!-- Heart guide — bottom left, links to about page -->
+<a class="heart-guide-wrap" id="heartGuideWrap" href="about.html" aria-label="Learn more about us">
   <img class="heart-guide-img"
        src="assets/elements/guides/heart.png"
        alt="Heart guide character">
-</div>
+</a>
 
 <!-- Speech bubble -->
 <div class="heart-bubble-wrap" id="heartBubbleWrap">
-  <div class="speech-bubble">start dreaming</div>
+  <div class="speech-bubble">click me to learn more about us</div>
 </div>
 
-<p class="copyright"><a href="about.html">learn more about us</a> &nbsp;·&nbsp; ©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
+<p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
 (function () {
-  /* Mobile: tap heart to toggle speech bubble */
+  /* Mobile: first tap shows bubble, second tap follows the link */
   const heartGuide = document.getElementById('heartGuideWrap');
   const bubbleWrap = document.getElementById('heartBubbleWrap');
 
-  heartGuide.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      bubbleWrap.classList.toggle('visible');
-    }
-  });
+  if (window.innerWidth <= 768) {
+    heartGuide.addEventListener('click', (e) => {
+      if (!bubbleWrap.classList.contains('visible')) {
+        e.preventDefault();
+        bubbleWrap.classList.add('visible');
+      }
+    });
 
-  document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768 &&
-        !heartGuide.contains(e.target) &&
-        !bubbleWrap.contains(e.target)) {
-      bubbleWrap.classList.remove('visible');
-    }
-  });
+    document.addEventListener('click', (e) => {
+      if (!heartGuide.contains(e.target) && !bubbleWrap.contains(e.target)) {
+        bubbleWrap.classList.remove('visible');
+      }
+    });
+  }
 }());
 </script>
 </body>
