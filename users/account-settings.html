@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+  <link rel="stylesheet" href="../assets/css/modal.css">
+  <script src="../assets/js/modal.js" defer></script>
+  <title>Account Settings — Heartability</title>
+  <meta name="description" content="Manage your Heartability account — update your profile, review your membership, or delete your data.">
+  <meta name="robots" content="noindex,follow">
+  <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+  --danger:        #d9534f;
+  --danger-dark:   #b33a36;
+  --danger-shadow: #8a2a27;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  font-family: var(--font-hand);
+  user-select: none;
+  background: url('../assets/elements/gradient.png') center / cover no-repeat fixed;
+  background-color: #5b7fe0;
+}
+
+/* ── NAV ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: #6578e2;
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(18px, 1.6vw, 22px);
+  color: #fff;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; color: inherit; text-decoration: none; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
+.gear-wrap { position: relative; }
+.gear-btn { width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 3px; transition: background 0.15s; padding: 3px; }
+.gear-btn:hover { background: rgba(0,0,0,0.08); }
+.gear-btn img { width: 22px; height: 22px; display: block; }
+.gear-dropdown { position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px; background: #6578e2; border: 2px solid var(--line-col); box-shadow: 3px 4px 0 rgba(0,0,0,0.12); z-index: 201; display: none; flex-direction: column; overflow: hidden; }
+.gear-dropdown.open { display: flex; }
+.gear-item { font-family: var(--font-hand); font-size: clamp(13px,1.3vw,16px); color: #fff; padding: 9px 14px; cursor: pointer; border: none; background: none; text-align: left; white-space: nowrap; transition: background 0.12s; }
+.gear-item:hover { background: rgba(0,0,0,0.07); }
+
+/* ── LOADING ── */
+#loading-state {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 2vw, 24px);
+  color: var(--blue-glow);
+  text-shadow: 0 0 20px rgba(131,210,230,0.6);
+}
+#main-content { display: none; }
+
+/* ── PAGE ── */
+.page-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 64px 20px 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.window {
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+  animation: windowIn 0.3s ease both;
+}
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-family: var(--font-pixel);
+  font-size: clamp(14px, 1.5vw, 18px);
+  color: #333;
+}
+.window-body {
+  padding: 22px 24px 24px;
+}
+
+/* ── SETTINGS ROWS ── */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  font-size: clamp(13px, 1.3vw, 15px);
+  color: #333;
+  gap: 12px;
+}
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { color: #888; white-space: nowrap; }
+.setting-value { font-weight: 600; font-size: clamp(12px, 1.2vw, 14px); text-align: right; word-break: break-all; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+.btn-action {
+  padding: 8px 15px;
+  background: none;
+  border: 1.5px solid var(--purple);
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: var(--purple);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-action:hover { background: var(--purple); color: white; }
+
+.btn-upgrade-inline {
+  padding: 8px 16px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+  white-space: nowrap;
+}
+.btn-upgrade-inline:hover  { background: var(--purple-dark); }
+.btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── ACCESS STRIP ── */
+.access-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.access-pill {
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.1vw, 13px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #ddd;
+  color: #bbb;
+  background: #f9f7f3;
+}
+.access-pill.unlocked {
+  border-color: var(--purple);
+  color: var(--purple);
+  background: rgba(101,121,226,0.08);
+}
+.access-pill.unlocked::before { content: '✓ '; }
+.access-pill:not(.unlocked)::before { content: '🔒 '; font-size: 0.85em; }
+
+/* ── DELETION ── */
+.danger-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.danger-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+.danger-option:last-child { border-bottom: none; }
+.danger-copy { flex: 1; }
+.danger-title { font-size: clamp(13px, 1.3vw, 15px); color: #333; font-weight: 600; }
+.danger-desc { font-size: clamp(11px, 1.1vw, 13px); color: #999; margin-top: 2px; line-height: 1.5; }
+.btn-danger-outline {
+  padding: 7px 14px;
+  background: none;
+  border: 1.5px solid var(--danger);
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: var(--danger);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-danger-outline:hover { background: var(--danger); color: #fff; }
+.btn-danger-solid {
+  padding: 8px 16px;
+  background: var(--danger);
+  border: 2px solid var(--danger-dark);
+  box-shadow: 2px 2px 0 var(--danger-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.05s;
+}
+.btn-danger-solid:hover { background: var(--danger-dark); }
+.btn-danger-solid:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── FOOTER ── */
+.legal-footer {
+  position: fixed;
+  bottom: 12px; left: 0; right: 0;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1vw, 15px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.legal-footer a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.15s; }
+.legal-footer a:hover { color: #fff; }
+.legal-footer span { color: rgba(255,255,255,0.3); }
+
+@media (max-width: 600px) {
+  .danger-option { flex-direction: column; align-items: flex-start; }
+}
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <div class="gear-wrap" id="gear-wrap">
+    <div class="gear-btn" onclick="toggleGear()">
+      <img src="../assets/elements/gear icon.png" alt="menu">
+    </div>
+    <div class="gear-dropdown" id="gear-dropdown">
+      <button class="gear-item" onclick="window.location.href='profile.html'">view profile</button>
+      <button class="gear-item" id="gear-logout">sign out</button>
+    </div>
+  </div>
+  <h1 class="nav-title">account settings</h1>
+  <div style="display:flex;align-items:center;gap:4px;">
+    <a class="nav-btn" href="profile.html" onclick="if(history.length>1){history.back();return false;}">← back</a>
+    <a class="nav-btn" href="../index.html">home →</a>
+  </div>
+</nav>
+
+<div id="loading-state">loading</div>
+
+<div class="page-wrap" id="main-content">
+
+  <!-- EDIT PROFILE -->
+  <div class="window">
+    <div class="window-titlebar">edit profile</div>
+    <div class="window-body">
+      <div class="setting-row">
+        <span class="setting-label">username</span>
+        <span class="setting-value" id="settings-username">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">email</span>
+        <span class="setting-value" id="settings-email">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">password</span>
+        <span class="setting-value">••••••••</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-action" onclick="editUsername()">change name</button>
+        <button class="btn-action" onclick="editEmail()">change email</button>
+        <button class="btn-action" onclick="changePassword()">change password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MEMBERSHIP -->
+  <div class="window">
+    <div class="window-titlebar">edit membership</div>
+    <div class="window-body">
+      <div class="setting-row">
+        <span class="setting-label">membership type</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
+          <button class="btn-upgrade-inline" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade</button>
+          <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()" style="display:none;">manage payments</button>
+        </div>
+      </div>
+      <div class="access-strip" id="access-strip"></div>
+    </div>
+  </div>
+
+  <!-- DELETION -->
+  <div class="window">
+    <div class="window-titlebar">deletion</div>
+    <div class="window-body">
+      <div class="danger-block">
+        <div class="danger-option">
+          <div class="danger-copy">
+            <div class="danger-title">delete my data</div>
+            <div class="danger-desc">wipes your saved game progress, matrix entries, and journal history. your login stays active.</div>
+          </div>
+          <button class="btn-danger-outline" onclick="deleteMyData()">delete my data</button>
+        </div>
+        <div class="danger-option">
+          <div class="danger-copy">
+            <div class="danger-title">delete full account</div>
+            <div class="danger-desc">permanently deletes your account and everything in it. this cannot be undone.</div>
+          </div>
+          <button class="btn-danger-solid" onclick="deleteFullAccount()">delete full account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="legal-footer">
+  <a href="../legal/privacy-policy.html">privacy policy</a>
+  <span>·</span>
+  <a href="../legal/refund-policy.html">refund policy</a>
+  <span>·</span>
+  <a href="../legal/support.html">support</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+function toggleGear() { document.getElementById('gear-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const w = document.getElementById('gear-wrap');
+  if (w && !w.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
+});
+
+(function () {
+  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentSession = null;
+
+  document.getElementById('gear-logout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  });
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentSession = session;
+    await loadProfile(session.user);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('main-content').style.display  = 'flex';
+  }
+
+  async function loadProfile(user) {
+    const { data: profile } = await sb
+      .from('user-profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    document.getElementById('settings-username').textContent = profile?.username || 'explorer';
+    document.getElementById('settings-email').textContent    = user.email;
+
+    applyMembershipUI(profile?.membership_status || 'free');
+  }
+
+  // ── Membership UI ─────────────────────────────────────────
+  function applyMembershipUI(status) {
+    const membershipEl = document.getElementById('settings-membership');
+    const upgradeBtn   = document.getElementById('btn-upgrade-settings');
+    const manageBtn    = document.getElementById('btn-manage-payments');
+    const strip        = document.getElementById('access-strip');
+
+    const access = {
+      free:     ['daily matrix'],
+      dream:    ['daily matrix', 'dream matrix', 'cosmic matrix'],
+      founding: ['daily matrix', 'dream matrix', 'cosmic matrix'],
+    };
+    const allFeatures = ['daily matrix', 'dream matrix', 'cosmic matrix'];
+    const unlocked = access[status] || access.free;
+
+    strip.innerHTML = allFeatures.map(f =>
+      `<span class="access-pill${unlocked.includes(f) ? ' unlocked' : ''}">${f}</span>`
+    ).join('');
+
+    if (status === 'founding') {
+      membershipEl.textContent = 'founding member';
+      membershipEl.style.color = 'var(--purple-dark)';
+      upgradeBtn.style.display = 'none';
+      manageBtn.style.display  = 'inline-block';
+    } else if (status === 'dream') {
+      membershipEl.textContent = 'dream member';
+      membershipEl.style.color = 'var(--purple)';
+      upgradeBtn.style.display = 'none';
+      manageBtn.style.display  = 'inline-block';
+    } else {
+      membershipEl.textContent = 'free member';
+      membershipEl.style.color = '#aaa';
+      upgradeBtn.style.display = 'inline-block';
+      manageBtn.style.display  = 'none';
+    }
+  }
+
+  window.goToUpgrade = function () { window.location.href = 'membership.html'; };
+
+  window.goToPortal = async function () {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-portal-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+      });
+      const { url, error } = await res.json();
+      if (error) { await HGModal.alert('error', error); return; }
+      window.location.href = url;
+    } catch (err) {
+      await HGModal.alert('error', 'something went wrong, please try again');
+    }
+  };
+
+  // ── Edit username ─────────────────────────────────────────
+  window.editUsername = async function () {
+    const newName = prompt('enter new username:');
+    if (!newName || !newName.trim()) return;
+    const { error } = await sb.from('user-profiles')
+      .update({ username: newName.trim() })
+      .eq('id', currentSession.user.id);
+    if (!error) {
+      document.getElementById('settings-username').textContent = newName.trim();
+    } else { await HGModal.alert('error', error.message); }
+  };
+
+  // ── Edit email ─────────────────────────────────────────────
+  window.editEmail = async function () {
+    const newEmail = prompt('enter new email:');
+    if (!newEmail || !newEmail.trim()) return;
+    const { error } = await sb.auth.updateUser({ email: newEmail.trim() });
+    if (error) { await HGModal.alert('error', error.message); return; }
+    await HGModal.alert('check your inbox', 'we sent a confirmation link to your new email — your address will update once you confirm it.');
+  };
+
+  // ── Change password ───────────────────────────────────────
+  window.changePassword = async function () {
+    const newPass = prompt('enter new password (min 6 characters):');
+    if (!newPass || newPass.length < 6) return;
+    const { error } = await sb.auth.updateUser({ password: newPass });
+    if (error) await HGModal.alert('error', error.message);
+  };
+
+  // ── Delete my data (keeps login, wipes data) ────────────────
+  window.deleteMyData = async function () {
+    const ok = await HGModal.confirm(
+      'delete my data',
+      'this will permanently delete your saved game progress, matrix entries, and journal history. your account and login stay active. this cannot be undone.',
+      { danger: true, confirmLabel: 'delete my data' }
+    );
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-user-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+      });
+      const { success, error } = await res.json();
+      if (error) { await HGModal.alert('error', error); return; }
+      if (success) await HGModal.alert('done', 'your data has been deleted.');
+    } catch (err) {
+      await HGModal.alert('error', err.message);
+    }
+  };
+
+  // ── Delete full account (irreversible) ──────────────────────
+  window.deleteFullAccount = async function () {
+    const first = await HGModal.confirm(
+      'delete full account',
+      'this will permanently delete your entire heartability account, including your login and all your data. this cannot be undone.',
+      { danger: true, confirmLabel: 'continue' }
+    );
+    if (!first) return;
+    const second = await HGModal.confirm(
+      'are you sure?',
+      'last chance — this cannot be reversed.',
+      { danger: true, confirmLabel: 'delete everything' }
+    );
+    if (!second) return;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+      });
+      const { success, error } = await res.json();
+      if (error) { await HGModal.alert('error', error); return; }
+      if (success) {
+        await sb.auth.signOut();
+        window.location.href = '../index.html';
+      }
+    } catch (err) {
+      await HGModal.alert('error', err.message);
+    }
+  };
+
+  init();
+})();
+</script>
+
+</body>
+</html>

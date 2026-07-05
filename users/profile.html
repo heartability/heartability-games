@@ -159,12 +159,12 @@ html, body {
 }
 #icon-bed img { width: clamp(200px, 33vw, 550px); }
 
-/* LEADERBOARD CALENDAR — upper-right wall */
-#icon-leaderboard {
+/* EXCLAIM — enter the matrix, upper-right wall */
+#icon-exclaim {
   bottom:  43vh;
   right: 2vw;
 }
-#icon-leaderboard img { width: clamp(60px, 9vw, 130px); }
+#icon-exclaim img { width: clamp(60px, 9vw, 130px); }
 
 /* ── MOBILE: stack into a column ── */
 @media (max-width: 600px) {
@@ -174,12 +174,12 @@ html, body {
   #icon-bed { bottom: 15%; right: 9%; }
   #icon-bed img { width: clamp(140px, 42vw, 240px); }
 
-  #icon-leaderboard { top: 30%; right: 1%; }
-  #icon-leaderboard img { width: clamp(70px, 14vw, 120px); }
+  #icon-exclaim { top: 30%; right: 1%; }
+  #icon-exclaim img { width: clamp(70px, 14vw, 120px); }
 
   .char-heart {
     left: 1%;
-    bottom: 2%;
+    bottom: 1%;
     width: clamp(80px, 22vw, 130px);
   }
 }
@@ -243,96 +243,6 @@ html, body {
   transition: left 0.7s cubic-bezier(0.4,0,0.2,1), bottom 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* ── TOUR ACTIVE: scale heart down ── */
-.char-heart.tour-active img {
-  width: 50%;
-}
-
-/* ── TOUR BUBBLE ── */
-#tour-bubble {
-  position: absolute;
-  left: calc(100% + 10px);
-  bottom: 0;
-  min-width: 200px;
-  max-width: 260px;
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 12px;
-  padding: 14px 16px 10px;
-  font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 15px);
-  color: #000;
-  line-height: 1.5;
-  filter: drop-shadow(2px 4px 10px rgba(0,0,0,0.22));
-  z-index: 25;
-  display: none;
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-#tour-bubble.visible {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
-}
-#tour-bubble::after {
-  content: '';
-  position: absolute;
-  top: 16px;
-  left: -10px;
-  border: 8px solid transparent;
-  border-right-color: #000;
-  border-left: none;
-}
-#tour-bubble::before {
-  content: '';
-  position: absolute;
-  top: 17px;
-  left: -7px;
-  border: 7px solid transparent;
-  border-right-color: #fff;
-  border-left: none;
-  z-index: 1;
-}
-#tour-bubble-text {
-  margin-bottom: 12px;
-  padding-right: 18px;
-}
-.tour-x {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  font-size: 14px;
-  color: #999;
-  cursor: pointer;
-  line-height: 1;
-  font-family: sans-serif;
-}
-.tour-x:hover { color: #000; }
-#tour-bubble-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.tour-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #ddd;
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-.tour-dot.active { background: var(--purple); }
-.tour-dots { display: flex; gap: 4px; align-items: center; flex: 1; }
-.tour-arrow {
-  font-size: 16px;
-  cursor: pointer;
-  color: #000;
-  line-height: 1;
-  padding: 2px 4px;
-  font-family: sans-serif;
-}
-.tour-arrow:hover { color: var(--purple); }
 .char-heart img {
   display: block;
   width: 100%; height: auto;
@@ -340,155 +250,26 @@ html, body {
   animation: idle-pulse 3.6s ease-in-out 1s infinite;
 }
 
-/* ── MODAL OVERLAY ── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 100;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-overlay.open {
-  display: flex;
-  animation: fadeIn 0.2s ease both;
-}
+/* ── MATRIX PICKER POPUP ── */
+.matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.matrix-picker-overlay.open { display: flex; animation: fadeIn 0.2s ease both; }
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
-/* ── MODAL WINDOW ── */
-.modal-window {
-  background: var(--cream);
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35);
-  overflow: hidden;
-  width: min(92vw, 520px);
-  max-height: 82dvh;
-  display: flex;
-  flex-direction: column;
-  animation: windowIn 0.25s ease both;
-}
-.modal-window.wide { width: min(92vw, 680px); }
-
+.matrix-picker-popup { background: var(--cream); box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: windowIn 0.25s ease both; }
 @keyframes windowIn {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-.modal-titlebar {
-  height: 38px;
-  background: var(--cream-dark);
-  border-bottom: 2px solid #bbb;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  font-family: var(--font-hand);
-  font-size: clamp(17px, 1.4vw, 19px);
-  color: #555;
-  flex-shrink: 0;
-}
-.modal-close {
-  cursor: pointer;
-  font-size: 20px;
-  color: #bbb;
-  line-height: 1;
-  padding: 2px 4px;
-  transition: color 0.15s;
-}
-.modal-close:hover { color: #444; }
-
-.modal-body {
-  padding: 20px 22px;
-  overflow-y: auto;
-  flex: 1;
-}
-.modal-body.no-pad { padding: 0; overflow-y: auto; }
-
-/* ── SETTINGS ROWS ── */
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.07);
-  font-size: clamp(12px, 1.3vw, 15px);
-  color: #333;
-  gap: 12px;
-}
-.setting-row:last-of-type { border-bottom: none; }
-.setting-label { color: #888; white-space: nowrap; }
-.setting-value { font-weight: 600; font-size: clamp(12px, 1.2vw, 14px); text-align: right; word-break: break-all; }
-
-.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-
-.btn-action {
-  padding: 7px 14px;
-  background: none;
-  border: 1.5px solid var(--purple);
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: var(--purple);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.btn-action:hover { background: var(--purple); color: white; }
-
-.btn-upgrade-inline {
-  padding: 8px 16px;
-  background: var(--purple);
-  border: 2px solid var(--purple-dark);
-  box-shadow: 2px 2px 0 var(--purple-shadow);
-  font-family: var(--font-hand);
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.05s;
-  white-space: nowrap;
-}
-.btn-upgrade-inline:hover  { background: var(--purple-dark); }
-.btn-upgrade-inline:active { box-shadow: none; transform: translate(2px,2px); }
-
-/* ── LEADERBOARD ── */
-.leaderboard-header {
-  display: grid;
-  grid-template-columns: 36px 1fr 100px;
-  gap: 8px;
-  padding: 6px 10px 8px;
-  font-family: var(--font-hand);
-  font-size: clamp(10px, 1vw, 12px);
-  color: #aaa;
-  letter-spacing: 0.3px;
-  border-bottom: 1px solid #e0dbd0;
-}
-.leaderboard-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 100px;
-  gap: 8px;
-  padding: 9px 10px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  font-size: clamp(12px, 1.2vw, 14px);
-  color: #333;
-  transition: background 0.1s;
-  align-items: center;
-}
-.leaderboard-row:last-child { border-bottom: none; }
-.leaderboard-row:hover { background: rgba(101,121,226,0.04); }
-.leaderboard-row.is-me { background: rgba(101,121,226,0.08); border-left: 3px solid var(--purple); padding-left: 7px; }
-.lb-rank { font-family: monospace; font-size: clamp(12px, 1.2vw, 15px); color: #aaa; text-align: center; }
-.lb-rank.top3 { color: var(--purple); font-weight: bold; }
-.lb-username { font-family: var(--font-hand); font-weight: 600; word-break: break-all; }
-.lb-username.is-me::after { content: ' (you)'; color: var(--purple); font-size: 11px; font-weight: normal; }
-.lb-saves { text-align: right; font-family: var(--font-hand); color: #555; }
-.lb-divider { padding: 8px 10px; text-align: center; color: #ccc; font-size: 12px; letter-spacing: 1px; }
-.lb-empty { padding: 30px 20px; text-align: center; font-family: var(--font-hand); color: #bbb; font-style: italic; font-size: 14px; line-height: 1.7; }
-.lb-loading { padding: 24px; text-align: center; font-family: var(--font-hand); color: #aaa; font-size: 14px; }
-.lb-refresh { font-size: 11px; color: #aaa; cursor: pointer; margin-left: auto; padding: 0 4px; }
-.lb-refresh:hover { color: var(--purple); }
+.matrix-picker-titlebar { height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-family: var(--font-hand); font-size: clamp(17px, 1.4vw, 19px); color: #555; }
+.popup-close { cursor: pointer; font-size: 20px; color: #bbb; line-height: 1; padding: 2px 4px; transition: color 0.15s; }
+.popup-close:hover { color: #444; }
+.matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
+.matrix-pick-btn { display: block; text-decoration: none; font-family: var(--font-hand); font-size: clamp(16px,2vw,20px); color: #fff; background: var(--purple); border: 2px solid var(--purple-dark); box-shadow: 3px 3px 0 var(--purple-shadow); padding: 12px 20px; cursor: pointer; text-align: center; transition: background .1s; }
+.matrix-pick-btn:hover { background: var(--purple-dark); }
+.matrix-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
+.matrix-pick-btn small { display: block; font-size: clamp(14px,1.2vw,15px); opacity: .75; margin-top: 2px; }
 
 /* ── LOADING ── */
 #loading-state {
@@ -545,7 +326,7 @@ html, body {
       <img src="../assets/elements/gear icon.png" alt="menu">
     </div>
     <div class="gear-dropdown" id="gear-dropdown">
-      <button class="gear-item" onclick="toggleGear(); openModal('settings')">account settings</button>
+      <button class="gear-item" onclick="toggleGear(); window.location.href='account-settings.html'">account settings</button>
       <button class="gear-item" id="btn-signout">sign out</button>
     </div>
   </div>
@@ -561,101 +342,45 @@ html, body {
 
 <!-- ROOM ICONS -->
 <div class="room-icons" id="main-content">
-  <div class="room-icon" id="icon-dresser" onclick="openModal('settings')">
+  <div class="room-icon" id="icon-dresser" onclick="window.location.href='account-settings.html'">
     <img src="../assets/elements/dresser.png" alt="account settings" />
   </div>
   <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
     <img src="../assets/elements/bed.png" alt="adventure archive" />
   </div>
-  <div class="room-icon" id="icon-leaderboard" onclick="openModal('leaderboard')">
-    <img src="../assets/elements/leaderboard.png" alt="leaderboard" />
+  <div class="room-icon" id="icon-exclaim" onclick="openMatrixPicker()">
+    <img src="../assets/elements/exclaim.png" alt="enter the matrix" />
+  </div>
+</div>
+
+<!-- MATRIX PICKER POPUP -->
+<div class="matrix-picker-overlay" id="matrix-picker-overlay" onclick="if(event.target===this)closeMatrixPicker()">
+  <div class="matrix-picker-popup">
+    <div class="matrix-picker-titlebar">
+      <span>choose your matrix</span>
+      <span class="popup-close" onclick="closeMatrixPicker()">&#x2715;</span>
+    </div>
+    <div class="matrix-picker-body">
+      <a class="matrix-pick-btn" href="../matrix/daily-matrix.html">
+        daily matrix
+        <small>track today's mood, location &amp; character</small>
+      </a>
+      <a class="matrix-pick-btn" href="../matrix/dream-matrix.html">
+        dream matrix
+        <small>explore your map and journal your journey</small>
+      </a>
+      <a class="matrix-pick-btn" href="../matrix/cosmic-matrix.html">
+        cosmic matrix
+        <small>walk the season's moon phases</small>
+      </a>
+    </div>
   </div>
 </div>
 
 <!-- HEART CHARACTER -->
 <div class="char-heart" id="char-heart">
   <div class="thought-bubble" id="thought-bubble">hello!</div>
-  <div id="tour-bubble">
-    <span class="tour-x" onclick="endTour()">✕</span>
-    <div id="tour-bubble-text"></div>
-    <div id="tour-bubble-nav"></div>
-  </div>
   <img src="../assets/elements/guides/heart.png" alt="" />
-</div>
-
-<!-- MODAL: ACCOUNT SETTINGS -->
-<div class="modal-overlay" id="modal-settings" onclick="closeOnOverlay(event,'settings')">
-  <div class="modal-window">
-    <div class="modal-titlebar">
-      account settings
-      <span class="modal-close" onclick="closeModal('settings')">×</span>
-    </div>
-    <div class="modal-body">
-      <div class="setting-row">
-        <span class="setting-label">username</span>
-        <span class="setting-value" id="settings-username">—</span>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">email</span>
-        <span class="setting-value" id="settings-email">—</span>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">password</span>
-        <span class="setting-value">••••••••</span>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">membership</span>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="setting-value" id="settings-membership" style="color:var(--purple);">—</span>
-          <button class="btn-action" id="btn-upgrade-settings" onclick="goToUpgrade()" style="display:none;">upgrade</button>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn-action" onclick="editUsername()">edit username</button>
-        <button class="btn-action" onclick="changePassword()">change password</button>
-        <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()" style="display:none;">manage payments</button>
-      </div>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.07);text-align:center;">
-        <span id="btn-delete-account" style="font-family:var(--font-hand);font-size:clamp(10px,1vw,12px);color:#ccc;cursor:pointer;text-decoration:underline;" onclick="deleteAccount()">delete my data</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: LEADERBOARD -->
-<div class="modal-overlay" id="modal-leaderboard" onclick="closeOnOverlay(event,'leaderboard')">
-  <div class="modal-window">
-    <div class="modal-titlebar">
-      weekly leaderboard
-      <div style="display:flex;gap:12px;align-items:center;">
-        <span class="lb-refresh" onclick="loadLeaderboard()" title="refresh">↻</span>
-        <span class="modal-close" onclick="closeModal('leaderboard')">×</span>
-      </div>
-    </div>
-    <div class="modal-body no-pad">
-      <div id="leaderboard-content">
-        <div class="lb-loading">loading this week's rankings...</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- MODAL: CUSTOM CONFIRM -->
-<div class="modal-overlay" id="modal-confirm">
-  <div class="modal-window" style="width:min(92vw,400px);">
-    <div class="modal-titlebar">
-      <span id="confirm-title">are you sure?</span>
-      <span class="modal-close" onclick="confirmResolve(false)">×</span>
-    </div>
-    <div class="modal-body" style="text-align:center;padding:24px 22px;">
-      <p id="confirm-message" style="font-family:var(--font-hand);font-size:clamp(13px,1.4vw,16px);color:#333;line-height:1.6;margin-bottom:20px;"></p>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button class="btn-action" onclick="confirmResolve(false)">cancel</button>
-        <button class="btn-action" id="confirm-ok-btn" onclick="confirmResolve(true)" style="background:var(--purple);color:#fff;border-color:var(--purple);">confirm</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- LEGAL FOOTER -->
@@ -686,19 +411,15 @@ html, body {
     }
   });
 
-  // ── Modal helpers ─────────────────────────────────────────
-  window.openModal = function (id) {
-    document.getElementById('modal-' + id).classList.add('open');
+  // ── Matrix picker popup ─────────────────────────────────────
+  window.openMatrixPicker = function () {
+    document.getElementById('matrix-picker-overlay').classList.add('open');
   };
-  window.closeModal = function (id) {
-    document.getElementById('modal-' + id).classList.remove('open');
-  };
-  window.closeOnOverlay = function (e, id) {
-    if (e.target === e.currentTarget) closeModal(id);
+  window.closeMatrixPicker = function () {
+    document.getElementById('matrix-picker-overlay').classList.remove('open');
   };
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape')
-      document.querySelectorAll('.modal-overlay.open').forEach(el => el.classList.remove('open'));
+    if (e.key === 'Escape') closeMatrixPicker();
   });
 
   // ── Auth check ───────────────────────────────────────────
@@ -716,124 +437,11 @@ html, body {
       .single();
 
     const username = profile?.username || 'explorer';
-    document.getElementById('display-username').textContent  = username;
-    document.getElementById('settings-username').textContent = username;
-    document.getElementById('settings-email').textContent    = user.email;
-
-    const membershipStatus = profile?.membership_status || 'free';
-    applyMembershipUI(membershipStatus);
+    document.getElementById('display-username').textContent = username;
 
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').classList.add('active');
-    initTour();
   }
-
-  // ── Membership UI ─────────────────────────────────────────
-  function applyMembershipUI(status) {
-    const membershipEl  = document.getElementById('settings-membership');
-    const upgradeBtn    = document.getElementById('btn-upgrade-settings');
-    const manageBtn     = document.getElementById('btn-manage-payments');
-    if (status === 'founding') {
-      membershipEl.textContent = 'founding member';
-      membershipEl.style.color = 'var(--purple-dark)';
-      upgradeBtn.style.display = 'none';
-      manageBtn.style.display  = 'inline-block';
-    } else if (status === 'dream') {
-      membershipEl.textContent = 'dream member';
-      membershipEl.style.color = 'var(--purple)';
-      upgradeBtn.style.display = 'none';
-      manageBtn.style.display  = 'inline-block';
-    } else {
-      membershipEl.textContent = 'free member';
-      membershipEl.style.color = '#aaa';
-      upgradeBtn.textContent   = 'upgrade';
-      upgradeBtn.style.display = 'inline-block';
-      manageBtn.style.display  = 'none';
-    }
-  }
-
-  window.goToUpgrade = function () { window.location.href = '/users/membership.html'; };
-
-  window.goToPortal = async function () {
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch(`https://rrdfltqnrnvmqemyrfaj.supabase.co/functions/v1/create-portal-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      const { url, error } = await res.json();
-      if (error) { alert('error: ' + error); return; }
-      window.location.href = url;
-    } catch (err) {
-      alert('something went wrong, please try again');
-    }
-  };
-
-  // ── Custom confirm modal ──────────────────────────────────
-  let confirmResolve = () => {};
-  window.confirmResolve = function(val) {
-    document.getElementById('modal-confirm').classList.remove('open');
-    confirmResolve(val);
-  };
-  function showConfirm(title, message) {
-    return new Promise(resolve => {
-      confirmResolve = resolve;
-      document.getElementById('confirm-title').textContent = title;
-      document.getElementById('confirm-message').textContent = message;
-      document.getElementById('modal-confirm').classList.add('open');
-    });
-  }
-
-  window.deleteAccount = async function () {
-    const first = await showConfirm('delete my data', 'this will permanently delete all your heartability data and cannot be undone.');
-    if (!first) return;
-    const second = await showConfirm('are you sure?', 'last chance — this cannot be reversed.');
-    if (!second) return;
-
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch('https://rrdfltqnrnvmqemyrfaj.supabase.co/functions/v1/delete-account', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      const { success, error } = await res.json();
-      if (error) { await showConfirm('error', error); return; }
-      if (success) {
-        await sb.auth.signOut();
-        window.location.href = '/index.html';
-      }
-    } catch (err) {
-      await showConfirm('error', err.message);
-    }
-  };
-
-  // ── Edit username ─────────────────────────────────────────
-  window.editUsername = async function () {
-    const newName = prompt('enter new username:');
-    if (!newName || !newName.trim()) return;
-    const { data: { session } } = await sb.auth.getSession();
-    const { error } = await sb.from('user-profiles')
-      .update({ username: newName.trim() })
-      .eq('id', session.user.id);
-    if (!error) {
-      document.getElementById('display-username').textContent  = newName.trim();
-      document.getElementById('settings-username').textContent = newName.trim();
-    } else { alert('error: ' + error.message); }
-  };
-
-  // ── Change password ───────────────────────────────────────
-  window.changePassword = async function () {
-    const newPass = prompt('enter new password (min 6 characters):');
-    if (!newPass || newPass.length < 6) return;
-    const { error } = await sb.auth.updateUser({ password: newPass });
-    if (error) alert('error: ' + error.message);
-  };
 
   // ── Sign out ──────────────────────────────────────────────
   document.getElementById('btn-signout').addEventListener('click', async () => {
@@ -841,46 +449,12 @@ html, body {
     window.location.href = 'login.html';
   });
 
-  // ── Leaderboard ───────────────────────────────────────────
-  window.loadLeaderboard = async function () {
-    const el = document.getElementById('leaderboard-content');
-    el.innerHTML = '<div class="lb-loading">loading rankings...</div>';
-    const { data, error } = await sb.rpc('get_weekly_leaderboard');
-    if (error || !data?.length) {
-      el.innerHTML = `<div class="lb-empty">no entries this week yet — make a save today to get on the board<br>
-        <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span></div>`;
-      return;
-    }
-    const myRow   = data.find(r => r.is_me);
-    const topRows = data.slice(0, 20);
-    const myInTop = topRows.some(r => r.is_me);
-    let html = `<div class="leaderboard-header"><span>#</span><span>player</span><span style="text-align:right">saves</span></div>`;
-    topRows.forEach(r => {
-      const rankLabel = r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank - 1] : r.rank;
-      html += `<div class="leaderboard-row${r.is_me ? ' is-me' : ''}">
-        <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
-        <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
-        <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
-      </div>`;
-    });
-    if (!myInTop && myRow) {
-      html += `<div class="lb-divider">· · ·</div>
-        <div class="leaderboard-row is-me">
-          <span class="lb-rank">${myRow.rank}</span>
-          <span class="lb-username is-me">${myRow.username}</span>
-          <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
-        </div>`;
-    }
-    el.innerHTML = html;
-  };
-
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
   const bubbleMessages = {
-    'icon-settings':    "manage your membership settings and update your email, password, or username.",
-    'icon-leaderboard': 'see where you rank this week!',
-    'icon-calendar':    'reflect on your past adventures',
-    'icon-chatroom':    'hang out with other players',
+    'icon-dresser': 'access your account settings',
+    'icon-bed':     'view the dream archive',
+    'icon-exclaim': 'enter the matrix',
   };
 
   document.querySelectorAll('.room-icon').forEach(icon => {
@@ -893,95 +467,7 @@ html, body {
     });
   });
 
-  // ── TOUR ──────────────────────────────────────────────────
-  const tourSteps = [
-    { target: null,              text: 'Welcome to Heartability! Would you like a tour of your private quarters?' },
-    { target: 'icon-calendar',   text: '[Placeholder: describe the adventure archive here]' },
-    { target: 'icon-leaderboard',text: '[Placeholder: describe the leaderboard here]' },
-    { target: 'icon-chatroom',   text: '[Placeholder: describe the chat room here]' },
-    { target: 'icon-settings',   text: '[Placeholder: describe account settings here]' },
-  ];
-
-  let tourStep = 0;
-  const heartEl    = document.getElementById('char-heart');
-  const tourBubble = document.getElementById('tour-bubble');
-  const tourText   = document.getElementById('tour-bubble-text');
-  const tourNav    = document.getElementById('tour-bubble-nav');
-
-  function initTour() {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.get('success')) return;
-    window.history.replaceState({}, '', window.location.pathname);
-    setTimeout(startTour, 900);
-  }
-
-  function startTour() {
-    tourStep = 0;
-    showTourStep();
-  }
-
-  function showTourStep() {
-    const step   = tourSteps[tourStep];
-    const isLast = tourStep === tourSteps.length - 1;
-
-    // Move heart — only shrink when visiting icons, not on welcome step
-    if (step.target) {
-      heartEl.classList.add('tour-active');
-      moveHeartToIcon(step.target);
-    } else {
-      heartEl.classList.remove('tour-active');
-      heartEl.style.left   = '18vw';
-      heartEl.style.bottom = '18vh';
-    }
-
-    // Update text
-    tourText.textContent = step.text;
-
-    // Dots
-    const dots = tourSteps.map((_, i) =>
-      `<div class="tour-dot${i === tourStep ? ' active' : ''}"></div>`
-    ).join('');
-
-    tourNav.innerHTML = `
-      <div class="tour-dots">${dots}</div>
-      <span class="tour-arrow" onclick="${isLast ? 'endTour()' : 'nextTourStep()'}">${isLast ? '✓' : '→'}</span>
-    `;
-
-    // Show bubble (small delay so position transition fires first)
-    setTimeout(() => tourBubble.classList.add('visible'), 50);
-  }
-
-  function moveHeartToIcon(iconId) {
-    const icon = document.getElementById(iconId);
-    if (!icon) return;
-    const rect   = icon.getBoundingClientRect();
-    const heartW = heartEl.offsetWidth || 160;
-    let newLeft  = rect.left - heartW - 16;
-    if (newLeft < 10) newLeft = rect.right + 10;
-    const newBottom = Math.max(window.innerHeight - rect.bottom - 10, 10);
-    tourBubble.classList.remove('visible');
-    heartEl.style.left   = newLeft + 'px';
-    heartEl.style.bottom = newBottom + 'px';
-  }
-
-  window.nextTourStep = function () {
-    tourStep++;
-    if (tourStep >= tourSteps.length) { endTour(); return; }
-    tourBubble.classList.remove('visible');
-    setTimeout(showTourStep, 120);
-  };
-
-  window.endTour = function () {
-    tourBubble.classList.remove('visible');
-    setTimeout(() => {
-      heartEl.classList.remove('tour-active');
-      heartEl.style.left   = '18vw';
-      heartEl.style.bottom = '18vh';
-    }, 150);
-  };
-
   init();
-  setTimeout(window.loadLeaderboard, 600);
 })();
 </script>
 
