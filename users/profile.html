@@ -168,11 +168,14 @@ html, body {
 
 /* ── MOBILE: stack into a column ── */
 @media (max-width: 600px) {
-  #icon-dresser { bottom: 15vw; left: 7vw; width: 36vw }
+  #icon-dresser { bottom: 15vw; left: 7vw; }
+  #icon-dresser img { width: clamp(120px, 36vw, 200px); }
 
-  #icon-bed { bottom: 15vw; right: 7vw; width: 42vw }
+  #icon-bed { bottom: 15vw; right: 7vw; }
+  #icon-bed img { width: clamp(140px, 42vw, 240px); }
 
-  #icon-leaderboard { top: 30vw; right: 1vw; width: 14vw }
+  #icon-leaderboard { top: 30vw; right: 1vw; }
+  #icon-leaderboard img { width: clamp(70px, 14vw, 120px); }
 
   .char-heart {
     left: 2vw;
