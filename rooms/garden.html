@@ -85,8 +85,12 @@ html, body {
 .el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
 .el-fountain   { left: 40vw;  bottom: 18vh; width: 30vw;  z-index: 3; }
 .el-phonebooth { left: 8vw;   bottom: 11vh; width: 11vw;  z-index: 3; }
+.el-leaderboard{ right: 6vw;  bottom: 12vh; width: 9vw;   z-index: 3; }
 .el-cloud-l    { left: 8vw;   top: 16vh;   width: 14vw;  z-index: 2; }
 .el-cloud-r    { right: 20vw; top: 12vh;   width: 12vw;  z-index: 2; }
+
+.el-fountain, .el-leaderboard { pointer-events: auto; cursor: pointer; }
+.el-phonebooth                { pointer-events: auto; }
 
 /* ── CLOUD GUIDE  z:4 ── */
 .char-cloud {
@@ -148,10 +152,45 @@ html, body {
 }
 .char-cloud.active .thought-bubble { opacity: 1; }
 
+/* ── LEADERBOARD MODAL ── */
+.lb-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 90px;
+  gap: 8px;
+  padding: 6px 4px 10px;
+  font-family: var(--font-hand);
+  font-size: 12px;
+  color: #aaa;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #e0dbd0;
+}
+.lb-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 90px;
+  gap: 8px;
+  padding: 9px 4px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: #333;
+  align-items: center;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row.is-me { background: rgba(101,121,226,0.08); }
+.lb-rank { font-family: monospace; color: #aaa; text-align: center; }
+.lb-rank.top3 { color: #6578e2; font-weight: bold; }
+.lb-username.is-me::after { content: ' (you)'; color: #6578e2; font-size: 11px; }
+.lb-saves { text-align: right; color: #555; }
+.lb-divider { padding: 8px 4px; text-align: center; color: #ccc; font-size: 12px; }
+.lb-empty, .lb-loading { padding: 24px 10px; text-align: center; font-family: var(--font-hand); color: #aaa; font-size: 14px; line-height: 1.7; }
+.lb-refresh { font-size: 15px; color: #999; cursor: pointer; line-height: 1; }
+.lb-refresh:hover { color: #6578e2; }
+
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   .el-fountain   { left: 25vw;  bottom: 14vh; width: 50vw; }
   .el-phonebooth { left: 2vw;   bottom: 11vh; width: 16vw; }
+  .el-leaderboard{ right: 2vw;  bottom: 11vh; width: 14vw; }
   .el-mailbox    { right: 2vw;  bottom: 11vh; width: 14vw; }
   .el-cloud-l    { left: 2vw;   top: 18vh;   width: 22vw; }
   .el-cloud-r    { right: 8vw;  top: 14vh;   width: 18vw; }
@@ -191,6 +230,11 @@ html, body {
     <img src="../assets/elements/phonebooth.png" alt="Dream Hotline">
   </div>
 
+  <!-- Leaderboard -->
+  <div class="garden-el el-leaderboard" id="el-leaderboard">
+    <img src="../assets/elements/leaderboard.png" alt="Leaderboard">
+  </div>
+
   <!-- Decorative heart clouds -->
   <div class="garden-el el-cloud-l">
     <img src="../assets/elements/heart-cloud-L.png" alt="">
@@ -207,8 +251,31 @@ html, body {
 
 </div>
 
+<!-- LEADERBOARD MODAL -->
+<div class="hg-modal-overlay" id="leaderboard-overlay">
+  <div class="hg-modal" style="width:min(92vw,420px);">
+    <div class="hg-modal-titlebar">
+      <span>weekly leaderboard</span>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <span class="lb-refresh" id="lb-refresh" title="refresh">&#8635;</span>
+        <span class="hg-modal-close" id="leaderboard-close">&#x2715;</span>
+      </div>
+    </div>
+    <div class="hg-modal-body" style="padding:14px 18px;">
+      <div id="leaderboard-content">
+        <div class="lb-loading">loading this week's rankings...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
+
+  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ── Cloud guide bubble ── */
   const cloud  = document.getElementById('char-cloud');
@@ -219,6 +286,78 @@ html, body {
     cloud.classList.add('active');
   });
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
+  /* ── Phone booth: "coming soon!" ── */
+  const phonebooth = document.querySelector('.el-phonebooth');
+  phonebooth.addEventListener('mouseenter', () => {
+    bubble.textContent = 'coming soon!';
+    cloud.classList.add('active');
+  });
+  phonebooth.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
+  /* ── Fountain: wish text + donation link ── */
+  const fountain = document.querySelector('.el-fountain');
+  fountain.addEventListener('mouseenter', () => {
+    bubble.textContent = 'throw a coin, make a wish';
+    cloud.classList.add('active');
+  });
+  fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+  fountain.addEventListener('click', () => {
+    window.open('https://buy.stripe.com/7sYbJ05MOaHzc5V2eV1Jm00', '_blank', 'noopener');
+  });
+
+  /* ── Leaderboard popup ── */
+  const lbOverlay = document.getElementById('leaderboard-overlay');
+
+  function openLeaderboard() {
+    lbOverlay.classList.add('open');
+    loadLeaderboard();
+  }
+  function closeLeaderboard() {
+    lbOverlay.classList.remove('open');
+  }
+
+  document.getElementById('el-leaderboard').addEventListener('click', openLeaderboard);
+  document.getElementById('leaderboard-close').addEventListener('click', closeLeaderboard);
+  document.getElementById('lb-refresh').addEventListener('click', loadLeaderboard);
+  lbOverlay.addEventListener('click', (e) => { if (e.target === lbOverlay) closeLeaderboard(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLeaderboard(); });
+
+  async function loadLeaderboard() {
+    const el = document.getElementById('leaderboard-content');
+    el.innerHTML = '<div class="lb-loading">loading rankings...</div>';
+    try {
+      const { data, error } = await sb.rpc('get_weekly_leaderboard');
+      if (error || !data || !data.length) {
+        el.innerHTML = `<div class="lb-empty">no entries this week yet — make a save today to get on the board<br>
+          <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span></div>`;
+        return;
+      }
+      const myRow   = data.find(r => r.is_me);
+      const topRows = data.slice(0, 20);
+      const myInTop = topRows.some(r => r.is_me);
+      let html = `<div class="lb-header"><span>#</span><span>player</span><span style="text-align:right">saves</span></div>`;
+      topRows.forEach(r => {
+        const rankLabel = r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank - 1] : r.rank;
+        html += `<div class="lb-row${r.is_me ? ' is-me' : ''}">
+          <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
+          <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
+          <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
+        </div>`;
+      });
+      if (!myInTop && myRow) {
+        html += `<div class="lb-divider">· · ·</div>
+          <div class="lb-row is-me">
+            <span class="lb-rank">${myRow.rank}</span>
+            <span class="lb-username is-me">${myRow.username}</span>
+            <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
+          </div>`;
+      }
+      el.innerHTML = html;
+    } catch (err) {
+      el.innerHTML = '<div class="lb-empty">couldn\'t load rankings right now</div>';
+    }
+  }
 
   /* ── Navigation ── */
   document.getElementById('nav-back').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });

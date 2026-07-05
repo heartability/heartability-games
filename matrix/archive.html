@@ -292,10 +292,26 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .loc-time { font-family:var(--font-game); font-size:15px; color:#999; white-space:nowrap; }
 .loc-arrow { color:var(--purple); font-size:16px; }
 .day-list-empty { font-family:var(--font-hand); font-style:italic; color:#bbb; text-align:center; padding:30px 0; }
+.loc-row.locked-row { cursor:default; opacity:0.55; }
+.loc-row.locked-row:hover { border-color:rgba(101,121,226,.18); background:rgba(101,121,226,.06); transform:none; }
 
 /* Matrix view */
 #day-matrix-view { display:none; }
 .matrix-stage { position:relative; width:100%; height:min(70vh,640px); }
+
+/* ── COSMIC TAB ── */
+.cosmic-planet-select {
+  font-family:var(--font-hand); font-size:13px; color:#555;
+  background:var(--cream); border:1.5px solid rgba(101,121,226,.35);
+  padding:3px 6px; cursor:pointer;
+}
+.cosmic-msg {
+  padding:12px 14px; background:rgba(101,121,226,.06);
+  border:1.5px solid rgba(101,121,226,.18); margin-bottom:10px;
+}
+.cosmic-msg-text { font-family:var(--font-hand); font-size:15px; color:#333; white-space:pre-wrap; }
+.cosmic-msg-time { font-family:var(--font-game); font-size:11px; color:#aaa; margin-top:6px; }
+.cosmic-msg img { max-width:220px; margin-top:8px; display:block; border:1.5px solid rgba(101,121,226,.18); }
 
 /* ── MAP SELECTOR SCREEN ── */
 #map-selector {
@@ -517,15 +533,29 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   </div>
 </div>
 
-<!-- COSMIC TAB: season launcher grid, no in-archive detail view -->
+<!-- COSMIC TAB: planet-scoped season launcher, with an in-archive phase detail view -->
 <div id="tab-cosmic" style="display:none;">
   <div class="page-wrap">
     <div class="page-body" style="max-width:900px;">
       <div class="window" id="cosmic-window">
-        <div class="window-titlebar"><span>your seasons</span></div>
+        <div class="window-titlebar">
+          <span>
+            <span class="win-back-btn" id="cosmic-back-btn" onclick="backToCosmicSeasons()" style="display:none;">← your seasons</span>
+            <span id="cosmic-window-title">your seasons</span>
+          </span>
+          <label style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:12px;color:#aaa;">planet</span>
+            <select class="cosmic-planet-select" id="cosmic-planet-select" onchange="onCosmicPlanetChange()"></select>
+          </label>
+        </div>
         <div class="window-body">
-          <div class="map-grid" id="cosmic-grid"></div>
-          <div class="empty-month" id="cosmic-empty" style="display:none;">no cosmic seasons started yet — open the cosmic matrix to begin one</div>
+          <div id="cosmic-list-view">
+            <div class="map-grid" id="cosmic-grid"></div>
+            <div class="empty-month" id="cosmic-empty" style="display:none;">no cosmic seasons started yet — open the cosmic matrix to begin one</div>
+          </div>
+          <div id="cosmic-detail-view" style="display:none;">
+            <div class="loc-list" id="cosmic-phase-list"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -588,6 +618,21 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   </div>
 </div>
 
+<!-- COSMIC PHASE POPUP (read-only: character + journal for a lived phase) -->
+<div class="day-overlay" id="cosmic-phase-overlay" onclick="handleCosmicPhaseOverlayClick(event)">
+  <div class="day-window">
+    <div class="day-titlebar">
+      <span id="cosmic-phase-title">phase</span>
+      <span class="day-close" onclick="closeCosmicPhasePopup()">✕</span>
+    </div>
+    <div class="day-body" style="padding:18px 20px 22px;">
+      <div id="cosmic-phase-char" style="width:100px;margin:0 auto 16px;"></div>
+      <div class="loc-list" id="cosmic-phase-messages"></div>
+      <div class="day-list-empty" id="cosmic-phase-empty" style="display:none;">no notes for this phase yet</div>
+    </div>
+  </div>
+</div>
+
 <!-- MEMBER GATE (Dream / Cosmic / Completed) -->
 <div class="member-gate-overlay" id="gate-overlay">
   <div class="member-gate">
@@ -646,6 +691,23 @@ let dailyMatrixShown = false;    // has "view more" populated the persistent dai
 let cosmicMapIdToSeason = {};
 let allArchetypes = [];
 let archCameFromAll = false;
+
+// planetary bodies for the cosmic tab — mirrors cosmic-matrix.html's PLANETS list.
+// Season templates key their phases like "sun_cancer_1"; the leading segment is
+// the planet id, so filtering by planet needs no separate DB column.
+const COSMIC_PLANETS = [
+  { id:'sun',     name:'sun',     locked:false },
+  { id:'moon',    name:'moon',    locked:true  },
+  { id:'mercury', name:'mercury', locked:true  },
+  { id:'venus',   name:'venus',   locked:true  },
+  { id:'mars',    name:'mars',    locked:true  },
+  { id:'jupiter', name:'jupiter', locked:true  },
+  { id:'saturn',  name:'saturn',  locked:true  },
+];
+let activePlanet      = 'sun';
+let allCosmicSeasons  = [];   // every cosmic_bingo row w/ a season, current user
+let activeCosmicSeason = null;
+let activeCosmicPhases = [];  // template phases merged with the user's cosmic_matrix rows
 
 // ── SINGLE SOURCE OF TRUTH: which local day a row belongs to ──
 // en-CA renders as YYYY-MM-DD, evaluated in the browser's local timezone.
@@ -1029,7 +1091,7 @@ function closeDayPopup() {
   activeSaveId = null;
 }
 function handleDayOverlayClick(e) { if (e.target === document.getElementById('day-overlay')) closeDayPopup(); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeDayPopup(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopup(); closeCosmicPhasePopup(); } });
 
 async function openMatrixView(saveId) {
   activeSaveId = saveId;
@@ -1218,15 +1280,43 @@ async function showDailyMatrixWindow(saveId){
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
+function populatePlanetDropdown(){
+  const sel = document.getElementById('cosmic-planet-select');
+  sel.innerHTML = COSMIC_PLANETS.map(p =>
+    `<option value="${p.id}" ${p.locked ? 'disabled' : ''}>${p.name}${p.locked ? ' (coming soon)' : ''}</option>`
+  ).join('');
+  sel.value = activePlanet;
+}
+function onCosmicPlanetChange(){
+  activePlanet = document.getElementById('cosmic-planet-select').value;
+  renderCosmicSeasonGrid();
+}
+// Season templates key their phases like "sun_cancer_1" — derive the planet
+// from the leading segment, falling back to 'sun' since every season today is one.
+function seasonPlanetId(mapData){
+  const first = (mapData?.phases || [])[0];
+  const key = first && first.map_phase;
+  return (key && key.includes('_')) ? key.split('_')[0] : 'sun';
+}
+
 async function loadCosmicTab(){
+  populatePlanetDropdown();
+  showCosmicList();
   const grid = document.getElementById('cosmic-grid');
   grid.innerHTML = '<div class="arch-picker-loading">loading your seasons…</div>';
   document.getElementById('cosmic-empty').style.display = 'none';
 
   const { data: bingoRows } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
-  const seasons = (bingoRows || []).filter(r => r.map_data && r.map_data.season);
+  allCosmicSeasons = (bingoRows || []).filter(r => r.map_data && r.map_data.season);
   cosmicMapIdToSeason = {};
-  seasons.forEach(r => { cosmicMapIdToSeason[r.map_id] = r.map_data.season; });
+  allCosmicSeasons.forEach(r => { cosmicMapIdToSeason[r.map_id] = r.map_data.season; });
+  await renderCosmicSeasonGrid();
+}
+
+async function renderCosmicSeasonGrid(){
+  const grid = document.getElementById('cosmic-grid');
+  const seasons = allCosmicSeasons.filter(s => seasonPlanetId(s.map_data) === activePlanet);
+  grid.innerHTML = '<div class="arch-picker-loading">loading your seasons…</div>';
 
   let doneByMap = {};
   if (seasons.length) {
@@ -1245,7 +1335,7 @@ async function loadCosmicTab(){
     const title = formatSeasonTitle(s.map_data.season);
     const slot = document.createElement('div');
     slot.className = 'map-slot';
-    slot.onclick = () => { window.location.href = `cosmic-matrix.html?season=${encodeURIComponent(s.map_data.season)}`; };
+    slot.onclick = () => openCosmicSeasonDetail(s);
     slot.innerHTML = `<div class="slot-name">${escapeHtml(title)}</div>
       <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;font-family:var(--font-game);font-size:26px;color:var(--purple);">${done}/${total||'?'}</div>
       <div class="slot-updated">${total && done>=total ? 'completed' : 'in progress'}</div>`;
@@ -1263,6 +1353,88 @@ async function ensureCosmicSeasonMap(){
   const { data } = await sb.from('cosmic_bingo').select('map_id, map_data').eq('user_id', currentUser.id);
   (data || []).forEach(r => { if (r.map_data && r.map_data.season) cosmicMapIdToSeason[r.map_id] = r.map_data.season; });
 }
+
+// ── COSMIC SEASON DETAIL (in-archive, replaces the old navigate-away link) ──
+function showCosmicList(){
+  document.getElementById('cosmic-list-view').style.display = 'block';
+  document.getElementById('cosmic-detail-view').style.display = 'none';
+  document.getElementById('cosmic-back-btn').style.display = 'none';
+  document.getElementById('cosmic-window-title').textContent = 'your seasons';
+}
+function showCosmicDetail(){
+  document.getElementById('cosmic-list-view').style.display = 'none';
+  document.getElementById('cosmic-detail-view').style.display = 'block';
+  document.getElementById('cosmic-back-btn').style.display = '';
+}
+function backToCosmicSeasons(){ showCosmicList(); }
+
+async function openCosmicSeasonDetail(seasonRow){
+  activeCosmicSeason = seasonRow;
+  document.getElementById('cosmic-window-title').textContent = formatSeasonTitle(seasonRow.map_data.season);
+  showCosmicDetail();
+
+  const list = document.getElementById('cosmic-phase-list');
+  list.innerHTML = '<div class="day-list-empty">gathering this season…</div>';
+
+  const { data: phaseRows } = await sb.from('cosmic_matrix')
+    .select('map_phase, character_data, location_data, journal_messages, updated_at')
+    .eq('map_id', seasonRow.map_id).eq('user_id', currentUser.id);
+  const byPhase = {};
+  (phaseRows || []).forEach(r => { byPhase[r.map_phase] = r; });
+
+  const templatePhases = (seasonRow.map_data.phases || []).slice()
+    .sort((a,b) => Date.parse(a.opens_utc) - Date.parse(b.opens_utc));
+  const nowMs = Date.now();
+  activeCosmicPhases = templatePhases.map(ph => {
+    const row = byPhase[ph.map_phase] || null;
+    const done = !!(row && row.character_data);
+    const opensMs = Date.parse(ph.opens_utc);
+    const state = done ? 'lived' : (opensMs && opensMs > nowMs ? 'locked' : 'skipped');
+    return Object.assign({}, ph, { done, state, row });
+  });
+
+  list.innerHTML = '';
+  if (!activeCosmicPhases.length) {
+    list.innerHTML = '<div class="day-list-empty">this season has no phases yet</div>';
+    return;
+  }
+  activeCosmicPhases.forEach(ph => {
+    const row = document.createElement('div');
+    row.className = 'loc-row' + (ph.done ? '' : ' locked-row');
+    row.innerHTML = `<span class="loc-name">${escapeHtml(ph.location || ph.map_phase)}${ph.sign ? ` <span style="color:#bbb;font-size:11px;">· ${escapeHtml(ph.sign)}</span>` : ''}</span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span class="loc-time">${ph.state}</span>
+        ${ph.done ? '<span class="loc-arrow">→</span>' : ''}
+      </span>`;
+    if (ph.done) row.onclick = () => openCosmicPhasePopup(ph);
+    list.appendChild(row);
+  });
+}
+
+function openCosmicPhasePopup(ph){
+  document.getElementById('cosmic-phase-title').textContent = ph.location || ph.map_phase;
+  document.getElementById('cosmic-phase-char').innerHTML =
+    (ph.row && ph.row.character_data) ? MatrixRender.buildCharStack(ph.row.character_data) : '';
+
+  const msgs = (ph.row && Array.isArray(ph.row.journal_messages)) ? ph.row.journal_messages
+    .slice().sort((a,b) => new Date(a.created_at||0) - new Date(b.created_at||0)) : [];
+  const list = document.getElementById('cosmic-phase-messages');
+  const emptyEl = document.getElementById('cosmic-phase-empty');
+  list.innerHTML = '';
+  emptyEl.style.display = msgs.length ? 'none' : 'block';
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'cosmic-msg';
+    const img = m.image_url ? `<img src="${escapeHtml(m.image_url)}" alt="">` : '';
+    const txt = m.text ? `<div class="cosmic-msg-text">${escapeHtml(m.text)}</div>` : '';
+    const when = m.created_at ? `${formatTime(m.created_at)} · ${formatDateLabel(localDayKey(m.created_at))}` : '';
+    div.innerHTML = `${txt}${img}<div class="cosmic-msg-time">${when}</div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('cosmic-phase-overlay').classList.add('open');
+}
+function closeCosmicPhasePopup(){ document.getElementById('cosmic-phase-overlay').classList.remove('open'); }
+function handleCosmicPhaseOverlayClick(e){ if (e.target === document.getElementById('cosmic-phase-overlay')) closeCosmicPhasePopup(); }
 
 // ── ARCHETYPE TAB ─────────────────────────────────────────
 async function loadArchetypeTab(){
@@ -1394,8 +1566,16 @@ async function jumpToArchetypeRow(row){
     await enterDailyView();
     openDayPopup(row.raw.entry_date);
   } else if (row.source === 'cosmic') {
-    const season = cosmicMapIdToSeason[row.raw.map_id];
-    if (season) window.location.href = `cosmic-matrix.html?season=${encodeURIComponent(season)}`;
+    switchTab('cosmic');
+    await loadCosmicTab();
+    const seasonRow = allCosmicSeasons.find(s => s.map_id === row.raw.map_id);
+    if (!seasonRow) return;
+    activePlanet = seasonPlanetId(seasonRow.map_data);
+    document.getElementById('cosmic-planet-select').value = activePlanet;
+    await renderCosmicSeasonGrid();
+    await openCosmicSeasonDetail(seasonRow);
+    const ph = activeCosmicPhases.find(p => p.map_phase === row.raw.map_phase);
+    if (ph && ph.done) openCosmicPhasePopup(ph);
   }
 }
 
