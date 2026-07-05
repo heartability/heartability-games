@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="assets/css/modal.css">
 <script src="assets/js/modal.js" defer></script>
 <title>About — Heartability</title>
+<meta name="description" content="Heartability turns emotional growth into a game — explore treasure maps, an infinity mirror, and self-care bingo, all designed to help you rediscover optimism.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
 <style>
 
@@ -110,10 +111,32 @@ body {
   padding: 0 2vw;
   margin: 8vh 0 2vh;
 }
+.matrices-wrap picture {
+  display: block;
+}
 .about-matrices-img {
   display: block;
   width: 100%;
   height: auto;
+}
+.matrices-color { color: #6578e2; }
+.matrices-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6vw;
+}
+.matrices-title { margin: 0 0 3vh; }
+.matrices-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3vw;
+  max-width: 700px;
+  width: 100%;
 }
 
 /* ── HEART + FOOTER ── */
@@ -186,6 +209,12 @@ body {
   .games-row { grid-template-columns: 1fr; gap: 6vh; padding: 0 8vw; }
   .about-footer { display: flex; flex-direction: column; gap: 3vh; padding: 4vh 8vw 6vh; }
   .heart-link, .legal-links { justify-self: center; }
+  .matrices-wrap { padding: 0; }
+  .matrices-content { padding: 0 12vw; }
+  .matrices-title { font-size: 20px; margin-bottom: 1.2vh; }
+  .matrices-row { grid-template-columns: 1fr; gap: 1.6vh; }
+  .matrices-row .game-col-title { font-size: 14px; line-height: 1.2; margin-bottom: 0.2vh; }
+  .matrices-row .game-col-desc { font-size: 9.5px; line-height: 1.25; }
 }
 
 </style>
@@ -215,7 +244,27 @@ body {
 </div>
 
 <div class="matrices-wrap">
-  <img class="about-matrices-img" src="assets/elements/about-matricies.png" alt="The matrices — daily, dream, and cosmic">
+  <picture>
+    <source media="(max-width: 700px)" srcset="assets/elements/circle-rainbow-m.png">
+    <img class="about-matrices-img" src="assets/elements/circle-rainbow.png" alt="">
+  </picture>
+  <div class="matrices-content">
+    <h2 class="section-title matrices-title matrices-color">the matrices</h2>
+    <div class="matrices-row">
+      <div class="game-col">
+        <div class="game-col-title matrices-color">daily</div>
+        <div class="game-col-desc matrices-color">track your daily experiences to reveal unknown patterns and secret paths</div>
+      </div>
+      <div class="game-col">
+        <div class="game-col-title matrices-color">dream</div>
+        <div class="game-col-desc matrices-color">track your progress following dreams over time, including all the times you have to start over</div>
+      </div>
+      <div class="game-col">
+        <div class="game-col-title matrices-color">cosmic</div>
+        <div class="game-col-desc matrices-color">track your personal experience across cosmic transits to learn how the stars influence you</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <footer class="about-footer">
