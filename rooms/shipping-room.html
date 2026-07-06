@@ -6,6 +6,8 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/room-slider.css">
+<script src="../assets/js/room-slider.js" defer></script>
 <title>Shipping Room — Heartability</title>
 <meta name="robots" content="noindex,follow">
 <style>
@@ -31,6 +33,7 @@
   --bw-left:   15%;
   --bw-width:  70%;
   --bw-height: 70%;
+  --room-stage-width: 1300px;
 }
 
 html, body {
@@ -43,13 +46,13 @@ html, body {
 
 /* ── Room lines ── */
 .room-lines {
-  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
 }
 .room-lines svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
 /* ── Back wall ── */
 .back-wall {
-  position: fixed;
+  position: absolute;
   top: var(--bw-top); left: var(--bw-left);
   width: var(--bw-width); height: var(--bw-height);
   background: var(--back-wall);
@@ -76,11 +79,11 @@ html, body {
    the screen (tucked behind the nav bar).
 ───────────────────────────────────────────────── */
 .conveyor {
-  position: fixed;
+  position: absolute;
   top: 0;
-  bottom: 8vh;
-  left: 13vw;
-  width: clamp(240px, 40vw, 600px);
+  bottom: 8cqh;
+  left: 13cqw;
+  width: clamp(240px, 40cqw, 600px);
   z-index: 4;
   pointer-events: none;
 }
@@ -96,10 +99,10 @@ html, body {
    Clickable wall art — opens the recent-updates popup.
 ───────────────────────────────────────────────── */
 .shipping-poster {
-  position: fixed;
-  top: 30vh;
-  right: 22vw;
-  width: clamp(180px, 20vw, 320px);
+  position: absolute;
+  top: 30cqh;
+  right: 22cqw;
+  width: clamp(180px, 20cqw, 320px);
   z-index: 4;
   cursor: pointer;
 }
@@ -160,10 +163,10 @@ html, body {
 
 /* ── Heart character ── */
 .char-heart {
-  position: fixed;
-  left: clamp(12px, 4vw, 60px);
-  bottom: clamp(4vh, 8vh, 14vh);
-  width: clamp(90px, 13vw, 200px);
+  position: absolute;
+  left: clamp(12px, 4cqw, 60px);
+  bottom: clamp(4cqh, 8cqh, 14cqh);
+  width: clamp(90px, 13cqw, 200px);
   z-index: 5;
   cursor: default;
 }
@@ -182,26 +185,28 @@ html, body {
   position: absolute;
   left: calc(100% + 4px);
   bottom: 55%;
-  min-width: clamp(140px, 18vw, 260px);
-  max-width: clamp(180px, 22vw, 300px);
+  min-width: clamp(140px, 18cqw, 260px);
+  max-width: clamp(180px, 22cqw, 300px);
   background: #fff;
   border: 2px solid #000;
   border-radius: 50%;
   padding: 12px 18px;
   font-family: var(--font-hand);
-  font-size: clamp(11px, 1.2vw, 15px);
+  font-size: clamp(11px, 1.2cqw, 15px);
   color: #000; text-align: center; line-height: 1.5;
   filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   display: none;
 }
 .char-heart.active .thought-bubble { display: block; }
 
-/* ── Mobile ── */
-@media (max-width: 768px) {
-  .conveyor        { left: 2vw; height: clamp(220px, 55vh, 380px); }
-  .shipping-poster { top: calc(var(--bw-top) + 44%); left: calc(var(--bw-left) + 42%); width: clamp(110px, 30vw, 200px); }
-  .char-heart      { left: 2vw; bottom: 2vh; width: clamp(70px, 22vw, 150px); }
-  .thought-bubble  { font-size: clamp(10px, 2.6vw, 13px); }
+/* ── Narrow landscape (small landscape phones) ──
+   Portrait/vertical viewports are handled by the room slider
+   (assets/css/room-slider.css) instead of squeezing this layout. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .conveyor        { left: 2cqw; height: clamp(220px, 55cqh, 380px); }
+  .shipping-poster { top: calc(var(--bw-top) + 44%); left: calc(var(--bw-left) + 42%); width: clamp(110px, 30cqw, 200px); }
+  .char-heart      { left: 2cqw; bottom: 2cqh; width: clamp(70px, 22cqw, 150px); }
+  .thought-bubble  { font-size: clamp(10px, 2.6cqw, 13px); }
 }
 
 </style>
@@ -215,27 +220,42 @@ html, body {
   <a class="nav-btn" href="../index.html">home →</a>
 </nav>
 
-<!-- ROOM LINES -->
-<div class="room-lines" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-  </svg>
+<!-- ROOM (pans horizontally on portrait/vertical viewports) -->
+<div class="room-scroll">
+<div class="room-stage">
+
+  <!-- ROOM LINES -->
+  <div class="room-lines" aria-hidden="true">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    </svg>
+  </div>
+
+  <!-- BACK WALL -->
+  <div class="back-wall"></div>
+
+  <!-- CONVEYOR -->
+  <div class="conveyor">
+    <img src="../assets/elements/conveyor.png" alt="conveyor belt machine">
+  </div>
+
+  <!-- SHIPPING STATUS POSTER -->
+  <div class="shipping-poster" id="shipping-poster" role="button" tabindex="0">
+    <img src="../assets/elements/shipping-poster.png" alt="Shipping status — recent updates">
+  </div>
+
+  <!-- HEART CHARACTER -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble">
+      always something new around here.
+    </div>
+    <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide character">
+  </div>
+
 </div>
-
-<!-- BACK WALL -->
-<div class="back-wall"></div>
-
-<!-- CONVEYOR -->
-<div class="conveyor">
-  <img src="../assets/elements/conveyor.png" alt="conveyor belt machine">
-</div>
-
-<!-- SHIPPING STATUS POSTER -->
-<div class="shipping-poster" id="shipping-poster" role="button" tabindex="0">
-  <img src="../assets/elements/shipping-poster.png" alt="Shipping status — recent updates">
 </div>
 
 <!-- UPDATES POPUP -->
@@ -255,14 +275,6 @@ html, body {
       </ul>
     </div>
   </div>
-</div>
-
-<!-- HEART CHARACTER -->
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble" id="heart-bubble">
-    always something new around here.
-  </div>
-  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide character">
 </div>
 
 <script>

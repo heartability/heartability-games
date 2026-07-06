@@ -6,6 +6,8 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/room-slider.css">
+<script src="../assets/js/room-slider.js" defer></script>
 <title>Secret Garden — Heartability</title>
 <meta name="description" content="Visit the Secret Garden, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
@@ -25,6 +27,7 @@
 :root {
   --font-hand: "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
+  --room-stage-width: 1300px;
 }
 
 html, body {
@@ -33,13 +36,6 @@ html, body {
   overflow: hidden;
   user-select: none;
   background: #6578e2;
-}
-
-/* ── SCENE ── */
-.scene {
-  position: relative;
-  width: 100vw;
-  height: 100dvh;
 }
 
 /* ── TOP NAV BAR  z:200 ── */
@@ -71,7 +67,7 @@ html, body {
 
 /* ── GARDEN ELEMENTS ── */
 .garden-el {
-  position: fixed;
+  position: absolute;
   pointer-events: none;
 }
 .garden-el img {
@@ -80,24 +76,24 @@ html, body {
   height: auto;
 }
 
-.el-grass      { bottom: 0;   left: 0;      width: 100vw; z-index: 2; }
-.el-sky        { top: 0;      left: 0;      width: 100vw; height: 100dvh; z-index: 1; }
+.el-grass      { bottom: 0;   left: 0;      width: 100cqw; z-index: 2; }
+.el-sky        { top: 0;      left: 0;      width: 100cqw; height: 100cqh; z-index: 1; }
 .el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
-.el-fountain   { left: 40vw;  bottom: 18vh; width: 30vw;  z-index: 3; }
-.el-phonebooth { left: 8vw;   bottom: 11vh; width: 11vw;  z-index: 3; }
-.el-leaderboard{ right: 6vw;  bottom: 12vh; width: 9vw;   z-index: 3; }
-.el-cloud-l    { left: 8vw;   top: 16vh;   width: 14vw;  z-index: 2; }
-.el-cloud-r    { right: 20vw; top: 12vh;   width: 12vw;  z-index: 2; }
+.el-fountain   { left: 40cqw;  bottom: 18cqh; width: 30cqw;  z-index: 3; }
+.el-phonebooth { left: 8cqw;   bottom: 11cqh; width: 11cqw;  z-index: 3; }
+.el-leaderboard{ right: 6cqw;  bottom: 12cqh; width: 9cqw;   z-index: 3; }
+.el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; }
+.el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; }
 
 .el-fountain, .el-leaderboard { pointer-events: auto; cursor: pointer; }
 .el-phonebooth                { pointer-events: auto; }
 
 /* ── CLOUD GUIDE  z:4 ── */
 .char-cloud {
-  position: fixed;
-  left: 20vw;
-  top: 35vh;
-  width: clamp(80px, 14vw, 130px);
+  position: absolute;
+  left: 20cqw;
+  top: 35cqh;
+  width: clamp(80px, 14cqw, 130px);
   display: flex;
   align-items: flex-start;
   cursor: pointer;
@@ -133,14 +129,14 @@ html, body {
   position: absolute;
   left: calc(100% - 10px);
   top: 10px;
-  min-width: clamp(160px, 18vw, 280px);
-  max-width: clamp(200px, 21vw, 300px);
+  min-width: clamp(160px, 18cqw, 280px);
+  max-width: clamp(200px, 21cqw, 300px);
   background: #fff;
   border: 2px solid #000;
   border-radius: 50%;
   padding: 14px 24px;
   font-family: var(--font-hand);
-  font-size: clamp(10px, 1.4vw, 16px);
+  font-size: clamp(10px, 1.4cqw, 16px);
   color: #000000;
   text-align: center;
   line-height: 1.4;
@@ -186,17 +182,18 @@ html, body {
 .lb-refresh { font-size: 15px; color: #999; cursor: pointer; line-height: 1; }
 .lb-refresh:hover { color: #6578e2; }
 
-/* ── MOBILE ── */
-@media (max-width: 768px) {
-  .el-fountain   { left: 25vw;  bottom: 14vh; width: 50vw; }
-  .el-phonebooth { left: 2vw;   bottom: 11vh; width: 16vw; }
-  .el-leaderboard{ right: 2vw;  bottom: 11vh; width: 14vw; }
-  .el-mailbox    { right: 2vw;  bottom: 11vh; width: 14vw; }
-  .el-cloud-l    { left: 2vw;   top: 18vh;   width: 22vw; }
-  .el-cloud-r    { right: 8vw;  top: 14vh;   width: 18vw; }
-  .char-cloud    { left: 12vw;  top: 28vh;   width: clamp(60px, 18vw, 100px); }
-  .thought-bubble { max-width: clamp(140px, 52vw, 260px); font-size: clamp(10px, 2.8vw, 15px); }
-  .side-wall { width: 12vw; }
+/* ── Narrow landscape (small landscape phones) ──
+   Portrait/vertical viewports are handled by the room slider
+   (assets/css/room-slider.css) instead of squeezing this layout. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .el-fountain   { left: 25cqw;  bottom: 14cqh; width: 50cqw; }
+  .el-phonebooth { left: 2cqw;   bottom: 11cqh; width: 16cqw; }
+  .el-leaderboard{ right: 2cqw;  bottom: 11cqh; width: 14cqw; }
+  .el-mailbox    { right: 2cqw;  bottom: 11cqh; width: 14cqw; }
+  .el-cloud-l    { left: 2cqw;   top: 18cqh;   width: 22cqw; }
+  .el-cloud-r    { right: 8cqw;  top: 14cqh;   width: 18cqw; }
+  .char-cloud    { left: 12cqw;  top: 28cqh;   width: clamp(60px, 18cqw, 100px); }
+  .thought-bubble { max-width: clamp(140px, 52cqw, 260px); font-size: clamp(10px, 2.8cqw, 15px); }
   .room-nav { font-size: clamp(16px, 3.5vw, 18px); }
 }
 
@@ -211,7 +208,8 @@ html, body {
   <span class="nav-btn" id="nav-next">next →</span>
 </nav>
 
-<div class="scene">
+<div class="room-scroll">
+<div class="scene room-stage">
 
   <!-- Grass ground -->
   <div class="garden-el el-sky">
@@ -249,6 +247,7 @@ html, body {
     <img class="char-img" src="../assets/elements/guides/cloud.png" alt="Cloud guide">
   </div>
 
+</div>
 </div>
 
 <!-- LEADERBOARD MODAL -->
