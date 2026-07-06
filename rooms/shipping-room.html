@@ -71,37 +71,80 @@ html, body {
 .nav-title { position: fixed; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
 
 /* ─────────────────────────────────────────────────
-   POSTERS  z:4
-   Two tall poster panels hung on the back wall.
+   CONVEYOR  z:4
+   Machine + belt on the left, pipes reach the top of
+   the screen (tucked behind the nav bar).
 ───────────────────────────────────────────────── */
-.poster {
+.conveyor {
   position: fixed;
+  top: 0;
+  left: clamp(20px, 5vw, 90px);
+  height: clamp(340px, 86vh, 760px);
   z-index: 4;
-  background: #fdf6e3;
-  border: 2px solid #2a1e14;
-  box-shadow: 3px 4px 0 1px rgba(0,0,0,.25), inset 0 0 0 4px #f0ead6;
-  padding: 18px 16px 22px;
-  font-family: var(--font-hand);
-  display: flex; flex-direction: column; gap: 10px;
-  /* slight tilt for character */
+  pointer-events: none;
+}
+.conveyor img {
+  display: block;
+  height: 100%;
+  width: auto;
+  filter: drop-shadow(4px 6px 10px rgba(0,0,0,.25));
 }
 
-.poster-title {
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.5vw, 18px);
-  color: #2a1e14;
-  border-bottom: 1.5px solid #c8b88a;
-  padding-bottom: 8px;
-  margin-bottom: 4px;
-  text-align: center;
+/* ─────────────────────────────────────────────────
+   SHIPPING POSTER  z:4
+   Clickable wall art — opens the recent-updates popup.
+───────────────────────────────────────────────── */
+.shipping-poster {
+  position: fixed;
+  top: calc(var(--bw-top) + 22%);
+  left: calc(var(--bw-left) + 56%);
+  width: clamp(180px, 20vw, 320px);
+  z-index: 4;
+  cursor: pointer;
 }
+.shipping-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(3px 5px 8px rgba(0,0,0,.25));
+  transition: filter 0.2s;
+}
+.shipping-poster:hover img {
+  filter: drop-shadow(4px 8px 16px rgba(0,0,0,.4));
+}
+@keyframes art-wiggle {
+  0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); }
+}
+.shipping-poster.wiggling { animation: art-wiggle 0.48s ease; }
+
+/* ── Updates popup ── */
+.updates-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300;
+  display: none; align-items: center; justify-content: center;
+}
+.updates-overlay.open { display: flex; }
+.updates-popup {
+  background: #f5f0ea;
+  box-shadow: 0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 4px 8px 28px rgba(0,0,0,0.35);
+  width: clamp(280px, 88vw, 420px); overflow: hidden;
+}
+.updates-titlebar {
+  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 20px; color: #555;
+}
+.updates-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 16px; padding: 4px; line-height: 1; }
+.updates-close:hover { color: #6579e2; }
+.updates-body { padding: 20px 22px 22px; }
 
 .poster-list {
   list-style: none;
   display: flex; flex-direction: column; gap: 8px;
 }
 .poster-list li {
-  font-size: clamp(11px, 1.2vw, 15px);
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.4vw, 16px);
   color: #3a2e1e;
   line-height: 1.4;
   padding-left: 14px;
@@ -112,52 +155,6 @@ html, body {
   position: absolute; left: 0;
   font-size: 12px; color: #6579e2;
   top: 1px;
-}
-
-/* Recent updates — left side of back wall */
-.poster-updates {
-  top: calc(var(--bw-top) + 8%);
-  left: calc(var(--bw-left) + 13%);
-  width: clamp(160px, 19vw, 280px);
-  min-height: clamp(200px, 40vh, 360px);
-  transform: rotate(-1.2deg);
-}
-
-/* Coming soon — right side of back wall */
-.poster-coming {
-  top: calc(var(--bw-top) + 8%);
-  left: calc(var(--bw-left) + var(--bw-width) - clamp(160px, 19vw, 280px) - 13%);
-  width: clamp(160px, 19vw, 280px);
-  min-height: clamp(200px, 40vh, 360px);
-  transform: rotate(1deg);
-}
-
-/* ─────────────────────────────────────────────────
-   BOXES ON THE FLOOR  z:4
-   Sit in the floor area below the back wall.
-───────────────────────────────────────────────── */
-.floor-box {
-  position: fixed;
-  z-index: 4;
-  /* each box positioned individually */
-}
-.floor-box img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(4px 6px 10px rgba(0,0,0,.3));
-}
-
-/* Box cluster positions — floor area is roughly 62%–100% vertically */
-.box-1 {
-  bottom: clamp(10vh, 6vh, 55vh);
-  right: clamp(18vw, 22vw, 15vw);
-  width: clamp(250px, 55vw, 450px);
-}
-.box-2 {
-  bottom: clamp(10vh, 6vh, 65vh);
-  left: clamp(8vw, 22vw, 11vw);
-  width: clamp(80px, 20vw, 150px);
 }
 
 /* ── Heart character ── */
@@ -200,10 +197,10 @@ html, body {
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
-  .poster-updates { width: 26vw; font-size: 11px; }
-  .poster-coming  { width: 26vw; font-size: 11px; }
-  .char-heart     { left: 2vw; bottom: 2vh; width: clamp(70px, 22vw, 150px); }
-  .thought-bubble { font-size: clamp(10px, 2.6vw, 13px); }
+  .conveyor        { left: 2vw; height: clamp(220px, 55vh, 380px); }
+  .shipping-poster { top: calc(var(--bw-top) + 44%); left: calc(var(--bw-left) + 42%); width: clamp(110px, 30vw, 200px); }
+  .char-heart      { left: 2vw; bottom: 2vh; width: clamp(70px, 22vw, 150px); }
+  .thought-bubble  { font-size: clamp(10px, 2.6vw, 13px); }
 }
 
 </style>
@@ -230,35 +227,33 @@ html, body {
 <!-- BACK WALL -->
 <div class="back-wall"></div>
 
-<!-- POSTER: RECENT UPDATES -->
-<div class="poster poster-updates">
-  <div class="poster-title">recent updates</div>
-  <ul class="poster-list">
-    <li>5/8/26: Paid users can now track their progress on up to 8 goals at a time.</li>
-    <li>5/8/26: The Founders Club is live <3 </li>
-    <li>5/1/26: You can now save diary entries.</li>
-    <li>4/27/26: Treasure map game now has spiral and square frames. </li>
-    <li>4/24/26: Returning users can now create a profile!</li>
-  </ul>
+<!-- CONVEYOR -->
+<div class="conveyor">
+  <img src="../assets/elements/conveyor.png" alt="conveyor belt machine">
 </div>
 
-<!-- POSTER: COMING SOON -->
-<div class="poster poster-coming">
-  <div class="poster-title">coming soon</div>
-  <ul class="poster-list">
-    <li>a media library to find inspiration</li>
-    <li>a self care tool library to find resources</li>
-    <li>a 2d side scroll game customized with your inputs</li>
-    <li>a community board for travelers on similar emotional landscapes</li>
-  </ul>
+<!-- SHIPPING STATUS POSTER -->
+<div class="shipping-poster" id="shipping-poster" role="button" tabindex="0">
+  <img src="../assets/elements/shipping-poster.png" alt="Shipping status — recent updates">
 </div>
 
-<!-- FLOOR BOXES (swap src for your PNGs) -->
-<div class="floor-box box-1">
-  <img src="../assets/elements/box-large.png" alt="shipping box">
-</div>
-<div class="floor-box box-2">
-  <img src="../assets/elements/box-small.png" alt="shipping box">
+<!-- UPDATES POPUP -->
+<div class="updates-overlay" id="updates-overlay">
+  <div class="updates-popup">
+    <div class="updates-titlebar">
+      <span>shipping status</span>
+      <span class="updates-close" id="updates-close">&#x2715;</span>
+    </div>
+    <div class="updates-body">
+      <ul class="poster-list">
+        <li>5/8/26: Paid users can now track their progress on up to 8 goals at a time.</li>
+        <li>5/8/26: The Founders Club is live <3 </li>
+        <li>5/1/26: You can now save diary entries.</li>
+        <li>4/27/26: Treasure map game now has spiral and square frames. </li>
+        <li>4/24/26: Returning users can now create a profile!</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- HEART CHARACTER -->
@@ -275,6 +270,25 @@ html, body {
 
   heart.addEventListener('mouseenter', () => heart.classList.add('active'));
   heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
+
+  // Shipping poster — wiggle on hover, click opens the updates popup
+  const poster        = document.getElementById('shipping-poster');
+  const updatesOverlay = document.getElementById('updates-overlay');
+  const updatesClose   = document.getElementById('updates-close');
+
+  function triggerWiggle(el) {
+    el.classList.remove('wiggling'); void el.offsetWidth; el.classList.add('wiggling');
+    el.addEventListener('animationend', () => el.classList.remove('wiggling'), { once: true });
+  }
+  function openUpdates()  { updatesOverlay.classList.add('open'); }
+  function closeUpdates() { updatesOverlay.classList.remove('open'); }
+
+  poster.addEventListener('mouseenter', () => triggerWiggle(poster));
+  poster.addEventListener('click', openUpdates);
+  poster.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openUpdates(); });
+  updatesClose.addEventListener('click', closeUpdates);
+  updatesOverlay.addEventListener('click', e => { if (e.target === updatesOverlay) closeUpdates(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeUpdates(); });
 </script>
 </body>
 </html>
