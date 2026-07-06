@@ -54,13 +54,13 @@ html, body {
   justify-content: space-between;
   padding: 0 clamp(12px, 2vw, 28px);
   font-family: var(--font-hand);
-  font-size: clamp(18px, 1.6vw, 22px);
+  font-size: clamp(21px, 1.6vw, 25px);
   color: #fff;
 }
 .nav-title {
   position: absolute; left: 50%; transform: translateX(-50%);
   pointer-events: none; white-space: nowrap;
-  font-family: var(--font-hand); font-size: clamp(18px, 1.6vw, 22px);
+  font-family: var(--font-hand); font-size: clamp(22px, 1.6vw, 28px);
 }
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; color: inherit; text-decoration: none; }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
@@ -82,7 +82,7 @@ html, body {
 }
 .gear-dropdown.open { display: flex; }
 .gear-item {
-  font-family: var(--font-hand); font-size: clamp(13px, 1.3vw, 16px); color: #fff;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
   padding: 9px 14px; cursor: pointer; border: none; background: none;
   text-align: left; white-space: nowrap; transition: background 0.12s;
 }
@@ -125,7 +125,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-hand);
-  font-size: clamp(18px, 1.6vw, 22px);
+  font-size: clamp(22px, 1.6vw, 28px);
   color: #333;
   letter-spacing: 0.5px;
   position: relative;
@@ -135,7 +135,7 @@ html, body {
 .online-count {
   position: absolute;
   right: 14px;
-  font-size: clamp(9px, 1vw, 12px);
+  font-size: clamp(10px, 1vw, 14px);
   color: #888;
   font-family: var(--font-hand);
 }
@@ -171,7 +171,7 @@ html, body {
 .chat-bubble {
   padding: 9px 14px;
   font-family: var(--font-hand);
-  font-size: clamp(12px, 1.4vw, 16px);
+  font-size: clamp(14px, 1.4vw, 18px);
   line-height: 1.5;
   word-break: break-word;
   user-select: text;
@@ -188,7 +188,7 @@ html, body {
 }
 
 .chat-meta {
-  font-size: clamp(9px, 0.9vw, 11px);
+  font-size: clamp(10px, 0.9vw, 13px);
   color: #aaa;
   font-family: var(--font-hand);
   padding: 0 4px;
@@ -197,7 +197,7 @@ html, body {
 .chat-empty {
   text-align: center;
   color: #bbb;
-  font-size: clamp(12px, 1.3vw, 15px);
+  font-size: clamp(14px, 1.3vw, 17px);
   padding: 40px 0;
   font-style: italic;
   align-self: center;
@@ -213,7 +213,7 @@ html, body {
   align-self: stretch;
 }
 .chat-date-divider span {
-  font-size: 10px;
+  font-size: 12px;
   color: #bbb;
   font-family: var(--font-hand);
   white-space: nowrap;
@@ -244,7 +244,7 @@ html, body {
 }
 
 .chat-name-label {
-  font-size: clamp(10px, 1vw, 12px);
+  font-size: clamp(12px, 1vw, 14px);
   color: #888;
   white-space: nowrap;
   font-family: var(--font-hand);
@@ -253,7 +253,7 @@ html, body {
 .chat-name-input {
   width: calc(100% - 70px);
   font-family: var(--font-hand);
-  font-size: clamp(11px, 1.2vw, 14px);
+  font-size: clamp(13px, 1.2vw, 16px);
   color: #222;
   background: #f5f0ea;
   border: 1.5px solid #bbb;
@@ -272,7 +272,7 @@ html, body {
 .chat-msg-input {
   flex: 1;
   font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 15px);
+  font-size: clamp(14px, 1.3vw, 17px);
   color: #222;
   background: #f5f0ea;
   border: 1.5px solid #bbb;
@@ -291,7 +291,7 @@ html, body {
   border: 2px solid #4a5bc4;
   box-shadow: 2px 2px 0 #3a4aaa;
   font-family: var(--font-hand);
-  font-size: clamp(12px, 1.3vw, 15px);
+  font-size: clamp(14px, 1.3vw, 17px);
   color: #fff;
   cursor: pointer;
   letter-spacing: 0.5px;
@@ -304,7 +304,7 @@ html, body {
 .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .chat-status {
-  font-size: clamp(9px, 0.9vw, 11px);
+  font-size: clamp(10px, 0.9vw, 13px);
   color: #999;
   font-family: var(--font-hand);
   min-height: 13px;
@@ -314,7 +314,7 @@ html, body {
    MOBILE
 ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .room-nav { font-size: clamp(16px, 3.5vw, 18px); }
+  .room-nav { font-size: clamp(18px, 3.5vw, 21px); }
   .page-body { padding: 12px; }
   .chat-window { width: 70vw; height: calc(80dvh - 44px - 24px); }
 }
