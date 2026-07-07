@@ -52,6 +52,16 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
+/* ── Floating "continue playing" link (bottom-right, per active tab) ── */
+.floating-play-link {
+  position:fixed; right:20px; bottom:20px; z-index:150;
+  font-family:var(--font-hand); font-size:clamp(15px,1.6vw,18px); color:#fff;
+  background:var(--purple); border:2px solid var(--purple-dk); box-shadow:2px 2px 0 var(--purple-sh);
+  padding:8px 16px; cursor:pointer; transition:all .05s;
+}
+.floating-play-link:hover { background:var(--purple-dk); }
+.floating-play-link:active { box-shadow:none; transform:translate(2px,2px); }
+
 /* ── Gear dropdown ── */
 .gear-wrap { position:relative; }
 .gear-btn {
@@ -469,11 +479,10 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     </div>
   </div>
   <h1 class="nav-title">matrix archive</h1>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <span class="nav-btn" id="play-link" style="display:none;"></span>
-    <a class="nav-btn" href="../games/game-room.html"> game room→</a>
-  </div>
+  <a class="nav-btn" href="../games/game-room.html"> game room→</a>
 </nav>
+
+<span class="floating-play-link" id="play-link" style="display:none;"></span>
 
 <div class="tab-bar" id="tab-bar">
   <button class="tab-btn" data-tab="daily" onclick="switchTab('daily')">daily</button>
