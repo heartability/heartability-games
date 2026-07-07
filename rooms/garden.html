@@ -268,6 +268,42 @@ html, body {
   </div>
 </div>
 
+<!-- FOUNTAIN MODAL: donate or wish choice -->
+<div class="hg-modal-overlay" id="fountain-overlay">
+  <div class="hg-modal" style="width:min(92vw,420px);">
+    <div class="hg-modal-titlebar">
+      <span>wish fountain</span>
+      <span class="hg-modal-close" id="fountain-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body">
+      <div class="hg-modal-message" style="text-align:center;">may everything you give return tenfold</div>
+      <div class="hg-modal-actions" style="justify-content:center; gap:14px; flex-wrap:wrap;">
+        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-wish">make a wish</button>
+        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-donation">make a donation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WISH MODAL -->
+<div class="hg-modal-overlay" id="wish-overlay">
+  <div class="hg-modal" style="width:min(92vw,440px);">
+    <div class="hg-modal-titlebar">
+      <span>make a wish</span>
+      <span class="hg-modal-close" id="wish-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body">
+      <div class="hg-modal-message" style="font-size:15px;">write your wish in as much detail as possible <br> <span style="font-size:12px; color:#888;">(entries are anonymous)</span></div>
+      <textarea id="wish-text" rows="5" placeholder="my wish is..." style="width:100%; font-family:var(--font-hand); font-size:16px; padding:10px; border:2px solid #ccc; resize:vertical; box-sizing:border-box;"></textarea>
+      <div id="wish-msg" style="font-family:var(--font-hand); font-size:13px; min-height:16px;"></div>
+      <div class="hg-modal-actions">
+        <button class="hg-modal-btn" id="wish-cancel">cancel</button>
+        <button class="hg-modal-btn hg-modal-btn-primary" id="wish-submit">send wish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
@@ -301,8 +337,71 @@ html, body {
     cloud.classList.add('active');
   });
   fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
-  fountain.addEventListener('click', () => {
+  fountain.addEventListener('click', () => openFountainModal());
+
+  /* ── Fountain popup: donate or wish ── */
+  const fountainOverlay = document.getElementById('fountain-overlay');
+
+  function openFountainModal()  { fountainOverlay.classList.add('open'); }
+  function closeFountainModal() { fountainOverlay.classList.remove('open'); }
+
+  document.getElementById('fountain-close').addEventListener('click', closeFountainModal);
+  fountainOverlay.addEventListener('click', (e) => { if (e.target === fountainOverlay) closeFountainModal(); });
+
+  document.getElementById('btn-make-donation').addEventListener('click', () => {
     window.open('https://buy.stripe.com/7sYbJ05MOaHzc5V2eV1Jm00', '_blank', 'noopener');
+    closeFountainModal();
+  });
+
+  document.getElementById('btn-make-wish').addEventListener('click', () => {
+    closeFountainModal();
+    openWishModal();
+  });
+
+  /* ── Wish popup ── */
+  const wishOverlay = document.getElementById('wish-overlay');
+  const wishText     = document.getElementById('wish-text');
+  const wishMsg       = document.getElementById('wish-msg');
+  const wishSubmitBtn = document.getElementById('wish-submit');
+
+  function openWishModal() {
+    wishText.value = '';
+    wishMsg.textContent = '';
+    wishOverlay.classList.add('open');
+  }
+  function closeWishModal() { wishOverlay.classList.remove('open'); }
+
+  document.getElementById('wish-close').addEventListener('click', closeWishModal);
+  document.getElementById('wish-cancel').addEventListener('click', closeWishModal);
+  wishOverlay.addEventListener('click', (e) => { if (e.target === wishOverlay) closeWishModal(); });
+
+  wishSubmitBtn.addEventListener('click', async () => {
+    const text = wishText.value.trim();
+    if (!text) {
+      wishMsg.style.color = '#c0392b';
+      wishMsg.textContent = 'please write a wish first';
+      return;
+    }
+    wishSubmitBtn.disabled = true;
+    wishMsg.style.color = '#888';
+    wishMsg.textContent = 'sending...';
+    try {
+      const { error } = await sb.from('wishes').insert({ wish_text: text });
+      if (error) {
+        wishMsg.style.color = '#c0392b';
+        wishMsg.textContent = "couldn't send your wish, please try again";
+        return;
+      }
+      closeWishModal();
+      bubble.textContent = 'thank you for your wish';
+      cloud.classList.add('active');
+      setTimeout(() => cloud.classList.remove('active'), 2500);
+    } catch (err) {
+      wishMsg.style.color = '#c0392b';
+      wishMsg.textContent = "couldn't send your wish, please try again";
+    } finally {
+      wishSubmitBtn.disabled = false;
+    }
   });
 
   /* ── Leaderboard popup ── */
@@ -320,7 +419,12 @@ html, body {
   document.getElementById('leaderboard-close').addEventListener('click', closeLeaderboard);
   document.getElementById('lb-refresh').addEventListener('click', loadLeaderboard);
   lbOverlay.addEventListener('click', (e) => { if (e.target === lbOverlay) closeLeaderboard(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLeaderboard(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeLeaderboard();
+    closeFountainModal();
+    closeWishModal();
+  });
 
   async function loadLeaderboard() {
     const el = document.getElementById('leaderboard-content');

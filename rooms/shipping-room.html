@@ -85,7 +85,7 @@ html, body {
   left: 13cqw;
   width: clamp(240px, 40cqw, 600px);
   z-index: 4;
-  pointer-events: none;
+  cursor: pointer;
 }
 .conveyor img {
   display: block;
@@ -238,7 +238,7 @@ html, body {
   <div class="back-wall"></div>
 
   <!-- CONVEYOR -->
-  <div class="conveyor">
+  <div class="conveyor" id="conveyor" role="button" tabindex="0">
     <img src="../assets/elements/conveyor.png" alt="conveyor belt machine">
   </div>
 
@@ -267,10 +267,10 @@ html, body {
     </div>
     <div class="updates-body">
       <ul class="poster-list">
-        <li:>Spring:<br>Users can now create a profile, spiral and square map frames, private chatroom for users with profiles. Write notes in a diary, track your dreams over time in the new Dream Matrix. </li>
-        <li>Summer:<br>Dream membership launches along with the Cosmic Matrix - a place to track how the cosmos influence you over time. And for everyone, including free members, the Daily Matrix offers a place to track the ups and downs of doing hard things.</li>
-Coming soon:<br> Expect more rooms in the castle to begin to open up, a full Library of self care tools and inspiration is set to open this winter, and more. Sign up for updates here. 
-    </ul>
+        <li><strong>Spring:</strong> Users can now create a profile, spiral and square map frames, private chatroom for users with profiles. Write notes in a diary, track your dreams over time in the new Dream Matrix.</li>
+        <li><strong>Summer:</strong> Dream membership launches along with the Cosmic Matrix - a place to track how the cosmos influence you over time. And for everyone, including free members, the Daily Matrix offers a place to track the ups and downs of doing hard things.</li>
+        <li><strong>Coming soon:</strong> Expect more rooms in the castle to begin to open up, a full Library of self care tools and inspiration is set to open this winter, and more. Sign up for updates here.</li>
+      </ul>
 
     </div>
   </div>
@@ -282,6 +282,17 @@ Coming soon:<br> Expect more rooms in the castle to begin to open up, a full Lib
 
   heart.addEventListener('mouseenter', () => heart.classList.add('active'));
   heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
+
+  // Conveyor belt — clicking it shows the heart's message, like hovering the heart does
+  const conveyor = document.getElementById('conveyor');
+  let conveyorBubbleTimer;
+  function showHeartBubble() {
+    heart.classList.add('active');
+    clearTimeout(conveyorBubbleTimer);
+    conveyorBubbleTimer = setTimeout(() => heart.classList.remove('active'), 3000);
+  }
+  conveyor.addEventListener('click', showHeartBubble);
+  conveyor.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') showHeartBubble(); });
 
   // Shipping poster — wiggle on hover, click opens the updates popup
   const poster        = document.getElementById('shipping-poster');
