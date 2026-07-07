@@ -48,18 +48,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   overflow:visible;
 }
 
-/* ── MAP NAME BAR — sits above the treasure-map builder iframe ── */
-.map-name-bar {
-  flex-shrink:0; display:flex; align-items:center; gap:10px;
-  background:var(--back-wall); border-bottom:2px solid #111;
-  padding:10px 14px;
+/* ── MAP BUILDER CARD — wraps the name field + treasure-map iframe in one
+   window, matching the sidequest/dream-came-true builder look ── */
+.map-builder-card {
+  width:100%; background:var(--back-wall);
+  border:3px solid var(--blue);
+  box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
+  padding:18px 20px; font-family:var(--font-hand);
 }
-.map-name-bar label { font-family:var(--font-hand); font-size:16px; color:var(--ink); white-space:nowrap; }
-.map-name-input {
-  flex:1; font-family:var(--font-hand); font-size:18px; color:#222;
-  background:var(--cream); border:1.5px solid #bbb; padding:7px 10px; outline:none; transition:border-color .2s;
-}
-.map-name-input:focus { border-color:var(--blue); }
 
 /* ── STEP PANELS (map grid, phase select) ── */
 .step-panel {
@@ -1616,11 +1612,11 @@ function showIframe(src) {
 function showMapBuilder(src) {
   const panel = document.getElementById('content-panel');
   panel.innerHTML = `
-    <div class="map-name-bar">
-      <label for="dream-map-name">dream name</label>
-      <input class="map-name-input" id="dream-map-name" type="text" placeholder="what dream are you mapping?" maxlength="60">
-    </div>
-    <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+    <div class="map-builder-card">
+      <div class="sq-head"><span class="sq-title">build a new map</span></div>
+      <input class="sq-name" id="dream-map-name" type="text" placeholder="what dream are you mapping?" maxlength="60">
+      <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>
+    </div>`;
   panel.classList.add('active', 'iframe-mode');
   autoSizeIframe(document.getElementById('game-iframe'));
   document.getElementById('wall-btns').classList.remove('active');
