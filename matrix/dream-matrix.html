@@ -1144,7 +1144,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
       <button class="sq-close" onclick="closeSidequestBuilder()">×</button>
     </div>
     <div class="sq-sub">a secret world you fall into.</div>
-    <input class="sq-name" id="sq-name" type="text" maxlength="60" placeholder="name this location">
     <div class="sq-body">
       <div class="sq-preview-col">
         <div class="sq-section-label">your sidequest</div>
@@ -1172,7 +1171,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
       <button class="sq-close" onclick="closeDctBuilder()">×</button>
     </div>
     <div class="sq-sub">build a place that captures what it feels like to arrive.</div>
-    <input class="sq-name" id="dct-name" type="text" maxlength="60" placeholder="name this place">
     <div class="sq-body">
       <div class="sq-preview-col">
         <div class="sq-section-label">your destination</div>
@@ -1649,7 +1647,7 @@ async function deleteMap(gameId, mapName) {
 function stepNewGame() {
   showAddNew(false);
   currentStep = 'map';
-  setBubble('build a map to begin!', []);
+  setBubble('what does this dream feel like?', []);
   const src = '../games/treasure-map.html?mode=new&loop=true';
   showMapBuilder(src);
   setSaveBtnVisible(true, 'continue →');
@@ -2849,7 +2847,6 @@ function buildSidequestPalette() {
 
 function openSidequestBuilder() {
   sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
-  document.getElementById('sq-name').value = '';
   document.querySelectorAll('.sq-terrain.active, .sq-chip.active')
     .forEach(el => el.classList.remove('active'));
   renderSidequestPreview();
@@ -2912,7 +2909,7 @@ function renderSidequestPreview() {
 function confirmSidequest() {
   if (!(sqDraft.terrain && sqDraft.feeling)) return;
   activeSidequest = {
-    name:    document.getElementById('sq-name').value.trim() || 'a secret place',
+    name:    `${sqDraft.terrain} of ${sqDraft.feeling}`,
     terrain: sqDraft.terrain,
     feeling: sqDraft.feeling,
     tint:    sqDraft.tint,
@@ -2946,7 +2943,6 @@ function buildDctPalette() {
 
 function openDctBuilder() {
   dctDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
-  document.getElementById('dct-name').value = '';
   document.querySelectorAll('#dct-overlay .sq-terrain.active, #dct-overlay .sq-chip.active')
     .forEach(el => el.classList.remove('active'));
   renderDctPreview();
@@ -3008,7 +3004,7 @@ function renderDctPreview() {
 function confirmDct() {
   if (!(dctDraft.terrain && dctDraft.feeling)) return;
   activeDreamCameTrue = {
-    name:    document.getElementById('dct-name').value.trim() || 'my dream place',
+    name:    `${dctDraft.terrain} of ${dctDraft.feeling}`,
     terrain: dctDraft.terrain,
     feeling: dctDraft.feeling,
     tint:    dctDraft.tint,
