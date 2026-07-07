@@ -366,7 +366,7 @@ body.game-mode .char-heart {
 }
 .game-popup-titlebar-left  { display: flex; align-items: center; gap: 8px; justify-content: flex-start; }
 .game-popup-titlebar-center { display: flex; align-items: center; gap: 8px; justify-content: center; min-width: 0; }
-.game-popup-titlebar-right { display: flex; align-items: center; justify-content: flex-end; }
+.game-popup-titlebar-right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .game-popup-howto {
   font-size: 17px; color: var(--blue); cursor: pointer;
   background: none; border: none; font-family: var(--font-hand); padding: 2px 4px;
@@ -546,16 +546,16 @@ body.game-mode .char-heart {
   <div class="game-popup" id="game-popup">
     <div class="game-popup-titlebar">
       <div class="game-popup-titlebar-left" id="game-popup-titlebar-left">
-        <div class="bingo-mode-toggle" id="bingo-mode-toggle">
-          <button class="bingo-mode-btn active" id="bingo-tab-sensory" onclick="switchBingoMode('sensory')">sensory</button>
-          <button class="bingo-mode-btn" id="bingo-tab-cosmic" onclick="switchBingoMode('cosmic')">cosmic</button>
-        </div>
         <button class="game-popup-howto" id="game-popup-howto" onclick="reopenHowto()">how to play</button>
       </div>
       <div class="game-popup-titlebar-center" id="game-popup-titlebar-center">
         <span id="game-popup-title"></span>
       </div>
       <div class="game-popup-titlebar-right">
+        <div class="bingo-mode-toggle" id="bingo-mode-toggle">
+          <button class="bingo-mode-btn active" id="bingo-tab-sensory" onclick="switchBingoMode('sensory')">sensory</button>
+          <button class="bingo-mode-btn" id="bingo-tab-cosmic" onclick="switchBingoMode('cosmic')">cosmic</button>
+        </div>
         <span class="popup-close" onclick="closeGame()">&#x2715;</span>
       </div>
     </div>
@@ -711,7 +711,7 @@ const HOWTO_CONTENT = {
     title: 'treasure map',
     steps: `how to play:
 1. think of a dream that you want to pursue
-2. choose a map shape that represents your dream:<ul class="howto-sublist"><li>spiral — this dream requires me to trust the universe</li><li>square — this dream requires me to develop new skills</li></ul>3. complete each phase by assigning it with a terrain and emotional climate`
+2. identify the shape of your dream:<ul class="howto-sublist"><li>spiral — this dream requires me to trust the universe</li><li>square — this dream requires me to develop new skills</li></ul>3. complete each phase with a terrain and emotional climate`
   },
   'infinity-mirror': {
     title: 'infinity mirror',
@@ -777,14 +777,11 @@ function launchGame(slug) {
   popup.appendChild(iframe);
   overlay.classList.add('open');
   const toggle = document.getElementById('bingo-mode-toggle');
-  const howtoBtn = document.getElementById('game-popup-howto');
   if (slug === 'bingo') {
     toggle.classList.add('visible');
     setBingoTabActive('sensory');
-    document.getElementById('game-popup-titlebar-center').appendChild(howtoBtn);
   } else {
     toggle.classList.remove('visible');
-    document.getElementById('game-popup-titlebar-left').appendChild(howtoBtn);
   }
 }
 function closeGame() {
