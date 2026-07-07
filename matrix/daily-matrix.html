@@ -1506,7 +1506,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('looking back on today, what would you want to remember?', []);
+  setBubble('what was important today?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
@@ -1564,13 +1564,12 @@ function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
     <div class="jrc-window">
       <div class="jrc-titlebar">daily matrix journal<span class="jrc-date" id="jrc-date"></span></div>
-      <div style="padding:6px 16px 8px;font-family:var(--font-hand);font-size:clamp(11px,1.1vw,13px);color:#8a7a5a;border-bottom:1px solid #ddd;">what was important today?</div>
+      <div style="padding:6px 16px 8px;font-family:var(--font-hand);font-size:clamp(11px,1.1vw,13px);color:#8a7a5a;border-bottom:1px solid #ddd;">journal history</div>
       <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">Write today down.<br>A park you passed through, a flower you appreciated, a matcha that hit the spot, a thought you don't want to lose.<br>What do you want to remember?</div>
       </div>
       <div class="jrc-input-area">
         <div class="jrc-msg-row">
-          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what do you want to remember today?" maxlength="4000"></textarea>
+          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what happened today?" maxlength="4000"></textarea>
           <div class="jrc-btn-stack">
             <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
           </div>
