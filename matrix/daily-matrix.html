@@ -1849,7 +1849,7 @@ function buildDailyMatrix(data, seedStr){
 
   // CHARACTER / infinity mirror → top-right quadrant (external + feeling)
   const charStack = _buildCharStack(data.charState);
-  const charName  = data.charState?.name ? `<div class="adv-cap">${_escapeHtml(data.charState.name)}</div>` : '';
+  const charName  = data.charState?.name ? `<div class="adv-cap" style="transform:rotate(0deg);margin-top:4px;">${_escapeHtml(data.charState.name)}</div>` : '';
   const charItem  = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName}</div>` : '';
 
   // NOTES (journal) → bottom-right quadrant (internal + feeling)
