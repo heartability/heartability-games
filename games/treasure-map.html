@@ -418,13 +418,6 @@ body, .wall { background: transparent; }
         <!-- ROW 2, COL 1 — Map -->
         <div class="map-block">
 
-          <!-- Map header: label left, buttons right -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-            <div class="section-header" style="margin-bottom:0;">your map</div>
-            <div style="display:flex;gap:6px;">
-            </div>
-          </div>
-
           <!-- Spiral canvas (default) -->
           <div class="spiral-canvas" id="spiralCanvas" style="display:block;position:relative;">
             <svg id="spiralSvg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
@@ -529,8 +522,8 @@ const TERRAIN_LABELS = Object.fromEntries(TERRAIN.map(t => [t.id, t.label]));
 const WEATHER_CATS = [
   { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence", "truth"]          },
   { id:"rainy", label:"rainy", cls:"rainy", tint:"#c9b3e7",  feelings:["shadows","worry","fear","depression","regret", "confusion"]      },
-  { id:"windy", label:"windy", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
-  { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness"]   },
+  { id:"windy", label:"windy", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage","progress"] },
+  { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness","quiet"]   },
 ];
 
 const ZONE_PROMPTS = [
