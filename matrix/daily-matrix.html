@@ -451,6 +451,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   aspect-ratio: 4/5;
 }
 .arch-card:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
+.arch-card.selected { border-color: var(--blue); box-shadow: 3px 3px 0 var(--blue); background: #f0edfa; }
 .arch-card-name { font-size: 17px; color: #3a2e1e; }
 .arch-card-new { border-style: dashed; border-color: #c8b88a; justify-content: center; align-items: center; }
 .arch-card-new:hover { border-color: var(--blue); }
@@ -738,11 +739,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .dq-climate.snowy .dq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
 
 .dq-foot {
+  position:fixed;
+  bottom:0; left:0; right:0;
+  height:calc(21% - 44px);
   display:none; align-items:center; justify-content:center;
-  gap:16px; margin-top:14px; padding-top:14px;
-  border-top:1px solid rgba(138,122,90,.35);
+  z-index:302; pointer-events:none;
 }
 .dq-overlay.open .dq-foot { display:flex; }
+.dq-foot > * { pointer-events:all; }
 .dq-btn {
   padding:10px 18px; font-family:var(--font-hand); font-size:17px; cursor:pointer;
   border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
@@ -1418,10 +1422,17 @@ function renderArchetypePicker(archetypes) {
         </button>
       </div>
     </div>`;
+  let selectedArchetype = null;
   panel.querySelectorAll('.arch-card[data-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const a = archetypes.find(x => x.id === btn.dataset.id);
-      if (a) useArchetype(a);
+      panel.querySelectorAll('.arch-card.selected').forEach(el => el.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedArchetype = archetypes.find(x => x.id === btn.dataset.id) || null;
+      setSaveBtnVisible(true, 'continue →');
+      const saveBtn = document.getElementById('save-continue-btn');
+      if (saveBtn) {
+        saveBtn.onclick = () => { if (selectedArchetype) useArchetype(selectedArchetype); };
+      }
     });
   });
   document.getElementById('arch-new-btn').addEventListener('click', openCharacterBuilder);
