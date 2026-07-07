@@ -1308,6 +1308,14 @@ function seasonPlanetId(mapData){
   const key = first && first.map_phase;
   return (key && key.includes('_')) ? key.split('_')[0] : 'sun';
 }
+// season slug is like "cancer-2026" — the leading word is the zodiac sign.
+function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
+const GLYPH_FILENAME_OVERRIDES = { sagittarius: 'sagitarrius' }; // typo baked into the asset filename
+function glyphSrcForSeason(season){
+  const sign = seasonSignId(season);
+  if (!sign) return null;
+  return `../assets/elements/glyphs/${GLYPH_FILENAME_OVERRIDES[sign] || sign}.png`;
+}
 
 async function loadCosmicTab(){
   populatePlanetDropdown();
@@ -1343,11 +1351,12 @@ async function renderCosmicSeasonGrid(){
     const total = (s.map_data.phases || []).length;
     const done  = doneByMap[s.map_id] || 0;
     const title = formatSeasonTitle(s.map_data.season);
+    const glyphSrc = glyphSrcForSeason(s.map_data.season);
     const slot = document.createElement('div');
     slot.className = 'map-slot';
     slot.onclick = () => openCosmicSeasonDetail(s);
     slot.innerHTML = `<div class="slot-name">${escapeHtml(title)}</div>
-      <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;font-family:var(--font-game);font-size:26px;color:var(--purple);">${done}/${total||'?'}</div>
+      <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;">${glyphSrc ? `<img src="${glyphSrc}" alt="${escapeHtml(title)}" style="width:60%;height:60%;object-fit:contain;">` : ''}</div>
       <div class="slot-updated">${total && done>=total ? 'completed' : 'in progress'}</div>`;
     grid.appendChild(slot);
   });
@@ -1355,7 +1364,8 @@ async function renderCosmicSeasonGrid(){
 }
 function formatSeasonTitle(season){
   return (season||'').split(/[^a-z0-9]+/i).filter(Boolean)
-    .map(w => /^\d+$/.test(w) ? w : (w.charAt(0).toUpperCase() + w.slice(1)))
+    .filter(w => !/^\d+$/.test(w))   // drop the trailing year, e.g. "cancer-2026" -> "cancer"
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 }
 async function ensureCosmicSeasonMap(){
