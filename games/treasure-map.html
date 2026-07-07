@@ -740,7 +740,7 @@ function renderZoneCircles() {
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
       terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
       terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
-      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = TERRAIN_LABELS[zone.terrain] || zone.terrain;
+      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
     if (!hasTerrain || isActive) {
@@ -836,7 +836,7 @@ function renderSquareZones() {
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
       terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
       terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
-      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = TERRAIN_LABELS[zone.terrain] || zone.terrain;
+      terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
     if (!hasTerrain || isActive) {
