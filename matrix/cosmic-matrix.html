@@ -141,22 +141,24 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .gate-btn:hover{ background:#4a5bc4; }
 .gate-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 
-/* PLANET SELECTOR */
-.planet-grid{ display:flex; flex-wrap:wrap; gap:30px 26px; justify-content:center; padding:10px; max-width:840px; }
-.planet-slot{ position:relative; width:126px; display:flex; flex-direction:column; align-items:center; gap:9px; }
-.planet-halo{ position:absolute; top:38px; left:50%; width:170px; height:170px; transform:translate(-50%,-50%);
+/* PICKER GRID — shared by the planet selector and the sign selector */
+.picker-grid{ display:flex; flex-wrap:wrap; gap:30px 26px; justify-content:center; padding:10px; max-width:840px; }
+.picker-grid.grid-3{ display:grid; grid-template-columns:repeat(3, 126px); gap:34px 46px; justify-content:center; }
+.picker-disc img{ width:48px; height:48px; object-fit:contain; }
+.picker-slot{ position:relative; width:126px; display:flex; flex-direction:column; align-items:center; gap:9px; }
+.picker-halo{ position:absolute; top:38px; left:50%; width:170px; height:170px; transform:translate(-50%,-50%);
   border-radius:50%; pointer-events:none; filter:blur(4px); opacity:.55; transition:opacity .2s; }
-.planet-disc{ position:relative; width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+.picker-disc{ position:relative; width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center;
   font-size:44px; color:#fff; background:rgba(10,10,25,0.32); border:2px solid rgba(255,255,255,0.4);
   transition:transform .15s, border-color .15s, box-shadow .15s; }
-.planet-name{ font-family:var(--font-hand); font-size:16px; letter-spacing:.5px; color:rgba(201,255,245,0.85); text-align:center; }
-.planet-soon{ font-family:var(--font-hand); font-size:9px; letter-spacing:1.5px; color:rgba(201,255,245,0.4); text-transform:uppercase; }
-.planet-slot.unlocked .planet-disc{ cursor:pointer; border-color:rgba(255,255,255,0.65); }
-.planet-slot.unlocked:hover .planet-disc{ transform:translateY(-4px) scale(1.06); box-shadow:0 8px 20px rgba(0,0,0,.35); }
-.planet-slot.unlocked:hover .planet-halo{ opacity:.85; }
-.planet-slot.locked .planet-halo{ opacity:.18; filter:blur(4px) grayscale(.5); }
-.planet-slot.locked .planet-disc{ opacity:.45; cursor:default; }
-.planet-slot.locked .planet-name{ color:rgba(201,255,245,0.4); }
+.picker-name{ font-family:var(--font-hand); font-size:16px; letter-spacing:.5px; color:rgba(201,255,245,0.85); text-align:center; }
+.picker-soon{ font-family:var(--font-hand); font-size:9px; letter-spacing:1.5px; color:rgba(201,255,245,0.4); text-transform:uppercase; }
+.picker-slot.unlocked .picker-disc{ cursor:pointer; border-color:rgba(255,255,255,0.65); }
+.picker-slot.unlocked:hover .picker-disc{ transform:translateY(-4px) scale(1.06); box-shadow:0 8px 20px rgba(0,0,0,.35); }
+.picker-slot.unlocked:hover .picker-halo{ opacity:.85; }
+.picker-slot.locked .picker-halo{ opacity:.18; filter:blur(4px) grayscale(.5); }
+.picker-slot.locked .picker-disc{ opacity:.45; cursor:default; }
+.picker-slot.locked .picker-name{ color:rgba(201,255,245,0.4); }
 
 /* JOURNAL (chat-style, matches adventure) */
 .jrc-panel{ width:100%; height:100%; padding:8px; display:flex; flex-direction:column; overflow:hidden; }
@@ -633,11 +635,11 @@ function showPlanetSelector(){
   const cards = PLANETS.map(p=>{
     const halo = `radial-gradient(circle, ${hexA(p.color,0.9)} 0%, ${hexA(p.color,0.55)} 45%, ${hexA(p.color,0)} 75%)`;
     const hover = p.locked ? `onmouseenter="setBubble('coming soon')" onmouseleave="setBubble('choose a planetary body.')"` : '';
-    return `<div class="planet-slot ${p.locked?'locked':'unlocked'}" ${p.locked?hover:`onclick="selectPlanet('${p.id}')"`}>
-      <div class="planet-halo" style="background:${halo}"></div>
-      <div class="planet-disc">${p.symbol}</div>
-      <div class="planet-name">${p.name}</div>
-      ${p.locked?'<div class="planet-soon">coming soon</div>':''}
+    return `<div class="picker-slot ${p.locked?'locked':'unlocked'}" ${p.locked?hover:`onclick="selectPlanet('${p.id}')"`}>
+      <div class="picker-halo" style="background:${halo}"></div>
+      <div class="picker-disc">${p.symbol}</div>
+      <div class="picker-name">${p.name}</div>
+      ${p.locked?'<div class="picker-soon">coming soon</div>':''}
     </div>`;
   }).join('');
   const panel = $('content-panel');
@@ -647,7 +649,7 @@ function showPlanetSelector(){
       <div style="text-align:center;margin-bottom:36px;">
         <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a planetary body</span>
       </div>
-      <div class="planet-grid">${cards}</div>
+      <div class="picker-grid">${cards}</div>
     </div>`;
 }
 function selectPlanet(id){
@@ -667,75 +669,60 @@ async function loadSeason(){
   // ?season= param: bypass selector (dev/direct link)
   if (param){ return openSeason(tpls[0]); }
   // Always show the zodiac wheel at root URL
-  showZodiacWheel(tpls);
+  showZodiacGrid(tpls);
 }
 
-// ── ZODIAC WHEEL — 12 signs as a colored ring, replaces the old flat list ──
-// Ordered clockwise from 12 o'clock to match a standard natal-chart wheel
-// (Aries sits at 9 o'clock / the ascendant). Colors follow elemental groups:
-// fire=f2e6a8, earth=b6e6cf, air=c9b3e7, water=a0d7e6.
-// glyph filenames live in assets/elements/glyphs/ — note "sagitarrius.png" is a typo in the asset itself.
+// ── ZODIAC GRID — 12 signs as picker-slot cards, same layout as the planet
+// selector. Standard calendar order, 4 rows of 3. Colors follow elemental
+// groups: fire=f2e6a8, earth=b6e6cf, air=c9b3e7, water=a0d7e6 — the same
+// halo technique as the planet picker, just colored by element instead of
+// per-body. glyph filenames live in assets/elements/glyphs/ — note
+// "sagitarrius.png" is a typo in the asset itself.
 const SIGNS = [
-  { id:'capricorn',   glyph:'capricorn',   name:'capricorn',   color:'#b6e6cf' }, // earth
-  { id:'sagittarius', glyph:'sagitarrius', name:'sagittarius', color:'#f2e6a8' }, // fire
-  { id:'scorpio',     glyph:'scorpio',     name:'scorpio',     color:'#a0d7e6' }, // water
-  { id:'libra',       glyph:'libra',       name:'libra',       color:'#c9b3e7' }, // air
-  { id:'virgo',       glyph:'virgo',       name:'virgo',       color:'#b6e6cf' }, // earth
-  { id:'leo',         glyph:'leo',         name:'leo',         color:'#f2e6a8' }, // fire
-  { id:'cancer',      glyph:'cancer',      name:'cancer',      color:'#a0d7e6' }, // water
-  { id:'gemini',      glyph:'gemini',      name:'gemini',      color:'#c9b3e7' }, // air
-  { id:'taurus',      glyph:'taurus',      name:'taurus',      color:'#b6e6cf' }, // earth
   { id:'aries',       glyph:'aries',       name:'aries',       color:'#f2e6a8' }, // fire
-  { id:'pisces',      glyph:'pisces',      name:'pisces',      color:'#a0d7e6' }, // water
+  { id:'taurus',      glyph:'taurus',      name:'taurus',      color:'#b6e6cf' }, // earth
+  { id:'gemini',      glyph:'gemini',      name:'gemini',      color:'#c9b3e7' }, // air
+  { id:'cancer',      glyph:'cancer',      name:'cancer',      color:'#a0d7e6' }, // water
+  { id:'leo',         glyph:'leo',         name:'leo',         color:'#f2e6a8' }, // fire
+  { id:'virgo',       glyph:'virgo',       name:'virgo',       color:'#b6e6cf' }, // earth
+  { id:'libra',       glyph:'libra',       name:'libra',       color:'#c9b3e7' }, // air
+  { id:'scorpio',     glyph:'scorpio',     name:'scorpio',     color:'#a0d7e6' }, // water
+  { id:'sagittarius', glyph:'sagitarrius', name:'sagittarius', color:'#f2e6a8' }, // fire
+  { id:'capricorn',   glyph:'capricorn',   name:'capricorn',   color:'#b6e6cf' }, // earth
   { id:'aquarius',    glyph:'aquarius',    name:'aquarius',    color:'#c9b3e7' }, // air
+  { id:'pisces',      glyph:'pisces',      name:'pisces',      color:'#a0d7e6' }, // water
 ];
 
-function showZodiacWheel(tpls){
+function showZodiacGrid(tpls){
   setBubble('choose a sign.');
   setSave(false);
   window._zodiacTpls = tpls;
+  const cards = SIGNS.map(s=>{
+    const tpl = tplForSign(tpls, s.id);
+    const locked = !tpl;
+    const halo = `radial-gradient(circle, ${hexA(s.color,0.9)} 0%, ${hexA(s.color,0.55)} 45%, ${hexA(s.color,0)} 75%)`;
+    const hover = locked ? `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"` : '';
+    return `<div class="picker-slot ${locked?'locked':'unlocked'}" ${locked?hover:`onclick="openZodiacSeason('${s.id}')"`}>
+      <div class="picker-halo" style="background:${halo}"></div>
+      <div class="picker-disc"><img src="../assets/elements/glyphs/${s.glyph}.png" alt="${s.name}"></div>
+      <div class="picker-name">${s.name}</div>
+      ${locked?'<div class="picker-soon">coming soon</div>':''}
+    </div>`;
+  }).join('');
   const panel = $('content-panel');
   panel.className = 'content-panel active map-mode';
   panel.innerHTML = `
     <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
-      <div style="text-align:center;margin-bottom:14px;">
+      <div style="text-align:center;margin-bottom:36px;">
         <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a sign</span>
       </div>
-      ${buildZodiacWheelSVG(tpls)}
+      <div class="picker-grid grid-3">${cards}</div>
     </div>`;
 }
 
 // tpl.season is a slug like "cancer-2026" — match on its leading word.
 function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
 function tplForSign(tpls, signId){ return (tpls||[]).find(t => seasonSignId(t.season) === signId) || null; }
-
-function buildZodiacWheelSVG(tpls){
-  const W=760, H=760, CX=380, CY=380, R=340, r=150, N=SIGNS.length;
-  let wedges = '';
-  SIGNS.forEach((s,i)=>{
-    const tpl  = tplForSign(tpls, s.id);
-    const a0   = (Math.PI*2*i/N) - Math.PI/2;
-    const a1   = (Math.PI*2*(i+1)/N) - Math.PI/2;
-    const fill = s.color;
-    const ox0=(CX+R*Math.cos(a0)).toFixed(1), oy0=(CY+R*Math.sin(a0)).toFixed(1);
-    const ox1=(CX+R*Math.cos(a1)).toFixed(1), oy1=(CY+R*Math.sin(a1)).toFixed(1);
-    const ix1=(CX+r*Math.cos(a1)).toFixed(1), iy1=(CY+r*Math.sin(a1)).toFixed(1);
-    const ix0=(CX+r*Math.cos(a0)).toFixed(1), iy0=(CY+r*Math.sin(a0)).toFixed(1);
-    const path = `M${ox0},${oy0} A${R},${R} 0 0 1 ${ox1},${oy1} L${ix1},${iy1} A${r},${r} 0 0 0 ${ix0},${iy0} Z`;
-    const mid = (a0+a1)/2, glyphR = (R+r)/2 - 15, textR = R - 32;
-    const lx=(CX+glyphR*Math.cos(mid)).toFixed(1), ly=(CY+glyphR*Math.sin(mid)).toFixed(1);
-    const tx=(CX+textR*Math.cos(mid)).toFixed(1), ty=(CY+textR*Math.sin(mid)).toFixed(1);
-    const clickAttr = tpl ? `onclick="openZodiacSeason('${s.id}')"` : '';
-    const hoverAttr = tpl ? '' : `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"`;
-    const gs = 38; // glyph size
-    wedges += `<g ${clickAttr} ${hoverAttr} style="cursor:${tpl?'pointer':'default'}" opacity="${tpl?1:0.4}">
-      <path d="${path}" fill="${fill}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
-      <image href="../assets/elements/glyphs/${s.glyph}.png" x="${(lx-gs/2).toFixed(1)}" y="${(ly-gs/2).toFixed(1)}" width="${gs}" height="${gs}" pointer-events="none"/>
-      <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle" font-family="ZoesHandwriting,cursive" font-size="25" fill="#000" pointer-events="none">${s.name}</text>
-    </g>`;
-  });
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">${wedges}</svg>`;
-}
 
 async function openZodiacSeason(signId){
   const tpl = tplForSign(window._zodiacTpls, signId);
