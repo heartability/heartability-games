@@ -942,7 +942,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   <div class="dq-card">
     <div class="dq-head">
     </div>
-    <div class="dq-sub">create a place that describes how today felt</div>
     <div class="dq-body">
       <div class="dq-preview-col">
         <div class="dq-section-label">today's adventure:</div>
@@ -971,15 +970,8 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 
-const _storedRaw = (() => {
-  try { return JSON.parse(localStorage.getItem('sb-rrdfltqnrnvmqemyrfaj-auth-token') || 'null'); }
-  catch(e) { return null; }
-})();
-const _storedToken = _storedRaw?.access_token || null;
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  global: _storedToken ? { headers: { Authorization: `Bearer ${_storedToken}` } } : {}
+  auth: { autoRefreshToken: true, persistSession: true }
 });
 let currentUser = null;
 
@@ -1343,7 +1335,7 @@ async function showSeeYouTomorrow(row) {
 // Step one of a fresh day: build the single location that represents today.
 function stepBuildLocation() {
   currentStep = 'location';
-  setBubble("where did today take you?");
+  setBubble("create a place that describes how today felt");
   setSaveBtnVisible(false);
   openLocationBuilder();
 }
@@ -2102,8 +2094,9 @@ function confirmDayquest() {
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
   buildDayquestPalette();
-  if (_storedRaw?.user) {
-    currentUser = _storedRaw.user;
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
     sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
       .then(({ data: p }) => updateGearMenu(p?.username || currentUser.email))
       .catch(() => updateGearMenu(currentUser.email));
