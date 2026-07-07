@@ -868,7 +868,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .sq-name {
   width:100%; font-family:var(--font-hand); font-size:17px; color:#3a2e1e;
   padding:8px 10px; margin-bottom:14px;
-  background:#fdf6e3; border:2px solid #8a7a5a;
+  background:#fdf6e3; border:2px solid #000000;
   border-right-color:#5a4a2a; border-bottom-color:#5a4a2a;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
@@ -1613,8 +1613,8 @@ function showMapBuilder(src) {
   const panel = document.getElementById('content-panel');
   panel.innerHTML = `
     <div class="map-builder-card">
-      <div class="sq-head"><span class="sq-title">build a new map</span></div>
-      <input class="sq-name" id="dream-map-name" type="text" placeholder="what dream are you mapping?" maxlength="60">
+      <div class="sq-head"><span class="sq-title">map a new dream</span></div>
+      <input class="sq-name" id="dream-map-name" type="text" placeholder="name this dream" maxlength="60">
       <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>
     </div>`;
   panel.classList.add('active', 'iframe-mode');
