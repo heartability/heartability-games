@@ -1506,7 +1506,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('write your daily notes', []);
+  setBubble('looking back on today, what would you want to remember?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
