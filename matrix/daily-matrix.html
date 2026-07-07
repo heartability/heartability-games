@@ -1498,6 +1498,7 @@ function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
+  showIframe(src);
   setSaveBtnVisible(true, 'continue →');
 }
 
