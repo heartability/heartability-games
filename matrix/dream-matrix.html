@@ -2057,7 +2057,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('what did you discover in this phase?', []);
+  setBubble('any discoveries in this phase?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
