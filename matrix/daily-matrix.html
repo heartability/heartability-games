@@ -693,7 +693,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   border-left-color:#c8b88a; border-top-color:#c8b88a;
 }
 .dq-map-frame svg { width:100%; height:100%; display:block; }
-.dq-section-label { font-size:16px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 8px; }
+.dq-section-label { font-size:22px; color:#8a7a5a; letter-spacing:.4px; margin:0 0 8px; }
 
 /* terrain palette */
 .dq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
@@ -941,7 +941,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     <div class="dq-sub">create a place that describes how today felt</div>
     <div class="dq-body">
       <div class="dq-preview-col">
-        <div class="dq-section-label">your place</div>
+        <div class="dq-section-label">today's adventure:</div>
         <div class="dq-map-frame" id="dq-map-frame"></div>
       </div>
       <div class="dq-terrain-col">
@@ -2060,7 +2060,7 @@ function renderDayquestPreview() {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
       stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5 4"/>
       <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#8a7a5a"
-        font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
+        font-family="ZoesHandwriting,cursive" font-size="13">pick a terrain</text>`;
   }
   if (dqDraft.feeling) {
     body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
