@@ -1619,8 +1619,8 @@ function showMapBuilder(src) {
   const panel = document.getElementById('content-panel');
   panel.innerHTML = `
     <div class="map-name-bar">
-      <label for="dream-map-name">name your dream</label>
-      <input class="map-name-input" id="dream-map-name" type="text" placeholder="i dream of..." maxlength="60">
+      <label for="dream-map-name">dream name</label>
+      <input class="map-name-input" id="dream-map-name" type="text" placeholder="what dream are you mapping?" maxlength="60">
     </div>
     <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
@@ -2057,7 +2057,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
-  setBubble('write your dream notes', []);
+  setBubble('what did you discover in this phase?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
   setSaveBtnVisible(true, 'continue →');
@@ -2117,7 +2117,7 @@ function buildJournalPanel(){
     <div class="jrc-window">
       <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
       <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">Upload a picture to your daily moodboard, or just write.<br>A park you passed through, a flower you appreciated, a matcha that hit the spot, a selfie that captures your essence.<br>What do you want to remember?</div>
+        <div class="jrc-empty" id="jrc-empty">What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries</div>
       </div>
       <div class="jrc-input-area">
         <div class="jrc-img-chip" id="jrc-img-chip">
@@ -2446,7 +2446,8 @@ function buildDreamMatrix(data, seedStr){
 
   // CHARACTER / infinity mirror → top-right quadrant (external + feeling)
   const charStack = _buildCharStack(data.charState);
-  const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
+  const charName = data.charState?.name || '';
+  const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName ? `<div class="adv-cap">${_escapeHtml(charName)}</div>` : ''}</div>` : '';
 
   // NOTES (journal) → bottom-right quadrant (internal + feeling)
   const preview = _firstWords(data.journalText, 10);
