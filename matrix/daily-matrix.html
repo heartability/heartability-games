@@ -1068,6 +1068,7 @@ let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 
 let activeEntryId   = null; // one uuid per day = one daily_matrix row
 let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
 let activeDayquest = null; // {name,terrain,feeling,tint,cat} for today's location
+let _pendingArchetype = null; // archetype selected in picker, confirmed by continue btn
 
 // User's LOCAL calendar day — the daily limit resets at local midnight.
 function localTodayStr(){
@@ -1175,6 +1176,14 @@ async function saveAndContinue() {
   // Journal step — save notes directly
   if (currentStep === 'journal') {
     await saveJournalEntry();
+    return;
+  }
+
+  // Archetype picker — no iframe, use the pending selection
+  if (_pendingArchetype) {
+    const a = _pendingArchetype;
+    _pendingArchetype = null;
+    await useArchetype(a);
     return;
   }
 
@@ -1422,17 +1431,12 @@ function renderArchetypePicker(archetypes) {
         </button>
       </div>
     </div>`;
-  let selectedArchetype = null;
   panel.querySelectorAll('.arch-card[data-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       panel.querySelectorAll('.arch-card.selected').forEach(el => el.classList.remove('selected'));
       btn.classList.add('selected');
-      selectedArchetype = archetypes.find(x => x.id === btn.dataset.id) || null;
+      _pendingArchetype = archetypes.find(x => x.id === btn.dataset.id) || null;
       setSaveBtnVisible(true, 'continue →');
-      const saveBtn = document.getElementById('save-continue-btn');
-      if (saveBtn) {
-        saveBtn.onclick = () => { if (selectedArchetype) useArchetype(selectedArchetype); };
-      }
     });
   });
   document.getElementById('arch-new-btn').addEventListener('click', openCharacterBuilder);
