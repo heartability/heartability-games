@@ -339,6 +339,14 @@ html, body {
   fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
   fountain.addEventListener('click', () => openFountainModal());
 
+  /* ── Leaderboard: "see where you stand this week!" ── */
+  const leaderboardSign = document.getElementById('el-leaderboard');
+  leaderboardSign.addEventListener('mouseenter', () => {
+    bubble.textContent = 'see where you stand this week!';
+    cloud.classList.add('active');
+  });
+  leaderboardSign.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
   /* ── Fountain popup: donate or wish ── */
   const fountainOverlay = document.getElementById('fountain-overlay');
 
