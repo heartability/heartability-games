@@ -312,6 +312,15 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .cosmic-msg-text { font-family:var(--font-hand); font-size:17px; color:#333; white-space:pre-wrap; }
 .cosmic-msg-time { font-family:var(--font-game); font-size:13px; color:#aaa; margin-top:6px; }
 .cosmic-msg img { max-width:220px; margin-top:8px; display:block; border:1.5px solid rgba(101,121,226,.18); }
+.cosmic-transits { margin-bottom:18px; }
+.cosmic-transits-title { font-family:var(--font-game); font-size:13px; color:#aaa; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+.cosmic-transit-row {
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+  padding:6px 0; border-bottom:1px solid rgba(101,121,226,.12);
+  font-family:var(--font-hand); font-size:17px; color:#555;
+}
+.cosmic-transit-row:last-child { border-bottom:none; }
+.cosmic-transit-time { font-family:var(--font-game); font-size:13px; color:#aaa; white-space:nowrap; }
 
 /* ── MAP SELECTOR SCREEN ── */
 #map-selector {
@@ -535,7 +544,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 
 <!-- COSMIC TAB: planet-scoped season launcher, with an in-archive phase detail view -->
 <div id="tab-cosmic" style="display:none;">
-  <div class="page-wrap">
+  <div class="page-wrap" style="justify-content:center;">
     <div class="page-body" style="max-width:900px;">
       <div class="window" id="cosmic-window">
         <div class="window-titlebar">
@@ -627,6 +636,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     </div>
     <div class="day-body" style="padding:18px 20px 22px;">
       <div id="cosmic-phase-char" style="width:100px;margin:0 auto 16px;"></div>
+      <div class="cosmic-transits" id="cosmic-phase-transits"></div>
       <div class="loc-list" id="cosmic-phase-messages"></div>
       <div class="day-list-empty" id="cosmic-phase-empty" style="display:none;">no notes for this phase yet</div>
     </div>
@@ -1411,10 +1421,23 @@ async function openCosmicSeasonDetail(seasonRow){
   });
 }
 
+function formatTransitTime(utcIso){
+  const d = new Date(utcIso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+}
+
 function openCosmicPhasePopup(ph){
   document.getElementById('cosmic-phase-title').textContent = ph.location || ph.map_phase;
   document.getElementById('cosmic-phase-char').innerHTML =
     (ph.row && ph.row.character_data) ? MatrixRender.buildCharStack(ph.row.character_data) : '';
+
+  const transits = Array.isArray(ph.transits) ? ph.transits : [];
+  document.getElementById('cosmic-phase-transits').innerHTML = transits.length
+    ? `<div class="cosmic-transits-title">transits</div>` + transits.map(t =>
+        `<div class="cosmic-transit-row"><span>${escapeHtml(t.name||'')}</span><span class="cosmic-transit-time">${formatTransitTime(t.utc)}</span></div>`
+      ).join('')
+    : '';
 
   const msgs = (ph.row && Array.isArray(ph.row.journal_messages)) ? ph.row.journal_messages
     .slice().sort((a,b) => new Date(a.created_at||0) - new Date(b.created_at||0)) : [];
