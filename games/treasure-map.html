@@ -739,7 +739,8 @@ function renderZoneCircles() {
       const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
       terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
-      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
+      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '16');
+      terrainLabelEl.setAttribute('font-weight', 'bold');
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
@@ -835,7 +836,8 @@ function renderSquareZones() {
       const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
       terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
-      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '13');
+      terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '16');
+      terrainLabelEl.setAttribute('font-weight', 'bold');
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
