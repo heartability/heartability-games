@@ -420,6 +420,40 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   color:var(--aqua); text-shadow:0 0 20px rgba(131,210,230,.6);
   background:#e8e3da; z-index:999;
 }
+
+/* ── LOGIN MODAL (matches the matrix pages' logged-out portal) ── */
+.login-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:900; display:none; align-items:center; justify-content:center; }
+.login-modal-overlay.open{ display:flex; }
+.login-modal-window{ width:min(92vw,440px); background:#f5f0ea;
+  box-shadow:0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 6px 10px 40px rgba(0,0,0,.35); overflow:hidden; }
+.login-modal-titlebar{ height:38px; background:#e8e3da; border-bottom:2px solid #bbb;
+  display:flex; align-items:center; justify-content:space-between; padding:0 16px;
+  font-family:var(--font-hand); font-size:25px; color:#555; }
+.login-modal-close{ cursor:pointer; font-size:23px; color:#bbb; padding:2px 4px; transition:color .15s; }
+.login-modal-close:hover{ color:#444; }
+.lm-tab-row{ display:flex; border-bottom:2px solid #ccc; background:#e8e3da; }
+.lm-tab{ flex:1; padding:10px; font-family:var(--font-hand); font-size:21px;
+  text-align:center; cursor:pointer; color:#888; background:none; border:none;
+  border-bottom:3px solid transparent; margin-bottom:-2px; transition:color .15s; }
+.lm-tab.active{ color:var(--blue); border-bottom-color:var(--blue); }
+.lm-body{ padding:20px 24px 16px; display:flex; flex-direction:column; gap:12px; }
+.lm-form{ display:none; flex-direction:column; gap:12px; }
+.lm-form.active{ display:flex; }
+.lm-field{ display:flex; flex-direction:column; gap:4px; }
+.lm-label{ font-family:var(--font-hand); font-size:17px; color:#888; }
+.lm-input{ font-family:var(--font-hand); font-size:21px; color:#222; background:#f5f0ea;
+  border:1.5px solid #bbb; padding:8px 12px; outline:none; transition:border-color .15s; user-select:text; }
+.lm-input:focus{ border-color:var(--blue); }
+.lm-btn{ padding:10px 18px; background:var(--blue); border:2px solid var(--purple-dk);
+  box-shadow:2px 2px 0 var(--purple-sh); font-family:var(--font-hand); font-size:21px;
+  color:#fff; cursor:pointer; transition:all .05s; margin-top:4px; }
+.lm-btn:hover{ background:var(--purple-dk); }
+.lm-btn:active{ box-shadow:none; transform:translate(2px,2px); }
+.lm-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+.lm-msg{ font-family:var(--font-hand); font-size:17px; padding:6px 10px; display:none; }
+.lm-msg.error{ display:block; color:#c0392b; background:rgba(192,57,43,.08); border:1px solid rgba(192,57,43,.2); }
+.lm-msg.success{ display:block; color:#2d7a4f; background:rgba(45,122,79,.08); border:1px solid rgba(45,122,79,.2); }
+.lm-footer{ text-align:center; padding:0 24px 14px; font-family:var(--font-hand); font-size:13px; color:#aaa; }
 </style>
 </head>
 <body>
@@ -450,6 +484,51 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 </div>
 
 <div id="loading-state">loading your archive...</div>
+
+<!-- LOGIN MODAL — direct form, no redirect (matches the matrix pages' logged-out portal) -->
+<div class="login-modal-overlay" id="login-modal">
+  <div class="login-modal-window">
+    <div class="login-modal-titlebar">
+      <span>welcome</span>
+      <span class="login-modal-close" onclick="closeLoginModal()">×</span>
+    </div>
+    <div class="lm-tab-row">
+      <button class="lm-tab active" onclick="lmSwitchTab('login',this)">log in</button>
+      <button class="lm-tab" onclick="lmSwitchTab('signup',this)">sign up</button>
+    </div>
+    <div class="lm-body">
+      <div class="lm-form active" id="lm-form-login">
+        <div class="lm-field">
+          <label class="lm-label">email</label>
+          <input class="lm-input" type="email" id="lm-email" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+        <div class="lm-field">
+          <label class="lm-label">password</label>
+          <input class="lm-input" type="password" id="lm-password" placeholder="••••••••"/>
+        </div>
+        <div class="lm-msg" id="lm-login-msg"></div>
+        <button class="lm-btn" id="lm-login-btn" onclick="lmLogin()">enter</button>
+      </div>
+      <div class="lm-form" id="lm-form-signup">
+        <div class="lm-field">
+          <label class="lm-label">username</label>
+          <input class="lm-input" type="text" id="lm-username" placeholder="choose a name" maxlength="40" autocomplete="off"/>
+        </div>
+        <div class="lm-field">
+          <label class="lm-label">email</label>
+          <input class="lm-input" type="email" id="lm-su-email" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+        <div class="lm-field">
+          <label class="lm-label">password</label>
+          <input class="lm-input" type="password" id="lm-su-password" placeholder="at least 6 characters" minlength="6"/>
+        </div>
+        <div class="lm-msg" id="lm-signup-msg"></div>
+        <button class="lm-btn" id="lm-signup-btn" onclick="lmSignup()">create account</button>
+      </div>
+    </div>
+    <div class="lm-footer">log in to view your archive</div>
+  </div>
+</div>
 
 <!-- SHARED VIEW: dream / completed / daily all drive this same map+graph+calendar system -->
 <div id="shared-view">
@@ -1622,10 +1701,55 @@ document.getElementById('gear-logout').addEventListener('click', async () => {
   await sb.auth.signOut(); window.location.href='../users/login.html';
 });
 
+// ── LOGIN MODAL — direct form, no redirect (same as the matrix pages) ──
+function openLoginModal(){ document.getElementById('login-modal').classList.add('open'); }
+function closeLoginModal(){ document.getElementById('login-modal').classList.remove('open'); }
+function lmSwitchTab(tab, btn){
+  document.querySelectorAll('.lm-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.lm-form').forEach(f=>f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('lm-form-'+tab).classList.add('active');
+}
+async function lmLogin(){
+  const email=document.getElementById('lm-email').value.trim();
+  const pass=document.getElementById('lm-password').value;
+  const msg=document.getElementById('lm-login-msg');
+  const btn=document.getElementById('lm-login-btn');
+  msg.className='lm-msg'; msg.textContent=''; btn.disabled=true; btn.textContent='entering…';
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password:pass });
+    if (error) throw error;
+    closeLoginModal();
+  } catch(e){
+    msg.className='lm-msg error'; msg.textContent=e.message||'login failed';
+    btn.disabled=false; btn.textContent='enter';
+  }
+}
+async function lmSignup(){
+  const name=document.getElementById('lm-username').value.trim();
+  const email=document.getElementById('lm-su-email').value.trim();
+  const pass=document.getElementById('lm-su-password').value;
+  const msg=document.getElementById('lm-signup-msg');
+  const btn=document.getElementById('lm-signup-btn');
+  msg.className='lm-msg'; msg.textContent=''; btn.disabled=true; btn.textContent='creating…';
+  try {
+    const { error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ username:name } } });
+    if (error) throw error;
+    msg.className='lm-msg success'; msg.textContent='check your email to confirm your account!';
+    btn.textContent='sent!';
+  } catch(e){
+    msg.className='lm-msg error'; msg.textContent=e.message||'signup failed';
+    btn.disabled=false; btn.textContent='create account';
+  }
+}
+sb.auth.onAuthStateChange((event, session) => {
+  if (event==='SIGNED_IN' && session && !currentUser){ currentUser=session.user; init(); }
+});
+
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
   try { const { data:{ session } } = await sb.auth.getSession(); currentUser = session?.user || null; } catch(e){}
-  if (!currentUser) { document.getElementById('loading-state').textContent='please log in to view your archive'; return; }
+  if (!currentUser) { document.getElementById('loading-state').style.display='none'; openLoginModal(); return; }
 
   let profile = null;
   try {
