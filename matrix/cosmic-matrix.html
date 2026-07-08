@@ -54,12 +54,12 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 /* HEART + BUBBLE (matches adventure: heart bottom-left, bubble to its RIGHT) */
 @keyframes idle-pulse{ 0%,100%{ transform:translateY(0) rotate(-2deg) scale(1);} 50%{ transform:translateY(-8px) rotate(2deg) scale(1.03);} }
 .char-heart{ position:fixed; left:4vw; bottom:6vh; width:clamp(100px,14vw,220px); z-index:20; }
-.char-heart .char-img{ display:block; width:100%; height:auto; filter:drop-shadow(0 4px 10px rgba(0,0,0,.28)); animation:idle-pulse 3.6s ease-in-out 1s infinite; }
+.char-heart .char-img{ display:block; width:100%; height:auto; animation:idle-pulse 3.6s ease-in-out 1s infinite; }
 .thought-bubble{ position:absolute; left:calc(100% - 8px); bottom:60%;
   min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
   background:#fff; border:2px solid #000; border-radius:50%; padding:14px 20px;
   font-family:var(--font-hand); font-size:clamp(13px,1.3vw,17px); color:#000;
-  text-align:center; line-height:1.5; filter:drop-shadow(1px 3px 5px rgba(0,0,0,.2)); z-index:21; }
+  text-align:center; line-height:1.5; z-index:21; }
 
 /* SAVE BAR (matches adventure: floating blue button) */
 .save-continue-bar{ position:fixed; bottom:0; left:0; right:0; height:calc(21% - 44px);

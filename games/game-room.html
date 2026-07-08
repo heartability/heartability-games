@@ -64,9 +64,7 @@ html, body {
 }
 .wall-art img {
   display: block; width: 100%; height: auto;
-  filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.2)); transition: filter 0.2s;
 }
-.wall-art:hover img { filter: drop-shadow(4px 8px 16px rgba(0,0,0,0.35)); }
 
 @keyframes art-wiggle {
   0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-3deg); }
@@ -146,7 +144,6 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 }
 .char-heart .char-img {
   display: block; width: 100%; height: auto;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.28));
   animation: intro-wiggle 0.85s ease-out 0.35s 1 backwards,
              idle-pulse 3.6s ease-in-out 1.5s infinite;
 }
@@ -166,7 +163,6 @@ body.game-mode .char-heart {
   background: #fff; border: 2px solid #000; border-radius: 50%;
   padding: 14px 24px; font-family: var(--font-hand); font-size: clamp(12px, 1.4cqw, 18px);
   color: #000; text-align: center; line-height: 1.4;
-  filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   opacity: 0; pointer-events: none; transition: opacity 0.22s ease; z-index: 5;
 }
 .char-heart.active .thought-bubble { opacity: 1; }
