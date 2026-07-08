@@ -120,6 +120,30 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
   text-align: left; white-space: nowrap; transition: background 0.12s;
 }
 .gear-item:hover { background: rgba(0,0,0,0.07); }
+
+/* ── Map dropdown ── */
+.map-wrap { position: relative; }
+.map-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
+}
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6578e2; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 21; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+  text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,0.07); }
+.map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
+.map-item.current:hover { background: none; }
 .gear-music {
   display: flex; align-items: center; justify-content: center;
   gap: 12px; padding: 8px 14px; border-top: 1px solid rgba(0,0,0,0.1);
@@ -385,7 +409,7 @@ body.game-mode .char-heart {
     </div>
     <div class="gear-dropdown" id="gear-dropdown">
       <button class="gear-item" id="gear-auth"    onclick="gearLogin()">login</button>
-      <button class="gear-item" id="gear-profile" style="display:none" onclick="gearProfile()">view profile</button>
+      <button class="gear-item" id="gear-profile" style="display:none" onclick="gearProfile()">account settings</button>
       <button class="gear-item" id="gear-logout"  style="display:none" onclick="gearLogout()">logout</button>
       <div class="gear-music">
         <button class="music-btn" onclick="seekBack()"  title="back 10s"><img src="../assets/elements/go back.png" alt="back"></button>
@@ -395,8 +419,14 @@ body.game-mode .char-heart {
     </div>
   </div>
   <h1 class="nav-title">game room</h1>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <a class="nav-btn" id="nav-next" href="../rooms/shipping-room.html">next →</a>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <span class="map-item current">game room</span>
+      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
+      <a class="map-item" href="../users/profile.html">bed room</a>
+      <a class="map-item" href="../rooms/garden.html">the garden</a>
+    </div>
   </div>
 </nav>
 
@@ -575,8 +605,15 @@ document.addEventListener('click', e => {
   const gw = document.getElementById('gear-wrap');
   if (gw && !gw.contains(e.target)) document.getElementById('gear-dropdown').classList.remove('open');
 });
+
+// ── Map ────────────────────────────────────────────────────
+function toggleMap() { document.getElementById('map-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const mw = document.getElementById('map-wrap');
+  if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+});
 function gearLogin()   { document.getElementById('gear-dropdown').classList.remove('open'); openLoginPopup('welcome'); }
-function gearProfile() { document.getElementById('gear-dropdown').classList.remove('open'); window.location.href = '../users/profile.html'; }
+function gearProfile() { document.getElementById('gear-dropdown').classList.remove('open'); window.location.href = '../users/account-settings.html'; }
 function gearLogout()  {
   document.getElementById('gear-dropdown').classList.remove('open');
   if (typeof sb !== 'undefined') sb.auth.signOut().then(() => { currentUser = null; updateGearMenu(null); });
@@ -630,7 +667,7 @@ function seekFwd()  { const a=document.getElementById('bg-music'); a.currentTime
   heart.addEventListener('mouseenter', () => { bubble.textContent = 'welcome! pick a game to begin'; heart.classList.add('active'); });
   heart.addEventListener('mouseleave', deactivate);
 
-  // Nav handled by <a href> on #nav-back / #nav-next
+  // Nav handled by <a href> links and #map-btn (see toggleMap above)
 
   // Games → back wall
   document.querySelectorAll('.wall-art[data-game]').forEach(art => {
