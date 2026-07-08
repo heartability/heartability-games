@@ -576,13 +576,13 @@ function showNoSeason(){
 // Colors follow classical planet associations; Sun/Mercury/Venus/Mars/Jupiter
 // reuse the CHAR_FULL body-color palette so the whole app shares one language.
 const PLANETS = [
-  { id:'sun',     symbol:'☉', name:'sun',     color:'#f5d033', locked:false },
-  { id:'moon',    symbol:'☽', name:'moon',    color:'#cfe3ea', locked:true  },
-  { id:'mercury', symbol:'☿', name:'mercury', color:'#f0922b', locked:true  },
-  { id:'venus',   symbol:'♀', name:'venus',   color:'#4caf7d', locked:true  },
-  { id:'mars',    symbol:'♂', name:'mars',    color:'#e85555', locked:true  },
-  { id:'jupiter', symbol:'♃', name:'jupiter', color:'#a04bc4', locked:true  },
-  { id:'saturn',  symbol:'♄', name:'saturn',  color:'#5a5470', locked:true  },
+  { id:'sun',     name:'sun',     color:'#f5d033', locked:false },
+  { id:'moon',    name:'moon',    color:'#cfe3ea', locked:true  },
+  { id:'mercury', name:'mercury', color:'#f0922b', locked:true  },
+  { id:'venus',   name:'venus',   color:'#4caf7d', locked:true  },
+  { id:'mars',    name:'mars',    color:'#e85555', locked:true  },
+  { id:'jupiter', name:'jupiter', color:'#a04bc4', locked:true  },
+  { id:'saturn',  name:'saturn',  color:'#5a5470', locked:true  },
 ];
 function hexA(hex, alpha){ // hex "#rrggbb" + alpha 0-1 → "#rrggbbaa"
   const v = Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,'0');
@@ -596,7 +596,7 @@ function showPlanetSelector(){
     const hover = p.locked ? `onmouseenter="setBubble('coming soon')" onmouseleave="setBubble('choose a planetary body.')"` : '';
     return `<div class="picker-slot ${p.locked?'locked':'unlocked'}" ${p.locked?hover:`onclick="selectPlanet('${p.id}')"`}>
       <div class="picker-halo" style="background:${halo}"></div>
-      <div class="picker-disc">${p.symbol}</div>
+      <div class="picker-disc"><img src="../assets/elements/glyphs/${p.id}.png" alt="${p.name}"></div>
       <div class="picker-name">${p.name}</div>
       ${p.locked?'<div class="picker-soon">coming soon</div>':''}
     </div>`;
