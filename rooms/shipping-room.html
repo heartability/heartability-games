@@ -247,7 +247,7 @@ html, body {
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../games/game-room.html">game room</a>
       <span class="map-item current">shipping room</span>
-      <a class="map-item" href="../users/profile.html">bed room</a>
+      <a class="map-item" href="../rooms/bedroom.html">bed room</a>
       <a class="map-item" href="../rooms/garden.html">the garden</a>
     </div>
   </div>
@@ -378,10 +378,11 @@ html, body {
       music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
     });
 
-    sb.auth.onAuthStateChange(async (event, session) => {
+    sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        const username = await resolveUsername(session.user);
-        HeartabilityNav.setAuthState({ loggedIn: true, username });
+        resolveUsername(session.user).then(username => {
+          HeartabilityNav.setAuthState({ loggedIn: true, username });
+        });
       } else if (event === 'SIGNED_OUT') {
         HeartabilityNav.setAuthState({ loggedIn: false });
       }

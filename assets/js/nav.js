@@ -179,7 +179,12 @@ window.HeartabilityNav = (function () {
       return;
     }
     if (data.user) {
-      await cfg.sb.from('user-profiles').insert({ id: data.user.id, username });
+      const { error: profileError } = await cfg.sb.from('user-profiles').insert({ id: data.user.id, username });
+      if (profileError) {
+        showMsg('hn-signup-msg', profileError.message, 'error');
+        btn.disabled = false; btn.textContent = 'create account';
+        return;
+      }
       showMsg('hn-signup-msg', `welcome, ${username}`, 'success');
       setTimeout(closeLoginPopup, 900);
     }

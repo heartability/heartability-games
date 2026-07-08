@@ -236,7 +236,7 @@ html, body {
   <div id="gear-slot"></div>
   <h1 class="nav-title">account settings</h1>
   <div style="display:flex;align-items:center;gap:4px;">
-    <a class="nav-btn" href="profile.html" onclick="if(history.length>1){history.back();return false;}">your room →</a>
+    <a class="nav-btn" href="../rooms/bedroom.html" onclick="if(history.length>1){history.back();return false;}">your room →</a>
   </div>
 </nav>
 
@@ -356,7 +356,7 @@ html, body {
       assetsBase: '../assets',
       authMode: 'protected',
       sb: sb,
-      profileHref: 'profile.html',
+      profileHref: '../rooms/bedroom.html',
       profileLabel: 'view profile',
       music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
       onSignOut: () => { window.location.href = 'login.html'; },
