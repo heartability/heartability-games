@@ -2847,9 +2847,12 @@ async function init() {
   // internally) can hang forever. Pin the token we already have onto a fresh
   // client for every call from here on, so nothing in this page load ever
   // touches that lock again. Sign-in/out keep using the original `sb` above,
-  // which keeps normal auto-refresh/persistence.
+  // which keeps normal auto-refresh/persistence. This second client never
+  // reads/writes localStorage itself (no refresh, no getSession calls), so
+  // give it its own dummy storageKey — otherwise Supabase logs a "multiple
+  // GoTrueClient instances" warning for two clients sharing the real one.
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
+    auth: { autoRefreshToken: false, persistSession: false, storageKey: 'sb-dream-matrix-pinned-noop' },
     global: { headers: { Authorization: `Bearer ${session.access_token}` } }
   });
   HeartabilityNav.setClient(sb);
