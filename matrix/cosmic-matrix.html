@@ -47,7 +47,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   width:var(--bw-width); height:var(--bw-height); z-index:10; display:none;
   flex-direction:column; overflow:hidden; }
 .content-panel.active{ display:flex; }
-.content-panel.active:not(.iframe-mode){ background:var(--cream); border:2px solid var(--aqua); box-shadow:0 8px 22px rgba(0,0,0,.08); }
+.content-panel.active:not(.iframe-mode){ background:transparent; border:none; box-shadow:none; }
 /* ── IFRAME PANEL — floats free, sized to fit its content (see autoSizeIframe) ── */
 .game-iframe{ width:100%; height:70vh; border:none; display:block; }
 .content-panel.iframe-mode{
