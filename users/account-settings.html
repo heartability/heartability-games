@@ -68,6 +68,30 @@ html, body {
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 .nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 
+/* ── Map dropdown ── */
+.map-wrap { position: relative; }
+.map-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
+}
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6578e2; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background .12s;
+  text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,.07); }
+.map-item.current { color: rgba(255,255,255,.55); cursor: default; }
+.map-item.current:hover { background: none; }
+
 /* ── LOADING ── */
 #loading-state {
   position: fixed; inset: 0;
@@ -235,8 +259,14 @@ html, body {
 <nav class="room-nav">
   <div id="gear-slot"></div>
   <h1 class="nav-title">account settings</h1>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <a class="nav-btn" href="../rooms/bedroom.html" onclick="if(history.length>1){history.back();return false;}">your room →</a>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../games/game-room.html">game room</a>
+      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
+      <a class="map-item" href="../rooms/bedroom.html">bed room</a>
+      <a class="map-item" href="../rooms/garden.html">the garden</a>
+    </div>
   </div>
 </nav>
 
@@ -318,6 +348,15 @@ html, body {
   <span>·</span>
   <a href="../legal/support.html">support</a>
 </footer>
+
+<script>
+  // ── Map ──────────────────────────────────────────────────
+  function toggleMap() { document.getElementById('map-dropdown').classList.toggle('open'); }
+  document.addEventListener('click', e => {
+    const mw = document.getElementById('map-wrap');
+    if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
