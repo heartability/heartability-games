@@ -8,6 +8,7 @@
   <script src="../assets/js/modal.js" defer></script>
   <link rel="stylesheet" href="../assets/css/room-slider.css">
   <script src="../assets/js/room-slider.js" defer></script>
+  <link rel="stylesheet" href="../assets/css/nav.css">
   <title>My Room — Heartability</title>
   <meta name="description" content="Your Heartability bedroom — visit your dream archive, and manage your account settings.">
   <meta name="robots" content="noindex,follow">
@@ -97,29 +98,6 @@ html, body {
   transition: background 0.15s;
 }
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
-
-/* ── Gear dropdown ── */
-.gear-wrap { position: relative; }
-.gear-btn {
-  width: 30px; height: 30px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 3px; transition: background 0.15s; padding: 3px;
-}
-.gear-btn:hover { background: rgba(0,0,0,0.08); }
-.gear-btn img { width: 22px; height: 22px; display: block; }
-.gear-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px;
-  background: #6578e2; border: 2px solid var(--line-col);
-  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
-  z-index: 201; display: none; flex-direction: column; overflow: hidden;
-}
-.gear-dropdown.open { display: flex; }
-.gear-item {
-  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
-  padding: 9px 14px; cursor: pointer; border: none; background: none;
-  text-align: left; white-space: nowrap; transition: background 0.12s;
-}
-.gear-item:hover { background: rgba(0,0,0,0.07); }
 
 /* ── Map dropdown ── */
 .map-wrap { position: relative; }
@@ -329,15 +307,7 @@ html, body {
 
 <!-- NAV -->
 <nav class="room-nav">
-  <div class="gear-wrap" id="gear-wrap">
-    <div class="gear-btn" id="gear-btn" onclick="toggleGear()">
-      <img src="../assets/elements/gear icon.png" alt="menu">
-    </div>
-    <div class="gear-dropdown" id="gear-dropdown">
-      <button class="gear-item" onclick="toggleGear(); window.location.href='account-settings.html'">account settings</button>
-      <button class="gear-item" id="btn-signout">sign out</button>
-    </div>
-  </div>
+  <div id="gear-slot"></div>
   <h1 class="nav-title">welcome, <span id="display-username"></span></h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
@@ -421,23 +391,13 @@ html, body {
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
 <script>
 (function () {
   const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // ── Gear menu ─────────────────────────────────────────────
-  window.toggleGear = function () {
-    document.getElementById('gear-dropdown').classList.toggle('open');
-  };
-  document.addEventListener('click', e => {
-    const wrap = document.getElementById('gear-wrap');
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById('gear-dropdown').classList.remove('open');
-    }
-  });
 
   // ── Map menu ──────────────────────────────────────────────
   window.toggleMap = function () {
@@ -478,15 +438,19 @@ html, body {
     const username = profile?.username || 'explorer';
     document.getElementById('display-username').textContent = username;
 
+    HeartabilityNav.init({
+      mount: '#gear-slot',
+      assetsBase: '../assets',
+      authMode: 'protected',
+      sb: sb,
+      profileHref: 'account-settings.html',
+      music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
+      onSignOut: () => { window.location.href = 'login.html'; },
+    });
+
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').classList.add('active');
   }
-
-  // ── Sign out ──────────────────────────────────────────────
-  document.getElementById('btn-signout').addEventListener('click', async () => {
-    await sb.auth.signOut();
-    window.location.href = 'login.html';
-  });
 
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
@@ -506,7 +470,7 @@ html, body {
     });
   });
 
-  init();
+  document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 

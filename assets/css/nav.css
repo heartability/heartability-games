@@ -1,0 +1,88 @@
+/* ── Heartability shared nav: gear menu, login popup, music player ──
+   Loaded alongside assets/js/nav.js. Colors are hardcoded (not var(--line-col)
+   etc.) since those custom property names differ slightly per page; only
+   var(--font-hand) is relied on, since every page defines it identically. */
+
+.gear-wrap { position: relative; }
+.gear-btn {
+  width: 30px; height: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; transition: background 0.15s; padding: 3px;
+}
+.gear-btn:hover { background: rgba(0,0,0,0.08); }
+.gear-btn img { width: 22px; height: 22px; display: block; }
+
+.gear-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px;
+  background: #6578e2; border: 2px solid #111;
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 500; display: none; flex-direction: column; overflow: hidden;
+}
+.gear-dropdown.open { display: flex; }
+.gear-item {
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+}
+.gear-item:hover { background: rgba(0,0,0,0.07); }
+
+.gear-music {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 8px 14px; border-top: 1px solid rgba(0,0,0,0.1);
+}
+.music-btn {
+  cursor: pointer; background: none; border: none;
+  padding: 2px; opacity: 0.65; transition: opacity 0.15s;
+}
+.music-btn:hover { opacity: 1; }
+.music-btn img { width: 18px; height: 18px; display: block; }
+
+/* ── Login popup ── */
+.login-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999;
+  display: none; align-items: flex-start; justify-content: flex-start;
+  padding-top: 46px; padding-left: clamp(12px, 2vw, 28px);
+}
+.login-overlay.open { display: flex; }
+.login-popup {
+  background: #f5f0ea;
+  box-shadow: 0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 4px 8px 28px rgba(0,0,0,0.35);
+  width: clamp(280px, 88vw, 360px); overflow: hidden; animation: hnPopIn 0.2s ease both;
+}
+@keyframes hnPopIn {
+  from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); }
+}
+.login-popup-titlebar {
+  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 25px; color: #555;
+}
+.popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 18px; padding: 4px; line-height: 1; }
+.popup-close:hover { color: #6579e2; }
+.login-popup-tabs { display: flex; border-bottom: 2px solid #ccc; background: #e8e3da; }
+.popup-tab {
+  flex: 1; padding: 8px; font-family: var(--font-hand); font-size: 21px;
+  text-align: center; cursor: pointer; color: #888; background: none; border: none;
+  border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s;
+}
+.popup-tab.active { color: #6579e2; border-bottom-color: #6579e2; }
+.login-popup-body { padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.popup-form { display: none; flex-direction: column; gap: 12px; }
+.popup-form.active { display: flex; }
+.popup-field { display: flex; flex-direction: column; gap: 4px; }
+.popup-label { font-family: var(--font-hand); font-size: 17px; color: #aaa; }
+.popup-input {
+  font-family: var(--font-hand); font-size: 21px; color: #222; background: #f5f0ea;
+  border: 1.5px solid #bbb; padding: 7px 10px; outline: none; transition: border-color 0.2s; user-select: text;
+}
+.popup-input:focus { border-color: #6579e2; }
+.popup-btn {
+  padding: 9px; background: #6579e2; border: 2px solid #4a5bc4; box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand); font-size: 21px; color: white; cursor: pointer; transition: all 0.05s; margin-top: 2px;
+}
+.popup-btn:hover { background: #4a5bc4; }
+.popup-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.popup-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.popup-msg { font-size: 17px; font-family: var(--font-hand); padding: 6px 10px; display: none; }
+.popup-msg.error   { display: block; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.15); }
+.popup-msg.success { display: block; color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.15); }

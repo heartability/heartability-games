@@ -8,6 +8,7 @@
 <script src="../assets/js/modal.js" defer></script>
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
 <title>Shipping Room — Heartability</title>
 <meta name="robots" content="noindex,follow">
 <style>
@@ -239,7 +240,7 @@ html, body {
 
 <!-- NAV -->
 <nav class="room-nav">
-  <a class="nav-btn" href="../games/game-room.html" onclick="if(history.length>1){history.back();return false;}">← back</a>
+  <div id="gear-slot"></div>
   <span class="nav-title">shipping room</span>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
@@ -351,6 +352,48 @@ html, body {
   updatesClose.addEventListener('click', closeUpdates);
   updatesOverlay.addEventListener('click', e => { if (e.target === updatesOverlay) closeUpdates(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeUpdates(); });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
+<script>
+  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function resolveUsername(user) {
+    try {
+      const { data: profile } = await sb.from('user-profiles').select('username').eq('id', user.id).single();
+      return profile?.username || user.email.split('@')[0];
+    } catch (e) { return user.email.split('@')[0]; }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    HeartabilityNav.init({
+      mount: '#gear-slot',
+      assetsBase: '../assets',
+      authMode: 'dynamic',
+      sb: sb,
+      profileHref: '../users/account-settings.html',
+      music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
+    });
+
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const username = await resolveUsername(session.user);
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      } else if (event === 'SIGNED_OUT') {
+        HeartabilityNav.setAuthState({ loggedIn: false });
+      }
+    });
+
+    sb.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const username = await resolveUsername(session.user);
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      }
+    });
+  });
 </script>
 </body>
 </html>

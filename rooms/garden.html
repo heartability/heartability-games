@@ -8,6 +8,7 @@
 <script src="../assets/js/modal.js" defer></script>
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
 <title>The Garden — Heartability</title>
 <meta name="description" content="Visit the Garden, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
@@ -227,7 +228,7 @@ html, body {
 
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
-  <a class="nav-btn" id="nav-back" href="../games/game-room.html">← back</a>
+  <div id="gear-slot"></div>
   <h1 class="nav-title">the garden</h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn">map ▾</button>
@@ -337,6 +338,7 @@ html, body {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
 <script>
 (function () {
 
@@ -502,9 +504,6 @@ html, body {
     }
   }
 
-  /* ── Navigation ── */
-  document.getElementById('nav-back').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
-
   /* ── Map ── */
   document.getElementById('map-btn').addEventListener('click', () => {
     document.getElementById('map-dropdown').classList.toggle('open');
@@ -512,6 +511,41 @@ html, body {
   document.addEventListener('click', e => {
     const mw = document.getElementById('map-wrap');
     if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+  });
+
+  /* ── Gear / login / music (assets/js/nav.js, loaded deferred) ── */
+  async function resolveUsername(user) {
+    try {
+      const { data: profile } = await sb.from('user-profiles').select('username').eq('id', user.id).single();
+      return profile?.username || user.email.split('@')[0];
+    } catch (e) { return user.email.split('@')[0]; }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    HeartabilityNav.init({
+      mount: '#gear-slot',
+      assetsBase: '../assets',
+      authMode: 'dynamic',
+      sb: sb,
+      profileHref: '../users/account-settings.html',
+      music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
+    });
+
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const username = await resolveUsername(session.user);
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      } else if (event === 'SIGNED_OUT') {
+        HeartabilityNav.setAuthState({ loggedIn: false });
+      }
+    });
+
+    sb.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const username = await resolveUsername(session.user);
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      }
+    });
   });
 
 })();
