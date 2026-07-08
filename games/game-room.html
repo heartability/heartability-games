@@ -6,6 +6,8 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/room-slider.css">
+<script src="../assets/js/room-slider.js" defer></script>
 <title>Game Room — Heartability</title>
 <meta name="description" content="Step into the Heartability game room and explore games for free or chart your path with the daily, dream, or cosmic matrix — playful ways to check in with how you're feeling.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
@@ -43,11 +45,11 @@ html, body {
 }
 
 /* ── Room layers ── */
-.room-lines { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+.room-lines { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .room-lines svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
 .back-wall {
-  position: fixed;
+  position: absolute;
   top: var(--bw-top); left: var(--bw-left);
   width: var(--bw-width); height: var(--bw-height);
   background: var(--back-wall);
@@ -57,7 +59,7 @@ html, body {
 
 /* ── Wall art ── */
 .wall-art {
-  position: fixed; cursor: pointer; z-index: 4; transition: opacity 0.3s;
+  position: absolute; cursor: pointer; z-index: 4; transition: opacity 0.3s;
 }
 .wall-art img {
   display: block; width: 100%; height: auto;
@@ -71,11 +73,11 @@ html, body {
 }
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
-.art-map      { left: 20vw; top: 24vh; width: clamp(160px, 22vw, 340px); }
-.art-mirror   { left: 45vw; top: 24vh; width: clamp(100px, 16vw, 280px); }
-.art-bingo    { right: 21vw; top: 24vh; width: clamp(120px, 18vw, 265px); }
-.art-about    { left: 2vw;  top: 28vh; width: clamp(60px, 9vw, 130px); }
-.art-exclaim { right: 2vw; top: 28vh; width: clamp(60px, 9vw, 130px); }
+.art-map      { left: 20cqw; top: 24cqh; width: clamp(160px, 22cqw, 340px); }
+.art-mirror   { left: 45cqw; top: 24cqh; width: clamp(100px, 16cqw, 280px); }
+.art-bingo    { right: 21cqw; top: 24cqh; width: clamp(120px, 18cqw, 265px); }
+.art-about    { left: 2cqw;  top: 28cqh; width: clamp(60px, 9cqw, 130px); }
+.art-exclaim { right: 2cqw; top: 28cqh; width: clamp(60px, 9cqw, 130px); }
 
 /* Fade wall art in game mode */
 body.game-mode .wall-art { opacity: 0; pointer-events: none; }
@@ -145,8 +147,8 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 }
 
 .char-heart {
-  position: fixed; left: 18vw; bottom: 18vh;
-  width: clamp(120px, 16vw, 260px);
+  position: absolute; left: 18cqw; bottom: 18cqh;
+  width: clamp(120px, 16cqw, 260px);
   display: flex; align-items: flex-end; cursor: pointer;
   z-index: 4; transition: left 0.4s ease, bottom 0.4s ease, width 0.4s ease, z-index 0s;
 }
@@ -160,17 +162,17 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 
 /* Guide mode: Heart moves to side area during track/game mode */
 body.game-mode .char-heart {
-  left: 1vw;
-  bottom: 8vh;
-  width: clamp(70px, 9vw, 140px);
+  left: 1cqw;
+  bottom: 8cqh;
+  width: clamp(70px, 9cqw, 140px);
   z-index: 12;
 }
 
 .thought-bubble {
   position: absolute; left: calc(100% - 10px); top: calc(100% - 40px);
-  min-width: clamp(160px, 20vw, 300px); max-width: clamp(200px, 24vw, 340px);
+  min-width: clamp(160px, 20cqw, 300px); max-width: clamp(200px, 24cqw, 340px);
   background: #fff; border: 2px solid #000; border-radius: 50%;
-  padding: 14px 24px; font-family: var(--font-hand); font-size: clamp(12px, 1.4vw, 18px);
+  padding: 14px 24px; font-family: var(--font-hand); font-size: clamp(12px, 1.4cqw, 18px);
   color: #000; text-align: center; line-height: 1.4;
   filter: drop-shadow(1px 3px 5px rgba(0,0,0,.2));
   opacity: 0; pointer-events: none; transition: opacity 0.22s ease; z-index: 5;
@@ -178,39 +180,6 @@ body.game-mode .char-heart {
 .char-heart.active .thought-bubble { opacity: 1; }
 /* Always show bubble in guide mode */
 .char-heart.guide-mode .thought-bubble { opacity: 1; }
-
-/* ── GAME PANEL — back wall iframe for games  z:10 ── */
-.game-panel {
-  position: fixed;
-  top: var(--bw-top); left: var(--bw-left);
-  width: var(--bw-width); height: var(--bw-height);
-  z-index: 10; display: none;
-}
-.game-panel.active {
-  display: block;
-  border: 3px solid #111;
-  box-shadow: inset 0 0 0 2px var(--aqua);
-}
-
-.game-close-btn {
-  position: absolute; top: 8px; right: 10px; z-index: 2;
-  background: none; border: none; cursor: pointer;
-  color: #aaa; font-size: 18px; padding: 4px; line-height: 1;
-  transition: color 0.12s;
-}
-.game-close-btn:hover { color: var(--blue); }
-
-.game-howto-btn {
-  position: absolute; top: 8px; left: 10px; z-index: 2;
-  font-family: var(--font-hand); font-size: 16px; color: var(--blue);
-  background: rgba(240,236,228,0.88); border: 1.5px solid var(--blue);
-  cursor: pointer; padding: 4px 10px; transition: background 0.12s;
-}
-.game-howto-btn:hover { background: rgba(101,121,226,0.1); }
-
-.game-panel iframe {
-  width: 100%; height: 100%; border: none; display: block;
-}
 
 /* ── Letter overlay  z:50 ── */
 .letter-overlay {
@@ -389,24 +358,8 @@ body.game-mode .char-heart {
 .bingo-mode-btn.active { background: #888; color: #f5f0ea; cursor: default; pointer-events: none; }
 .bingo-mode-btn:not(.active):hover { background: rgba(0,0,0,0.07); }
 
-/* ── Mobile ── */
-@media (max-width: 655px) {
-  body.game-mode .char-heart { display: none; }
-  .char-heart { left: 12vw; bottom: 15vh; width: clamp(80px, 28vw, 250px); }
-  .art-map      { left: 20vw; top: 20vh; width: 32vw; }
-  .art-mirror   { left: 20vw; top: 40vh; width: 28vw; }
-  .art-bingo    { left: 55vw; top: 20vh; width: 28vw; }
-  .art-about    { left: 1vw;  top: 30vh; width: 14vw; }
-  .art-exclaim { right: 1vw; top: 30vh; width: 14vw; }
-}
-
-/* When a game panel is open on mobile, go full-bleed */
-@media (max-width: 655px) {
-  body.game-mode .game-panel {
-    top: 44px !important; left: 0 !important;
-    width: 100% !important; height: calc(100dvh - 44px) !important;
-  }
-}
+/* Portrait/vertical viewports are handled by the room slider
+   (assets/css/room-slider.css) instead of squeezing this layout. */
 
 </style>
 </head>
@@ -439,11 +392,6 @@ body.game-mode .char-heart {
   </div>
 </nav>
 
-<!-- ABOUT POSTER -->
-<div class="art-about wall-art" id="art-about" role="button" tabindex="0">
-  <img src="../assets/elements/about.png" alt="About Heartability">
-</div>
-
 <!-- MATRIX PICKER POPUP -->
 <div class="matrix-picker-overlay" id="matrix-picker-overlay">
   <div class="matrix-picker-popup">
@@ -468,48 +416,51 @@ body.game-mode .char-heart {
   </div>
 </div>
 
-<!-- MATRIX LINKS -->
-<div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="openMatrixPicker()">
-  <img src="../assets/elements/exclaim.png" alt="Track today">
-  <div class="cal-month" id="cal-month"></div>
-  <div class="cal-day"   id="cal-day"></div>
-</div>
+<div class="room-scroll"><div class="scene room-stage">
 
-<!-- ROOM LINES -->
-<div class="room-lines" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-  </svg>
-</div>
+  <!-- ABOUT POSTER -->
+  <div class="art-about wall-art" id="art-about" role="button" tabindex="0">
+    <img src="../assets/elements/about.png" alt="About Heartability">
+  </div>
 
-<!-- BACK WALL -->
-<div class="back-wall"></div>
+  <!-- MATRIX LINKS -->
+  <div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="openMatrixPicker()">
+    <img src="../assets/elements/exclaim.png" alt="Track today">
+    <div class="cal-month" id="cal-month"></div>
+    <div class="cal-day"   id="cal-day"></div>
+  </div>
 
-<!-- WALL ART — games -->
-<div class="wall-art art-map" id="art-map" data-game="treasure-map" role="button" tabindex="0">
-  <img src="../assets/elements/map.png" alt="Treasure Map">
-</div>
-<div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror" role="button" tabindex="0">
-  <img src="../assets/elements/mirror.png" alt="Infinity Mirror">
-</div>
-<div class="wall-art art-bingo" id="art-bingo" data-game="bingo" role="button" tabindex="0">
-  <img src="../assets/elements/bingo.png" alt="Heart Meter Bingo">
-</div>
+  <!-- ROOM LINES -->
+  <div class="room-lines" aria-hidden="true">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+      <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
+    </svg>
+  </div>
 
-<!-- HEART GUIDE -->
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble" id="heart-bubble"></div>
-  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
-</div>
+  <!-- BACK WALL -->
+  <div class="back-wall"></div>
 
-<!-- GAME PANEL — back wall iframe for games  z:10 -->
-<div class="game-panel" id="game-panel">
-  <button class="game-howto-btn" id="game-howto-btn" onclick="reopenHowto()">how to play</button>
-  <button class="game-close-btn" onclick="closeGame()">&#x2715;</button>
-</div>
+  <!-- WALL ART — games -->
+  <div class="wall-art art-map" id="art-map" data-game="treasure-map" role="button" tabindex="0">
+    <img src="../assets/elements/map.png" alt="Treasure Map">
+  </div>
+  <div class="wall-art art-mirror" id="art-mirror" data-game="infinity-mirror" role="button" tabindex="0">
+    <img src="../assets/elements/mirror.png" alt="Infinity Mirror">
+  </div>
+  <div class="wall-art art-bingo" id="art-bingo" data-game="bingo" role="button" tabindex="0">
+    <img src="../assets/elements/bingo.png" alt="Heart Meter Bingo">
+  </div>
+
+  <!-- HEART GUIDE -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble"></div>
+    <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
+  </div>
+
+</div></div>
 
 <!-- ABOUT LETTER -->
 <div class="letter-overlay hidden" id="about-overlay">
