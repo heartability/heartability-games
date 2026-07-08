@@ -451,7 +451,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .phase-bar-sidequest { border-color: var(--blue); color: var(--blue); }
 .phase-bar-sidequest:hover { background: var(--blue); color: #fff; border-style: solid; }
 .phase-bar-dct { border-color: #83d2e6; color: #83d2e6; }
-.phase-bar-dct:hover { background: #E8478B; color: #fff; border-style: solid; }
+.phase-bar-dct:hover { background: #83d2e6; color: #fff; border-style: solid; }
 
 /* ── MOBILE ── */
 @media (max-width:768px) {
@@ -954,10 +954,10 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
 /* dream came true entry in the phase key */
 .phase-key-item.dct-item {
-  border-color:#E8478B; border-style:dashed; color:#E8478B;
+  border-color:#83d2e6; border-style:dashed; color:#83d2e6;
   background:#fdf0f5; margin-top:6px;
 }
-.phase-key-item.dct-item:hover { background:#E8478B; color:#fff; border-style:solid; }
+.phase-key-item.dct-item:hover { background:#83d2e6; color:#fff; border-style:solid; }
 
 @media (prefers-reduced-motion: reduce) {
   .sq-terrain, .sq-chip, .sq-btn { transition:none; }
@@ -1168,7 +1168,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <div class="sq-overlay" id="dct-overlay">
   <div class="sq-card">
     <div class="sq-head">
-      <span class="sq-title" style="color:#E8478B;">my dream came true</span>
+      <span class="sq-title" style="color:#83d2e6;">my dream came true</span>
       <button class="sq-close" onclick="closeDctBuilder()">×</button>
     </div>
     <div class="sq-sub">build a place that captures what it feels like to arrive.</div>
@@ -1186,7 +1186,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     </div>
     <div class="sq-actions">
       <button class="sq-btn ghost" onclick="closeDctBuilder()">cancel</button>
-      <button class="sq-btn" id="dct-confirm" disabled onclick="confirmDct()" style="background:#E8478B;border-color:#c43070;box-shadow:2px 2px 0 #a02060;">enter this world →</button>
+      <button class="sq-btn" id="dct-confirm" disabled onclick="confirmDct()" style="background:#83d2e6;border-color:#83d2e6;box-shadow:2px 2px 0 #105060;">enter this world →</button>
     </div>
   </div>
 </div>
@@ -2990,8 +2990,8 @@ function renderDctPreview() {
         font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dctDraft.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
-      stroke="#E8478B" stroke-width="1.5" stroke-dasharray="5 4"/>
-      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#E8478B"
+      stroke="#83d2e6" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#83d2e6"
         font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
   }
   if (dctDraft.feeling) {
