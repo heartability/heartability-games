@@ -146,14 +146,21 @@ html, body {
   text-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 
-/* ── ALREADY A MEMBER ── */
-.already-member {
+/* ── CLOSE BUTTON ── */
+.close-btn {
+  position: fixed;
+  top: 18px; right: 22px;
+  z-index: 20;
   font-family: var(--font-hand);
-  font-size: clamp(14px, 1.2vw, 18px);
+  font-size: clamp(18px, 1.8vw, 24px);
   color: rgba(255,255,255,0.7);
-  text-align: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s;
 }
-.already-member a { color: #fff; text-decoration: underline; cursor: pointer; }
+.close-btn:hover { color: #fff; }
 
 /* ── BILLING PICKER POPUP ── */
 .billing-overlay {
@@ -227,7 +234,7 @@ html, body {
   bottom: 12px; left: 0; right: 0;
   text-align: center;
   font-family: var(--font-hand);
-  font-size: clamp(14px, 1vw, 17px);
+  font-size: clamp(14px, 2vw, 18px);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -287,11 +294,9 @@ html, body {
 
   </div>
 
-  <div class="already-member">
-    already a member? <a href="../rooms/bedroom.html">go to your profile</a>
-  </div>
-
 </div>
+
+<button class="close-btn" id="close-btn" title="close" aria-label="close">&#x2715;</button>
 
 <!-- BILLING PICKER -->
 <div class="billing-overlay" id="billing-overlay" onclick="if(event.target===this)closeBillingPicker()">
@@ -326,6 +331,16 @@ html, body {
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  document.getElementById('close-btn').addEventListener('click', () => {
+    if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
+      window.location.href = document.referrer;
+    } else if (history.length > 1) {
+      history.back();
+    } else {
+      window.location.href = '../games/game-room.html';
+    }
+  });
 
   const PRICE_IDS = {
     community_monthly: 'price_1TX47YA6JE5MLfPsIZAXk3QY',
