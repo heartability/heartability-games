@@ -52,7 +52,13 @@ serve(async (req) => {
     // Send welcome email via Resend
     const email = session.customer_details?.email
     if (email) {
-      const welcomeEmail = `Welcome to Heartability!
+      const welcomeEmail = `Welcome to the Dream Membership!
+
+You chose to listen to your heart today, and that means something. It's the first step to making your dreams come true. If you keep listening to that voice, your whole life will change. Anything is possible you just have to imagine it.
+
+Your benefits:
+the dream matrix - track your goals over time
+the cosmic matrix - track how astrology influences your life.
 
 Investing in your dreams and taking the time to track your progress, not productivity, will change your life. I'm not saying it will be easy, I'm not saying this technique is magic. But it can help you access the greatest tool available: optimism.
 
@@ -65,9 +71,7 @@ Here is how to find it:
 
 That's it. When you start to consider giving up, visit your Treasure Map and remember how far you have already come. How many things have already changed. If it doesn't look the way you imagined, that just means this isn't the end of your journey. You have to keep going, you have to keep trying.
 
-As a paying member, if you show up to track your journey everyday you can take your place on the leaderboard and if you ever feel alone on your journey, feel free to pop into the group chat and let us know what you are going through. It's interesting how some weeks have clear patterns that emerge. Not surprising that when I initially developed this game, I was tracking moon transits and my emotional response to them in my Astrological studies (got something cooking to integrate that aspect too if you stick around!).
-
-Visit the shipping room to learn more about future updates, which also include more community elements, a customized 2d side scrolling video game world rendered from your personal maps, and media libraries that you can search for inspiration and direction, and a self care library you can explore for resources (which will also be integrated into the 2d world).
+Visit the shipping room to learn more about future updates, which also include more community elements, a customized 2d side scrolling video game world rendered from your personal maps, and media libraries that you can search for inspiration and direction, and a self care library you can explore for resources (which will also be integrated into the 2d world). Your support makes that possible. Thank you for believing in yourself and us — may we both be winners. ꩜
 
 Talk soon <3
 
@@ -82,7 +86,7 @@ Zoe Tinnes, Founder of Heartability`
         body: JSON.stringify({
           from: 'Zoe at Heartability <hello@heartability.com>',
           to: email,
-          subject: 'Welcome to Heartability!',
+          subject: 'Welcome to the Dream Membership!',
           text: welcomeEmail,
         }),
       })

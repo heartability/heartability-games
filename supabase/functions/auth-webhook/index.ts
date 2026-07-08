@@ -18,20 +18,17 @@ serve(async (req) => {
 
     const freeWelcomeEmail = `Welcome to Heartability!
 
-Investing in your dreams and taking the time to track your progress, not productivity, will change your life. I'm not saying it will be easy, I'm not saying this technique is magic. But it can help you access the greatest tool available: optimism.
+I hope you find everything you are looking for when you visit the castle. Here is what to do next:
 
-Here is how to find it:
+1. Visit the daily matrix to track your progress through life
+2. Explore the castle rooms for random games, chatrooms, and other surprises
+3. Follow us on social to keep up as we grow!
 
-1. Make the decision to take a step toward your dream
-2. Take that step
-3. Track the emotional journey that you experienced taking that step
-4. Repeat
+If your doesn't look the way you imagined you haven't reached your destination. You have to keep going, you have to keep trying. Heartability will help you keep charting your path.
 
-That's it. When you start to consider giving up, visit your Treasure Map and remember how far you have already come. How many things have already changed. If it doesn't look the way you imagined, that just means this isn't the end of your journey. You have to keep going, you have to keep trying.
+When you're ready to go deeper, a paid membership unlocks the dream matrix and cosmic matrix so you can track different dreams and your relationship with the cosmos. You can upgrade anytime at heartability.com/users/membership
 
-When you're ready to go deeper, a paid membership unlocks the leaderboard so you can track your daily streak, access to the community group chat, and a locked-in rate that never increases. You can upgrade anytime at heartability.com/membership.
-
-Talk soon 🤍
+Talk soon <3
 
 Zoe Tinnes, Founder of Heartability`
 
