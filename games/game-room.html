@@ -317,14 +317,15 @@ body.game-mode .char-heart {
 
 /* ── Game popup overlay ── */
 .game-popup-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100;
+  position: fixed; top: 44px; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45); z-index: 100;
   display: none; align-items: center; justify-content: center;
 }
 .game-popup-overlay.open { display: flex; }
 .game-popup {
   background: #f5f0ea;
   box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35);
-  width: clamp(300px, 92vw, 1100px); height: clamp(400px, 100vh, 1000px);
+  width: clamp(300px, 92vw, 1100px); height: clamp(400px, calc(100dvh - 64px), 1000px);
   display: flex; flex-direction: column; overflow: hidden;
   animation: popIn 0.2s ease both;
 }
@@ -359,7 +360,14 @@ body.game-mode .char-heart {
 .bingo-mode-btn:not(.active):hover { background: rgba(0,0,0,0.07); }
 
 /* Portrait/vertical viewports are handled by the room slider
-   (assets/css/room-slider.css) instead of squeezing this layout. */
+   (assets/css/room-slider.css) instead of squeezing this layout. The
+   fixed-width portrait stage is much more square than the fluid desktop
+   canvas these cqw/cqh values were tuned for, so the heart guide (anchored
+   to the same bottom-left corner as the map poster above it) needs to run
+   smaller here to clear the poster instead of overlapping it. */
+@media (orientation: portrait) {
+  .char-heart { width: clamp(80px, 12cqw, 200px); }
+}
 
 </style>
 </head>
