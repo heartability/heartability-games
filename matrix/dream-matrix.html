@@ -1243,20 +1243,30 @@ async function lmSignup() {
 }
 
 // Listen for auth changes from the login iframe
-sb.auth.onAuthStateChange(async (event, session) => {
+//
+// Supabase bug (open as of this writing): awaiting another Supabase call
+// directly inside an onAuthStateChange callback deadlocks every later call
+// on this client — https://github.com/supabase/auth-js/issues/762. The
+// callback itself must return immediately; the async work is deferred to
+// the next tick via setTimeout, which is Supabase's own documented
+// workaround (see "Why is my Supabase API call not returning?" in their
+// troubleshooting docs).
+sb.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_IN' && session) {
-    currentUser = session.user;
-    closeLoginModal();
-    let isPaid = false;
-    try {
-      const { data: profile } = await sb.from('user-profiles')
-        .select('username, membership_status').eq('id', currentUser.id).single();
-      HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
-      isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
-    } catch(e) {}
-    if (!isPaid) { showMemberGate(); return; }
-    document.getElementById('member-gate-overlay').classList.remove('open');
-    stepLoadGame();
+    setTimeout(async () => {
+      currentUser = session.user;
+      closeLoginModal();
+      let isPaid = false;
+      try {
+        const { data: profile } = await sb.from('user-profiles')
+          .select('username, membership_status').eq('id', currentUser.id).single();
+        HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
+        isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+      } catch(e) {}
+      if (!isPaid) { showMemberGate(); return; }
+      document.getElementById('member-gate-overlay').classList.remove('open');
+      stepLoadGame();
+    }, 0);
   }
 });
 
