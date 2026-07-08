@@ -15,7 +15,7 @@
     overlay.innerHTML =
       '<div class="room-hint-popup">' +
         '<button class="room-hint-close" id="room-hint-close" aria-label="close">&#x2715;</button>' +
-        '<div class="room-hint-icon">&#8596;</div>' +
+        '<div class="room-hint-icon">⟷</div>' +
         '<div class="room-hint-text">scroll left and right to explore this room</div>' +
       "</div>";
     document.body.appendChild(overlay);

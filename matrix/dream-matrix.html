@@ -28,7 +28,7 @@
   --bw-width: 70%;  --bw-height:70%;
 }
 
-html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
+html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
   background:url("../assets/elements/matrix-sky.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
@@ -39,16 +39,18 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .content-panel.active { display:flex; }
 .content-panel.active:not(.iframe-mode) { background:transparent; border:none; box-shadow:none; }
 
-/* ── IFRAME PANEL — same reserved box as every other step (leaves the strip
-   below free for #save-continue-bar, like the bingo/heart-meter step), just
-   wider than the back-wall proportions so builder UIs have room to breathe.
-   Scrolls internally if content runs taller than the box. ── */
+/* ── IFRAME PANEL — anchored near the top like every other step (leaving
+   #save-continue-bar's strip free at the bottom), just wider than the
+   back-wall proportions so builder UIs have room to breathe. Unlike other
+   steps it isn't fixed to the viewport: if its content runs taller than the
+   screen, it scrolls away with the whole page (via html/body's overflow-y)
+   instead of clipping into its own internal scrollbar. ── */
 .game-iframe { width:100%; height:70vh; border:none; display:block; }
 .content-panel.iframe-mode {
   border:none; box-shadow:none; background:transparent;
-  top:var(--bw-top); left:50%; transform:translateX(-50%);
-  width:min(1050px, 94vw); height:var(--bw-height);
-  overflow-y:auto; overflow-x:visible;
+  position:absolute; top:var(--bw-top); left:50%; transform:translateX(-50%);
+  width:min(1050px, 94vw); height:auto; margin-bottom:100px;
+  overflow:visible;
 }
 
 /* ── MAP BUILDER CARD — wraps the name field + treasure-map iframe in one
