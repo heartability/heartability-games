@@ -308,7 +308,7 @@ html, body {
     <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../games/game-room.html">game room</a>
-      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
+      <a class="map-item" href="../rooms/shipping.html">shipping room</a>
       <span class="map-item current">bed room</span>
       <a class="map-item" href="../rooms/garden.html">the garden</a>
     </div>
@@ -333,7 +333,7 @@ html, body {
 
   <!-- ROOM ICONS -->
   <div class="room-icons" id="main-content">
-    <div class="room-icon" id="icon-dresser" onclick="window.location.href='account-settings.html'">
+    <div class="room-icon" id="icon-dresser" onclick="window.location.href='../users/account-settings.html'">
       <img src="../assets/elements/dresser.png" alt="account settings" />
     </div>
     <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
@@ -360,15 +360,15 @@ html, body {
       <span class="popup-close" onclick="closeMatrixPicker()">&#x2715;</span>
     </div>
     <div class="matrix-picker-body">
-      <a class="matrix-pick-btn" href="../matrix/daily-matrix.html">
+      <a class="matrix-pick-btn" href="../matrix/daily.html">
         daily matrix
         <small>track your archetype and adventure of the day</small>
       </a>
-      <a class="matrix-pick-btn" href="../matrix/dream-matrix.html">
+      <a class="matrix-pick-btn" href="../matrix/dream.html">
         dream matrix
         <small>track the experience of pursuing your dreams</small>
       </a>
-      <a class="matrix-pick-btn" href="../matrix/cosmic-matrix.html">
+      <a class="matrix-pick-btn" href="../matrix/cosmic.html">
         cosmic matrix
         <small>track the cosmic influences guiding your life</small>
       </a>
@@ -419,7 +419,7 @@ html, body {
   // ── Auth check ───────────────────────────────────────────
   async function init() {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    if (!session) { window.location.href = '../users/login.html'; return; }
     await loadProfile(session.user);
   }
 
@@ -438,9 +438,9 @@ html, body {
       assetsBase: '../assets',
       authMode: 'protected',
       sb: sb,
-      profileHref: 'account-settings.html',
+      profileHref: '../users/account-settings.html',
       music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
-      onSignOut: () => { window.location.href = 'login.html'; },
+      onSignOut: () => { window.location.href = '../users/login.html'; },
     });
 
     document.getElementById('loading-state').style.display = 'none';

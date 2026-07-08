@@ -292,7 +292,7 @@ input:focus { border-color: var(--purple); }
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = '../rooms/bedroom.html';
+    if (session) window.location.href = '../rooms/bed.html';
   });
 
   function switchTab(tab, btn) {
@@ -322,7 +322,7 @@ input:focus { border-color: var(--purple); }
       btn.disabled = false; btn.textContent = 'enter ♡';
     } else {
       showMsg('login-msg', 'welcome back! loading your profile...', 'success');
-      setTimeout(() => window.location.href = '../rooms/bedroom.html', 800);
+      setTimeout(() => window.location.href = '../rooms/bed.html', 800);
     }
   }
 

@@ -107,6 +107,35 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .tab-lock { width:14px; height:14px; opacity:.65; display:none; flex-shrink:0; }
 .tab-btn.active .tab-lock { opacity:.95; }
 
+/* ── TAB BAR (mobile dropdown) ── */
+.tab-bar-mobile { display:none; }
+@media (max-width:700px) {
+  .tab-bar { display:none; }
+  .tab-bar-mobile {
+    display:block; position:fixed; top:44px; left:0; right:0; z-index:190;
+  }
+  .tab-bar-mobile-btn {
+    width:100%; height:46px; background:var(--cream-dk); border:none; border-bottom:2px solid #ccc;
+    font-family:var(--font-hand); font-size:19px; color:#333; text-transform:capitalize;
+    display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+  }
+  .tab-bar-mobile-caret { font-size:14px; }
+  .tab-bar-mobile-menu {
+    display:none; flex-direction:column;
+    background:var(--cream-dk); border-bottom:2px solid #ccc;
+    max-height:70vh; overflow-y:auto;
+  }
+  .tab-bar-mobile-menu.open { display:flex; }
+  .tab-bar-mobile-item {
+    background:none; border:none; border-top:1px solid #ccc;
+    font-family:var(--font-hand); font-size:18px; color:#777; text-transform:capitalize;
+    padding:12px 16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:background .12s, color .12s;
+  }
+  .tab-bar-mobile-item:first-child { border-top:none; }
+  .tab-bar-mobile-item.active { background:var(--purple); color:#fff; }
+}
+
 .page-wrap {
   min-height:100dvh; padding:124px 20px 48px;
   display:flex; flex-direction:column; align-items:center;
@@ -377,14 +406,15 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   background:var(--cream); color:#999; border-color:#ccc;
 }
 
-/* journal window centered vertically in the viewport below the fixed nav/tab bar */
-.jrn-page-wrap { padding-top:90px; padding-bottom:90px; justify-content:center; }
+/* journal window sits below the fixed nav/tab bar; flex-start (not center) so a
+   long message feed scrolls down instead of overflowing up under the bars */
+.jrn-page-wrap { padding-top:110px; padding-bottom:40px; justify-content:flex-start; }
 
 /* ── MAP SELECTOR SCREEN ── */
 #map-selector {
   display:none; position:fixed; inset:0;
-  padding-top:88px; background:#e8e3da; z-index:50; overflow-y:auto;
-  align-items:center; justify-content:center;
+  padding-top:110px; background:#e8e3da; z-index:50; overflow-y:auto;
+  align-items:flex-start; justify-content:center;
 }
 .map-sel-inner { max-width:900px; margin:0 auto; padding:28px clamp(16px,3vw,48px) 48px; }
 .map-sel-window {
@@ -422,6 +452,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .slot-delete:hover { color:#E8478B; }
 
 /* ── ARCHETYPE PICKER (reuses the in-game card style) ── */
+#tab-archetype .page-wrap { padding-top:140px; }
 .arch-picker-loading { padding:20px; font-family:var(--font-hand); color:#8a7a5a; }
 .arch-grid { display:grid; grid-template-columns:repeat(4, minmax(120px,180px)); gap:12px; padding:4px; justify-content:center; }
 @media (max-width:600px) { .arch-grid { grid-template-columns:repeat(2,1fr); } }
@@ -523,8 +554,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../games/game-room.html">game room</a>
-      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
-      <a class="map-item" href="../rooms/bedroom.html">bed room</a>
+      <a class="map-item" href="../rooms/shipping.html">shipping room</a>
+      <a class="map-item" href="../rooms/bed.html">bed room</a>
       <a class="map-item" href="../rooms/garden.html">the garden</a>
     </div>
   </div>
@@ -539,6 +570,20 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
   <button class="tab-btn" data-tab="journal" onclick="switchTab('journal')">journal</button>
   <button class="tab-btn" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+</div>
+
+<div class="tab-bar-mobile" id="tab-bar-mobile">
+  <button class="tab-bar-mobile-btn" id="tab-bar-mobile-btn" onclick="toggleTabMenu()">
+    <span id="tab-bar-mobile-label">daily</span><span class="tab-bar-mobile-caret">▾</span>
+  </button>
+  <div class="tab-bar-mobile-menu" id="tab-bar-mobile-menu">
+    <button class="tab-bar-mobile-item" data-tab="daily" onclick="switchTab('daily')">daily</button>
+    <button class="tab-bar-mobile-item" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+    <button class="tab-bar-mobile-item" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+    <button class="tab-bar-mobile-item" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
+    <button class="tab-bar-mobile-item" data-tab="journal" onclick="switchTab('journal')">journal</button>
+    <button class="tab-bar-mobile-item" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+  </div>
 </div>
 
 <div id="loading-state">loading your archive...</div>
@@ -713,7 +758,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   <div class="page-wrap">
     <div class="page-body" style="max-width:900px;">
       <div class="window" id="arch-window">
-        <div class="window-titlebar"><span>your cast</span></div>
+        <div class="window-titlebar"><span>your archetypes</span></div>
         <div class="window-body">
           <div id="arch-main-view"><div class="arch-grid" id="arch-grid"></div></div>
           <div id="arch-all-view" style="display:none;">
@@ -818,6 +863,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   document.addEventListener('click', e => {
     const mw = document.getElementById('map-wrap');
     if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+    const tm = document.getElementById('tab-bar-mobile');
+    if (tm && !tm.contains(e.target)) document.getElementById('tab-bar-mobile-menu').classList.remove('open');
   });
 </script>
 
@@ -866,7 +913,7 @@ let cosmicMapIdToSeason = {};
 let allArchetypes = [];
 let archCameFromAll = false;
 
-// planetary bodies for the cosmic tab — mirrors cosmic-matrix.html's PLANETS list.
+// planetary bodies for the cosmic tab — mirrors cosmic.html's PLANETS list.
 // Season templates key their phases like "sun_cancer_1"; the leading segment is
 // the planet id, so filtering by planet needs no separate DB column.
 const COSMIC_PLANETS = [
@@ -936,9 +983,9 @@ function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':
 // Live-game deep links shown in the nav bar, per active tab (Completed/Archetypes
 // have no "continue playing" destination, so the link just stays hidden).
 const LIVE_GAME_LINKS = {
-  daily:  { href: 'daily-matrix.html',  label: 'daily matrix →' },
-  dream:  { href: 'dream-matrix.html',  label: 'dream matrix →' },
-  cosmic: { href: 'cosmic-matrix.html', label: 'cosmic matrix →' },
+  daily:  { href: 'daily.html',  label: 'daily matrix →' },
+  dream:  { href: 'dream.html',  label: 'dream matrix →' },
+  cosmic: { href: 'cosmic.html', label: 'cosmic matrix →' },
 };
 function updatePlayLink(){
   const el = document.getElementById('play-link');
@@ -949,15 +996,23 @@ function updatePlayLink(){
   el.style.display = '';
 }
 
+const TAB_LABELS = { daily:'daily', dream:'dream', cosmic:'cosmic', archetype:'archetypes', journal:'journal', completed:'completed' };
+function updateTabControls(tab){
+  document.querySelectorAll('.tab-btn, .tab-bar-mobile-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('tab-bar-mobile-label').textContent = TAB_LABELS[tab] || tab;
+  document.getElementById('tab-bar-mobile-menu').classList.remove('open');
+}
+function toggleTabMenu(){ document.getElementById('tab-bar-mobile-menu').classList.toggle('open'); }
+
 function switchTab(tab){
   if (LOCKED_TABS.includes(tab) && !isPaid){
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    updateTabControls(tab);
     showGate(tab);
     return;
   }
   document.getElementById('gate-overlay').classList.remove('open');
   activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  updateTabControls(tab);
   updatePlayLink();
 
   document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='completed'||tab==='daily') ? 'block' : 'none';
@@ -990,7 +1045,7 @@ function showGate(tab){
 }
 function hideGate(){
   document.getElementById('gate-overlay').classList.remove('open');
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+  updateTabControls(activeTab);
 }
 
 // ── WHOLE-MAP SVG — delegated to the shared module ────────
