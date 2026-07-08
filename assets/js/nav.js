@@ -231,9 +231,16 @@ window.HeartabilityNav = (function () {
     render();
   }
 
+  // Lets a host page swap the Supabase client instance nav.js's login popup
+  // submits against, if the page rebuilds/reassigns its own `sb` after init().
+  function setClient(newSb) {
+    if (cfg) cfg.sb = newSb;
+  }
+
   return {
     init,
     setAuthState,
+    setClient,
     _toggleGear: toggleGear,
     _loginClick: openLoginPopup,
     _closeLoginPopup: closeLoginPopup,

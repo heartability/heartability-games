@@ -1139,7 +1139,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 
@@ -2841,6 +2841,18 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showMemberGate(); return; }
   currentUser = session.user;
+
+  // Touching sb.auth's internal session lock a second time after resuming a
+  // persisted session (e.g. via sb.from(), which resolves auth headers
+  // internally) can hang forever. Pin the token we already have onto a fresh
+  // client for every call from here on, so nothing in this page load ever
+  // touches that lock again. Sign-in/out keep using the original `sb` above,
+  // which keeps normal auto-refresh/persistence.
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } }
+  });
+  HeartabilityNav.setClient(sb);
 
   let isPaid = false;
   try {
