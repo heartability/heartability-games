@@ -53,6 +53,30 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
+/* ── Map dropdown ── */
+.map-wrap { position:relative; }
+.map-btn {
+  display:flex; align-items:center; gap:4px;
+  background:none; border:none; font-family:inherit; font-size:inherit; color:inherit;
+}
+.map-dropdown {
+  position:absolute; top:calc(100% + 4px); right:0; min-width:170px;
+  background:#6578e2; border:2px solid #111;
+  box-shadow:3px 4px 0 rgba(0,0,0,.12);
+  z-index:201; display:none; flex-direction:column; overflow:hidden;
+}
+.map-dropdown.open { display:flex; }
+.map-item {
+  display:block;
+  font-family:var(--font-hand); font-size:clamp(15px,1.3vw,18px); color:#fff;
+  padding:9px 14px; cursor:pointer; border:none; background:none;
+  text-align:left; white-space:nowrap; transition:background .12s;
+  text-decoration:none;
+}
+.map-item:hover { background:rgba(0,0,0,.07); }
+.map-item.current { color:rgba(255,255,255,.55); cursor:default; }
+.map-item.current:hover { background:none; }
+
 /* ── Floating "continue playing" link (bottom-right, per active tab) ── */
 .floating-play-link {
   position:fixed; right:20px; bottom:20px; z-index:150;
@@ -262,8 +286,6 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .day-close:hover { color:var(--purple); }
 .day-back { cursor:pointer; font-family:var(--font-hand); font-size:20px; color:#888; padding:2px 4px; }
 .day-back:hover { color:var(--purple); }
-.day-view-more { cursor:pointer; font-family:var(--font-hand); font-size:20px; color:var(--purple); padding:2px 4px; text-decoration:underline; }
-.day-view-more:hover { color:var(--purple-dk); }
 
 .day-body { flex:1; overflow-y:auto; }
 
@@ -312,11 +334,12 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .cosmic-transit-time { font-family:var(--font-game); font-size:13px; color:#aaa; white-space:nowrap; }
 
 /* ── JOURNAL TAB (chat-style feed combining daily/dream/cosmic entries) ── */
-.jrn-messages { max-height:70vh; overflow-y:auto; padding:18px 20px 22px; display:flex; flex-direction:column; gap:10px; }
-.jrn-msg-wrap { display:flex; }
-.jrn-msg-wrap.left  { justify-content:flex-start; }
-.jrn-msg-wrap.right { justify-content:flex-end; }
-.jrn-msg { display:flex; flex-direction:column; gap:3px; max-width:78%; }
+.jrn-messages { max-height:70vh; overflow-y:auto; padding:18px 20px 22px; display:flex; flex-direction:column; gap:12px; }
+.jrn-msg-wrap { display:flex; align-items:flex-start; gap:8px; }
+.jrn-msg-wrap.left  { flex-direction:row; }
+.jrn-msg-wrap.right { flex-direction:row-reverse; }
+.jrn-avatar { flex-shrink:0; width:44px; height:44px; border-radius:50%; overflow:hidden; border:1.5px solid #ccc; background:#f0ebe2; }
+.jrn-msg { display:flex; flex-direction:column; gap:3px; max-width:72%; }
 .jrn-msg-wrap.left  .jrn-msg { align-items:flex-start; }
 .jrn-msg-wrap.right .jrn-msg { align-items:flex-end; }
 .jrn-bubble {
@@ -337,6 +360,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .jrn-tag.cosmic { color:#8a7a3a; }
 .jrn-date-divider { display:flex; align-items:center; gap:10px; padding:2px 0; }
 .jrn-date-divider span { font-size:13px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
+.jrn-date-divider .jrn-divider-location { font-size:14px; color:#a09080; font-family:var(--font-hand); white-space:nowrap; }
 .jrn-date-divider::before, .jrn-date-divider::after { content:''; flex:1; height:1px; background:#ddd; }
 
 /* ── MAP SELECTOR SCREEN ── */
@@ -478,7 +502,15 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 <nav class="room-nav">
   <div id="gear-slot"></div>
   <h1 class="nav-title">matrix archive</h1>
-  <a class="nav-btn" href="../games/game-room.html"> game room→</a>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../games/game-room.html">game room</a>
+      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
+      <a class="map-item" href="../rooms/bedroom.html">bed room</a>
+      <a class="map-item" href="../rooms/garden.html">the garden</a>
+    </div>
+  </div>
 </nav>
 
 <span class="floating-play-link" id="play-link" style="display:none;"></span>
@@ -717,10 +749,7 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
       <div class="day-titlebar">
         <span class="day-back" id="day-back-btn" onclick="backToList()">← all locations</span>
         <span id="matrix-loc-title" style="color:#777;"></span>
-        <span style="display:flex;align-items:center;gap:10px;">
-          <span class="day-view-more" id="day-view-more-btn" onclick="viewMoreDaily()" style="display:none;">view more →</span>
-          <span class="day-close" onclick="closeDayPopup()">✕</span>
-        </span>
+        <span class="day-close" onclick="closeDayPopup()">✕</span>
       </div>
       <div class="day-body">
         <div class="matrix-stage" id="matrix-stage"></div>
@@ -758,6 +787,15 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 </div>
 
 <div id="toast"></div>
+
+<script>
+  // ── Map ──────────────────────────────────────────────────
+  function toggleMap() { document.getElementById('map-dropdown').classList.toggle('open'); }
+  document.addEventListener('click', e => {
+    const mw = document.getElementById('map-wrap');
+    if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./matrix-render.js"></script>
@@ -798,7 +836,6 @@ let lastMatrixData = null;
 let photoEditor   = null;
 let journalEditor = null;        // dream_matrix notes
 let dailyJournalEditor = null;   // daily_matrix notes
-let dailyMatrixShown = false;    // has "view more" populated the persistent daily window yet?
 
 // cosmic + archetype state
 let cosmicMapIdToSeason = {};
@@ -1161,11 +1198,7 @@ function openDayPopup(dateStr) {
   const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at||a.entry_date) - new Date(b.created_at||b.entry_date));
 
   if (currentMode === 'daily') {
-    if (!saves.length) return;
-    if (dailyMatrixShown) { showDailyMatrixWindow(saves[0].id); return; }
-    document.getElementById('day-title').textContent = formatDateLabel(dateStr);
-    document.getElementById('day-overlay').classList.add('open');
-    openMatrixView(saves[0].id);
+    if (saves.length) renderDailyMatrixWindow(saves[0].id);
     return;
   }
 
@@ -1221,17 +1254,11 @@ async function openMatrixView(saveId) {
 }
 async function refreshMatrixView() {
   if (!activeSaveId) return;
-  const table = currentMode === 'daily' ? 'daily_matrix' : 'dream_matrix';
-  const game  = currentMode === 'daily' ? null : allGames.find(g => g.id === activeGameId);
-  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, table);
-  const seed = `${table}|${activeGameId||'x'}|${activeSaveId}`;
-  const opts = currentMode === 'daily'
-    ? { showAddPhoto:false, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true }
-    : { showAddPhoto:true,  showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true };
-  document.getElementById('matrix-stage').innerHTML =
-    MatrixRender.buildHTML(lastMatrixData, seed, opts);
-  document.getElementById('day-back-btn').style.display    = currentMode==='daily' ? 'none'   : '';
-  document.getElementById('day-view-more-btn').style.display = currentMode==='daily' ? 'inline' : 'none';
+  const game = allGames.find(g => g.id === activeGameId);
+  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, 'dream_matrix');
+  const seed = `dream_matrix|${activeGameId||'x'}|${activeSaveId}`;
+  document.getElementById('matrix-stage').innerHTML = MatrixRender.buildHTML(lastMatrixData, seed,
+    { showAddPhoto:true, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true });
 }
 
 // ── GAME LOADING + ENTRIES (dream / completed) ────────────
@@ -1343,7 +1370,6 @@ async function deleteMapFromArchive(gameId, mapName) {
 // ── DAILY TAB ─────────────────────────────────────────────
 async function enterDailyView(){
   currentMode = 'daily';
-  dailyMatrixShown = false;
   document.getElementById('map-selector').style.display = 'none';
   document.getElementById('main-content').style.display = 'flex';
   document.getElementById('win-back-btn').style.display = 'none';
@@ -1370,15 +1396,8 @@ async function loadDailyEntries(){
   graphMonth = new Date().getMonth();
   graphYear  = new Date().getFullYear();
 }
-function viewMoreDaily(){
-  const id = activeSaveId;
-  closeDayPopup();
-  showDailyMatrixWindow(id);
-}
-// Renders one daily entry's matrix into the persistent window. Does NOT flip
-// dailyMatrixShown — used both for the default "most recent entry" preview
-// (which should leave later day-clicks going through the popup as usual) and
-// by showDailyMatrixWindow (which does flip the flag, after "view more").
+// Renders one daily entry's matrix into the persistent map-window preview —
+// the sole way daily entries are viewed now (no popup for this tab).
 async function renderDailyMatrixWindow(saveId){
   activeSaveId = saveId;
   const save = allSaves.find(s => s.id === saveId);
@@ -1389,10 +1408,6 @@ async function renderDailyMatrixWindow(saveId){
   const data = await MatrixRender.assemble(sb, saveId, null, 'daily_matrix');
   document.getElementById('map-svg-wrap').innerHTML =
     MatrixRender.buildHTML(data, `daily|${saveId}`, { showAddPhoto:false, showEditNotes:false, showFrame:false });
-}
-async function showDailyMatrixWindow(saveId){
-  dailyMatrixShown = true;
-  await renderDailyMatrixWindow(saveId);
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
@@ -1729,20 +1744,23 @@ async function loadJournalTab(){
 
   const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
     sb.from('dream_matrix')
-      .select('id, map_id, location_data, map_phase, map_completed, journal_messages, created_at')
+      .select('id, map_id, location_data, map_phase, map_completed, character_data, journal_messages, created_at')
       .eq('user_id', currentUser.id),
     sb.from('daily_matrix')
-      .select('id, entry_date, location_data, journal_messages, created_at')
+      .select('id, entry_date, location_data, character_data, journal_messages, created_at')
       .eq('user_id', currentUser.id),
     sb.from('cosmic_matrix')
-      .select('map_id, map_phase, location_data, journal_messages, updated_at')
+      .select('map_id, map_phase, location_data, character_data, journal_messages, updated_at')
       .eq('user_id', currentUser.id),
   ]);
 
   const entries = [];
-  (dreamRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({ source:'dream', row:r, msg:m })));
-  (dailyRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({ source:'daily', row:r, msg:m })));
-  (cosmicRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({ source:'cosmic', row:r, msg:m })));
+  (dreamRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({ source:'dream', row:r, msg:m, label:locationLabel(r) })));
+  (dailyRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({ source:'daily', row:r, msg:m, label:locationLabel(r) })));
+  (cosmicRes.data || []).forEach(r => (r.journal_messages||[]).forEach(m => entries.push({
+    source:'cosmic', row:r, msg:m,
+    label: [r.location_data && r.location_data.sign, r.location_data && r.location_data.location].filter(Boolean).join(' · ') || 'a season',
+  })));
   entries.sort((a,b) => new Date(a.msg.created_at||0) - new Date(b.msg.created_at||0));
 
   if (!entries.length){
@@ -1757,15 +1775,17 @@ async function loadJournalTab(){
     if (dayLabel !== lastDivider){
       const div = document.createElement('div');
       div.className = 'jrn-date-divider';
-      div.innerHTML = `<span>${escapeHtml(dayLabel)}</span>`;
+      const locHtml = e.label ? `<span class="jrn-divider-location">${escapeHtml(e.label)}</span> · ` : '';
+      div.innerHTML = `${locHtml}<span>${escapeHtml(dayLabel)}</span>`;
       container.appendChild(div);
       lastDivider = dayLabel;
     }
     const wrap = document.createElement('div');
     wrap.className = 'jrn-msg-wrap ' + (i % 2 === 0 ? 'left' : 'right');
+    const avatar = `<div class="jrn-avatar">${MatrixRender.buildCharStack(e.row.character_data) || ''}</div>`;
     const img = e.msg.image_url ? `<img src="${escapeHtml(e.msg.image_url)}" alt="">` : '';
     const txt = e.msg.text ? escapeHtml(e.msg.text) : '';
-    wrap.innerHTML = `<div class="jrn-msg">
+    wrap.innerHTML = `${avatar}<div class="jrn-msg">
       <div class="jrn-bubble">${img}${txt}</div>
       <div class="jrn-meta"><span class="jrn-tag ${e.source}">${JOURNAL_SOURCE_LABEL[e.source]}</span> · ${jrnTime(e.msg.created_at)}</div>
     </div>`;
