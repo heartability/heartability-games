@@ -121,6 +121,30 @@ html, body {
 }
 .gear-item:hover { background: rgba(0,0,0,0.07); }
 
+/* ── Map dropdown ── */
+.map-wrap { position: relative; }
+.map-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
+}
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6578e2; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+  text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,0.07); }
+.map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
+.map-item.current:hover { background: none; }
+
 /* ── ROOM ICONS — full room-stage ── */
 .room-icons {
   position: absolute;
@@ -315,8 +339,14 @@ html, body {
     </div>
   </div>
   <h1 class="nav-title">welcome, <span id="display-username"></span></h1>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <a class="nav-btn" href="../games/game-room.html">game room →</a>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../games/game-room.html">game room</a>
+      <a class="map-item" href="../rooms/shipping-room.html">shipping room</a>
+      <span class="map-item current">bed room</span>
+      <a class="map-item" href="../rooms/garden.html">the garden</a>
+    </div>
   </div>
 </nav>
 
@@ -406,6 +436,17 @@ html, body {
     const wrap = document.getElementById('gear-wrap');
     if (wrap && !wrap.contains(e.target)) {
       document.getElementById('gear-dropdown').classList.remove('open');
+    }
+  });
+
+  // ── Map menu ──────────────────────────────────────────────
+  window.toggleMap = function () {
+    document.getElementById('map-dropdown').classList.toggle('open');
+  };
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('map-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('map-dropdown').classList.remove('open');
     }
   });
 
