@@ -1215,7 +1215,7 @@ function buildJournalPanel(){
     <div class="jrc-window">
       <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
       <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">a note from this moon phase —<br>a feeling, an omen, something that happened.</div>
+        <div class="jrc-empty" id="jrc-empty">you have no messages</div>
       </div>
       <div class="jrc-input-area">
         <div class="jrc-img-chip" id="jrc-img-chip">
@@ -1223,9 +1223,9 @@ function buildJournalPanel(){
           <button class="jrc-img-x" onclick="removeJournalImage()" title="remove photo">✕</button>
         </div>
         <div class="jrc-msg-row">
-          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="write freely…" maxlength="4000"></textarea>
+          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what feels important?" maxlength="4000"></textarea>
           <div class="jrc-btn-stack">
-            <button class="jrc-plus-btn" title="add a photo" onclick="document.getElementById('jr-file').click()">&#43;</button>
+            <button class="jrc-plus-btn" title="add a photo" onclick="document.getElementById('jr-file').click()">U+002B</button>
             <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
           </div>
         </div>

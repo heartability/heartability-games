@@ -342,6 +342,15 @@ html, body {
     }
   });
 
+  function getReturnPath() {
+    try {
+      if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
+        return new URL(document.referrer).pathname;
+      }
+    } catch (e) {}
+    return null;
+  }
+
   const PRICE_IDS = {
     community_monthly: 'price_1TX47YA6JE5MLfPsIZAXk3QY',
     community_yearly:  'price_1Tga4bA6JE5MLfPsJ5pzjRgo',
@@ -394,7 +403,7 @@ html, body {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${currentSession.access_token}`
           },
-          body: JSON.stringify({ priceId, tier: 'dream', paymentMode: 'subscription' })
+          body: JSON.stringify({ priceId, tier: 'dream', paymentMode: 'subscription', returnTo: getReturnPath() })
         }
       );
       const { url, error } = await res.json();

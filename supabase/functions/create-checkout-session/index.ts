@@ -34,7 +34,14 @@ serve(async (req) => {
     }
 
     // Get the price ID from the request body
-   const { priceId, tier, paymentMode } = await req.json()
+   const { priceId, tier, paymentMode, returnTo } = await req.json()
+
+    // Only ever redirect back to a relative path on our own site — returnTo
+    // comes from the client (document.referrer), so it must be sanitized
+    // before it's dropped into an absolute redirect URL.
+    const safeReturnTo = (typeof returnTo === 'string' && /^\/[A-Za-z0-9\-_./]*$/.test(returnTo) && !returnTo.startsWith('//'))
+      ? returnTo
+      : '/users/account-settings.html'
 
     // Create or retrieve Stripe customer
     const { data: profile } = await sb
@@ -64,8 +71,8 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: paymentMode ?? 'subscription',
       allow_promotion_codes: true,
-      success_url: `${req.headers.get('origin')}/users/profile.html?success=true`,
-      cancel_url: `${req.headers.get('origin')}/membership.html?cancelled=true`,
+      success_url: `${req.headers.get('origin')}${safeReturnTo}?success=true`,
+      cancel_url: `${req.headers.get('origin')}/users/membership.html?cancelled=true`,
       metadata: {
         supabase_user_id: user.id,
         tier: tier // 'basic' or 'founding'
