@@ -6,6 +6,8 @@
   <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
   <link rel="stylesheet" href="../assets/css/modal.css">
   <script src="../assets/js/modal.js" defer></script>
+  <link rel="stylesheet" href="../assets/css/room-slider.css">
+  <script src="../assets/js/room-slider.js" defer></script>
   <title>My Profile — Heartability</title>
   <meta name="description" content="Your Heartability profile — visit your dream archive, track your progress, and manage your settings.">
   <meta name="robots" content="noindex,follow">
@@ -48,14 +50,14 @@ html, body {
 
 /* ── ROOM BACKGROUND ── */
 .room-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 }
 .room-bg svg { width: 100%; height: 100%; display: block; }
 .room-back-wall {
-  position: fixed;
+  position: absolute;
   top: 9%; left: 15%;
   width: 70%; height: 70%;
   background: #f0ece4;
@@ -119,9 +121,9 @@ html, body {
 }
 .gear-item:hover { background: rgba(0,0,0,0.07); }
 
-/* ── ROOM ICONS — full viewport ── */
+/* ── ROOM ICONS — full room-stage ── */
 .room-icons {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 10;
   display: none;
@@ -129,7 +131,7 @@ html, body {
 .room-icons.active { display: block; }
 
 .room-icon {
-  position: fixed;
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -147,42 +149,27 @@ html, body {
 
 /* DRESSER — lower-left, sits on floor */
 #icon-dresser {
-  bottom: 17vh;
-  left: 18vw;
+  bottom: 17cqh;
+  left: 18cqw;
 }
-#icon-dresser img { width: clamp(200px, 28vw, 480px); }
+#icon-dresser img { width: clamp(200px, 28cqw, 480px); }
 
 /* BED — lower-center/right, sits on floor */
 #icon-bed {
-  bottom: 13vh;
-  right: 18vw;
+  bottom: 13cqh;
+  right: 18cqw;
 }
-#icon-bed img { width: clamp(200px, 33vw, 550px); }
+#icon-bed img { width: clamp(200px, 33cqw, 550px); }
 
 /* EXCLAIM — enter the matrix, upper-right wall */
 #icon-exclaim {
-  bottom:  43vh;
-  right: 2vw;
+  bottom:  43cqh;
+  right: 2cqw;
 }
-#icon-exclaim img { width: clamp(60px, 9vw, 130px); }
+#icon-exclaim img { width: clamp(60px, 9cqw, 130px); }
 
-/* ── MOBILE: stack into a column ── */
-@media (max-width: 600px) {
-  #icon-dresser { bottom: 19%; left: 9%; }
-  #icon-dresser img { width: clamp(120px, 32vw, 200px); }
-
-  #icon-bed { bottom: 15%; right: 9%; }
-  #icon-bed img { width: clamp(140px, 38vw, 240px); }
-
-  #icon-exclaim { top: 30%; right: 1%; }
-  #icon-exclaim img { width: clamp(70px, 14vw, 120px); }
-
-  .char-heart {
-    left: 1%;
-    bottom: 1%;
-    width: clamp(80px, 22vw, 130px);
-  }
-}
+/* Portrait/vertical viewports are handled by the room slider
+   (assets/css/room-slider.css) instead of squeezing this layout. */
 
 .room-icon img {
   height: auto;
@@ -205,14 +192,14 @@ html, body {
   position: absolute;
   left: calc(100% - 8px);
   bottom: 62%;
-  min-width: clamp(140px, 16vw, 220px);
-  max-width: clamp(160px, 20vw, 260px);
+  min-width: clamp(140px, 16cqw, 220px);
+  max-width: clamp(160px, 20cqw, 260px);
   background: #fff;
   border: 2px solid #000;
   border-radius: 50%;
   padding: 12px 18px;
   font-family: var(--font-hand);
-  font-size: clamp(13px, 1.2vw, 16px);
+  font-size: clamp(13px, 1.2cqw, 16px);
   color: #000;
   text-align: center;
   line-height: 1.5;
@@ -234,13 +221,21 @@ html, body {
   50%      { transform: translateY(-8px) rotate(2deg) scale(1.03); }
 }
 .char-heart {
-  position: fixed;
-  left: 10vw;
-  bottom: 10vh;
-  width: clamp(120px, 16vw, 230px);
+  position: absolute;
+  left: 10cqw;
+  bottom: 10cqh;
+  width: clamp(120px, 16cqw, 230px);
   z-index: 20;
   pointer-events: none;
   transition: left 0.7s cubic-bezier(0.4,0,0.2,1), bottom 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* The fixed-width portrait stage is much more square than the fluid desktop
+   canvas these cqw/cqh values were tuned for, so the heart guide (anchored
+   near the dresser icon's much larger artwork) needs to run smaller here to
+   avoid overlapping it. */
+@media (orientation: portrait) {
+  .char-heart { width: clamp(70px, 10cqw, 180px); }
 }
 
 .char-heart img {
@@ -308,17 +303,6 @@ html, body {
 </head>
 <body>
 
-<!-- ROOM BACKGROUND -->
-<div class="room-bg" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
-  </svg>
-</div>
-<div class="room-back-wall" aria-hidden="true"></div>
-
 <!-- NAV -->
 <nav class="room-nav">
   <div class="gear-wrap" id="gear-wrap">
@@ -340,18 +324,39 @@ html, body {
 <!-- LOADING -->
 <div id="loading-state">loading your profile</div>
 
-<!-- ROOM ICONS -->
-<div class="room-icons" id="main-content">
-  <div class="room-icon" id="icon-dresser" onclick="window.location.href='account-settings.html'">
-    <img src="../assets/elements/dresser.png" alt="account settings" />
+<div class="room-scroll"><div class="scene room-stage">
+
+  <!-- ROOM BACKGROUND -->
+  <div class="room-bg" aria-hidden="true">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+    </svg>
   </div>
-  <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
-    <img src="../assets/elements/bed.png" alt="adventure archive" />
+  <div class="room-back-wall" aria-hidden="true"></div>
+
+  <!-- ROOM ICONS -->
+  <div class="room-icons" id="main-content">
+    <div class="room-icon" id="icon-dresser" onclick="window.location.href='account-settings.html'">
+      <img src="../assets/elements/dresser.png" alt="account settings" />
+    </div>
+    <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
+      <img src="../assets/elements/bed.png" alt="adventure archive" />
+    </div>
+    <div class="room-icon" id="icon-exclaim" onclick="openMatrixPicker()">
+      <img src="../assets/elements/exclaim.png" alt="enter the matrix" />
+    </div>
   </div>
-  <div class="room-icon" id="icon-exclaim" onclick="openMatrixPicker()">
-    <img src="../assets/elements/exclaim.png" alt="enter the matrix" />
+
+  <!-- HEART CHARACTER -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="thought-bubble">hello!</div>
+    <img src="../assets/elements/guides/heart.png" alt="" />
   </div>
-</div>
+
+</div></div>
 
 <!-- MATRIX PICKER POPUP -->
 <div class="matrix-picker-overlay" id="matrix-picker-overlay" onclick="if(event.target===this)closeMatrixPicker()">
@@ -375,12 +380,6 @@ html, body {
       </a>
     </div>
   </div>
-</div>
-
-<!-- HEART CHARACTER -->
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble" id="thought-bubble">hello!</div>
-  <img src="../assets/elements/guides/heart.png" alt="" />
 </div>
 
 <!-- LEGAL FOOTER -->
