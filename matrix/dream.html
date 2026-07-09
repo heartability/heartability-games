@@ -64,6 +64,12 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   box-shadow:0 0 0 3px var(--aqua), 6px 10px 40px rgba(0,0,0,.4);
   padding:18px 20px; font-family:var(--font-hand);
 }
+/* Bleed the iframe to the card's edges — treasure-map.html brings its own
+   internal wall/panel padding, so stacking the card's padding on top of it
+   made the map shrink to a fraction of the available width. */
+.map-builder-card .game-iframe {
+  width:calc(100% + 40px); margin:0 -20px -18px;
+}
 
 /* ── STEP PANELS (map grid, phase select) ── */
 .step-panel {
