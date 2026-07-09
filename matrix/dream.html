@@ -1359,8 +1359,14 @@ async function lmSignup() {
 // troubleshooting docs).
 sb.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_IN' && session) {
+    // Supabase re-fires 'SIGNED_IN' whenever the tab regains focus/visibility
+    // (it re-checks the existing session), not just on an actual new login.
+    // Without this guard, tabbing over to DevTools and back would reset the
+    // whole builder back to the map selector mid-step every time.
+    const alreadySignedIn = currentUser && currentUser.id === session.user.id;
     setTimeout(async () => {
       currentUser = session.user;
+      if (alreadySignedIn) return;
       closeLoginModal();
       let isPaid = false;
       try {
