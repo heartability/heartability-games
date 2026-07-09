@@ -177,7 +177,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   align-items: center; justify-content: center;
   gap: 18px;
 }
-.arch-picker-title { font-family: var(--font-hand); font-size: clamp(25px,2.4vw,35px); color: #3a2e1e; text-align: center; }
+.arch-picker-title { font-family: var(--font-hand); font-size: clamp(25px,2.4vw,35px); color: #fff; text-align: center; }
 .arch-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(120px, 180px));
@@ -603,7 +603,7 @@ function showPlanetSelector(){
   panel.innerHTML = `
     <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto;">
       <div style="text-align:center;margin-bottom:36px;">
-        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a planetary body</span>
+        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#fff;">choose a planetary body</span>
       </div>
       <div class="picker-grid">${cards}</div>
     </div>`;
@@ -670,7 +670,7 @@ function showZodiacGrid(tpls){
   panel.innerHTML = `
     <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto;">
       <div style="text-align:center;margin-bottom:36px;">
-        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#c9fff5;">choose a sign</span>
+        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#fff;">choose a sign</span>
       </div>
       <div class="picker-grid grid-3">${cards}</div>
     </div>`;

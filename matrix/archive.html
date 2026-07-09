@@ -744,10 +744,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
     <div class="page-body" style="max-width:900px;">
       <div class="window" id="cosmic-window">
         <div class="window-titlebar">
-          <span>
-            <span class="win-back-btn" id="cosmic-back-btn" onclick="cosmicGoBack()" style="display:none;">← back</span>
-            <span id="cosmic-window-title">browse by sign</span>
-          </span>
+          <span class="win-back-btn" id="cosmic-back-btn" onclick="cosmicGoBack()" style="display:none;">← back</span>
+          <span id="cosmic-window-title">browse by sign</span>
           <div class="graph-toggle" id="cosmic-mode-toggle">
             <button class="graph-toggle-btn active" id="cosmic-toggle-sign" onclick="setCosmicBrowseMode('sign')">sign</button>
             <button class="graph-toggle-btn" id="cosmic-toggle-planet" onclick="setCosmicBrowseMode('planet')">planet</button>
@@ -1642,6 +1640,13 @@ async function enterCosmicResults(value){
 }
 
 // ── VIEW STATE: browse → results → detail ───────────────────
+// Auto margins override the titlebar's space-between: 'left' hugs the title
+// against the back button, 'right' (detail page only) pins it to the far edge.
+function setCosmicTitleAlign(align){
+  const t = document.getElementById('cosmic-window-title');
+  t.style.marginLeft  = align === 'right' ? 'auto' : '';
+  t.style.marginRight = align === 'left'  ? 'auto' : '';
+}
 function showCosmicBrowse(){
   cosmicStep = 'browse';
   document.getElementById('cosmic-browse-view').style.display = 'block';
@@ -1650,6 +1655,7 @@ function showCosmicBrowse(){
   document.getElementById('cosmic-mode-toggle').style.display = 'flex';
   document.getElementById('cosmic-back-btn').style.display = 'none';
   document.getElementById('cosmic-window-title').textContent = 'browse by ' + cosmicBrowseMode;
+  setCosmicTitleAlign('left');
 }
 function showCosmicResults(){
   cosmicStep = 'results';
@@ -1658,6 +1664,7 @@ function showCosmicResults(){
   document.getElementById('cosmic-detail-view').style.display = 'none';
   document.getElementById('cosmic-mode-toggle').style.display = 'none';
   document.getElementById('cosmic-back-btn').style.display = '';
+  setCosmicTitleAlign('left');
 }
 function showCosmicDetail(){
   cosmicStep = 'detail';
@@ -1666,6 +1673,7 @@ function showCosmicDetail(){
   document.getElementById('cosmic-detail-view').style.display = 'block';
   document.getElementById('cosmic-mode-toggle').style.display = 'none';
   document.getElementById('cosmic-back-btn').style.display = '';
+  setCosmicTitleAlign('right');
 }
 function cosmicGoBack(){
   if (cosmicStep === 'detail' && cosmicSelectedValue) {
