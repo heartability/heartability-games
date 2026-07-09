@@ -13,12 +13,14 @@
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
   --font-hand:  "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
+  --font-game:  "VT323", monospace;
   --back-wall:  #f1ebe4;
   --line-col:   #111;
   --blue:       #6579e2;
@@ -415,7 +417,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .arch-card-name { font-size: 17px; color: #3a2e1e; }
 .arch-card-new { border-style: dashed; border-color: #c8b88a; justify-content: center; align-items: center; }
 .arch-card-new:hover { border-color: var(--blue); }
-.arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; }
+.arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; font-family: var(--font-game); }
 .arch-card-new:hover .arch-card-plus { color: var(--blue); }
 
 .adv-journal {
@@ -578,7 +580,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .jrc-btn-stack { flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
 .jrc-plus-btn {
   flex:1; background:rgba(255,255,255,.72); border:2px solid var(--blue); box-shadow:2px 2px 0 var(--aqua);
-  font-family:var(--font-hand); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s;
+  font-family:var(--font-game); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s;
 }
 .jrc-plus-btn:hover  { background:var(--blue); color:#fff; }
 .jrc-plus-btn:active { box-shadow:none; transform:translate(2px,2px); }

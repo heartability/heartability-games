@@ -13,12 +13,14 @@
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
   --font-hand:  "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
+  --font-game:  "VT323", monospace;
   --back-wall:  #f1ebe4;
   --line-col:   #111;
   --blue:       #6579e2;
@@ -46,7 +48,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
    steps it isn't fixed to the viewport: if its content runs taller than the
    screen, it scrolls away with the whole page (via html/body's overflow-y)
    instead of clipping into its own internal scrollbar. ── */
-.game-iframe { width:100%; height:70vh; border:none; display:block; }
+.game-iframe { width:100%; height:70vh; border:none; display:block; flex-shrink:0; }
 .content-panel.iframe-mode {
   border:none; box-shadow:none; background:transparent;
   position:absolute; top:var(--bw-top); left:50%; transform:translateX(-50%);
@@ -130,7 +132,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .arch-card-name { font-size: 17px; color: #3a2e1e; }
 .arch-card-new { border-style: dashed; border-color: #c8b88a; justify-content: center; align-items: center; }
 .arch-card-new:hover { border-color: var(--blue); }
-.arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; }
+.arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; font-family: var(--font-game); }
 .arch-card-new:hover .arch-card-plus { color: var(--blue); }
 
 /* Wall nav buttons — archive / profile links inside back wall */
@@ -230,14 +232,15 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .begin-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .begin-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; }
 
-/* Step header bar */
+/* Step header bar — grid (not space-between) so the title sits at the true
+   midpoint regardless of the back link's width vs. the empty spacer span */
 .step-header {
-  display:flex; align-items:center; justify-content:space-between;
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
   margin-bottom:12px; flex-shrink:0;
 }
-.step-header-title { font-size:25px; color:#fff; }
+.step-header-title { font-size:25px; color:#000; text-align:center; }
 .step-back {
-  font-size:16px; color:var(--blue); cursor:pointer;
+  font-size:16px; color:var(--blue); cursor:pointer; justify-self:start;
 }
 .step-back:hover { text-decoration:underline; }
 
@@ -422,11 +425,29 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     --bw-height: calc(100dvh - 44px);
   }
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
+  /* step-panel centered its content vertically (justify-content:center) —
+     when a step had more content than fit (like a full "your maps" grid),
+     the centering pushed the top rows up and under the fixed nav bar
+     instead of just scrolling. Start from the top so it only scrolls down. */
+  .step-panel { justify-content:flex-start; }
+  /* iframe panels (bingo, builders) used to scroll away with the whole page —
+     tall content (like the bingo board) would scroll its top rows up under
+     the fixed nav bar. Pin the panel below the nav and scroll within it instead. */
+  .content-panel.iframe-mode {
+    position:fixed; top:44px; left:50%; transform:translateX(-50%);
+    width:94vw; margin-bottom:0;
+    height:calc(100dvh - 44px); max-height:calc(100dvh - 44px);
+    overflow-y:auto; overflow-x:hidden;
+  }
   .char-heart { display:none; }
   .thought-bubble { font-size:clamp(13px,3vw,16px); min-width:140px; left:calc(100% - 6px); }
   .phase-key { width:180px; font-size:14px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
   .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
+  /* leave room below the panel so the continue bar doesn't sit on top of it */
+  body:has(.save-continue-bar.visible) .content-panel.iframe-mode {
+    height:calc(100dvh - 44px - 100px); max-height:calc(100dvh - 44px - 100px);
+  }
   .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
     top: 80px !important;
@@ -783,7 +804,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .jrc-btn-stack { flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
 .jrc-plus-btn {
   flex:1; background:rgba(255,255,255,.72); border:2px solid var(--blue); box-shadow:2px 2px 0 var(--aqua);
-  font-family:var(--font-hand); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s;
+  font-family:var(--font-game); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s;
 }
 .jrc-plus-btn:hover  { background:var(--blue); color:#fff; }
 .jrc-plus-btn:active { box-shadow:none; transform:translate(2px,2px); }
