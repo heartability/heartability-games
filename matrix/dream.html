@@ -13,7 +13,7 @@
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
-@font-face { font-family:"Bead";         src:url("../assets/fonts/bead.otf") format("truetype"); font-display:swap; }
+@font-face { font-family:"ransom";         src:url("../assets/fonts/Ransom.ttf") format("truetype"); font-display:swap; }
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -701,7 +701,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 /* Freeform text notes — same drag pattern as stickers, set in the Bead font */
 .adv-text {
   position:absolute; z-index:4; max-width:220px; cursor:grab; touch-action:none;
-  font-family:"Bead", var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
+  font-family:"Ransom", var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
   text-align:center; line-height:1.2; word-break:break-word;
 }
 .adv-text.dragging { cursor:grabbing; z-index:50; }
@@ -1510,6 +1510,11 @@ function showPanel(html) {
   panel.classList.remove('iframe-mode');
   panel.classList.add('active');
   document.getElementById('wall-btns').classList.remove('active');
+  // Chrome occasionally fails to paint freshly-inserted transformed children
+  // (rotate() on .adv-text/.adv-sticker/.adv-photo) after a big innerHTML swap,
+  // leaving them invisible until some unrelated repaint happens to trigger.
+  // Forcing a synchronous reflow here makes sure this paint isn't skipped.
+  void panel.offsetHeight;
 }
 function hidePanel() {
   const panel = document.getElementById('content-panel');
