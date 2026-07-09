@@ -342,7 +342,8 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .matrix-stage { position:relative; width:100%; height:min(70vh,640px); }
 
 /* ── COSMIC TAB ── */
-.glyph-grid { display:flex; flex-wrap:wrap; gap:22px 18px; justify-content:center; padding:14px 4px; }
+.glyph-grid { display:flex; flex-direction:column; gap:22px; align-items:center; padding:14px 4px; }
+.glyph-row { display:flex; gap:18px; justify-content:center; }
 .glyph-slot { width:96px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
 .glyph-disc {
   width:76px; height:76px; border-radius:50%; background:rgba(101,121,226,.55);
@@ -1547,27 +1548,43 @@ function setCosmicBrowseMode(mode){
   renderCosmicBrowseGrid();
   showCosmicBrowse();
 }
+// Rows of 3, but a trailing row of 1-2 gets folded into the row before it
+// (e.g. 7 planets -> rows of 3 and 4, never a lonely last row of 1).
+function chunkIntoRows(items, size){
+  const rows = [];
+  for (let i=0; i<items.length; i+=size) rows.push(items.slice(i, i+size));
+  if (rows.length > 1 && rows[rows.length-1].length < size) {
+    const last = rows.pop();
+    rows[rows.length-1] = rows[rows.length-1].concat(last);
+  }
+  return rows;
+}
 function renderCosmicBrowseGrid(){
   const grid = document.getElementById('cosmic-browse-grid');
   grid.innerHTML = '';
+  let slots;
   if (cosmicBrowseMode === 'sign') {
-    COSMIC_SIGNS.forEach(signId => {
+    slots = COSMIC_SIGNS.map(signId => {
       const hasEntries = allCosmicSeasons.some(s => seasonSignId(s.map_data.season) === signId);
-      grid.appendChild(buildGlyphSlot({
+      return buildGlyphSlot({
         name: signId, locked: !hasEntries, lockedLabel: 'no entries yet',
         src: glyphSrc('sign', signId),
         onClick: () => enterCosmicResults(signId),
-      }));
+      });
     });
   } else {
-    COSMIC_PLANETS.forEach(p => {
-      grid.appendChild(buildGlyphSlot({
-        name: p.name, locked: p.locked, lockedLabel: 'coming soon',
-        src: glyphSrc('planet', p.id),
-        onClick: () => enterCosmicResults(p.id),
-      }));
-    });
+    slots = COSMIC_PLANETS.map(p => buildGlyphSlot({
+      name: p.name, locked: p.locked, lockedLabel: 'coming soon',
+      src: glyphSrc('planet', p.id),
+      onClick: () => enterCosmicResults(p.id),
+    }));
   }
+  chunkIntoRows(slots, 3).forEach(rowSlots => {
+    const row = document.createElement('div');
+    row.className = 'glyph-row';
+    rowSlots.forEach(el => row.appendChild(el));
+    grid.appendChild(row);
+  });
 }
 function buildGlyphSlot({ name, locked, lockedLabel, src, onClick }){
   const slot = document.createElement('div');
@@ -1689,12 +1706,13 @@ async function openCosmicSeasonDetail(seasonRow){
     list.innerHTML = '<div class="day-list-empty">this season has no phases yet</div>';
     return;
   }
+  const STATE_LABEL = { lived:'complete', skipped:'unfinished', locked:'locked' };
   activeCosmicPhases.forEach(ph => {
     const row = document.createElement('div');
     row.className = 'loc-row' + (ph.done ? '' : ' locked-row');
     row.innerHTML = `<span class="loc-name">${escapeHtml(ph.location || ph.map_phase)}${ph.sign ? ` <span style="color:#bbb;font-size:11px;">· ${escapeHtml(ph.sign)}</span>` : ''}</span>
       <span style="display:flex;align-items:center;gap:10px;">
-        <span class="loc-time">${ph.state}</span>
+        <span class="loc-time">${STATE_LABEL[ph.state] || ph.state}</span>
         ${ph.done ? '<span class="loc-arrow">→</span>' : ''}
       </span>`;
     if (ph.done) row.onclick = () => openCosmicPhasePopup(ph);
