@@ -42,7 +42,7 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .content-panel.active{ display:flex; }
 .content-panel.active:not(.iframe-mode){ background:transparent; border:none; box-shadow:none; }
 /* ── IFRAME PANEL — floats free, sized to fit its content (see autoSizeIframe) ── */
-.game-iframe{ width:100%; height:70vh; border:none; display:block; }
+.game-iframe{ width:100%; height:70vh; border:none; display:block; flex-shrink:0; }
 .content-panel.iframe-mode{
   border:none; box-shadow:none; background:transparent;
   top:50%; left:50%; transform:translate(-50%,-50%);
@@ -304,6 +304,17 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   /* season map title + progress meter were overlapping — stack them instead */
   #map-season-title{ top:54px; left:0; right:0; text-align:center; font-size:clamp(30px,7vw,42px); }
   #map-progress{ top:104px; left:50%; right:auto; transform:translateX(-50%); min-width:0; width:min(320px,84vw); }
+
+  /* iframe panels (character step, cosmic bingo) were vertically centered with
+     height:auto — tall content (like the bingo board) pushed the top half up
+     under the fixed nav bar. Anchor below the nav and scroll within the panel
+     instead of centering/overflowing past the viewport. */
+  .content-panel.iframe-mode{
+    top:44px; left:50%; transform:translateX(-50%);
+    width:94vw;
+    height:calc(100dvh - 44px); max-height:calc(100dvh - 44px);
+    overflow-y:auto; overflow-x:hidden;
+  }
 
   /* planet/zodiac picker grids: fixed 126px columns overflowed narrow screens
      and forced horizontal scrolling — shrink slots to fit within the panel width */
