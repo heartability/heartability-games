@@ -1546,13 +1546,13 @@ function spiralZonesSVG(zones, opts){
     }
     if (hasTerrain) {
       body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`
-        + `<text x="${p.x}" y="${p.y-R-8}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold" pointer-events="none">${z.terrain} of</text>`;
+        + `<text x="${p.x}" y="${p.y-R-8}" text-anchor="middle" fill="#000000" font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold" pointer-events="none">${z.terrain} of</text>`;
     } else {
       body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
       if (interactive) body += `<text x="${p.x}" y="${p.y+5}" text-anchor="middle" dominant-baseline="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="26" pointer-events="none">${i+1}</text>`;
     }
     if (z.feeling) {
-      body += `<text x="${p.x}" y="${p.y+R+18}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="15" font-weight="bold" pointer-events="none">${z.feeling}</text>`;
+      body += `<text x="${p.x}" y="${p.y+R+18}" text-anchor="middle" fill="#000000" font-family="ZoesHandwriting,cursive" font-size="15" font-weight="bold" pointer-events="none">${z.feeling}</text>`;
     }
     if (interactive) {
       hits += `<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}" fill="transparent" style="cursor:pointer" onclick="selectPhase(${i})"/>`;
@@ -1578,7 +1578,7 @@ function buildPreviewSVG(mapType, zones) {
       const z = zones[i] || {};
       const fill = z.tint || 'rgba(200,196,180,0.85)';
       circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="#8a7a5a" stroke-width="1.2"/>`;
-      if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
+      if (z.feeling) circles += `<text x="${p.x}" y="${p.y+R+11}" text-anchor="middle" fill="#000000" font-family="ZoesHandwriting,cursive" font-size="10">${z.feeling}</text>`;
     });
     return `<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
       <image href="../assets/elements/square-1.png" x="25" y="10" width="450" height="380" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
@@ -1606,13 +1606,13 @@ function buildSingleLocationSVG(loc){
   if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
       + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`
-      + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a" `
+      + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000" `
       + `font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${loc.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
   }
   if (loc.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14" `
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000" `
       + `font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${_escapeHtml(loc.feeling)}</text>`;
   }
   return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
@@ -2636,7 +2636,7 @@ function buildSquareSVG(zones) {
     if(hasTerrain){
       circles+=`<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}"
         href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>
-        <text x="${p.x}" y="${p.y-R-8}" text-anchor="middle" fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold" pointer-events="none">${z.terrain} of</text>`;
+        <text x="${p.x}" y="${p.y-R-8}" text-anchor="middle" fill="#000000" font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold" pointer-events="none">${z.terrain} of</text>`;
     } else {
       circles+=`<circle cx="${p.x}" cy="${p.y}" r="${R}"
         fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>
@@ -2645,7 +2645,7 @@ function buildSquareSVG(zones) {
     }
     if(z.feeling){
       circles+=`<text x="${p.x}" y="${p.y+R+13}" text-anchor="middle"
-        fill="#5a4a2a" font-family="ZoesHandwriting,cursive" font-size="11"
+        fill="#000000" font-family="ZoesHandwriting,cursive" font-size="11"
         pointer-events="none">${z.feeling}</text>`;
     }
     hits+=`<circle class="zone-hit" cx="${p.x}" cy="${p.y}" r="${R+8}"
@@ -2729,7 +2729,7 @@ function renderSidequestPreview() {
   if (sqDraft.terrain && TERRAIN_IMGS[sqDraft.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
       href="${TERRAIN_IMGS[sqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>
-      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a"
+      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000"
         font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${sqDraft.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
@@ -2738,7 +2738,7 @@ function renderSidequestPreview() {
         font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
   }
   if (sqDraft.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000"
       font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${sqDraft.feeling}</text>`;
   }
   document.getElementById('sq-map-frame').innerHTML =
@@ -2824,7 +2824,7 @@ function renderDctPreview() {
   if (dctDraft.terrain && TERRAIN_IMGS[dctDraft.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
       href="${TERRAIN_IMGS[dctDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>
-      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a"
+      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000"
         font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dctDraft.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
@@ -2833,7 +2833,7 @@ function renderDctPreview() {
         font-family="ZoesHandwriting,cursive" font-size="13">pick a place</text>`;
   }
   if (dctDraft.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000"
       font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dctDraft.feeling}</text>`;
   }
   document.getElementById('dct-map-frame').innerHTML =

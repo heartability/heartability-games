@@ -155,7 +155,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   background: rgba(240,234,214,0.75); padding: 1px 4px;
 }
 .map-item-label .terrain-name { display: block; }
-.map-item-label .feeling-name { display: block; font-size: 13px; color: #5a4a2a; }
+.map-item-label .feeling-name { display: block; font-size: 13px; color: var(--text-dark); }
 
 
 /* STATUS BAR */
@@ -730,7 +730,7 @@ function renderZoneCircles() {
       zoneGroup.appendChild(img);
       const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
-      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
+      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#000000');
       terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '16');
       terrainLabelEl.setAttribute('font-weight', 'bold');
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
@@ -750,7 +750,7 @@ function renderZoneCircles() {
     if (zone.feeling) {
       const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 18);
-      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#2a1e14');
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
       feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '15');
       feelEl.setAttribute('font-weight', 'bold');
       feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
@@ -827,7 +827,7 @@ function renderSquareZones() {
       zoneGroup.appendChild(img);
       const terrainLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       terrainLabelEl.setAttribute('x', pos.x); terrainLabelEl.setAttribute('y', pos.y - R - 8);
-      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#5a4a2a');
+      terrainLabelEl.setAttribute('text-anchor', 'middle'); terrainLabelEl.setAttribute('fill', '#000000');
       terrainLabelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainLabelEl.setAttribute('font-size', '16');
       terrainLabelEl.setAttribute('font-weight', 'bold');
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
@@ -848,7 +848,7 @@ function renderSquareZones() {
     if (zone.feeling) {
       const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 18);
-      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#2a1e14');
+      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
       feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '15');
       feelEl.setAttribute('font-weight', 'bold');
       feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;

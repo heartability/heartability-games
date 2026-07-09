@@ -1189,13 +1189,13 @@ function buildSingleLocationSVG(loc){
   if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
       + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`
-      + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a" `
+      + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000" `
       + `font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${loc.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
   }
   if (loc.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14" `
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000" `
       + `font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${_escapeHtml(loc.feeling)}</text>`;
   }
   return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
@@ -1889,7 +1889,7 @@ function renderDayquestPreview() {
   if (dqDraft.terrain && TERRAIN_IMGS[dqDraft.terrain]) {
     body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
       href="${TERRAIN_IMGS[dqDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>
-      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#5a4a2a"
+      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000"
         font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dqDraft.terrain} of</text>`;
   } else {
     body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
@@ -1898,7 +1898,7 @@ function renderDayquestPreview() {
         font-family="ZoesHandwriting,cursive" font-size="13">pick a terrain</text>`;
   }
   if (dqDraft.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14"
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000"
       font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${dqDraft.feeling}</text>`;
   }
   document.getElementById('dq-map-frame').innerHTML =
