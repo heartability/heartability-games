@@ -185,6 +185,14 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
 .win-back-btn { cursor:pointer; color:var(--purple); text-decoration:underline; margin-right:8px; }
 .win-back-btn:hover { color:var(--purple-dk); }
 
+/* Page-level back link (sits above .top-row, left-aligned, independent of the
+   map/graph reorder on mobile) */
+.page-back-link {
+  cursor:pointer; color:var(--purple); text-decoration:underline;
+  font-family:var(--font-hand); font-size:18px; align-self:flex-start;
+}
+.page-back-link:hover { color:var(--purple-dk); }
+
 /* Map window */
 #map-window { display:flex; flex-direction:column; }
 .map-window-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:8px; }
@@ -657,13 +665,16 @@ html, body { min-height:100dvh; background:#e8e3da; font-family:var(--font-hand)
   <div class="page-wrap">
     <div class="page-body" id="main-content">
 
+      <!-- Back link sits above the top-row (not tied to map-window) so on mobile,
+           where map-window is reordered below the graph, it still stays at the very top -->
+      <span class="page-back-link" id="win-back-btn" onclick="backToSelector()" style="display:none;">← your maps</span>
+
       <!-- TOP ROW: map (or daily matrix card) + line graph -->
       <div class="top-row">
         <!-- MAP WINDOW -->
         <div class="window" id="map-window">
           <div class="window-titlebar">
             <span>
-              <span class="win-back-btn" id="win-back-btn" onclick="backToSelector()" style="display:none;">← your maps</span>
               <span id="map-window-label">Map of: </span><span id="map-window-title">your map</span>
             </span>
             <span id="map-window-type" style="font-size:12px;color:#aaa;"></span>
