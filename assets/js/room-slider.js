@@ -3,8 +3,26 @@
    pairing with assets/css/room-slider.css and the .room-scroll /
    .room-stage wrapper markup. Fires on load and again any time the
    viewport transitions into portrait (e.g. rotating a phone or
-   resizing a desktop window taller than it is wide). */
+   resizing a desktop window taller than it is wide) — but only once
+   per calendar day (shared across all room pages via localStorage),
+   so returning visitors aren't shown it on every room. */
 (function () {
+  var LAST_SHOWN_KEY = "roomHintLastShown";
+
+  function shownToday() {
+    try {
+      return localStorage.getItem(LAST_SHOWN_KEY) === new Date().toDateString();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markShownToday() {
+    try {
+      localStorage.setItem(LAST_SHOWN_KEY, new Date().toDateString());
+    } catch (e) {}
+  }
+
   function ensureHintDom() {
     var overlay = document.getElementById("room-hint-overlay");
     if (overlay) return overlay;
@@ -32,6 +50,8 @@
 
   var hideTimer;
   function showHint() {
+    if (shownToday()) return;
+    markShownToday();
     var overlay = ensureHintDom();
     overlay.classList.add("open");
     clearTimeout(hideTimer);

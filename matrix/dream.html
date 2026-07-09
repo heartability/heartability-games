@@ -13,6 +13,7 @@
 <style>
 @font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
 @font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@font-face { font-family:"Ransom";         src:url("../assets/fonts/Ransom.ttf") format("truetype"); }
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -679,18 +680,54 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
 @media (hover: none) { .adv-photo-remove { opacity:1; } }
 
-/* Add-photo button — circular white plus, fixed top-right of page */
-.matrix-photo-btn {
-  position:fixed; top:9vh; right:40vw; z-index:100;
+/* Stickers — same removable-thumbnail idea as photos, but draggable freely
+   anywhere on the matrix instead of snapping to a quadrant. */
+.adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); cursor:grab; touch-action:none; }
+.adv-sticker img { width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
+.adv-sticker.dragging { cursor:grabbing; z-index:50; }
+.adv-sticker-remove {
+  position:absolute; top:-8px; right:-8px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-sticker:hover .adv-sticker-remove { opacity:1; }
+.adv-sticker-remove:hover { color:#E8478B; border-color:#E8478B; }
+@media (hover: none) { .adv-sticker-remove { opacity:1; } }
+
+/* Freeform text notes — same drag pattern as stickers, set in the Ransom font */
+.adv-text {
+  position:absolute; z-index:4; max-width:220px; cursor:grab; touch-action:none;
+  font-family:"Ransom"; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
+  text-align:center; line-height:1.2; word-break:break-word;
+}
+.adv-text.dragging { cursor:grabbing; z-index:50; }
+.adv-text-remove {
+  position:absolute; top:-10px; right:-14px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:13px; cursor:pointer; font-family:var(--font-hand);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-text:hover .adv-text-remove { opacity:1; }
+.adv-text-remove:hover { color:#E8478B; border-color:#E8478B; }
+@media (hover: none) { .adv-text-remove { opacity:1; } }
+
+/* Matrix toolbar — add photo / sticker / text, fixed top-right of page */
+.matrix-toolbar { position:fixed; top:9vh; right:40vw; z-index:100; display:flex; gap:8px; }
+.matrix-tool-btn {
   width:40px; height:40px; border-radius:50%;
-  font-size:28px; line-height:1; color:var(--blue);
+  font-size:22px; line-height:1; color:var(--blue);
   background:#fff; border:none;
   box-shadow:0 2px 8px rgba(0,0,0,0.18);
   cursor:pointer; transition:all .1s;
   display:flex; align-items:center; justify-content:center;
 }
-.matrix-photo-btn:hover  { background:var(--blue); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
-.matrix-photo-btn:active { transform:scale(0.93); }
+.matrix-tool-btn:hover  { background:var(--blue); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
+.matrix-tool-btn:active { transform:scale(0.93); }
 
 /* ── PHOTO UPLOAD MODAL — framed to match the matrix ── */
 .photo-overlay {
@@ -744,6 +781,22 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .photo-add-btn:hover  { background:#4a5bc4; }
 .photo-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+/* ── STICKER PICKER MODAL (reuses .photo-overlay/.photo-card/.photo-head) ── */
+.sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; }
+.sticker-thumb {
+  background:#fdf6e3; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
+}
+.sticker-thumb:hover { border-color:var(--blue); background:#f0edfa; transform:scale(1.04); }
+.sticker-thumb img { width:100%; display:block; }
+
+/* ── TEXT ADD MODAL (reuses .photo-overlay/.photo-card/.photo-head) ── */
+.text-add-input {
+  width:100%; font-family:var(--font-hand); font-size:18px; color:#222;
+  background:#f5f0ea; border:1.5px solid #bbb; padding:10px 12px;
+  outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
+}
+.text-add-input:focus { border-color:var(--blue); }
 
 /* ── NATIVE JOURNAL — chat-style journal on the back wall ── */
 .jrc-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
@@ -1141,6 +1194,32 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
     <div class="photo-status" id="photo-status"></div>
     <button class="photo-add-btn" id="photo-add-btn" disabled onclick="uploadMatrixPhoto()">add to matrix</button>
+  </div>
+</div>
+
+<!-- STICKER PICKER MODAL -->
+<div class="photo-overlay" id="sticker-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">add a sticker</span>
+      <button class="photo-close" onclick="closeStickerPicker()">×</button>
+    </div>
+    <div class="photo-sub">tap a sticker to drop it on your matrix, then drag it into place.</div>
+    <div class="sticker-grid" id="sticker-grid"></div>
+  </div>
+</div>
+
+<!-- TEXT ADD MODAL -->
+<div class="photo-overlay" id="text-add-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">add text</span>
+      <button class="photo-close" onclick="closeTextAdd()">×</button>
+    </div>
+    <div class="photo-sub">write a few words in your matrix's own handwriting.</div>
+    <textarea class="text-add-input" id="text-add-input" maxlength="80" placeholder="write something..."></textarea>
+    <div class="photo-status" id="text-add-status"></div>
+    <button class="photo-add-btn" id="text-add-btn" onclick="addMatrixText()">add to matrix</button>
   </div>
 </div>
 <!-- MEMBER GATE -->
@@ -2309,22 +2388,44 @@ function buildDreamMatrix(data, seedStr){
     photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
   });
 
+  // Stickers — freeform decorations, placed wherever they were last dragged to.
+  let stickers = '';
+  (data.matrixStickers||[]).forEach(s => {
+    if (!s || !s.url || !s.id) return;
+    stickers += `<div class="adv-sticker" data-id="${_escapeHtml(s.id)}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${s.rot||0}deg);">
+        <img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'">
+        <button class="adv-sticker-remove" data-id="${_escapeHtml(s.id)}" title="remove sticker" aria-label="remove sticker">✕</button></div>`;
+  });
+
+  // Text notes — freeform, set in the Ransom font.
+  let texts = '';
+  (data.matrixTexts||[]).forEach(t => {
+    if (!t || !t.text || !t.id) return;
+    texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${t.rot||0}deg);">${_escapeHtml(t.text)}<button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button></div>`;
+  });
+
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
     </div>
-    <button class="matrix-photo-btn" onclick="openPhotoUpload()">&#43;</button>
+    <div class="matrix-toolbar">
+      <button class="matrix-tool-btn" onclick="openPhotoUpload()" title="add photo">&#43;</button>
+      <button class="matrix-tool-btn" onclick="openStickerPicker()" title="add sticker">&#9733;</button>
+      <button class="matrix-tool-btn" onclick="openTextAdd()" title="add text">Aa</button>
+    </div>
     <div class="matrix-frame">
       <div class="adv-matrix">
         <div class="adv-grid"></div>
         <div class="adv-axis adv-axis-x"></div>
         <div class="adv-axis adv-axis-y"></div>
         <div class="adv-axlbl" style="left:50%;top:3.5%;transform:translate(-50%,-50%) translateZ(0);">external</div>
-        <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
+        <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0) rotate(90deg);">feeling</div>
         <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
-        <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
+        <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) translateZ(0) rotate(-90deg);">action</div>
         ${mapItem}${bingoItem}${charItem}${journalItem}
         ${photos}
+        ${stickers}
+        ${texts}
       </div>
     </div>
   </div>`;
@@ -2342,6 +2443,7 @@ async function assembleTodayMatrixData(entryId){
     locationData: null,                          // {terrain,feeling,tint} of the selected place — self-contained
     sidequestData: null,                         // sidequest snapshot {terrain,feeling,tint,name} when phase==='sidequest'
     bingoScore: 0, charState: null, journalText: '', matrixImages: [],
+    matrixStickers: [], matrixTexts: [],
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
@@ -2359,6 +2461,8 @@ async function assembleTodayMatrixData(entryId){
       // All matrix photos — manual uploads AND journal images — now live in
       // matrix_images, each tagged to a quadrant (journal images: 'internal-feeling').
       d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+      d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
+      d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
     }
   } catch(e){}
   return d;
@@ -2502,6 +2606,216 @@ document.getElementById('content-panel').addEventListener('click', e => {
   if (!btn) return;
   e.stopPropagation();
   removeMatrixPhoto(btn.dataset.url);
+});
+
+// ── MATRIX STICKERS ────────────────────────────────────────
+// Static list of filenames living in assets/elements/stickers/ (no server-side
+// directory listing on a static site, so the picker just hardcodes them).
+const STICKER_BASE = '../assets/elements/stickers/';
+const STICKER_ASSETS = [
+  'peace-sign-purple.png','peace-sign-red.png','peace-sign-pastel.png','peace-sign-green-blue.png',
+  'heart-swirl-teal.png','heart-swirl-orange-green.png','heart-swirl-purple.png','heart-swirl-red-orange.png',
+  'flower-green-yellow.png','flower-confetti-teal-center.png','flower-orange-green.png','flower-yellow-purple.png',
+  'flower-smiley-orange.png','flower-smiley-yellow.png','flower-smiley-blue.png','flower-smiley-red-1.png','flower-smiley-red-2.png',
+  'star-glitter-purple-pink.png','star-glitter-green.png','star-glitter-olive.png','star-glitter-hot-pink.png',
+  'star-glitter-orange.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-pink-hearts.png','star-glitter-yellow-green.png',
+];
+
+function openStickerPicker(){
+  document.getElementById('sticker-grid').innerHTML = STICKER_ASSETS.map(f => {
+    const url = STICKER_BASE + f;
+    const label = f.replace(/\.png$/,'').replace(/-/g,' ');
+    return `<button class="sticker-thumb" onclick="addMatrixSticker('${url}')" title="${_escapeHtml(label)}">
+        <img src="${url}" alt="${_escapeHtml(label)}"></button>`;
+  }).join('');
+  document.getElementById('sticker-overlay').classList.add('open');
+}
+function closeStickerPicker(){
+  document.getElementById('sticker-overlay').classList.remove('open');
+}
+
+async function addMatrixSticker(url){
+  if (!currentUser || !activeEntryId) { HGModal.alert('sign in', 'sign in to save stickers'); return; }
+  const entry = {
+    id: crypto.randomUUID(), url,
+    x: +(20 + Math.random()*60).toFixed(1),
+    y: +(20 + Math.random()*60).toFixed(1),
+    rot: +((Math.random()*2-1)*15).toFixed(1),
+  };
+  try {
+    const { data: row, error: readErr } = await sb.from('dream_matrix')
+      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
+    const { error: updErr } = await sb.from('dream_matrix')
+      .update({ matrix_stickers: [...current, entry] }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+    closeStickerPicker();
+    showRoomStatus('sticker added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch(err){
+    console.error('[matrix sticker] add failed:', err);
+    HGModal.alert('oops', 'couldn’t add sticker — try again');
+  }
+}
+
+async function removeMatrixSticker(id){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('dream_matrix')
+      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
+    const next = items.filter(s => s && s.id !== id);
+    const { error } = await sb.from('dream_matrix')
+      .update({ matrix_stickers: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch(err){
+    console.error('[matrix sticker] remove failed:', err);
+    HGModal.alert('oops', 'couldn’t remove sticker — try again');
+    return;
+  }
+  showRoomStatus('sticker removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// Read-modify-write a sticker's saved position after a drag ends.
+async function updateMatrixStickerPos(id, x, y){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('dream_matrix')
+      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
+    const next = items.map(s => (s && s.id === id) ? { ...s, x, y } : s);
+    await sb.from('dream_matrix').update({ matrix_stickers: next }).eq('id', activeEntryId);
+  } catch(err){
+    console.error('[matrix sticker] position save failed:', err);
+  }
+}
+
+// ── MATRIX TEXT NOTES ─────────────────────────────────────
+function openTextAdd(){
+  document.getElementById('text-add-input').value = '';
+  const st = document.getElementById('text-add-status');
+  st.textContent = ''; st.style.color = '#8a7a5a';
+  document.getElementById('text-add-btn').disabled = false;
+  document.getElementById('text-add-btn').textContent = 'add to matrix';
+  document.getElementById('text-add-overlay').classList.add('open');
+}
+function closeTextAdd(){
+  document.getElementById('text-add-overlay').classList.remove('open');
+}
+
+async function addMatrixText(){
+  const input = document.getElementById('text-add-input');
+  const st = document.getElementById('text-add-status');
+  const text = input.value.trim();
+  if (!text) { st.style.color = '#E8478B'; st.textContent = 'write something first'; return; }
+  if (!currentUser || !activeEntryId) { st.style.color = '#E8478B'; st.textContent = 'sign in to save text'; return; }
+
+  const btn = document.getElementById('text-add-btn');
+  btn.disabled = true; btn.textContent = 'adding…';
+  const entry = {
+    id: crypto.randomUUID(), text,
+    x: +(20 + Math.random()*60).toFixed(1),
+    y: +(20 + Math.random()*60).toFixed(1),
+    rot: +((Math.random()*2-1)*8).toFixed(1),
+  };
+  try {
+    const { data: row, error: readErr } = await sb.from('dream_matrix')
+      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
+    const { error: updErr } = await sb.from('dream_matrix')
+      .update({ matrix_texts: [...current, entry] }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+    closeTextAdd();
+    showRoomStatus('text added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch(err){
+    console.error('[matrix text] add failed:', err);
+    st.style.color = '#E8478B'; st.textContent = 'couldn’t add text — try again';
+    btn.disabled = false; btn.textContent = 'add to matrix';
+  }
+}
+
+async function removeMatrixText(id){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('dream_matrix')
+      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
+    const next = items.filter(t => t && t.id !== id);
+    const { error } = await sb.from('dream_matrix')
+      .update({ matrix_texts: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch(err){
+    console.error('[matrix text] remove failed:', err);
+    HGModal.alert('oops', 'couldn’t remove text — try again');
+    return;
+  }
+  showRoomStatus('text removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// Read-modify-write a text note's saved position after a drag ends.
+async function updateMatrixTextPos(id, x, y){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('dream_matrix')
+      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
+    const next = items.map(t => (t && t.id === id) ? { ...t, x, y } : t);
+    await sb.from('dream_matrix').update({ matrix_texts: next }).eq('id', activeEntryId);
+  } catch(err){
+    console.error('[matrix text] position save failed:', err);
+  }
+}
+
+// Delegated remove-button handler for stickers/text (panel innerHTML is
+// rebuilt on each render, so per-button listeners would be lost).
+document.getElementById('content-panel').addEventListener('click', e => {
+  const stickerBtn = e.target.closest('.adv-sticker-remove');
+  if (stickerBtn) { e.stopPropagation(); removeMatrixSticker(stickerBtn.dataset.id); return; }
+  const textBtn = e.target.closest('.adv-text-remove');
+  if (textBtn) { e.stopPropagation(); removeMatrixText(textBtn.dataset.id); return; }
+});
+
+// ── DRAG-TO-REPOSITION for stickers & text ────────────────
+let matrixDragState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  if (e.target.closest('.adv-sticker-remove, .adv-text-remove')) return;
+  const el = e.target.closest('.adv-sticker, .adv-text');
+  if (!el) return;
+  const frame = el.closest('.matrix-frame');
+  if (!frame) return;
+  el.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  matrixDragState = {
+    el, frame, pointerId: e.pointerId,
+    kind: el.classList.contains('adv-sticker') ? 'sticker' : 'text',
+    id: el.dataset.id, lastX: null, lastY: null,
+  };
+  e.preventDefault();
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixDragState || matrixDragState.pointerId !== e.pointerId) return;
+  const rect = matrixDragState.frame.getBoundingClientRect();
+  let x = ((e.clientX - rect.left) / rect.width) * 100;
+  let y = ((e.clientY - rect.top) / rect.height) * 100;
+  x = Math.max(2, Math.min(98, x));
+  y = Math.max(2, Math.min(98, y));
+  matrixDragState.el.style.left = x + '%';
+  matrixDragState.el.style.top  = y + '%';
+  matrixDragState.lastX = x; matrixDragState.lastY = y;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixDragState || matrixDragState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastX, lastY } = matrixDragState;
+  el.classList.remove('dragging');
+  matrixDragState = null;
+  if (lastX == null) return; // tapped without moving — nothing changed
+  if (kind === 'sticker') updateMatrixStickerPos(id, lastX, lastY);
+  else updateMatrixTextPos(id, lastX, lastY);
 });
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
