@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
-<title>Contact support — Heartability</title>
+<title>Report something broken — Heartability</title>
 <style>
 
 @font-face {
@@ -29,6 +29,8 @@
   --cream:         #f5f0ea;
   --cream-dark:    #e8e3da;
   --line-col:      #111;
+  --comet:         #c2584f;
+  --firefly:       #d9a441;
 }
 
 html, body {
@@ -69,7 +71,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px 16px 40px;
+  padding: 64px 16px 72px;
 }
 
 .window {
@@ -128,6 +130,7 @@ label {
 
 input[type="email"],
 input[type="text"],
+input[type="url"],
 textarea {
   width: 100%;
   font-family: var(--font-hand);
@@ -140,26 +143,26 @@ textarea {
   transition: border-color 0.2s;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   border-color: var(--purple);
 }
 
-textarea { resize: vertical; min-height: 120px; }
+textarea { resize: vertical; min-height: 100px; }
 
 .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-/* Category chips — signature element: what you need, named plainly,
-   picked by tapping rather than a generic dropdown. */
-.chip-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+/* Severity picker — a comet for urgent, a firefly for minor.
+   The signature element: two glowing tags instead of plain radios. */
+.severity-row {
+  display: flex;
+  gap: 12px;
   margin-top: 8px;
 }
 
-.chip-option { position: relative; }
+.severity-option { flex: 1; position: relative; }
 
-.chip-option input {
+.severity-option input {
   position: absolute;
   opacity: 0;
   width: 100%;
@@ -168,23 +171,25 @@ textarea { resize: vertical; min-height: 120px; }
   cursor: pointer;
 }
 
-.chip {
+.severity-card {
   border: 1.5px solid #bbb;
   background: var(--cream);
-  padding: 12px;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 14px 12px;
+  text-align: center;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.chip .glyph { font-size: 17px; }
-.chip .label { font-family: var(--font-hand); font-weight: normal; font-size: 15px; color: #333; }
+.severity-card .glyph { font-size: 20px; display: block; margin-bottom: 4px; }
+.severity-card .label { font-family: var(--font-hand); font-weight: normal; font-size: 15px; color: #333; }
+.severity-card .desc { font-size: 12px; color: #aaa; margin-top: 2px; }
 
-.chip-option input:checked + .chip {
-  border-color: var(--purple);
-  box-shadow: 0 0 0 3px rgba(101, 121, 226, 0.16);
+.severity-option input:checked + .severity-card {
+  border-color: var(--comet);
+  box-shadow: 0 0 0 3px rgba(194, 88, 79, 0.14);
+}
+.severity-option:nth-child(2) input:checked + .severity-card {
+  border-color: var(--firefly);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.16);
 }
 
 .honeypot { position: absolute; left: -9999px; }
@@ -219,23 +224,40 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .status.error { color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.2); }
 .status.success { color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.2); }
 
+/* ── FOOTER ── */
+.legal-footer {
+  position: fixed;
+  bottom: 12px; left: 0; right: 0;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 3vw, 20px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.legal-footer a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.15s; }
+.legal-footer a:hover { color: #fff; }
+.legal-footer span { color: rgba(255,255,255,0.3); }
+
 </style>
 </head>
 <body>
 
 <nav class="room-nav">
   <a class="nav-btn" href="../index.html" onclick="if(history.length>1){history.back();return false;}">← back</a>
-  <span style="margin:0; font:inherit;">contact support</span>
+  <span style="margin:0; font:inherit;">report a bug</span>
 </nav>
 
 <div class="page-wrap">
   <main class="window">
-    <div class="window-titlebar">contact support</div>
+    <div class="window-titlebar">report something broken</div>
     <div class="window-body">
-      <h1>Get in touch</h1>
-      <p class="sub">Questions about your account, a charge, or anything else — send it here and we'll reply by email. No account needed.</p>
+      <h1>Something's not working right</h1>
+      <p class="sub">Tell us what happened — the more specific, the faster we can track it down. No account needed.</p>
 
-      <form id="support-form" novalidate>
+      <form id="bug-form" novalidate>
         <div class="honeypot" aria-hidden="true">
           <label for="website">Leave this field empty</label>
           <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
@@ -243,48 +265,61 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         <label for="email">Your email</label>
         <input type="email" id="email" name="email" placeholder="you@example.com" required>
-        <p class="hint">This is where we'll send our reply.</p>
+        <p class="hint">So we can follow up if we need more detail.</p>
 
-        <label>What's this about?</label>
-        <div class="chip-row">
-          <div class="chip-option">
-            <input type="radio" name="category" value="billing" id="cat-billing" required>
-            <label for="cat-billing" class="chip"><span class="glyph">💳</span><span class="label">Billing</span></label>
+        <label>How urgent is this?</label>
+        <div class="severity-row">
+          <div class="severity-option">
+            <input type="radio" name="category" value="urgent" id="cat-urgent" required>
+            <label for="cat-urgent" class="severity-card">
+              <span class="glyph">☄️</span>
+              <span class="label">Urgent</span>
+              <span class="desc">Blocking — can't use the site</span>
+            </label>
           </div>
-          <div class="chip-option">
-            <input type="radio" name="category" value="account" id="cat-account">
-            <label for="cat-account" class="chip"><span class="glyph">👤</span><span class="label">Account</span></label>
-          </div>
-          <div class="chip-option">
-            <input type="radio" name="category" value="technical" id="cat-technical">
-            <label for="cat-technical" class="chip"><span class="glyph">🛠</span><span class="label">Technical</span></label>
-          </div>
-          <div class="chip-option">
-            <input type="radio" name="category" value="other" id="cat-other">
-            <label for="cat-other" class="chip"><span class="glyph">✉️</span><span class="label">Something else</span></label>
+          <div class="severity-option">
+            <input type="radio" name="category" value="minor" id="cat-minor">
+            <label for="cat-minor" class="severity-card">
+              <span class="glyph">✨</span>
+              <span class="label">Minor</span>
+              <span class="desc">Annoying, but I can work around it</span>
+            </label>
           </div>
         </div>
 
-        <label for="subject">Subject</label>
-        <input type="text" id="subject" name="subject" placeholder="Short summary" required>
+        <label for="page_url">Where did it happen?</label>
+        <input type="url" id="page_url" name="page_url" placeholder="https://heartability.com/...">
 
-        <label for="message">Message</label>
-        <textarea id="message" name="message" placeholder="Tell us what's going on..." required></textarea>
+        <label for="description">What happened?</label>
+        <textarea id="description" name="description" placeholder="I clicked... and then... instead of..." required></textarea>
 
-        <button type="submit" id="submit-btn">Send message</button>
+        <label for="steps">Steps to reproduce (optional)</label>
+        <textarea id="steps" name="steps_to_reproduce" placeholder="1. Go to...&#10;2. Click...&#10;3. See..."></textarea>
+
+        <button type="submit" id="submit-btn">Send report</button>
         <p class="status" id="status"></p>
       </form>
     </div>
   </main>
 </div>
 
+<footer class="legal-footer">
+  <a href="privacy-policy.html">privacy policy</a>
+  <span>·</span>
+  <a href="refund-policy.html">refund policy</a>
+  <span>·</span>
+  <a href="support.html">support</a>
+  <span>·</span>
+  <a href="bug-report.html">report a bug</a>
+</footer>
+
   <script>
     // Point this at your deployed Edge Function URL, e.g.:
-    // https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket
-    const ENDPOINT = "https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket";
+    // https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-bug-report
+    const ENDPOINT = "https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-bug-report";
     const ANON_KEY = "YOUR-SUPABASE-ANON-KEY";
 
-    const form = document.getElementById("support-form");
+    const form = document.getElementById("bug-form");
     const statusEl = document.getElementById("status");
     const submitBtn = document.getElementById("submit-btn");
 
@@ -298,8 +333,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         website: form.website.value, // honeypot
         email: form.email.value.trim(),
         category: form.category.value,
-        subject: form.subject.value.trim(),
-        message: form.message.value.trim(),
+        page_url: form.page_url.value.trim() || null,
+        description: form.description.value.trim(),
+        steps_to_reproduce: form.steps_to_reproduce.value.trim() || null,
       };
 
       try {
@@ -318,7 +354,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
           throw new Error(data.error || "Something went wrong.");
         }
 
-        statusEl.textContent = "Sent — check your email for confirmation. We'll reply soon.";
+        statusEl.textContent = "Got it — thank you. Check your email for confirmation.";
         statusEl.className = "status show success";
         form.reset();
       } catch (err) {
@@ -326,7 +362,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         statusEl.className = "status show error";
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "Send message";
+        submitBtn.textContent = "Send report";
       }
     });
   </script>

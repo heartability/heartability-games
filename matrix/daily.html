@@ -125,11 +125,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 /* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
 .timer-badge {
-  position:absolute; top:-38px; left:50%; transform:translateX(-50%);
-  background:#fff; border:2px solid var(--blue); border-radius:20px;
-  padding:4px 16px; font-family:var(--font-hand); font-size:clamp(15px,1.5vw,19px);
+  position:absolute; top:-74px; left:50%; transform:translateX(-50%);
+  background:#fff; border:4px solid var(--blue); border-radius:40px;
+  padding:8px 32px; font-family:var(--font-hand); font-size:clamp(30px,3vw,38px);
   color:var(--ink); white-space:nowrap; z-index:401; display:none;
-  box-shadow:2px 2px 0 rgba(0,0,0,.15);
+  box-shadow:4px 4px 0 rgba(0,0,0,.15);
 }
 .timer-badge.active { display:block; }
 .timer-badge.warn { color:#E8478B; border-color:#E8478B; animation:timer-warn-pulse 1s ease-in-out infinite; }
@@ -250,8 +250,21 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     --bw-height: calc(100dvh - 44px);
   }
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
-  .char-heart { display:none; }
+  /* Heart guide + bubble are desktop-only, but the flow timer still needs to
+     show somewhere — keep the (invisible) char-heart container around as an
+     anchor and re-pin the timer badge to the bottom-left as its own pill. */
+  .char-heart .char-img, .char-heart .thought-bubble { display:none; }
   .thought-bubble { font-size:clamp(13px,3vw,16px); min-width:140px; left:calc(100% - 6px); }
+  .timer-badge {
+    position:fixed; top:auto; left:14px; bottom:14px; transform:none;
+    padding:5px 16px; font-size:16px; border-width:2px; border-radius:20px;
+    box-shadow:2px 2px 0 rgba(0,0,0,.15);
+  }
+  .timer-badge.warn { animation:none; }
+  .timer-extend {
+    position:fixed; top:auto; bottom:14px; left:14px; transform:none;
+    width:min(230px, calc(100vw - 28px));
+  }
   .save-continue-bar { height:auto; padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px)); bottom:0; z-index:30; background:var(--cream); border-top:2px solid var(--aqua); }
   /* leave room below the panel so the continue bar doesn't sit on top of it */
   body.save-bar-visible .content-panel:not(.iframe-mode) { --bw-height: calc(100dvh - 44px - 100px); }
@@ -464,16 +477,6 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .arch-card-new:hover { border-color: var(--blue); }
 .arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; font-family: var(--font-game); }
 .arch-card-new:hover .arch-card-plus { color: var(--blue); }
-
-.adv-journal {
-  width:clamp(150px,18vw,230px);
-  background:rgba(255,255,255,.72); border:1.5px solid #c8b88a;
-  padding:10px 12px; box-shadow:2px 3px 0 rgba(0,0,0,.06);
-}
-.adv-journal-text {
-  font-family:var(--font-hand); font-size:clamp(14px,1.3vw,18px);
-  color:#5a4a2a; line-height:1.4; font-style:italic;
-}
 
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
 .adv-photo img {
@@ -1675,7 +1678,6 @@ function _seedRand(str){
   return function(){ s = Math.imul(s ^ (s>>>15), 2246822507); s = Math.imul(s ^ (s>>>13), 3266489909); s ^= s>>>16; return (s>>>0)/4294967296; };
 }
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function _firstWords(t,n){ if(!t) return ''; const w=t.trim().split(/\s+/); return w.slice(0,n).join(' ') + (w.length>n ? '…' : ''); }
 // Full-canvas character PNGs (777×1155, transparent padding so layers align).
 // Mirrors FULL_ASSETS in infinity-mirror.html — keep in sync if those assets change.
 const CHAR_FULL_ASSETS = {
@@ -1735,7 +1737,7 @@ function _buildCharStack(charState){
 
 // PORTABLE: give it a day's data + a stable seed string, get matrix HTML back.
 // data = { dateLabel, mapName, mapType, zones, bingoScore(0-24), charState,
-//          journalText, journalImages[], archiveHref }
+//          journalImages[], archiveHref }
 // Quadrant geometry for photo placement (matrix %). Each quadrant lays photos
 // on a 2-col grid that grows inward from the matrix's outer corner, so photos
 // cluster in their quadrant without their bodies overlapping each other.
@@ -1775,15 +1777,10 @@ function buildDailyMatrix(data, seedStr){
       <div class="adv-meter"><div class="adv-meter-fill" style="width:${meterPct}%"></div></div>
       <div class="adv-mode">${mode}</div></div>`;
 
-  // CHARACTER / infinity mirror → top-right quadrant (external + feeling)
+  // CHARACTER / infinity mirror → bottom-right quadrant (internal + feeling)
   const charStack = _buildCharStack(data.charState);
   const charName  = data.charState?.name ? `<div class="adv-cap" style="transform:rotate(0deg);margin-top:4px;">${_escapeHtml(data.charState.name)}</div>` : '';
-  const charItem  = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName}</div>` : '';
-
-  // NOTES (journal) → bottom-right quadrant (internal + feeling)
-  const preview = _firstWords(data.journalText, 10);
-  const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-      <div class="adv-journal-text">${_escapeHtml(preview)}</div></div>` : '';
+  const charItem  = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName}</div>` : '';
 
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
@@ -1798,7 +1795,7 @@ function buildDailyMatrix(data, seedStr){
         <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0) rotate(90deg);">feeling</div>
         <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
         <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) translateZ(0) rotate(-90deg);">action</div>
-        ${mapItem}${bingoItem}${charItem}${journalItem}
+        ${mapItem}${bingoItem}${charItem}
       </div>
     </div>
   </div>`;
@@ -1810,7 +1807,7 @@ async function assembleTodayMatrixData(entryId){
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
     mapName: 'today',
     locationData: null,                          // {name,terrain,feeling,tint,cat} of today's place
-    bingoScore: 0, charState: null, journalText: '', matrixImages: [],
+    bingoScore: 0, charState: null, matrixImages: [],
   };
   try {
     const { data: row } = await sb.from('daily_matrix').select('*')
@@ -1819,9 +1816,6 @@ async function assembleTodayMatrixData(entryId){
       d.charState    = row.character_data || null;
       d.bingoScore   = row.bingo_data?.score || 0;
       d.locationData = row.location_data || null;
-      d.journalText  = (Array.isArray(row.journal_messages)
-        ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
-        : '');
       if (row.entry_date){
         // Render the matrix under the day it was actually saved (local-safe).
         const [y,m,dd] = String(row.entry_date).split('-').map(Number);

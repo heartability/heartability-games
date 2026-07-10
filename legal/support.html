@@ -66,7 +66,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 20px 48px;
+  padding: 64px 20px 96px;
   gap: 20px;
 }
 
@@ -148,6 +148,114 @@ html, body {
   color: #aaa;
 }
 
+/* ── MESSAGE FORM ── */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 18px;
+  color: #aaa;
+  font-size: 13px;
+}
+.form-divider::before,
+.form-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+}
+
+label {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.1vw, 15px);
+  color: #888;
+  margin: 18px 0 6px;
+}
+label:first-of-type { margin-top: 0; }
+
+input[type="email"],
+input[type="text"],
+textarea {
+  width: 100%;
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.3vw, 17px);
+  padding: 10px 12px;
+  border: 1.5px solid #bbb;
+  background: var(--cream);
+  color: #222;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, textarea:focus { border-color: var(--purple); }
+textarea { resize: vertical; min-height: 120px; }
+
+.hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+.chip-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.chip-option { position: relative; }
+.chip-option input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.chip {
+  border: 1.5px solid #bbb;
+  background: var(--cream);
+  padding: 12px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.chip .glyph { font-size: 17px; }
+.chip .label { font-family: var(--font-hand); font-weight: normal; font-size: 15px; color: #333; }
+.chip-option input:checked + .chip {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(101, 121, 226, 0.16);
+}
+
+.honeypot { position: absolute; left: -9999px; }
+
+button[type="submit"] {
+  margin-top: 26px;
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+}
+button[type="submit"]:hover { background: var(--purple-dark); }
+button[type="submit"]:active { box-shadow: none; transform: translate(2px, 2px); }
+button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.status {
+  margin-top: 16px;
+  font-size: 14px;
+  font-family: var(--font-hand);
+  padding: 8px 12px;
+  text-align: center;
+  display: none;
+}
+.status.show { display: block; }
+.status.error { color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.2); }
+.status.success { color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.2); }
+
 /* ── LEGAL LINKS ── */
 .legal-links {
   display: flex;
@@ -202,6 +310,23 @@ html, body {
   flex-shrink: 0;
 }
 
+/* ── FOOTER ── */
+.legal-footer {
+  position: fixed;
+  bottom: 12px; left: 0; right: 0;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 3vw, 20px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.legal-footer a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.15s; }
+.legal-footer a:hover { color: #fff; }
+.legal-footer span { color: rgba(255,255,255,0.3); }
+
   </style>
 </head>
 <body>
@@ -225,6 +350,48 @@ html, body {
         <button class="btn-copy" id="copy-btn" onclick="copyEmail()">copy</button>
       </div>
       <div class="response-note">we respond within 1–2 business days</div>
+
+      <div class="form-divider">or send a message</div>
+
+      <form id="support-form" novalidate>
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        <p class="hint">This is where we'll send our reply.</p>
+
+        <label>What's this about?</label>
+        <div class="chip-row">
+          <div class="chip-option">
+            <input type="radio" name="category" value="billing" id="cat-billing" required>
+            <label for="cat-billing" class="chip"><span class="glyph">💳</span><span class="label">Billing</span></label>
+          </div>
+          <div class="chip-option">
+            <input type="radio" name="category" value="account" id="cat-account">
+            <label for="cat-account" class="chip"><span class="glyph">👤</span><span class="label">Account</span></label>
+          </div>
+          <div class="chip-option">
+            <input type="radio" name="category" value="technical" id="cat-technical">
+            <label for="cat-technical" class="chip"><span class="glyph">🛠</span><span class="label">Technical</span></label>
+          </div>
+          <div class="chip-option">
+            <input type="radio" name="category" value="other" id="cat-other">
+            <label for="cat-other" class="chip"><span class="glyph">✉️</span><span class="label">Something else</span></label>
+          </div>
+        </div>
+
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" name="subject" placeholder="Short summary" required>
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Tell us what's going on..." required></textarea>
+
+        <button type="submit" id="submit-btn">Send message</button>
+        <p class="status" id="status"></p>
+      </form>
     </div>
   </div>
 
@@ -270,6 +437,16 @@ html, body {
 
 </div>
 
+<footer class="legal-footer">
+  <a href="privacy-policy.html">privacy policy</a>
+  <span>·</span>
+  <a href="refund-policy.html">refund policy</a>
+  <span>·</span>
+  <a href="support.html">support</a>
+  <span>·</span>
+  <a href="bug-report.html">report a bug</a>
+</footer>
+
 <script>
   window.copyEmail = function () {
     navigator.clipboard.writeText('hello@heartability.com').then(() => {
@@ -282,6 +459,57 @@ html, body {
       }, 2000);
     });
   };
+
+  // Point this at your deployed Edge Function URL, e.g.:
+  // https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket
+  const ENDPOINT = "https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket";
+  const ANON_KEY = "YOUR-SUPABASE-ANON-KEY";
+
+  const form = document.getElementById("support-form");
+  const statusEl = document.getElementById("status");
+  const submitBtn = document.getElementById("submit-btn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    statusEl.className = "status";
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+
+    const payload = {
+      website: form.website.value, // honeypot
+      email: form.email.value.trim(),
+      category: form.category.value,
+      subject: form.subject.value.trim(),
+      message: form.message.value.trim(),
+    };
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": ANON_KEY,
+          "Authorization": `Bearer ${ANON_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong.");
+      }
+
+      statusEl.textContent = "Sent — check your email for confirmation. We'll reply soon.";
+      statusEl.className = "status show success";
+      form.reset();
+    } catch (err) {
+      statusEl.textContent = err.message || "Couldn't send that. Please try again.";
+      statusEl.className = "status show error";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send message";
+    }
+  });
 </script>
 
 </body>

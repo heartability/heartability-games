@@ -92,7 +92,6 @@
     return function(){ s = Math.imul(s ^ (s>>>15), 2246822507); s = Math.imul(s ^ (s>>>13), 3266489909); s ^= s>>>16; return (s>>>0)/4294967296; };
   }
   function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function firstWords(t,n){ if(!t) return ''; const w=t.trim().split(/\s+/); return w.slice(0,n).join(' ') + (w.length>n ? '…' : ''); }
 
   function buildCharStack(charState){
     if(!charState) return '';
@@ -224,6 +223,8 @@
   /* PORTABLE RENDER: data + stable seed string → matrix HTML.
      data = { dateLabel, mapName, mapType, zones, bingoScore(0-24), charState,
               locationData, sidequestData, journalText, matrixImages[] }
+     journalText isn't drawn on the matrix (no preview item) — it's only read
+     by callers to prefill the "✎ notes" editor (see showEditNotes below).
      opts = { showAddPhoto=true, showEditNotes=false, archiveHref=null }      */
   function buildHTML(data, seedStr, opts){
     data = data || {};
@@ -252,14 +253,9 @@
         <div class="adv-meter"><div class="adv-meter-fill" style="width:${meterPct}%"></div></div>
         <div class="adv-mode">${mode}</div></div>`;
 
-    // CHARACTER → top-right (external + feeling).
+    // CHARACTER (infinity mirror archetype) → bottom-right (internal + feeling).
     const charStack = buildCharStack(data.charState);
-    const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
-
-    // NOTES (journal preview) → bottom-right (internal + feeling).
-    const preview = firstWords(data.journalText, 10);
-    const journalItem = preview ? `<div class="adv-item adv-journal" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-        <div class="adv-journal-text">${esc(preview)}</div></div>` : '';
+    const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
 
     // Photos — placed inside their assigned quadrant.
     const quadCount = {};
@@ -317,7 +313,7 @@
           <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
           <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
           <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
-          ${mapItem}${bingoItem}${charItem}${journalItem}
+          ${mapItem}${bingoItem}${charItem}
           ${photos}
           ${stickers}
           ${texts}
@@ -434,9 +430,9 @@
         <div class="mr-photo-quad-label">which quadrant?</div>
         <div class="mr-photo-quad-grid">
           <button class="mr-photo-quad" type="button" data-q="external-action"><b>map</b><span>external · action</span></button>
-          <button class="mr-photo-quad" type="button" data-q="external-feeling"><b>character</b><span>external · feeling</span></button>
+          <button class="mr-photo-quad" type="button" data-q="external-feeling"><span>external · feeling</span></button>
           <button class="mr-photo-quad" type="button" data-q="internal-action"><b>heart</b><span>internal · action</span></button>
-          <button class="mr-photo-quad" type="button" data-q="internal-feeling"><b>journal</b><span>internal · feeling</span></button>
+          <button class="mr-photo-quad" type="button" data-q="internal-feeling"><b>character</b><span>internal · feeling</span></button>
         </div>
         <div class="mr-photo-status"></div>
         <button class="mr-photo-add" type="button" disabled>add to matrix</button>
@@ -682,15 +678,6 @@
 .adv-char { width:clamp(90px,11vw,140px); }
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
 .adv-char-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
-.adv-journal {
-  width:clamp(150px,18vw,230px);
-  background:rgba(255,255,255,.72); border:1.5px solid #c8b88a;
-  padding:10px 12px; box-shadow:2px 3px 0 rgba(0,0,0,.06);
-}
-.adv-journal-text {
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,16px);
-  color:#5a4a2a; line-height:1.4; font-style:italic;
-}
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
 .adv-photo img {
   width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
