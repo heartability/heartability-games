@@ -712,13 +712,23 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-sticker-remove:hover { color:#E8478B; border-color:#E8478B; }
 @media (hover: none) { .adv-sticker-remove { opacity:1; } }
 
-/* Freeform text notes — same drag pattern as stickers, set in the Bead font */
+/* Freeform text notes — same drag pattern as stickers, set in ZoesHandwriting */
 .adv-text {
   position:absolute; z-index:4; max-width:220px; cursor:grab; touch-action:none;
-  font-family:"Ransom", var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
+  font-family:var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
   text-align:center; line-height:1.2; word-break:break-word;
 }
 .adv-text.dragging { cursor:grabbing; z-index:50; }
+/* Stationery-backed text note — a background card image with the note's text
+   constrained to its writable rectangle (see STATIONERY_ITEMS' hand-verified
+   box, found with a coarse background-color grid scan + maximal-rectangle
+   search over each card's own PNG, so text never sits on the illustration). */
+.adv-text.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
+.adv-text-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.adv-text-stationery-body {
+  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  font-family:var(--font-hand), cursive; color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
+}
 .adv-text-remove {
   position:absolute; top:-10px; right:-14px; z-index:4;
   width:20px; height:20px; padding:0; line-height:1;
@@ -888,6 +898,15 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
 }
 .text-add-input:focus { border-color:var(--blue); }
+/* Live stationery preview — mirrors the actual matrix rendering so what the
+   user sees while typing matches what gets placed. */
+.text-add-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
+.text-add-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.text-add-preview-body {
+  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  font-family:var(--font-hand), cursive; color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
+}
+.stationery-plain-glyph { font-family:var(--font-hand); font-size:28px; color:#3a2e1e; }
 
 /* ── NATIVE JOURNAL — chat-style journal on the back wall ── */
 .jrc-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
@@ -1304,7 +1323,12 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
       <button class="photo-close" onclick="closeTextAdd()">×</button>
     </div>
     <div class="photo-sub">write a few words in your matrix's own handwriting.</div>
-    <textarea class="text-add-input" id="text-add-input" maxlength="80" placeholder="write something..."></textarea>
+    <div class="text-add-preview" id="text-add-preview" style="display:none;"></div>
+    <textarea class="text-add-input" id="text-add-input" maxlength="80" placeholder="write something..." oninput="updateTextAddPreview()"></textarea>
+
+    <div class="photo-quad-label">which stationery?</div>
+    <div class="photo-frame-grid" id="stationery-grid"></div>
+
     <div class="photo-status" id="text-add-status"></div>
     <button class="photo-add-btn" id="text-add-btn" onclick="addMatrixText()">add to matrix</button>
   </div>
@@ -2526,15 +2550,26 @@ function buildDreamMatrix(data, seedStr){
         <button class="adv-sticker-remove" data-id="${_escapeHtml(s.id)}" title="remove sticker" aria-label="remove sticker">✕</button></div>`;
   });
 
-  // Text notes — freeform, set in the Bead font.
+  // Text notes — freeform, set in ZoesHandwriting. A note can optionally sit
+  // on a stationery card, with its text constrained to that card's writable
+  // rectangle (STATIONERY_BOX) so it never overlaps the illustration.
   let texts = '';
   (data.matrixTexts||[]).forEach(t => {
     if (!t || !t.text || !t.id) return;
     const tRot = t.rot || 0, tScale = t.scale || 1;
-    texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
-        <button class="adv-rotate-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="rotate text" aria-label="rotate text">↻</button>
+    const handles = `<button class="adv-rotate-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="rotate text" aria-label="rotate text">↻</button>
         <button class="adv-resize-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="resize text" aria-label="resize text">⤢</button>
-        <button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button></div>`;
+        <button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button>`;
+    if (t.stationery && STATIONERY_FILE[t.stationery]) {
+      const box = STATIONERY_BOX[t.stationery];
+      texts += `<div class="adv-text stationery" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+          <img class="adv-text-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
+          <div class="adv-text-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(t.text)}</div>
+          ${handles}</div>`;
+    } else {
+      texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
+          ${handles}</div>`;
+    }
   });
 
   return `<div class="step-panel matrix-panel">
@@ -3051,8 +3086,37 @@ async function removeMatrixSticker(id){
 }
 
 // ── MATRIX TEXT NOTES ─────────────────────────────────────
+// Stationery cards a text note can sit on. Each "box" is the card's writable
+// rectangle (% of its own image, left/top/width/height) — found by sampling
+// a known-blank seed pixel per card, scanning a coarse grid for cells close
+// to that background color, then running a maximal-rectangle search over the
+// grid (classic largest-rectangle-in-histogram, per row) so illustrations,
+// borders and lace never get written over. Verified visually against every
+// card before committing these numbers (2026-07-10).
+const STATIONERY_BASE = '../assets/elements/stickers/stationary/';
+const STATIONERY_ITEMS = [
+  { key:'airmail-letter',         label:'airmail',       file:'stationary-airmail-letter.png',           box:{l:4.2, t:16.7, w:91.6, h:70.8} },
+  { key:'gift-tag-olive',         label:'gift tag',      file:'stationary-gift-tag-olive.png',           box:{l:4.2, t:37.5, w:91.6, h:58.3} },
+  { key:'label-bracket-green',    label:'green label',   file:'stationary-label-bracket-green.png',      box:{l:8.3, t:16.7, w:83.4, h:66.6} },
+  { key:'label-bracket-navy',     label:'navy label',    file:'stationary-label-bracket-navy.png',       box:{l:12.5,t:12.5, w:75,   h:75} },
+  { key:'lace-doily-oval',        label:'lace doily',    file:'stationary-lace-doily-oval-frame.png',    box:{l:25,  t:20.8, w:54.2, h:54.2} },
+  { key:'library-card',           label:'library card',  file:'stationary-library-card.png',             box:{l:0,   t:37.5, w:100,  h:62.5} },
+  { key:'notecard-daisies',       label:'daisies',       file:'stationary-notecard-daisies.png',         box:{l:4.2, t:8.3,  w:62.5, h:83.4} },
+  { key:'notecard-strawberry',    label:'strawberry',    file:'stationary-notecard-strawberry.png',      box:{l:37.5,t:8.3,  w:58.3, h:70.9} },
+  { key:'notepaper-cowboy',       label:'cowboy',        file:'stationary-notepaper-cowboy-western.png', box:{l:12.5,t:29.2, w:75,   h:50} },
+  { key:'notepaper-mushroom-cat', label:'mushroom cat',  file:'stationary-notepaper-mushroom-cat.png',   box:{l:54.2,t:12.5, w:45.8, h:62.5} },
+];
+const STATIONERY_FILE = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.file]));
+const STATIONERY_BOX  = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.box]));
+
+let textDraft = { stationery: null };
+
 function openTextAdd(){
   document.getElementById('text-add-input').value = '';
+  document.getElementById('text-add-input').maxLength = 80;
+  textDraft = { stationery: null };
+  renderStationeryGrid();
+  updateTextAddPreview();
   const st = document.getElementById('text-add-status');
   st.textContent = ''; st.style.color = '#8a7a5a';
   document.getElementById('text-add-btn').disabled = false;
@@ -3061,6 +3125,39 @@ function openTextAdd(){
 }
 function closeTextAdd(){
   document.getElementById('text-add-overlay').classList.remove('open');
+}
+function renderStationeryGrid(){
+  const plainSelected = !textDraft.stationery ? ' selected' : '';
+  const plainThumb = `<button class="photo-frame-thumb${plainSelected}" data-stationery="" onclick="pickStationery('',this)">
+      <div class="stationery-plain-glyph">Aa</div><span>plain</span></button>`;
+  const cardThumbs = STATIONERY_ITEMS.map(s => {
+    const selected = s.key === textDraft.stationery ? ' selected' : '';
+    return `<button class="photo-frame-thumb${selected}" data-stationery="${s.key}" onclick="pickStationery('${s.key}',this)">
+        <img src="${STATIONERY_BASE}${s.file}" alt="${_escapeHtml(s.label)}"><span>${_escapeHtml(s.label)}</span></button>`;
+  }).join('');
+  document.getElementById('stationery-grid').innerHTML = plainThumb + cardThumbs;
+}
+function pickStationery(key, el){
+  textDraft.stationery = key || null;
+  document.querySelectorAll('#stationery-grid .photo-frame-thumb').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('text-add-input').maxLength = textDraft.stationery ? 300 : 80;
+  updateTextAddPreview();
+}
+// Mirrors the actual matrix rendering so what's shown while typing matches
+// what gets placed. Plain notes just use the textarea alone (today's look).
+function updateTextAddPreview(){
+  const preview = document.getElementById('text-add-preview');
+  const input = document.getElementById('text-add-input');
+  if (!textDraft.stationery){
+    preview.style.display = 'none';
+    return;
+  }
+  preview.style.display = 'block';
+  const file = STATIONERY_FILE[textDraft.stationery];
+  const box = STATIONERY_BOX[textDraft.stationery];
+  preview.innerHTML = `<img class="text-add-preview-img" src="${STATIONERY_BASE}${file}" alt="">
+      <div class="text-add-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(input.value)}</div>`;
 }
 
 async function addMatrixText(){
@@ -3078,6 +3175,7 @@ async function addMatrixText(){
     y: +(20 + Math.random()*60).toFixed(1),
     rot: +((Math.random()*2-1)*8).toFixed(1),
   };
+  if (textDraft.stationery) entry.stationery = textDraft.stationery;
   try {
     const { data: row, error: readErr } = await sb.from('dream_matrix')
       .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
