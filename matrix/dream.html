@@ -19,6 +19,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
+  color-scheme: light;
   --font-hand:  "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
   --font-game:  "VT323", monospace;
@@ -784,6 +785,13 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
 
 /* ── STICKER PICKER MODAL (reuses .photo-overlay/.photo-card/.photo-head) ── */
+.sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.sticker-tab {
+  padding:6px 12px; background:#fdf6e3; border:1.5px solid #ccc;
+  font-family:var(--font-hand); font-size:14px; color:#8a7a5a; cursor:pointer; transition:all .1s;
+}
+.sticker-tab:hover { border-color:var(--blue); color:var(--blue); }
+.sticker-tab.active { border-color:var(--blue); background:var(--blue); color:#fff; }
 .sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; }
 .sticker-thumb {
   background:#fdf6e3; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
@@ -1206,6 +1214,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
       <button class="photo-close" onclick="closeStickerPicker()">×</button>
     </div>
     <div class="photo-sub">tap a sticker to drop it on your matrix, then drag it into place.</div>
+    <div class="sticker-tabs" id="sticker-tabs"></div>
     <div class="sticker-grid" id="sticker-grid"></div>
   </div>
 </div>
@@ -2628,26 +2637,79 @@ document.getElementById('content-panel').addEventListener('click', e => {
 });
 
 // ── MATRIX STICKERS ────────────────────────────────────────
-// Static list of filenames living in assets/elements/stickers/ (no server-side
-// directory listing on a static site, so the picker just hardcodes them).
+// Static lists of filenames living in assets/elements/stickers/<category>/ (no
+// server-side directory listing on a static site, so the picker hardcodes them).
 const STICKER_BASE = '../assets/elements/stickers/';
-const STICKER_ASSETS = [
-  'peace-sign-purple.png','peace-sign-red.png','peace-sign-pastel.png','peace-sign-green-blue.png',
-  'heart-swirl-teal.png','heart-swirl-orange-green.png','heart-swirl-purple.png','heart-swirl-red-orange.png',
-  'flower-green-yellow.png','flower-confetti-teal-center.png','flower-orange-green.png','flower-yellow-purple.png',
-  'flower-smiley-orange.png','flower-smiley-yellow.png','flower-smiley-blue.png','flower-smiley-red-1.png','flower-smiley-red-2.png',
-  'star-glitter-purple-pink.png','star-glitter-green.png','star-glitter-olive.png','star-glitter-hot-pink.png',
-  'star-glitter-orange.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-pink-hearts.png','star-glitter-yellow-green.png',
-];
+const STICKER_CATEGORIES = {
+  'affirmations': { label: 'affirmations', files: [
+    'affirmation-banner-let-it-come-go.png','affirmation-license-plate-meant-for-you.png',
+    'affirmation-sticker-taking-time.png','affirmation-ticket-beautiful-life.png','affirmation-ticket-good-things-coming.png',
+  ]},
+  'angel-numbers': { label: 'angel numbers', files: [
+    'angel-number-111-intuition.png','angel-number-222-alignment.png','angel-number-333-support.png',
+    'angel-number-444-protection.png','angel-number-555-change.png','angel-number-777-luck.png',
+    'angel-number-888-balance.png','angel-number-999-release.png',
+  ]},
+  'ephemera': { label: 'ephemera', files: [
+    'ephemera-butterfly-pink-green.png','ephemera-butterfly-stamp-korea.png','ephemera-butterfly-white-lace.png',
+    'ephemera-cloud.png','ephemera-disco-ball.png','ephemera-fish-bottle-green.png','ephemera-key-head-profile.png',
+    'ephemera-lace-heart-doily-blue.png','ephemera-locket.png','ephemera-lovers-eye-pearl-brooch.png',
+    'ephemera-moon-woman-vintage.png','ephemera-museum-of-everything-ive-loved.png','ephemera-spiral-silver.png',
+    'ephemera-star-embroidered-silver.png','ephemera-watercolor-flower-pink.png','ephemera-wax-seal-rose.png',
+  ]},
+  'fruit-stickers': { label: 'fruit stickers', files: [
+    'fruit-sticker-appealing-bananas.png','fruit-sticker-banana-fruit-love-heart.png','fruit-sticker-berry-good-strawberry.png',
+    'fruit-sticker-chill-peel-asian-pear.png','fruit-sticker-eat-more-veggies.png','fruit-sticker-eat-squeeze-me-lemon.png',
+    'fruit-sticker-extra-fruity.png','fruit-sticker-go-go-mango.png','fruit-sticker-juicy-plantains.png',
+    'fruit-sticker-lime-crush.png','fruit-sticker-patience-is-sweet-peach.png','fruit-sticker-pear-fect.png',
+    'fruit-sticker-ripe-n-juicy.png','fruit-sticker-take-me-to-lunch-chiquita.png','fruit-sticker-that-a-way-groundhog.png',
+    'fruit-sticker-the-best-banana-ecuador.png','fruit-sticker-thumping-good-watermelon-bunny.png',
+  ]},
+  'fruits': { label: 'fruits', files: [
+    'fruit-circle-blood-orange.png','fruit-circle-blueberry.png','fruit-circle-feijoa.png','fruit-circle-guava.png',
+    'fruit-circle-kiwi.png','fruit-circle-lime.png','fruit-circle-orange.png','fruit-circle-papaya.png',
+    'fruit-circle-peach.png','fruit-circle-pineapple.png','fruit-circle-pomegranate.png','fruit-circle-watermelon.png',
+    'fruit-glitter-apple.png','fruit-glitter-cherries.png','fruit-glitter-grapes.png','fruit-glitter-lemon.png',
+    'fruit-glitter-strawberry.png','fruit-glitter-watermelon-slice.png',
+  ]},
+  'gems': { label: 'gems', files: [
+    'gem-baguette-blue.png','gem-cabochon-oval-blue.png','gem-cluster-cloud-emerald.png','gem-cluster-crescent-moon-blue.png',
+    'gem-cluster-flower-green.png','gem-cluster-flower-pink.png','gem-emerald-cut-pink.png','gem-heart-fuchsia.png',
+    'gem-oval-green.png','gem-pear-mint.png','gem-pear-teal.png','gem-rough-blue-green.png','gem-rough-green.png',
+    'gem-round-rose.png','gem-sparkle-purple.png','gem-star-gold.png','gem-star-teal.png','gem-trillion-red.png',
+  ]},
+  'stars': { label: 'stars', files: [
+    'star-foil-blue.png','star-foil-gold.png','star-foil-lime.png','star-foil-pink.png','star-foil-rainbow.png',
+    'star-foil-red.png','star-foil-silver.png','star-foil-teal.png','star-glitter-blue.png','star-glitter-green.png',
+    'star-glitter-hot-pink.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-olive.png',
+    'star-glitter-orange.png','star-glitter-purple-pink.png','star-paint-blue.png',
+  ]},
+};
+let activeStickerTab = Object.keys(STICKER_CATEGORIES)[0];
 
 function openStickerPicker(){
-  document.getElementById('sticker-grid').innerHTML = STICKER_ASSETS.map(f => {
-    const url = STICKER_BASE + f;
+  renderStickerTabs();
+  renderStickerGrid();
+  document.getElementById('sticker-overlay').classList.add('open');
+}
+function renderStickerTabs(){
+  document.getElementById('sticker-tabs').innerHTML = Object.entries(STICKER_CATEGORIES).map(([key, cat]) => {
+    return `<button class="sticker-tab${key === activeStickerTab ? ' active' : ''}" onclick="selectStickerTab('${key}')">${_escapeHtml(cat.label)}</button>`;
+  }).join('');
+}
+function selectStickerTab(key){
+  activeStickerTab = key;
+  renderStickerTabs();
+  renderStickerGrid();
+}
+function renderStickerGrid(){
+  const cat = STICKER_CATEGORIES[activeStickerTab];
+  document.getElementById('sticker-grid').innerHTML = cat.files.map(f => {
+    const url = STICKER_BASE + activeStickerTab + '/' + f;
     const label = f.replace(/\.png$/,'').replace(/-/g,' ');
     return `<button class="sticker-thumb" onclick="addMatrixSticker('${url}')" title="${_escapeHtml(label)}">
         <img src="${url}" alt="${_escapeHtml(label)}"></button>`;
   }).join('');
-  document.getElementById('sticker-overlay').classList.add('open');
 }
 function closeStickerPicker(){
   document.getElementById('sticker-overlay').classList.remove('open');
