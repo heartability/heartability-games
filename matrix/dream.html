@@ -783,9 +783,20 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
 .photo-drop:hover .photo-preview { border-color:var(--blue); }
-.photo-preview-img { width:100%; height:100%; object-fit:cover; display:block; }
+/* object-fit:cover gives a gap-free baseline crop; object-position (panned by
+   dragging) + the scale transform (the zoom slider) let the user adjust which
+   part of the photo shows through the frame's window. */
+.photo-preview-img {
+  width:100%; height:100%; object-fit:cover; object-position:50% 50%; display:block;
+  cursor:grab; touch-action:none;
+}
+.photo-preview-img:active { cursor:grabbing; }
 .photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .photo-drop-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:16px; }
+
+.photo-zoom-row { display:flex; align-items:center; gap:10px; margin:-4px 0 14px; }
+.photo-zoom-label { font-size:14px; color:#8a7a5a; }
+.photo-zoom-row input[type="range"] { flex:1; accent-color:var(--blue); }
 
 /* ── PHOTO FRAME PICKER — stretches the chosen frame to match the photo's own
    size, so its border covers/crops whatever sits outside its window ── */
@@ -1228,6 +1239,10 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
         <span class="photo-drop-hint">tap to choose an image</span>
       </div>
     </label>
+    <div class="photo-zoom-row" id="photo-zoom-row" style="display:none;">
+      <span class="photo-zoom-label">zoom</span>
+      <input type="range" id="photo-zoom" min="1" max="2.5" step="0.05" value="1" oninput="onPhotoZoomInput(this.value)">
+    </div>
 
     <div class="photo-quad-label">which frame?</div>
     <div class="photo-frame-grid" id="photo-frame-grid"></div>
@@ -2446,9 +2461,12 @@ function buildDreamMatrix(data, seedStr){
       left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); deg = rot(8);
     }
     const frameFile = PHOTO_FRAME_FILE[img.frame] || PHOTO_FRAME_FILE.polaroid;
+    const imgScale = img.imgScale || 1;
+    const imgPosX = img.imgPosX != null ? img.imgPosX : 50;
+    const imgPosY = img.imgPosY != null ? img.imgPosY : 50;
     photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
         <div class="adv-photo-inner">
-          <img class="adv-photo-img" src="${img.url}" alt="" onerror="this.parentElement.parentElement.style.display='none'">
+          <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
           <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
         </div>
         <button class="adv-rotate-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="rotate photo" aria-label="rotate photo">↻</button>
@@ -2576,13 +2594,15 @@ const PHOTO_FRAMES = [
 ];
 const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
 
-let photoDraft = { file:null, frame:'polaroid' };
+let photoDraft = { file:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50 };
 
 function openPhotoUpload(){
-  photoDraft = { file:null, frame:'polaroid' };
+  photoDraft = { file:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50 };
   document.getElementById('photo-file').value = '';
   document.getElementById('photo-preview').innerHTML =
     '<span class="photo-drop-hint">tap to choose an image</span>';
+  document.getElementById('photo-zoom-row').style.display = 'none';
+  document.getElementById('photo-zoom').value = 1;
   renderPhotoFrameGrid();
   const st = document.getElementById('photo-status');
   st.textContent = ''; st.style.color = '#8a7a5a';
@@ -2604,6 +2624,18 @@ function updatePhotoPreviewFrame(){
   const img = document.querySelector('#photo-preview .photo-preview-frame');
   if (img) img.src = PHOTO_FRAME_BASE + (PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid);
 }
+// Applies the current zoom/pan draft to the live preview image — called by
+// both the zoom slider and the drag-to-reposition handlers below.
+function updatePhotoPreviewFit(){
+  const img = document.querySelector('#photo-preview .photo-preview-img');
+  if (!img) return;
+  img.style.objectPosition = `${photoDraft.imgPosX}% ${photoDraft.imgPosY}%`;
+  img.style.transform = `scale(${photoDraft.imgScale})`;
+}
+function onPhotoZoomInput(val){
+  photoDraft.imgScale = +val;
+  updatePhotoPreviewFit();
+}
 function pickFrame(key, el){
   photoDraft.frame = key;
   document.querySelectorAll('.photo-frame-thumb').forEach(b => b.classList.remove('selected'));
@@ -2619,12 +2651,16 @@ function onPhotoPicked(e){
     photoDraft.file = null; refreshPhotoAdd(); return;
   }
   photoDraft.file = file;
+  photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50;
+  document.getElementById('photo-zoom').value = 1;
+  document.getElementById('photo-zoom-row').style.display = 'flex';
   const reader = new FileReader();
   reader.onload = ev => {
     const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
     document.getElementById('photo-preview').innerHTML =
       `<img class="photo-preview-img" src="${ev.target.result}" alt="">
        <img class="photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">`;
+    updatePhotoPreviewFit();
   };
   reader.readAsDataURL(file);
   st.textContent = '';
@@ -2633,6 +2669,37 @@ function onPhotoPicked(e){
 function refreshPhotoAdd(){
   document.getElementById('photo-add-btn').disabled = !photoDraft.file;
 }
+
+// Drag-to-reposition the photo within its frame window (mirrors the matrix's
+// own drag pattern). object-position is what actually pans the crop; the
+// zoom slider's scale() transform is layered on top of it.
+let photoPanState = null;
+document.getElementById('photo-preview').addEventListener('pointerdown', e => {
+  const img = e.target.closest('.photo-preview-img');
+  if (!img) return;
+  img.setPointerCapture(e.pointerId);
+  const box = document.getElementById('photo-preview').getBoundingClientRect();
+  photoPanState = {
+    pointerId: e.pointerId, box,
+    startX: e.clientX, startY: e.clientY,
+    startPosX: photoDraft.imgPosX, startPosY: photoDraft.imgPosY,
+  };
+  e.preventDefault();
+});
+document.getElementById('photo-preview').addEventListener('pointermove', e => {
+  if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+  const dx = e.clientX - photoPanState.startX;
+  const dy = e.clientY - photoPanState.startY;
+  const posX = Math.max(0, Math.min(100, photoPanState.startPosX - (dx / photoPanState.box.width) * 100));
+  const posY = Math.max(0, Math.min(100, photoPanState.startPosY - (dy / photoPanState.box.height) * 100));
+  photoDraft.imgPosX = +posX.toFixed(1);
+  photoDraft.imgPosY = +posY.toFixed(1);
+  updatePhotoPreviewFit();
+});
+document.getElementById('photo-preview').addEventListener('pointerup', e => {
+  if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+  photoPanState = null;
+});
 
 async function uploadMatrixPhoto(){
   if (!photoDraft.file) return;
@@ -2659,14 +2726,16 @@ async function uploadMatrixPhoto(){
     const publicUrl = pub?.publicUrl;
     if (!publicUrl) throw new Error('could not resolve image url');
 
-    // Append {url,frame,x,y,rot} to dream_matrix.matrix_images (read-modify-write).
-    // Lands at a random spot (same convention as stickers) — no quadrant to pick anymore.
+    // Append {url,frame,imgScale,imgPosX,imgPosY,x,y,rot} to dream_matrix.matrix_images
+    // (read-modify-write). Lands at a random spot (same convention as stickers) —
+    // no quadrant to pick anymore.
     const { data: row, error: readErr } = await sb.from('dream_matrix')
       .select('matrix_images').eq('id', activeEntryId).maybeSingle();
     if (readErr) throw readErr;
     const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
     const next = [...current, {
       url: publicUrl, frame: photoDraft.frame,
+      imgScale: photoDraft.imgScale, imgPosX: photoDraft.imgPosX, imgPosY: photoDraft.imgPosY,
       x: +(20 + Math.random()*60).toFixed(1),
       y: +(20 + Math.random()*60).toFixed(1),
       rot: +((Math.random()*2-1)*8).toFixed(1),
