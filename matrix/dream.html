@@ -2506,7 +2506,7 @@ function buildDreamMatrix(data, seedStr){
       const imgPosY = img.imgPosY != null ? img.imgPosY : 50;
       const imgRot = img.imgRot || 0;
       photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
-          <div class="adv-photo-inner">
+          <div class="adv-photo-inner" style="${photoFrameMaskStyle(img.frame)}">
             <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
             <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
           </div>
@@ -2623,16 +2623,36 @@ async function renderMatrix() {
 // photo's own rendered size (see .adv-photo-frame / .photo-preview-frame),
 // so its border covers whatever falls outside its window. "polaroid" is the
 // standard/default look.
+//
+// Frame PNGs are square/rectangular canvases, but shapes like the heart
+// frames only cover part of that canvas — the rest is transparent. Just
+// overlaying the frame on a rectangular photo let the photo show through
+// those transparent corners instead of being "cut" to the frame's shape. Each
+// frame also has a solid-silhouette mask (assets/.../frames/masks/, generated
+// with scipy.ndimage.binary_fill_holes over the frame's alpha channel — see
+// scratchpad from 2026-07-10) applied via CSS mask-image on the photo box, so
+// the photo is truly clipped to the frame's outline, corners included.
 const PHOTO_FRAME_BASE = '../assets/elements/stickers/frames/';
+const PHOTO_FRAME_MASK_BASE = '../assets/elements/stickers/frames/masks/';
 const PHOTO_FRAMES = [
-  { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png' },
-  { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png' },
-  { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png' },
-  { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png' },
-  { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png' },
-  { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png' },
+  { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png',                   mask: 'frame-polaroid-mask.png' },
+  { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png',         mask: 'frame-gold-beaded-square-mask.png' },
+  { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png',           mask: 'frame-gold-heart-shell-mask.png' },
+  { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png',mask: 'frame-green-gold-ornate-rectangle-mask.png' },
+  { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png',      mask: 'frame-lace-heart-floral-red-mask.png' },
+  { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png',    mask: 'frame-scallop-black-rectangle-mask.png' },
 ];
 const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
+const PHOTO_FRAME_MASK_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.mask]));
+// Shared inline CSS (both prefixed and standard) that clips an element to a
+// frame's mask, stretched to match that element's own box exactly.
+function photoFrameMaskStyle(frameKey){
+  const maskUrl = PHOTO_FRAME_MASK_BASE + (PHOTO_FRAME_MASK_FILE[frameKey] || PHOTO_FRAME_MASK_FILE.polaroid);
+  return `mask-image:url(${maskUrl});-webkit-mask-image:url(${maskUrl});`
+    + `mask-size:100% 100%;-webkit-mask-size:100% 100%;`
+    + `mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;`
+    + `mask-position:center;-webkit-mask-position:center;`;
+}
 const NO_FRAME_KEY = 'none'; // clean cutout PNGs: no overlay, no white mat, no cropping
 
 let photoDraft = { file:null, dataUrl:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50, imgRot:0 };
@@ -2641,6 +2661,7 @@ function openPhotoUpload(){
   photoDraft = { file:null, dataUrl:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50, imgRot:0 };
   document.getElementById('photo-file').value = '';
   document.getElementById('photo-preview').classList.remove('no-frame');
+  document.getElementById('photo-preview').style.cssText = '';
   document.getElementById('photo-preview').innerHTML =
     '<span class="photo-drop-hint">tap to choose an image</span>';
   renderPhotoFrameGrid();
@@ -2666,6 +2687,7 @@ function renderPhotoFrameGrid(){
 // or the plain, uncropped cutout view for "no frame".
 function renderPhotoPreviewContents(){
   const preview = document.getElementById('photo-preview');
+  preview.style.cssText = ''; // clear any mask left from a previous frame choice
   if (!photoDraft.dataUrl) return;
   if (photoDraft.frame === NO_FRAME_KEY){
     preview.classList.add('no-frame');
@@ -2673,6 +2695,9 @@ function renderPhotoPreviewContents(){
         <button class="photo-preview-clear" onclick="clearPhotoDraft()" title="remove image" aria-label="remove image">✕</button>`;
   } else {
     preview.classList.remove('no-frame');
+    // Clip the whole box (white backing + photo + frame overlay) to the
+    // frame's true silhouette — see PHOTO_FRAMES comment above.
+    preview.style.cssText = photoFrameMaskStyle(photoDraft.frame);
     const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
     preview.innerHTML = `<img class="photo-preview-img" src="${photoDraft.dataUrl}" alt="">
        <img class="photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
@@ -2695,6 +2720,7 @@ function clearPhotoDraft(){
   photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
   document.getElementById('photo-file').value = '';
   document.getElementById('photo-preview').classList.remove('no-frame');
+  document.getElementById('photo-preview').style.cssText = '';
   document.getElementById('photo-preview').innerHTML =
     '<span class="photo-drop-hint">tap to choose an image</span>';
   refreshPhotoAdd();
