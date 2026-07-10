@@ -664,13 +664,17 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); cursor:grab; touch-action:none; }
 .adv-photo.dragging { cursor:grabbing; z-index:50; }
-.adv-photo-inner { position:relative; display:block; }
-.adv-photo-img {
-  width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
-  pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:contain; background:#fff;
+/* Fixed-ratio box (matches the standard polaroid frame's own proportions) —
+   the photo fills it edge-to-edge via object-fit:cover, so it always fills the
+   frame properly: a white base shows through if the image doesn't fully cover,
+   and anything outside the box is clipped rather than overflowing. */
+.adv-photo-inner {
+  position:relative; display:block; width:100%; aspect-ratio:602/691;
+  background:#fff; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
-/* Frame overlay — stretched to exactly match the photo's own rendered box, so
-   its border sits on top and crops whatever falls outside its window. */
+.adv-photo-img { width:100%; height:100%; display:block; pointer-events:none; object-fit:cover; }
+/* Frame overlay — stretched to exactly match the photo box, so its border sits
+   on top and crops whatever falls outside its window. */
 .adv-photo-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 /* Remove control on each matrix photo — hover-reveal on desktop, always on touch */
 .adv-photo-remove {
@@ -773,12 +777,13 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
 .photo-drop { display:block; cursor:pointer; }
 .photo-preview {
-  position:relative; width:100%; aspect-ratio:4/3; background:#e8e0c8;
+  position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
+  aspect-ratio:602/691; background:#fff;
   border:2px dashed #8a7a5a; display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
 .photo-drop:hover .photo-preview { border-color:var(--blue); }
-.photo-preview-img { width:100%; height:100%; object-fit:contain; }
+.photo-preview-img { width:100%; height:100%; object-fit:cover; display:block; }
 .photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .photo-drop-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:16px; }
 
@@ -800,17 +805,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .photo-frame-thumb.selected span { color:#fff; background:rgba(74,91,196,.85); }
 
 .photo-quad-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
-.photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-.photo-quad {
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:12px 8px; background:#fdf6e3; border:1.5px solid #ccc;
-  font-family:var(--font-hand); cursor:pointer; color:#555; transition:all .1s;
-}
-.photo-quad b { font-size:17px; color:#3a2e1e; }
-.photo-quad span { font-size:12px; color:#8a7a5a; }
-.photo-quad:hover { border-color:var(--blue); background:#f0edfa; }
-.photo-quad.selected { border-color:var(--blue); background:var(--blue); box-shadow:2px 2px 0 #3a4aaa; }
-.photo-quad.selected b, .photo-quad.selected span { color:#fff; }
 
 .photo-status { font-size:15px; min-height:18px; margin-bottom:8px; color:#8a7a5a; }
 .photo-add-btn {
@@ -1219,14 +1213,14 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   </div>
 </div>
 
-<!-- PHOTO UPLOAD — adds a picture to a chosen quadrant of the matrix -->
+<!-- PHOTO UPLOAD — adds a picture to the matrix -->
 <div class="photo-overlay" id="photo-overlay">
   <div class="photo-card">
     <div class="photo-head">
       <span class="photo-title">add a photo</span>
       <button class="photo-close" onclick="closePhotoUpload()">×</button>
     </div>
-    <div class="photo-sub">pick an image and choose where it lands on your matrix.</div>
+    <div class="photo-sub">pick an image and a frame, then drag it into place.</div>
 
     <label class="photo-drop">
       <input type="file" id="photo-file" accept="image/*" hidden onchange="onPhotoPicked(event)">
@@ -1237,14 +1231,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
     <div class="photo-quad-label">which frame?</div>
     <div class="photo-frame-grid" id="photo-frame-grid"></div>
-
-    <div class="photo-quad-label">which quadrant?</div>
-    <div class="photo-quad-grid" id="photo-quad-grid">
-      <button class="photo-quad" data-q="external-action"  onclick="pickQuadrant('external-action',this)"><b>map</b><span>external · action</span></button>
-      <button class="photo-quad" data-q="external-feeling" onclick="pickQuadrant('external-feeling',this)"><b>character</b><span>external · feeling</span></button>
-      <button class="photo-quad" data-q="internal-action"  onclick="pickQuadrant('internal-action',this)"><b>heart</b><span>internal · action</span></button>
-      <button class="photo-quad" data-q="internal-feeling" onclick="pickQuadrant('internal-feeling',this)"><b>journal</b><span>internal · feeling</span></button>
-    </div>
 
     <div class="photo-status" id="photo-status"></div>
     <button class="photo-add-btn" id="photo-add-btn" disabled onclick="uploadMatrixPhoto()">add to matrix</button>
@@ -2590,14 +2576,13 @@ const PHOTO_FRAMES = [
 ];
 const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
 
-let photoDraft = { file:null, quadrant:null, frame:'polaroid' };
+let photoDraft = { file:null, frame:'polaroid' };
 
 function openPhotoUpload(){
-  photoDraft = { file:null, quadrant:null, frame:'polaroid' };
+  photoDraft = { file:null, frame:'polaroid' };
   document.getElementById('photo-file').value = '';
   document.getElementById('photo-preview').innerHTML =
     '<span class="photo-drop-hint">tap to choose an image</span>';
-  document.querySelectorAll('.photo-quad.selected').forEach(el => el.classList.remove('selected'));
   renderPhotoFrameGrid();
   const st = document.getElementById('photo-status');
   st.textContent = ''; st.style.color = '#8a7a5a';
@@ -2645,18 +2630,12 @@ function onPhotoPicked(e){
   st.textContent = '';
   refreshPhotoAdd();
 }
-function pickQuadrant(q, el){
-  photoDraft.quadrant = q;
-  document.querySelectorAll('.photo-quad').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  refreshPhotoAdd();
-}
 function refreshPhotoAdd(){
-  document.getElementById('photo-add-btn').disabled = !(photoDraft.file && photoDraft.quadrant);
+  document.getElementById('photo-add-btn').disabled = !photoDraft.file;
 }
 
 async function uploadMatrixPhoto(){
-  if (!(photoDraft.file && photoDraft.quadrant)) return;
+  if (!photoDraft.file) return;
   const st  = document.getElementById('photo-status');
   const btn = document.getElementById('photo-add-btn');
   if (!currentUser){
@@ -2680,12 +2659,18 @@ async function uploadMatrixPhoto(){
     const publicUrl = pub?.publicUrl;
     if (!publicUrl) throw new Error('could not resolve image url');
 
-    // Append {url,quadrant,frame} to dream_matrix.matrix_images (read-modify-write).
+    // Append {url,frame,x,y,rot} to dream_matrix.matrix_images (read-modify-write).
+    // Lands at a random spot (same convention as stickers) — no quadrant to pick anymore.
     const { data: row, error: readErr } = await sb.from('dream_matrix')
       .select('matrix_images').eq('id', activeEntryId).maybeSingle();
     if (readErr) throw readErr;
     const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-    const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant, frame: photoDraft.frame }];
+    const next = [...current, {
+      url: publicUrl, frame: photoDraft.frame,
+      x: +(20 + Math.random()*60).toFixed(1),
+      y: +(20 + Math.random()*60).toFixed(1),
+      rot: +((Math.random()*2-1)*8).toFixed(1),
+    }];
 
     const { error: updErr } = await sb.from('dream_matrix')
       .update({ matrix_images: next }).eq('id', activeEntryId);
