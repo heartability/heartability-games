@@ -664,11 +664,14 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); cursor:grab; touch-action:none; }
 .adv-photo.dragging { cursor:grabbing; z-index:50; }
-.adv-photo img {
+.adv-photo-inner { position:relative; display:block; }
+.adv-photo-img {
   width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
-  border:4px solid #fff; border-bottom-width:18px; pointer-events:none;
-  box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:contain; background:#fff;
+  pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:contain; background:#fff;
 }
+/* Frame overlay — stretched to exactly match the photo's own rendered box, so
+   its border sits on top and crops whatever falls outside its window. */
+.adv-photo-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 /* Remove control on each matrix photo — hover-reveal on desktop, always on touch */
 .adv-photo-remove {
   position:absolute; top:-8px; right:-8px; z-index:4;
@@ -770,13 +773,31 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 
 .photo-drop { display:block; cursor:pointer; }
 .photo-preview {
-  width:100%; aspect-ratio:4/3; background:#e8e0c8;
+  position:relative; width:100%; aspect-ratio:4/3; background:#e8e0c8;
   border:2px dashed #8a7a5a; display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
 .photo-drop:hover .photo-preview { border-color:var(--blue); }
-.photo-preview img { width:100%; height:100%; object-fit:contain; }
+.photo-preview-img { width:100%; height:100%; object-fit:contain; }
+.photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .photo-drop-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:16px; }
+
+/* ── PHOTO FRAME PICKER — stretches the chosen frame to match the photo's own
+   size, so its border covers/crops whatever sits outside its window ── */
+.photo-frame-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.photo-frame-thumb {
+  position:relative; aspect-ratio:1; background:#fdf6e3; border:1.5px solid #ccc;
+  padding:6px; cursor:pointer; transition:all .1s;
+  display:flex; align-items:center; justify-content:center;
+}
+.photo-frame-thumb img { max-width:100%; max-height:100%; }
+.photo-frame-thumb:hover { border-color:var(--blue); background:#f0edfa; }
+.photo-frame-thumb.selected { border-color:var(--blue); background:var(--blue); box-shadow:2px 2px 0 #3a4aaa; }
+.photo-frame-thumb span {
+  position:absolute; bottom:2px; left:0; right:0; text-align:center;
+  font-size:10px; color:#8a7a5a; background:rgba(253,246,227,.85);
+}
+.photo-frame-thumb.selected span { color:#fff; background:rgba(74,91,196,.85); }
 
 .photo-quad-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
 .photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
@@ -1213,6 +1234,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
         <span class="photo-drop-hint">tap to choose an image</span>
       </div>
     </label>
+
+    <div class="photo-quad-label">which frame?</div>
+    <div class="photo-frame-grid" id="photo-frame-grid"></div>
 
     <div class="photo-quad-label">which quadrant?</div>
     <div class="photo-quad-grid" id="photo-quad-grid">
@@ -2435,8 +2459,12 @@ function buildDreamMatrix(data, seedStr){
       const slot = photoSlot(q, n);
       left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); deg = rot(8);
     }
+    const frameFile = PHOTO_FRAME_FILE[img.frame] || PHOTO_FRAME_FILE.polaroid;
     photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
-        <img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'">
+        <div class="adv-photo-inner">
+          <img class="adv-photo-img" src="${img.url}" alt="" onerror="this.parentElement.parentElement.style.display='none'">
+          <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
+        </div>
         <button class="adv-rotate-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="rotate photo" aria-label="rotate photo">↻</button>
         <button class="adv-resize-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="resize photo" aria-label="resize photo">⤢</button>
         <button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
@@ -2546,14 +2574,31 @@ async function renderMatrix() {
 }
 
 // ── MATRIX PHOTO UPLOAD ───────────────────────────────────
-let photoDraft = { file:null, quadrant:null };
+// Photo frames — static list of overlay images living in
+// assets/elements/stickers/frames/. Each one stretches to exactly match the
+// photo's own rendered size (see .adv-photo-frame / .photo-preview-frame),
+// so its border covers whatever falls outside its window. "polaroid" is the
+// standard/default look.
+const PHOTO_FRAME_BASE = '../assets/elements/stickers/frames/';
+const PHOTO_FRAMES = [
+  { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png' },
+  { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png' },
+  { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png' },
+  { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png' },
+  { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png' },
+  { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png' },
+];
+const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
+
+let photoDraft = { file:null, quadrant:null, frame:'polaroid' };
 
 function openPhotoUpload(){
-  photoDraft = { file:null, quadrant:null };
+  photoDraft = { file:null, quadrant:null, frame:'polaroid' };
   document.getElementById('photo-file').value = '';
   document.getElementById('photo-preview').innerHTML =
     '<span class="photo-drop-hint">tap to choose an image</span>';
   document.querySelectorAll('.photo-quad.selected').forEach(el => el.classList.remove('selected'));
+  renderPhotoFrameGrid();
   const st = document.getElementById('photo-status');
   st.textContent = ''; st.style.color = '#8a7a5a';
   document.getElementById('photo-add-btn').textContent = 'add to matrix';
@@ -2562,6 +2607,23 @@ function openPhotoUpload(){
 }
 function closePhotoUpload(){
   document.getElementById('photo-overlay').classList.remove('open');
+}
+function renderPhotoFrameGrid(){
+  document.getElementById('photo-frame-grid').innerHTML = PHOTO_FRAMES.map(f => {
+    const selected = f.key === photoDraft.frame ? ' selected' : '';
+    return `<button class="photo-frame-thumb${selected}" data-frame="${f.key}" onclick="pickFrame('${f.key}',this)">
+        <img src="${PHOTO_FRAME_BASE}${f.file}" alt="${_escapeHtml(f.label)}"><span>${_escapeHtml(f.label)}</span></button>`;
+  }).join('');
+}
+function updatePhotoPreviewFrame(){
+  const img = document.querySelector('#photo-preview .photo-preview-frame');
+  if (img) img.src = PHOTO_FRAME_BASE + (PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid);
+}
+function pickFrame(key, el){
+  photoDraft.frame = key;
+  document.querySelectorAll('.photo-frame-thumb').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  updatePhotoPreviewFrame();
 }
 function onPhotoPicked(e){
   const file = e.target.files && e.target.files[0];
@@ -2574,7 +2636,10 @@ function onPhotoPicked(e){
   photoDraft.file = file;
   const reader = new FileReader();
   reader.onload = ev => {
-    document.getElementById('photo-preview').innerHTML = `<img src="${ev.target.result}" alt="">`;
+    const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
+    document.getElementById('photo-preview').innerHTML =
+      `<img class="photo-preview-img" src="${ev.target.result}" alt="">
+       <img class="photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">`;
   };
   reader.readAsDataURL(file);
   st.textContent = '';
@@ -2615,12 +2680,12 @@ async function uploadMatrixPhoto(){
     const publicUrl = pub?.publicUrl;
     if (!publicUrl) throw new Error('could not resolve image url');
 
-    // Append {url,quadrant} to dream_matrix.matrix_images (read-modify-write).
+    // Append {url,quadrant,frame} to dream_matrix.matrix_images (read-modify-write).
     const { data: row, error: readErr } = await sb.from('dream_matrix')
       .select('matrix_images').eq('id', activeEntryId).maybeSingle();
     if (readErr) throw readErr;
     const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-    const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant }];
+    const next = [...current, { url: publicUrl, quadrant: photoDraft.quadrant, frame: photoDraft.frame }];
 
     const { error: updErr } = await sb.from('dream_matrix')
       .update({ matrix_images: next }).eq('id', activeEntryId);

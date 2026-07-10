@@ -579,6 +579,10 @@ function selectFeeling(feeling, cat, el) {
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ── TITLE SEARCH ────────────────────────────────────────────────────────
+// Google's Books API caps unauthenticated (keyless) requests at a quota of 0 —
+// an API key is required even for client-side use. Restrict the key by HTTP
+// referrer in the Google Cloud Console so it's safe to ship in page source.
+const GOOGLE_BOOKS_API_KEY = 'AIzaSyCFFZdyPydpK98muPN0mOzaF5kSpIxKxJc';
 let searchMode = 'book';
 let selectedMedia = null; // { title, media_type, external_id, external_source, cover_url, canonical_link }
 let searchDebounce = null;
@@ -601,13 +605,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+function showSearchMessage(text) {
+  const resultsEl = document.getElementById('searchResults');
+  resultsEl.innerHTML = `<div class="search-result" style="cursor:default;">
+    <div class="search-result-text">${_escapeHtml(text)}</div></div>`;
+  resultsEl.style.display = 'block';
+}
+
 async function runSearch(q) {
   const resultsEl = document.getElementById('searchResults');
   try {
     let items = [];
     if (searchMode === 'book') {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5`);
+      if (!GOOGLE_BOOKS_API_KEY) {
+        showSearchMessage("book search isn't set up yet — enter it manually below.");
+        return;
+      }
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&key=${GOOGLE_BOOKS_API_KEY}`);
       const data = await res.json();
+      if (data.error) {
+        console.error('[media search] google books error:', data.error);
+        showSearchMessage("search isn't working right now — enter it manually below.");
+        return;
+      }
       items = (data.items || []).map(it => {
         const info = it.volumeInfo || {};
         const isbn = (info.industryIdentifiers || []).find(id => id.type === 'ISBN_13') || (info.industryIdentifiers || [])[0];
@@ -625,6 +645,11 @@ async function runSearch(q) {
     } else {
       const res = await fetch(`${SUPABASE_FUNCTIONS_URL}?q=${encodeURIComponent(q)}`);
       const data = await res.json();
+      if (data.error) {
+        console.error('[media search] media-search function error:', data.error);
+        showSearchMessage("search isn't working right now — enter it manually below.");
+        return;
+      }
       items = (Array.isArray(data) ? data : []).map(it => ({
         title: it.title, year: it.year,
         poster: it.poster && it.poster !== 'N/A' ? it.poster : null,
@@ -633,7 +658,7 @@ async function runSearch(q) {
         canonical_link: it.imdb_id ? `https://www.imdb.com/title/${it.imdb_id}/` : null,
       }));
     }
-    if (!items.length) { resultsEl.style.display = 'none'; return; }
+    if (!items.length) { showSearchMessage('no matches — try a different search, or enter it manually below.'); return; }
     resultsEl.innerHTML = '';
     items.forEach(item => {
       const row = document.createElement('div');
@@ -646,7 +671,7 @@ async function runSearch(q) {
     resultsEl.style.display = 'block';
   } catch (e) {
     console.error('[media search] failed:', e);
-    resultsEl.style.display = 'none';
+    showSearchMessage("search isn't working right now — enter it manually below.");
   }
 }
 
