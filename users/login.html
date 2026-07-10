@@ -246,6 +246,17 @@ input:focus { border-color: var(--purple); }
         <button type="submit" class="btn-submit" id="signup-btn">create account!</button>
       </form>
 
+      <!-- Waitlist (shown instead of signup once capacity is reached) -->
+      <div class="form" id="form-waitlist">
+        <div class="msg error cap-notice" style="display:block;">we have reached capacity but are opening up more space soon! sign up for updates</div>
+        <div class="field">
+          <label>email</label>
+          <input type="email" id="waitlist-email" placeholder="your@email.com" required autocomplete="email" />
+        </div>
+        <div class="msg" id="waitlist-msg"></div>
+        <button type="button" class="btn-submit" id="waitlist-btn" onclick="handleWaitlistSignup()">join waitlist</button>
+      </div>
+
     </div>
 
     <div class="login-footer">start exploring your dreams</div>
@@ -264,12 +275,32 @@ input:focus { border-color: var(--purple); }
     if (session) window.location.href = '../rooms/bed.html';
   });
 
-  function switchTab(tab, btn) {
+  let signupCapFull = null;
+
+  async function checkSignupCapacity() {
+    if (signupCapFull !== null) return signupCapFull;
+    const { data, error } = await sb.rpc('get_signup_capacity');
+    signupCapFull = !error && data && data[0] ? data[0].is_full : false;
+    return signupCapFull;
+  }
+
+  function isCapError(error) {
+    const msg = (error.message || '').toLowerCase();
+    return msg.includes('signup_cap_reached') || msg.includes('database error saving new user');
+  }
+
+  async function switchTab(tab, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('form-' + tab).classList.add('active');
-    document.querySelectorAll('.msg').forEach(m => { m.className = 'msg'; m.textContent = ''; });
+    document.querySelectorAll('.msg').forEach(m => { if (m.id !== 'waitlist-msg' && !m.classList.contains('cap-notice')) { m.className = 'msg'; m.textContent = ''; } });
+
+    if (tab === 'signup') {
+      const full = await checkSignupCapacity();
+      document.getElementById(full ? 'form-waitlist' : 'form-signup').classList.add('active');
+    } else {
+      document.getElementById('form-' + tab).classList.add('active');
+    }
   }
 
   function showMsg(id, text, type) {
@@ -304,6 +335,13 @@ input:focus { border-color: var(--purple); }
     const password = document.getElementById('signup-password').value;
     const { data, error } = await sb.auth.signUp({ email, password });
     if (error) {
+      if (isCapError(error)) {
+        signupCapFull = true;
+        document.getElementById('form-signup').classList.remove('active');
+        document.getElementById('form-waitlist').classList.add('active');
+        document.getElementById('waitlist-email').value = email;
+        return;
+      }
       showMsg('signup-msg', error.message, 'error');
       btn.disabled = false; btn.textContent = 'create account ♡';
       return;
@@ -313,6 +351,21 @@ input:focus { border-color: var(--purple); }
     }
     showMsg('signup-msg', 'account created! taking you to membership options...', 'success');
     setTimeout(() => window.location.href = 'membership.html', 1000);
+  }
+
+  async function handleWaitlistSignup() {
+    const btn = document.getElementById('waitlist-btn');
+    const email = document.getElementById('waitlist-email').value.trim();
+    if (!email) return;
+    btn.disabled = true; btn.textContent = 'joining...';
+    const { error } = await sb.from('waitlist').insert({ email });
+    if (error) {
+      const alreadyOn = error.code === '23505';
+      showMsg('waitlist-msg', alreadyOn ? "you're already on the list!" : error.message, alreadyOn ? 'success' : 'error');
+    } else {
+      showMsg('waitlist-msg', "you're on the list! we'll email you when space opens up.", 'success');
+    }
+    btn.disabled = false; btn.textContent = 'join waitlist';
   }
 </script>
 
