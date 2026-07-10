@@ -231,6 +231,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .weather-category.snowy { background: rgb(108, 209, 234); border-color: #033f50; }
 
 .weather-cat-header { font-family: var(--font-hand); font-size: 23px; margin-bottom: 6px; }
+.weather-cat-desc { font-size: 14px; font-weight: normal; opacity: 0.7; }
 .sunny .weather-cat-header { color: #715f04; }
 .rainy .weather-cat-header { color: #260156; }
 .windy .weather-cat-header { color: #046957; }
@@ -519,10 +520,10 @@ const TERRAIN = [
 const TERRAIN_LABELS = Object.fromEntries(TERRAIN.map(t => [t.id, t.label]));
 
 const WEATHER_CATS = [
-  { id:"sunny", label:"sunny", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence", "truth","stability","acceptance","pressure","intensity"]          },
-  { id:"rainy", label:"rainy", cls:"rainy", tint:"#c9b3e7",  feelings:["shadows","worry","fear","depression","regret", "confusion","boredom","loneliness","grief","sadness"]      },
-  { id:"windy", label:"windy", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage","progress","chaos","transition","disruption"] },
-  { id:"snowy", label:"snowy", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation",]   },
+  { id:"sunny", label:"sunny", desc:"bright/happy/intense", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence","truth","stability","acceptance","pressure","confrontation","temptation","reclamation","redemption","reunion"] },
+  { id:"rainy", label:"rainy", desc:"sad/heavy/grief", cls:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret","confusion","boredom","loneliness","grief","sadness","betrayal","reckoning","surrender"] },
+  { id:"windy", label:"windy", desc:"change/transition/evolution", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage","progress","chaos","disruption","departure","initiation","crossroads","unraveling","rebirth","release"] },
+  { id:"snowy", label:"snowy", desc:"cold/stuck/isolating", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","self-confrontation"] },
 ];
 
 const ZONE_PROMPTS = [
@@ -922,7 +923,8 @@ function buildWeather() {
     const section = document.createElement("div");
     section.className = `weather-category ${cat.cls}`;
     const header = document.createElement("div");
-    header.className = "weather-cat-header"; header.textContent = cat.label;
+    header.className = "weather-cat-header";
+    header.innerHTML = `${cat.label} <span class="weather-cat-desc">(${cat.desc})</span>`;
     const chips = document.createElement("div"); chips.className = "feeling-chips";
     cat.feelings.forEach(feeling => {
       const chip = document.createElement("div");

@@ -718,6 +718,23 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-text-remove:hover { color:#E8478B; border-color:#E8478B; }
 @media (hover: none) { .adv-text-remove { opacity:1; } }
 
+/* Rotate & resize handles — shared by photos, stickers & text notes */
+.adv-rotate-handle, .adv-resize-handle {
+  position:absolute; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:12px; touch-action:none;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-rotate-handle { top:-8px; left:-8px; cursor:grab; }
+.adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
+.adv-photo:hover .adv-rotate-handle, .adv-photo:hover .adv-resize-handle,
+.adv-sticker:hover .adv-rotate-handle, .adv-sticker:hover .adv-resize-handle,
+.adv-text:hover .adv-rotate-handle, .adv-text:hover .adv-resize-handle { opacity:1; }
+.adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
+@media (hover: none) { .adv-rotate-handle, .adv-resize-handle { opacity:1; } }
+
 /* Matrix toolbar — add photo / sticker / text, centered below the matrix */
 .matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
 .matrix-tool-btn {
@@ -2409,6 +2426,7 @@ function buildDreamMatrix(data, seedStr){
   (data.matrixImages||[]).forEach(img => {
     if (!img || !img.url) return;
     let left, top, deg;
+    const scale = img.scale || 1;
     if (img.x != null && img.y != null) {
       left = img.x; top = img.y; deg = img.rot || 0;
     } else {
@@ -2417,15 +2435,22 @@ function buildDreamMatrix(data, seedStr){
       const slot = photoSlot(q, n);
       left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); deg = rot(8);
     }
-    photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
+    photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
+        <img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'">
+        <button class="adv-rotate-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="rotate photo" aria-label="rotate photo">↻</button>
+        <button class="adv-resize-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="resize photo" aria-label="resize photo">⤢</button>
+        <button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
   });
 
   // Stickers — freeform decorations, placed wherever they were last dragged to.
   let stickers = '';
   (data.matrixStickers||[]).forEach(s => {
     if (!s || !s.url || !s.id) return;
-    stickers += `<div class="adv-sticker" data-id="${_escapeHtml(s.id)}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${s.rot||0}deg);">
+    const sRot = s.rot || 0, sScale = s.scale || 1;
+    stickers += `<div class="adv-sticker" data-id="${_escapeHtml(s.id)}" data-rot="${sRot}" data-scale="${sScale}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});">
         <img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'">
+        <button class="adv-rotate-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="rotate sticker" aria-label="rotate sticker">↻</button>
+        <button class="adv-resize-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="resize sticker" aria-label="resize sticker">⤢</button>
         <button class="adv-sticker-remove" data-id="${_escapeHtml(s.id)}" title="remove sticker" aria-label="remove sticker">✕</button></div>`;
   });
 
@@ -2433,7 +2458,11 @@ function buildDreamMatrix(data, seedStr){
   let texts = '';
   (data.matrixTexts||[]).forEach(t => {
     if (!t || !t.text || !t.id) return;
-    texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${t.rot||0}deg);">${_escapeHtml(t.text)}<button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button></div>`;
+    const tRot = t.rot || 0, tScale = t.scale || 1;
+    texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
+        <button class="adv-rotate-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="rotate text" aria-label="rotate text">↻</button>
+        <button class="adv-resize-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="resize text" aria-label="resize text">⤢</button>
+        <button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button></div>`;
   });
 
   return `<div class="step-panel matrix-panel">
@@ -2763,20 +2792,6 @@ async function removeMatrixSticker(id){
   await renderMatrix();
 }
 
-// Read-modify-write a sticker's saved position after a drag ends.
-async function updateMatrixStickerPos(id, x, y){
-  if (!id || !currentUser || !activeEntryId) return;
-  try {
-    const { data: row } = await sb.from('dream_matrix')
-      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
-    const items = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
-    const next = items.map(s => (s && s.id === id) ? { ...s, x, y } : s);
-    await sb.from('dream_matrix').update({ matrix_stickers: next }).eq('id', activeEntryId);
-  } catch(err){
-    console.error('[matrix sticker] position save failed:', err);
-  }
-}
-
 // ── MATRIX TEXT NOTES ─────────────────────────────────────
 function openTextAdd(){
   document.getElementById('text-add-input').value = '';
@@ -2842,20 +2857,6 @@ async function removeMatrixText(id){
   await renderMatrix();
 }
 
-// Read-modify-write a text note's saved position after a drag ends.
-async function updateMatrixTextPos(id, x, y){
-  if (!id || !currentUser || !activeEntryId) return;
-  try {
-    const { data: row } = await sb.from('dream_matrix')
-      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
-    const items = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
-    const next = items.map(t => (t && t.id === id) ? { ...t, x, y } : t);
-    await sb.from('dream_matrix').update({ matrix_texts: next }).eq('id', activeEntryId);
-  } catch(err){
-    console.error('[matrix text] position save failed:', err);
-  }
-}
-
 // Delegated remove-button handler for stickers/text (panel innerHTML is
 // rebuilt on each render, so per-button listeners would be lost).
 document.getElementById('content-panel').addEventListener('click', e => {
@@ -2865,25 +2866,32 @@ document.getElementById('content-panel').addEventListener('click', e => {
   if (textBtn) { e.stopPropagation(); removeMatrixText(textBtn.dataset.id); return; }
 });
 
-// Read-modify-write a photo's saved position after a drag ends (keyed by url,
-// same as removeMatrixPhoto — UUID filenames make it a reliable unique key).
-async function updateMatrixPhotoPos(url, x, y){
-  if (!url || !currentUser || !activeEntryId) return;
+// Read-modify-write one field (x/y, rot, or scale) on a matrix item after a
+// drag ends. Photos are keyed by url (UUID filenames are a reliable unique
+// key); stickers & text notes are keyed by their generated id.
+const MATRIX_ITEM_TABLE = {
+  photo:   { column: 'matrix_images',   key: 'url' },
+  sticker: { column: 'matrix_stickers', key: 'id'  },
+  text:    { column: 'matrix_texts',    key: 'id'  },
+};
+async function updateMatrixItem(kind, id, patch){
+  const cfg = MATRIX_ITEM_TABLE[kind];
+  if (!cfg || !id || !currentUser || !activeEntryId) return;
   try {
     const { data: row } = await sb.from('dream_matrix')
-      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
-    const items = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
-    const next = items.map(i => (i && i.url === url) ? { ...i, x, y } : i);
-    await sb.from('dream_matrix').update({ matrix_images: next }).eq('id', activeEntryId);
+      .select(cfg.column).eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.[cfg.column]) ? row[cfg.column] : [];
+    const next = items.map(i => (i && i[cfg.key] === id) ? { ...i, ...patch } : i);
+    await sb.from('dream_matrix').update({ [cfg.column]: next }).eq('id', activeEntryId);
   } catch(err){
-    console.error('[matrix photo] position save failed:', err);
+    console.error(`[matrix ${kind}] update failed:`, err);
   }
 }
 
 // ── DRAG-TO-REPOSITION for photos, stickers & text ────────
 let matrixDragState = null;
 document.getElementById('content-panel').addEventListener('pointerdown', e => {
-  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .adv-text-remove')) return;
+  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .adv-text-remove, .adv-rotate-handle, .adv-resize-handle')) return;
   const el = e.target.closest('.adv-photo, .adv-sticker, .adv-text');
   if (!el) return;
   const frame = el.closest('.matrix-frame');
@@ -2916,9 +2924,86 @@ document.getElementById('content-panel').addEventListener('pointerup', e => {
   el.classList.remove('dragging');
   matrixDragState = null;
   if (lastX == null) return; // tapped without moving — nothing changed
-  if (kind === 'photo') updateMatrixPhotoPos(id, lastX, lastY);
-  else if (kind === 'sticker') updateMatrixStickerPos(id, lastX, lastY);
-  else updateMatrixTextPos(id, lastX, lastY);
+  updateMatrixItem(kind, id, { x: lastX, y: lastY });
+});
+
+// ── ROTATE handle — drag around the item's center to spin it ────
+let matrixRotateState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.adv-rotate-handle');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  const el = handle.closest('.adv-photo, .adv-sticker, .adv-text');
+  if (!el) return;
+  handle.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  const rect = el.getBoundingClientRect();
+  matrixRotateState = {
+    el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+    cx: rect.left + rect.width/2, cy: rect.top + rect.height/2,
+    startAngle: Math.atan2(e.clientY - (rect.top+rect.height/2), e.clientX - (rect.left+rect.width/2)) * 180/Math.PI,
+    startRot: parseFloat(el.dataset.rot || '0'),
+    scale: parseFloat(el.dataset.scale || '1'),
+    lastRot: null,
+  };
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixRotateState || matrixRotateState.pointerId !== e.pointerId) return;
+  const s = matrixRotateState;
+  const angle = Math.atan2(e.clientY - s.cy, e.clientX - s.cx) * 180/Math.PI;
+  let rot = s.startRot + (angle - s.startAngle);
+  rot = ((rot + 180) % 360 + 360) % 360 - 180; // normalize to [-180,180]
+  rot = +rot.toFixed(1);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${s.scale})`;
+  s.lastRot = rot;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixRotateState || matrixRotateState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastRot } = matrixRotateState;
+  el.classList.remove('dragging');
+  matrixRotateState = null;
+  if (lastRot == null) return;
+  el.dataset.rot = lastRot;
+  updateMatrixItem(kind, id, { rot: lastRot });
+});
+
+// ── RESIZE handle — drag toward/away from the item's center to scale it ──
+let matrixResizeState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.adv-resize-handle');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  const el = handle.closest('.adv-photo, .adv-sticker, .adv-text');
+  if (!el) return;
+  handle.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  matrixResizeState = {
+    el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+    cx, cy, startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)),
+    startScale: parseFloat(el.dataset.scale || '1'),
+    rot: parseFloat(el.dataset.rot || '0'),
+    lastScale: null,
+  };
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixResizeState || matrixResizeState.pointerId !== e.pointerId) return;
+  const s = matrixResizeState;
+  const dist = Math.hypot(e.clientX - s.cx, e.clientY - s.cy);
+  let scale = s.startScale * (dist / s.startDist);
+  scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${s.rot}deg) scale(${scale})`;
+  s.lastScale = scale;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixResizeState || matrixResizeState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastScale } = matrixResizeState;
+  el.classList.remove('dragging');
+  matrixResizeState = null;
+  if (lastScale == null) return;
+  el.dataset.scale = lastScale;
+  updateMatrixItem(kind, id, { scale: lastScale });
 });
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
