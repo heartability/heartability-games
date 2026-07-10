@@ -229,7 +229,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
     <div class="room-sub">map a book or movie that helped you navigate something hard — your entry joins an anonymous, collective library.</div>
 
     <!-- TITLE SEARCH -->
-    <div class="rpg-panel">
+    <div class="rpg-panel" style="z-index: 20;">
       <div class="section-header">what did you read or watch?</div>
       <div class="search-toggle">
         <button class="rpg-btn mode-active" id="btn-book" onclick="setSearchMode('book')">BOOK</button>
@@ -621,7 +621,7 @@ async function runSearch(q) {
         showSearchMessage("book search isn't set up yet — enter it manually below.");
         return;
       }
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&key=${GOOGLE_BOOKS_API_KEY}`);
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20&key=${GOOGLE_BOOKS_API_KEY}`);
       const data = await res.json();
       if (data.error) {
         console.error('[media search] google books error:', data.error);
@@ -640,8 +640,13 @@ async function runSearch(q) {
           external_id: isbn?.identifier || it.id,
           external_source: 'google_books',
           canonical_link: info.infoLink || null,
+          ratingsCount: info.ratingsCount || 0,
         };
       });
+      // Google Books' API has no true "popularity" order param (only relevance/newest) —
+      // ratingsCount is the closest real signal it exposes, so re-rank fetched candidates by it.
+      items.sort((a, b) => b.ratingsCount - a.ratingsCount);
+      items = items.slice(0, 5);
     } else {
       const res = await fetch(`${SUPABASE_FUNCTIONS_URL}?q=${encodeURIComponent(q)}`);
       const data = await res.json();
