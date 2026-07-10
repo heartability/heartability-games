@@ -954,15 +954,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px;
   display:flex; flex-direction:column; gap:7px; background:#ede8e0;
 }
-.jrc-img-chip { position:relative; width:70px; display:none; }
-.jrc-img-chip.has-img { display:block; }
-.jrc-img-chip img { width:100%; border:1.5px solid #c8b88a; display:block; object-fit:cover; aspect-ratio:1; }
-.jrc-img-x {
-  position:absolute; top:-7px; right:-7px; width:18px; height:18px; padding:0; line-height:1;
-  background:#fff; border:1.5px solid #ccc; border-radius:50%; cursor:pointer; font-size:12px; color:#888;
-  display:flex; align-items:center; justify-content:center;
-}
-.jrc-img-x:hover { color:#E8478B; border-color:#E8478B; }
 .jrc-msg-row { display:flex; gap:8px; align-items:stretch; }
 .jrc-msg-input {
   flex:1; font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#222;
@@ -971,12 +962,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 }
 .jrc-msg-input:focus { border-color:var(--blue); }
 .jrc-btn-stack { flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
-.jrc-plus-btn {
-  flex:1; background:rgba(255,255,255,.72); border:2px solid var(--blue); box-shadow:2px 2px 0 var(--aqua);
-  font-family:var(--font-game); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s;
-}
-.jrc-plus-btn:hover  { background:var(--blue); color:#fff; }
-.jrc-plus-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .jrc-send-btn {
   flex:1; background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
   font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#fff; cursor:pointer; padding:0; transition:all .05s;
@@ -1621,10 +1606,20 @@ function showPanel(html) {
   panel.classList.add('active');
   document.getElementById('wall-btns').classList.remove('active');
   // Chrome occasionally fails to paint freshly-inserted transformed children
-  // (rotate() on .adv-text/.adv-sticker/.adv-photo) after a big innerHTML swap,
-  // leaving them invisible until some unrelated repaint happens to trigger.
-  // Forcing a synchronous reflow here makes sure this paint isn't skipped.
+  // (rotate()/scale() on .adv-text/.adv-sticker/.adv-photo) after a big
+  // innerHTML swap, leaving them invisible until some unrelated repaint
+  // happens to trigger. A single reflow on the panel itself isn't always
+  // enough to catch every transformed item's own compositor layer — text
+  // notes seem the most prone to this (smallest/newest layer, most likely to
+  // get skipped) — so nudge each one's transform directly: clear it, force a
+  // layout read, then restore it, guaranteeing Chrome repaints that layer.
   void panel.offsetHeight;
+  panel.querySelectorAll('.adv-text, .adv-sticker, .adv-photo').forEach(el => {
+    const t = el.style.transform;
+    el.style.transform = 'none';
+    void el.offsetHeight;
+    el.style.transform = t;
+  });
 }
 function hidePanel() {
   const panel = document.getElementById('content-panel');
@@ -2119,11 +2114,11 @@ function skipJournal() {
 }
 
 // Continue pressed. Messages persist on every send, so the only thing left to
-// handle is text/photo the user typed but never sent. "Warn, let me choose":
+// handle is text the user typed but never sent. "Warn, let me choose":
 // reveal a confirm row and don't advance until they pick.
 async function saveJournalEntry() {
   const msgEl = document.getElementById('jrc-msg');
-  const hasUnsent = !!((msgEl && msgEl.value.trim()) || journal.pendingImage);
+  const hasUnsent = !!(msgEl && msgEl.value.trim());
   if (hasUnsent) {
     document.getElementById('jrc-confirm')?.classList.add('open');
     showJournalStatus('you have unsent notes', false);
@@ -2146,15 +2141,13 @@ async function confirmSendAndContinue() {
 function confirmSkipUnsent() {
   const msgEl = document.getElementById('jrc-msg');
   if (msgEl) msgEl.value = '';
-  removeJournalImage();
   finishJournal();
 }
 
 // ── NATIVE JOURNAL (chat-style) ──────────────────────────
 // Each send appends a message to dream_matrix.journal_messages (jsonb) on this
-// playthrough's row. Photo'd messages also push into matrix_images
-// (source:'journal') so matrix quadrant placement is untouched.
-const journal = { entries: [], pendingImage: null };
+// playthrough's row. Photos are attached exclusively via the matrix builder now.
+const journal = { entries: [] };
 
 function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
@@ -2164,18 +2157,12 @@ function buildJournalPanel(){
         <div class="jrc-empty" id="jrc-empty">What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries</div>
       </div>
       <div class="jrc-input-area">
-        <div class="jrc-img-chip" id="jrc-img-chip">
-          <img id="jrc-img-preview" src="" alt="attached">
-          <button class="jrc-img-x" onclick="removeJournalImage()" title="remove photo">✕</button>
-        </div>
         <div class="jrc-msg-row">
           <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what do you want to remember?" maxlength="4000"></textarea>
           <div class="jrc-btn-stack">
-            <button class="jrc-plus-btn" id="jrc-plus" title="add a photo" onclick="document.getElementById('jr-file').click()">+</button>
             <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
           </div>
         </div>
-        <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
         <div class="jrc-status" id="jrc-status"></div>
         <div class="jrc-confirm" id="jrc-confirm">
           <span>you've got notes you haven't sent —</span>
@@ -2232,7 +2219,7 @@ function jrcMaybeDivider(container, dayLabel, location){
 }
 
 async function loadJournalEntries(){
-  journal.entries = []; journal.pendingImage = null;
+  journal.entries = [];
   const dateEl = document.getElementById('jrc-date');
   if (dateEl) dateEl.textContent = jrcDay();
   if (!currentUser || !activeGameId) return;
@@ -2270,72 +2257,32 @@ async function loadJournalEntries(){
   jrcScrollBottom();
 }
 
-function onJournalImagePicked(e){
-  const file = e.target.files && e.target.files[0]; if (!file) return;
-  if (!file.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    journal.pendingImage = { file, base64: ev.target.result };
-    document.getElementById('jrc-img-preview').src = ev.target.result;
-    document.getElementById('jrc-img-chip').classList.add('has-img');
-  };
-  reader.readAsDataURL(file);
-}
-function removeJournalImage(){
-  journal.pendingImage = null;
-  const chip = document.getElementById('jrc-img-chip');
-  if (chip){ chip.classList.remove('has-img'); document.getElementById('jrc-img-preview').src = ''; }
-  const f = document.getElementById('jr-file'); if (f) f.value = '';
-}
-
 // Append one message to the current playthrough's row. Returns true on success.
 async function sendJournalMessage(){
   const msgEl   = document.getElementById('jrc-msg');
   const sendBtn = document.getElementById('jrc-send');
   const text = (msgEl?.value || '').trim();
-  if (!text && !journal.pendingImage) return false;          // nothing to send
+  if (!text) return false;          // nothing to send
   if (!(currentUser && activeEntryId)){ HGModal.alert('oops', 'not signed in'); return false; }
 
   if (sendBtn) sendBtn.disabled = true;
 
-  // 1) upload the staged photo, if any
-  let imageUrl = null;
-  if (journal.pendingImage){
-    try {
-      const file = journal.pendingImage.file;
-      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-      const path = `${currentUser.id}/${activeEntryId}/journal-${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await sb.storage.from(MATRIX_PHOTO_BUCKET)
-        .upload(path, file, { contentType:file.type, upsert:false });
-      if (upErr) throw upErr;
-      const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
-      imageUrl = pub?.publicUrl || null;
-    } catch(err){
-      console.error('[journal image] upload failed:', err);
-      HGModal.alert('oops', 'couldn’t attach photo — try again');
-      if (sendBtn) sendBtn.disabled = false;
-      return false;
-    }
-  }
+  const message = { id: crypto.randomUUID(), text, created_at: new Date().toISOString() };
 
-  const message = { id: crypto.randomUUID(), text, image_url: imageUrl, created_at: new Date().toISOString() };
-
-  // 2) read current row, append, merge matrix_images
+  // 1) read current row, append
   let row = {};
   try {
     const { data } = await sb.from('dream_matrix')
-      .select('journal_messages, matrix_images').eq('id', activeEntryId).maybeSingle();
+      .select('journal_messages').eq('id', activeEntryId).maybeSingle();
     row = data || {};
   } catch(e){}
-  const messages  = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
-  let imgs = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-  if (imageUrl) imgs = imgs.concat([{ url:imageUrl, quadrant:'internal-feeling', source:'journal' }]);
+  const messages = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
 
-  // 3) write
+  // 2) write
   try {
     const { error } = await sb.from('dream_matrix').upsert({
       id: activeEntryId, map_id: activeGameId, user_id: currentUser.id,
-      journal_messages: messages, matrix_images: imgs,
+      journal_messages: messages,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
     if (error) throw error;
@@ -2359,7 +2306,6 @@ async function sendJournalMessage(){
   container.appendChild(renderJournalMessage(message, _side, _char));
 
   if (msgEl) msgEl.value = '';
-  removeJournalImage();
   document.getElementById('jrc-confirm')?.classList.remove('open');
   if (sendBtn) sendBtn.disabled = false;
   showJournalStatus('saved ✓', true);
