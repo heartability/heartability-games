@@ -1556,7 +1556,7 @@ sb.auth.onAuthStateChange((event, session) => {
       } catch(e) {}
       if (!isPaid) { showMemberGate(); return; }
       document.getElementById('member-gate-overlay').classList.remove('open');
-      stepLoadGame();
+      stepWelcome();
     }, 0);
   }
 });
@@ -1760,9 +1760,9 @@ function showAddNew(visible) {
   // add-new-btn is now rendered inline in the map grid panel
 }
 
-// ── STEP 1: go straight to map selector ──────────────────
+// ── STEP 1: welcome (timed/free mode) before the map selector ─
 function stepInitial() {
-  stepLoadGame();
+  stepWelcome();
 }
 
 // ── DELETE MAP ────────────────────────────────────────────
@@ -2038,12 +2038,7 @@ function selectPhase(idx) {
   document.getElementById('begin-btn').disabled = false;
 }
 
-// ── STEP 3.5: WELCOME — choose timed or free mode before the timed portion ─
-function stepBegin() {
-  if (!activePhase) return;
-  stepWelcome();
-}
-
+// ── STEP 0: WELCOME — choose timed or free mode before the map selector ─
 function stepWelcome() {
   currentStep = 'welcome';
   stopFlowTimer();
@@ -2054,10 +2049,6 @@ function stepWelcome() {
 
 function buildWelcomePanel() {
   return `<div class="step-panel welcome-panel">
-    <div class="step-header">
-      <span class="step-back" onclick="stepPhaseSelect()">← back</span>
-      <span></span><span></span>
-    </div>
     <div class="welcome-title">welcome to the dream matrix!</div>
     <div class="welcome-sub">are you ready to begin?</div>
     <div class="welcome-modes">
@@ -2078,11 +2069,11 @@ function showTimedModeInfo() {
 function chooseDailyMode(timed) {
   dailyTimedMode = timed;
   hidePanel();
-  stepBeginConfirmed();
+  stepLoadGame();
   if (timed) startFlowTimer();
 }
 
-// ── FLOW TIMER — timed mode runs character → bingo ───
+// ── FLOW TIMER — timed mode runs map select → phase select → character → bingo ───
 function msToClock(ms) {
   const s = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -2157,7 +2148,8 @@ function extendFlowTimer() {
 }
 
 // Extend window lapsed unanswered — clear this session's in-progress entry
-// (if any row was already saved) and send the user back to the phase picker.
+// (if any row was already saved) and send the user back to the map picker,
+// since timed mode now covers the whole session from page load.
 async function expireAndWipe() {
   clearExtendPrompt();
   stopFlowTimer();
@@ -2167,7 +2159,9 @@ async function expireAndWipe() {
     catch (e) { console.error('[timer] wipe failed', e); }
   }
   activeEntryId       = null;
-  activePhase         = null;
+  activeGameId         = null;
+  activeGameData       = null;
+  activePhase          = null;
   activeSidequest      = null;
   activeDreamCameTrue  = null;
   closeSidequestBuilder();
@@ -2176,13 +2170,13 @@ async function expireAndWipe() {
   setSaveBtnVisible(false);
   await HGModal.alert(
     "time's up",
-    "your progress for this phase was cleared. take a breath, then try again whenever you're ready."
+    "your progress for this session was cleared. take a breath, then try again whenever you're ready."
   );
-  stepPhaseSelect();
+  stepLoadGame();
 }
 
 // ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
-function stepBeginConfirmed() {
+function stepBegin() {
   activeEntryId = crypto.randomUUID();   // fresh dream_matrix row for this session
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
@@ -2190,7 +2184,7 @@ function stepBeginConfirmed() {
 }
 
 // Re-opens the archetype picker without minting a new activeEntryId — used as
-// the "back" target from steps reached after stepBeginConfirmed already ran,
+// the "back" target from steps reached after stepBegin already ran,
 // so the in-progress dream_matrix row isn't orphaned by a fresh id.
 function backToCharacterStep() {
   currentStep = 'character';
