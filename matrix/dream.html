@@ -713,23 +713,23 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 @media (hover: none) { .adv-sticker-remove { opacity:1; } }
 
 /* Freeform text notes — same drag pattern as stickers, set in ZoesHandwriting */
-.adv-text {
+.mx-note {
   position:absolute; z-index:4; max-width:220px; cursor:grab; touch-action:none;
   font-family:var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
   text-align:center; line-height:1.2; word-break:break-word;
 }
-.adv-text.dragging { cursor:grabbing; z-index:50; }
+.mx-note.dragging { cursor:grabbing; z-index:50; }
 /* Stationery-backed text note — a background card image with the note's text
    constrained to its writable rectangle (see STATIONERY_ITEMS' hand-verified
    box, found with a coarse background-color grid scan + maximal-rectangle
    search over each card's own PNG, so text never sits on the illustration). */
-.adv-text.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
-.adv-text-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
-.adv-text-stationery-body {
+.mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
+.mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.mx-note-stationery-body {
   position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
   font-family:var(--font-hand), cursive; color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
 }
-.adv-text-remove {
+.mx-note-remove {
   position:absolute; top:-10px; right:-14px; z-index:4;
   width:20px; height:20px; padding:0; line-height:1;
   background:#fff; border:1.5px solid #ccc; border-radius:50%;
@@ -737,9 +737,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-text:hover .adv-text-remove { opacity:1; }
-.adv-text-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-text-remove { opacity:1; } }
+.mx-note:hover .mx-note-remove { opacity:1; }
+.mx-note-remove:hover { color:#E8478B; border-color:#E8478B; }
+@media (hover: none) { .mx-note-remove { opacity:1; } }
 
 /* Rotate & resize handles — shared by photos, stickers & text notes */
 .adv-rotate-handle, .adv-resize-handle {
@@ -754,7 +754,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
 .adv-photo:hover .adv-rotate-handle, .adv-photo:hover .adv-resize-handle,
 .adv-sticker:hover .adv-rotate-handle, .adv-sticker:hover .adv-resize-handle,
-.adv-text:hover .adv-rotate-handle, .adv-text:hover .adv-resize-handle { opacity:1; }
+.mx-note:hover .adv-rotate-handle, .mx-note:hover .adv-resize-handle { opacity:1; }
 .adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
 @media (hover: none) { .adv-rotate-handle, .adv-resize-handle { opacity:1; } }
 
@@ -1606,7 +1606,7 @@ function showPanel(html) {
   panel.classList.add('active');
   document.getElementById('wall-btns').classList.remove('active');
   // Chrome occasionally fails to paint freshly-inserted transformed children
-  // (rotate()/scale() on .adv-text/.adv-sticker/.adv-photo) after a big
+  // (rotate()/scale() on .mx-note/.adv-sticker/.adv-photo) after a big
   // innerHTML swap, leaving them invisible until some unrelated repaint
   // happens to trigger. A single reflow on the panel itself isn't always
   // enough to catch every transformed item's own compositor layer — text
@@ -1614,7 +1614,7 @@ function showPanel(html) {
   // get skipped) — so nudge each one's transform directly: clear it, force a
   // layout read, then restore it, guaranteeing Chrome repaints that layer.
   void panel.offsetHeight;
-  panel.querySelectorAll('.adv-text, .adv-sticker, .adv-photo').forEach(el => {
+  panel.querySelectorAll('.mx-note, .adv-sticker, .adv-photo').forEach(el => {
     const t = el.style.transform;
     el.style.transform = 'none';
     void el.offsetHeight;
@@ -2505,15 +2505,15 @@ function buildDreamMatrix(data, seedStr){
     const tRot = t.rot || 0, tScale = t.scale || 1;
     const handles = `<button class="adv-rotate-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="rotate text" aria-label="rotate text">↻</button>
         <button class="adv-resize-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="resize text" aria-label="resize text">⤢</button>
-        <button class="adv-text-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button>`;
+        <button class="mx-note-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button>`;
     if (t.stationery && STATIONERY_FILE[t.stationery]) {
       const box = STATIONERY_BOX[t.stationery];
-      texts += `<div class="adv-text stationery" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
-          <img class="adv-text-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
-          <div class="adv-text-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(t.text)}</div>
+      texts += `<div class="mx-note stationery" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+          <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
+          <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(t.text)}</div>
           ${handles}</div>`;
     } else {
-      texts += `<div class="adv-text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
+      texts += `<div class="mx-note" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
           ${handles}</div>`;
     }
   });
@@ -3164,7 +3164,7 @@ async function removeMatrixText(id){
 document.getElementById('content-panel').addEventListener('click', e => {
   const stickerBtn = e.target.closest('.adv-sticker-remove');
   if (stickerBtn) { e.stopPropagation(); removeMatrixSticker(stickerBtn.dataset.id); return; }
-  const textBtn = e.target.closest('.adv-text-remove');
+  const textBtn = e.target.closest('.mx-note-remove');
   if (textBtn) { e.stopPropagation(); removeMatrixText(textBtn.dataset.id); return; }
 });
 
@@ -3193,8 +3193,8 @@ async function updateMatrixItem(kind, id, patch){
 // ── DRAG-TO-REPOSITION for photos, stickers & text ────────
 let matrixDragState = null;
 document.getElementById('content-panel').addEventListener('pointerdown', e => {
-  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .adv-text-remove, .adv-rotate-handle, .adv-resize-handle')) return;
-  const el = e.target.closest('.adv-photo, .adv-sticker, .adv-text');
+  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove, .adv-rotate-handle, .adv-resize-handle')) return;
+  const el = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
   if (!el) return;
   const frame = el.closest('.matrix-frame');
   if (!frame) return;
@@ -3235,7 +3235,7 @@ document.getElementById('content-panel').addEventListener('pointerdown', e => {
   const handle = e.target.closest('.adv-rotate-handle');
   if (!handle) return;
   e.stopPropagation(); e.preventDefault();
-  const el = handle.closest('.adv-photo, .adv-sticker, .adv-text');
+  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
   if (!el) return;
   handle.setPointerCapture(e.pointerId);
   el.classList.add('dragging');
@@ -3275,7 +3275,7 @@ document.getElementById('content-panel').addEventListener('pointerdown', e => {
   const handle = e.target.closest('.adv-resize-handle');
   if (!handle) return;
   e.stopPropagation(); e.preventDefault();
-  const el = handle.closest('.adv-photo, .adv-sticker, .adv-text');
+  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
   if (!el) return;
   handle.setPointerCapture(e.pointerId);
   el.classList.add('dragging');

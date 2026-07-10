@@ -288,11 +288,11 @@
       const tRot = t.rot || 0, tScale = t.scale || 1;
       if (t.stationery && STATIONERY_FILE[t.stationery]) {
         const box = STATIONERY_BOX[t.stationery];
-        texts += `<div class="adv-text stationery" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
-            <img class="adv-text-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
-            <div class="adv-text-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div></div>`;
+        texts += `<div class="mx-note stationery" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+            <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
+            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div></div>`;
       } else {
-        texts += `<div class="adv-text" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}</div>`;
+        texts += `<div class="mx-note" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}</div>`;
       }
     });
 
@@ -710,14 +710,14 @@
 @media (hover: none) { .adv-photo-remove { opacity:1; } }
 .adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); }
 .adv-sticker img { width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
-.adv-text {
+.mx-note {
   position:absolute; z-index:4; max-width:220px;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
   text-align:center; line-height:1.2; word-break:break-word;
 }
-.adv-text.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
-.adv-text-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
-.adv-text-stationery-body {
+.mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
+.mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.mx-note-stationery-body {
   position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
 }
