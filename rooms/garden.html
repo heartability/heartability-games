@@ -110,8 +110,8 @@ html, body {
 .el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; }
 .el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; }
 
-.el-fountain, .el-leaderboard { pointer-events: auto; cursor: pointer; }
-.el-phonebooth                { pointer-events: auto; }
+.el-fountain    { pointer-events: auto; cursor: pointer; }
+.el-phonebooth, .el-leaderboard { pointer-events: auto; }
 
 /* ── CLOUD GUIDE  z:4 ── */
 .char-cloud {
@@ -171,40 +171,6 @@ html, body {
 }
 .char-cloud.active .thought-bubble { opacity: 1; }
 
-/* ── LEADERBOARD MODAL ── */
-.lb-header {
-  display: grid;
-  grid-template-columns: 36px 1fr 90px;
-  gap: 8px;
-  padding: 6px 4px 10px;
-  font-family: var(--font-hand);
-  font-size: 14px;
-  color: #aaa;
-  letter-spacing: 0.3px;
-  border-bottom: 1px solid #e0dbd0;
-}
-.lb-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 90px;
-  gap: 8px;
-  padding: 9px 4px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  font-family: var(--font-hand);
-  font-size: 17px;
-  color: #333;
-  align-items: center;
-}
-.lb-row:last-child { border-bottom: none; }
-.lb-row.is-me { background: rgba(101,121,226,0.08); }
-.lb-rank { font-family: monospace; color: #aaa; text-align: center; }
-.lb-rank.top3 { color: #6578e2; font-weight: bold; }
-.lb-username.is-me::after { content: ' (you)'; color: #6578e2; font-size: 13px; }
-.lb-saves { text-align: right; color: #555; }
-.lb-divider { padding: 8px 4px; text-align: center; color: #ccc; font-size: 14px; }
-.lb-empty, .lb-loading { padding: 24px 10px; text-align: center; font-family: var(--font-hand); color: #aaa; font-size: 16px; line-height: 1.7; }
-.lb-refresh { font-size: 17px; color: #999; cursor: pointer; line-height: 1; }
-.lb-refresh:hover { color: #6578e2; }
-
 /* ── Narrow landscape (small landscape phones) ──
    Portrait/vertical viewports are handled by the room slider
    (assets/css/room-slider.css) instead of squeezing this layout. */
@@ -259,7 +225,7 @@ html, body {
     <img src="../assets/elements/phonebooth.png" alt="Dream Hotline">
   </div>
 
-  <!-- Leaderboard -->
+  <!-- Leaderboard (coming soon) -->
   <div class="garden-el el-leaderboard" id="el-leaderboard">
     <img src="../assets/elements/leaderboard.png" alt="Leaderboard">
   </div>
@@ -279,24 +245,6 @@ html, body {
   </div>
 
 </div>
-</div>
-
-<!-- LEADERBOARD MODAL -->
-<div class="hg-modal-overlay" id="leaderboard-overlay">
-  <div class="hg-modal" style="width:min(92vw,420px);">
-    <div class="hg-modal-titlebar">
-      <span>weekly leaderboard</span>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <span class="lb-refresh" id="lb-refresh" title="refresh">&#8635;</span>
-        <span class="hg-modal-close" id="leaderboard-close">&#x2715;</span>
-      </div>
-    </div>
-    <div class="hg-modal-body" style="padding:14px 18px;">
-      <div id="leaderboard-content">
-        <div class="lb-loading">loading this week's rankings...</div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- FOUNTAIN MODAL: donate or wish choice -->
@@ -371,10 +319,10 @@ html, body {
   fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
   fountain.addEventListener('click', () => openFountainModal());
 
-  /* ── Leaderboard: "see where you stand this week!" ── */
+  /* ── Leaderboard: "coming soon!" ── */
   const leaderboardSign = document.getElementById('el-leaderboard');
   leaderboardSign.addEventListener('mouseenter', () => {
-    bubble.textContent = 'see where you stand this week!';
+    bubble.textContent = 'coming soon!';
     cloud.classList.add('active');
   });
   leaderboardSign.addEventListener('mouseleave', () => cloud.classList.remove('active'));
@@ -444,63 +392,11 @@ html, body {
     }
   });
 
-  /* ── Leaderboard popup ── */
-  const lbOverlay = document.getElementById('leaderboard-overlay');
-
-  function openLeaderboard() {
-    lbOverlay.classList.add('open');
-    loadLeaderboard();
-  }
-  function closeLeaderboard() {
-    lbOverlay.classList.remove('open');
-  }
-
-  document.getElementById('el-leaderboard').addEventListener('click', openLeaderboard);
-  document.getElementById('leaderboard-close').addEventListener('click', closeLeaderboard);
-  document.getElementById('lb-refresh').addEventListener('click', loadLeaderboard);
-  lbOverlay.addEventListener('click', (e) => { if (e.target === lbOverlay) closeLeaderboard(); });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    closeLeaderboard();
     closeFountainModal();
     closeWishModal();
   });
-
-  async function loadLeaderboard() {
-    const el = document.getElementById('leaderboard-content');
-    el.innerHTML = '<div class="lb-loading">loading rankings...</div>';
-    try {
-      const { data, error } = await sb.rpc('get_weekly_leaderboard');
-      if (error || !data || !data.length) {
-        el.innerHTML = `<div class="lb-empty">no entries this week yet — make a save today to get on the board<br>
-          <span style="font-size:12px;color:#ccc;">rankings reset every 7 days</span></div>`;
-        return;
-      }
-      const myRow   = data.find(r => r.is_me);
-      const topRows = data.slice(0, 20);
-      const myInTop = topRows.some(r => r.is_me);
-      let html = `<div class="lb-header"><span>#</span><span>player</span><span style="text-align:right">saves</span></div>`;
-      topRows.forEach(r => {
-        const rankLabel = r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank - 1] : r.rank;
-        html += `<div class="lb-row${r.is_me ? ' is-me' : ''}">
-          <span class="lb-rank${r.rank <= 3 ? ' top3' : ''}">${rankLabel}</span>
-          <span class="lb-username${r.is_me ? ' is-me' : ''}">${r.username}</span>
-          <span class="lb-saves">${r.weekly_saves} day${r.weekly_saves !== 1 ? 's' : ''}</span>
-        </div>`;
-      });
-      if (!myInTop && myRow) {
-        html += `<div class="lb-divider">· · ·</div>
-          <div class="lb-row is-me">
-            <span class="lb-rank">${myRow.rank}</span>
-            <span class="lb-username is-me">${myRow.username}</span>
-            <span class="lb-saves">${myRow.weekly_saves} day${myRow.weekly_saves !== 1 ? 's' : ''}</span>
-          </div>`;
-      }
-      el.innerHTML = html;
-    } catch (err) {
-      el.innerHTML = '<div class="lb-empty">couldn\'t load rankings right now</div>';
-    }
-  }
 
   /* ── Map ── */
   document.getElementById('map-btn').addEventListener('click', () => {
