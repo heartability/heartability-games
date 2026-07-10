@@ -3,229 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <title>Report something broken — Heartability</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --sky-deep: #201a3d;
-    --sky-mid: #372c63;
-    --sky-soft: #6a5da8;
-    --parchment: #f6f2e9;
-    --ink: #241d3f;
-    --ink-soft: #5c5578;
-    --comet: #c2584f;
-    --comet-glow: #e7938c;
-    --firefly: #d9a441;
-    --firefly-glow: #f1cf8a;
-    --line: rgba(36, 29, 63, 0.12);
-  }
 
-  * { box-sizing: border-box; }
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
 
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Work Sans', sans-serif;
-    color: var(--ink);
-    background:
-      radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.7), transparent),
-      radial-gradient(1px 1px at 78% 34%, rgba(255,255,255,0.5), transparent),
-      radial-gradient(1.5px 1.5px at 45% 12%, rgba(255,255,255,0.8), transparent),
-      radial-gradient(1px 1px at 60% 68%, rgba(255,255,255,0.4), transparent),
-      radial-gradient(1px 1px at 25% 75%, rgba(255,255,255,0.6), transparent),
-      radial-gradient(1.5px 1.5px at 90% 80%, rgba(255,255,255,0.5), transparent),
-      linear-gradient(160deg, var(--sky-deep), var(--sky-mid) 55%, var(--sky-soft));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-  }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-  .card {
-    width: 100%;
-    max-width: 560px;
-    background: var(--parchment);
-    border-radius: 20px;
-    padding: 40px 36px;
-    box-shadow: 0 30px 60px rgba(15, 10, 35, 0.35);
-  }
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --mint:          #c9fff5;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+  --comet:         #c2584f;
+  --firefly:       #d9a441;
+}
 
-  .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin: 0 0 8px;
-  }
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  font-family: var(--font-hand);
+  background: url('../assets/elements/garden-sky.png') center / cover no-repeat fixed;
+  background-color: #5b7fe0;
+}
 
-  h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 30px;
-    line-height: 1.2;
-    margin: 0 0 10px;
-  }
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: #6578e2;
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(21px, 1.6vw, 25px);
+  color: #fff;
+}
+.nav-btn {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
 
-  .sub {
-    color: var(--ink-soft);
-    font-size: 15px;
-    line-height: 1.5;
-    margin: 0 0 28px;
-  }
+.page-wrap {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px 40px;
+}
 
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 20px 0 6px;
-  }
+.window {
+  width: 100%;
+  max-width: 560px;
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35);
+  overflow: hidden;
+  animation: windowIn 0.35s ease both;
+}
 
-  input[type="email"],
-  input[type="text"],
-  input[type="url"],
-  textarea {
-    width: 100%;
-    font-family: inherit;
-    font-size: 15px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--ink);
-  }
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  input:focus,
-  textarea:focus {
-    outline: 2px solid var(--sky-soft);
-    outline-offset: 1px;
-  }
+.window-titlebar {
+  height: 38px;
+  background: var(--cream-dark);
+  border-bottom: 2px solid #bbb;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-family: var(--font-hand);
+  font-size: clamp(16px, 1.4vw, 20px);
+  color: #555;
+}
 
-  textarea { resize: vertical; min-height: 100px; }
+.window-body {
+  padding: 26px 28px 24px;
+}
 
-  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+h1 {
+  font-family: var(--font-hand);
+  font-weight: normal;
+  font-size: clamp(24px, 2vw, 30px);
+  line-height: 1.2;
+  color: #333;
+  margin: 0 0 8px;
+}
 
-  /* Severity picker — a comet for urgent, a firefly for minor.
-     The signature element: two glowing tags instead of plain radios. */
-  .severity-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-  }
+.sub {
+  color: #888;
+  font-size: clamp(14px, 1.1vw, 15px);
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
 
-  .severity-option { flex: 1; position: relative; }
+label {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.1vw, 15px);
+  color: #888;
+  margin: 18px 0 6px;
+}
 
-  .severity-option input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    cursor: pointer;
-  }
+input[type="email"],
+input[type="text"],
+input[type="url"],
+textarea {
+  width: 100%;
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.3vw, 17px);
+  padding: 10px 12px;
+  border: 1.5px solid #bbb;
+  background: var(--cream);
+  color: #222;
+  outline: none;
+  transition: border-color 0.2s;
+}
 
-  .severity-card {
-    border: 1.5px solid var(--line);
-    border-radius: 12px;
-    padding: 14px 12px;
-    text-align: center;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
+input:focus,
+textarea:focus {
+  border-color: var(--purple);
+}
 
-  .severity-card .glyph { font-size: 20px; display: block; margin-bottom: 4px; }
-  .severity-card .label { font-weight: 600; font-size: 14px; }
-  .severity-card .desc { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+textarea { resize: vertical; min-height: 100px; }
 
-  .severity-option input:checked + .severity-card {
-    border-color: var(--comet);
-    box-shadow: 0 0 0 3px rgba(194, 88, 79, 0.14);
-  }
-  .severity-option:nth-child(2) input:checked + .severity-card {
-    border-color: var(--firefly);
-    box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.16);
-  }
+.hint { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-  .honeypot { position: absolute; left: -9999px; }
+/* Severity picker — a comet for urgent, a firefly for minor.
+   The signature element: two glowing tags instead of plain radios. */
+.severity-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
 
-  button {
-    margin-top: 28px;
-    width: 100%;
-    background: var(--ink);
-    color: var(--parchment);
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: transform 0.1s ease, background 0.15s ease;
-  }
-  button:hover { background: var(--sky-mid); }
-  button:active { transform: scale(0.98); }
-  button:disabled { opacity: 0.6; cursor: default; }
+.severity-option { flex: 1; position: relative; }
 
-  .status {
-    margin-top: 16px;
-    font-size: 14px;
-    text-align: center;
-    display: none;
-  }
-  .status.show { display: block; }
-  .status.error { color: var(--comet); }
-  .status.success { color: #2f6b4f; }
+.severity-option input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.severity-card {
+  border: 1.5px solid #bbb;
+  background: var(--cream);
+  padding: 14px 12px;
+  text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.severity-card .glyph { font-size: 20px; display: block; margin-bottom: 4px; }
+.severity-card .label { font-family: var(--font-hand); font-weight: normal; font-size: 15px; color: #333; }
+.severity-card .desc { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+.severity-option input:checked + .severity-card {
+  border-color: var(--comet);
+  box-shadow: 0 0 0 3px rgba(194, 88, 79, 0.14);
+}
+.severity-option:nth-child(2) input:checked + .severity-card {
+  border-color: var(--firefly);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.16);
+}
+
+.honeypot { position: absolute; left: -9999px; }
+
+button {
+  margin-top: 26px;
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--purple);
+  border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow);
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.05s;
+}
+button:hover { background: var(--purple-dark); }
+button:active { box-shadow: none; transform: translate(2px, 2px); }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.status {
+  margin-top: 16px;
+  font-size: 14px;
+  font-family: var(--font-hand);
+  padding: 8px 12px;
+  text-align: center;
+  display: none;
+}
+.status.show { display: block; }
+.status.error { color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.2); }
+.status.success { color: #2d7a4f; background: rgba(45,122,79,0.08); border: 1px solid rgba(45,122,79,0.2); }
+
 </style>
 </head>
 <body>
-  <main class="card">
-    <p class="eyebrow">Heartability</p>
-    <h1>Something's not working right</h1>
-    <p class="sub">Tell us what happened — the more specific, the faster we can track it down. No account needed.</p>
 
-    <form id="bug-form" novalidate>
-      <div class="honeypot" aria-hidden="true">
-        <label for="website">Leave this field empty</label>
-        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
-      </div>
+<nav class="room-nav">
+  <a class="nav-btn" href="../index.html" onclick="if(history.length>1){history.back();return false;}">← back</a>
+  <span style="margin:0; font:inherit;">report a bug</span>
+</nav>
 
-      <label for="email">Your email</label>
-      <input type="email" id="email" name="email" placeholder="you@example.com" required>
-      <p class="hint">So we can follow up if we need more detail.</p>
+<div class="page-wrap">
+  <main class="window">
+    <div class="window-titlebar">report something broken</div>
+    <div class="window-body">
+      <h1>Something's not working right</h1>
+      <p class="sub">Tell us what happened — the more specific, the faster we can track it down. No account needed.</p>
 
-      <label>How urgent is this?</label>
-      <div class="severity-row">
-        <div class="severity-option">
-          <input type="radio" name="category" value="urgent" id="cat-urgent" required>
-          <label for="cat-urgent" class="severity-card">
-            <span class="glyph">☄️</span>
-            <span class="label">Urgent</span>
-            <span class="desc">Blocking — can't use the site</span>
-          </label>
+      <form id="bug-form" novalidate>
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
         </div>
-        <div class="severity-option">
-          <input type="radio" name="category" value="minor" id="cat-minor">
-          <label for="cat-minor" class="severity-card">
-            <span class="glyph">✨</span>
-            <span class="label">Minor</span>
-            <span class="desc">Annoying, but I can work around it</span>
-          </label>
+
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        <p class="hint">So we can follow up if we need more detail.</p>
+
+        <label>How urgent is this?</label>
+        <div class="severity-row">
+          <div class="severity-option">
+            <input type="radio" name="category" value="urgent" id="cat-urgent" required>
+            <label for="cat-urgent" class="severity-card">
+              <span class="glyph">☄️</span>
+              <span class="label">Urgent</span>
+              <span class="desc">Blocking — can't use the site</span>
+            </label>
+          </div>
+          <div class="severity-option">
+            <input type="radio" name="category" value="minor" id="cat-minor">
+            <label for="cat-minor" class="severity-card">
+              <span class="glyph">✨</span>
+              <span class="label">Minor</span>
+              <span class="desc">Annoying, but I can work around it</span>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <label for="page_url">Where did it happen?</label>
-      <input type="url" id="page_url" name="page_url" placeholder="https://heartability.com/adventure">
+        <label for="page_url">Where did it happen?</label>
+        <input type="url" id="page_url" name="page_url" placeholder="https://heartability.com/adventure">
 
-      <label for="description">What happened?</label>
-      <textarea id="description" name="description" placeholder="I clicked... and then... instead of..." required></textarea>
+        <label for="description">What happened?</label>
+        <textarea id="description" name="description" placeholder="I clicked... and then... instead of..." required></textarea>
 
-      <label for="steps">Steps to reproduce (optional)</label>
-      <textarea id="steps" name="steps_to_reproduce" placeholder="1. Go to...&#10;2. Click...&#10;3. See..."></textarea>
+        <label for="steps">Steps to reproduce (optional)</label>
+        <textarea id="steps" name="steps_to_reproduce" placeholder="1. Go to...&#10;2. Click...&#10;3. See..."></textarea>
 
-      <button type="submit" id="submit-btn">Send report</button>
-      <p class="status" id="status"></p>
-    </form>
+        <button type="submit" id="submit-btn">Send report</button>
+        <p class="status" id="status"></p>
+      </form>
+    </div>
   </main>
+</div>
 
   <script>
     // Point this at your deployed Edge Function URL, e.g.:

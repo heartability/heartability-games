@@ -123,6 +123,51 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 }
 .bubble-btns { display:none; } /* buttons moved to back wall */
 
+/* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
+.timer-badge {
+  position:absolute; top:-38px; left:50%; transform:translateX(-50%);
+  background:#fff; border:2px solid var(--blue); border-radius:20px;
+  padding:4px 16px; font-family:var(--font-hand); font-size:clamp(15px,1.5vw,19px);
+  color:var(--ink); white-space:nowrap; z-index:401; display:none;
+  box-shadow:2px 2px 0 rgba(0,0,0,.15);
+}
+.timer-badge.active { display:block; }
+.timer-badge.warn { color:#E8478B; border-color:#E8478B; animation:timer-warn-pulse 1s ease-in-out infinite; }
+@keyframes timer-warn-pulse {
+  0%,100% { transform:translateX(-50%) scale(1); }
+  50%     { transform:translateX(-50%) scale(1.08); }
+}
+.timer-extend {
+  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  width:230px; background:#fff; border:2px solid #E8478B; border-radius:8px;
+  padding:12px 14px; font-family:var(--font-hand); font-size:15px; color:#000;
+  text-align:center; z-index:402; display:none;
+  box-shadow:3px 4px 0 rgba(0,0,0,.15);
+}
+.timer-extend.active { display:block; }
+.timer-extend-msg { margin-bottom:9px; line-height:1.4; }
+.timer-extend-btns { display:flex; gap:8px; justify-content:center; }
+.timer-extend-btn {
+  flex:1; padding:7px 8px; font-family:var(--font-hand); font-size:13px; cursor:pointer;
+  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
+  transition:all .05s;
+}
+.timer-extend-btn:hover { background:#4a5bc4; }
+.timer-extend-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.timer-extend-btn.ghost { background:none; border-color:#ccc; color:#999; box-shadow:none; }
+.timer-extend-btn.ghost:hover { border-color:#E8478B; color:#E8478B; }
+
+/* ── WELCOME STEP — timed/free mode choice before the dayquest builder ── */
+.welcome-panel { gap:20px; }
+.welcome-title { font-family:var(--font-hand); font-size:clamp(30px,3.2vw,44px); color:#fff; text-align:center; }
+.welcome-sub { font-family:var(--font-hand); font-size:clamp(17px,1.7vw,22px); color:var(--ink); text-align:center; margin-top:-8px; }
+.welcome-modes { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+.welcome-why {
+  font-family:var(--font-hand); font-size:15px; color:var(--ink);
+  text-decoration:underline; cursor:pointer; margin-top:2px;
+}
+.welcome-why:hover { color:#E8478B; }
+
 /* ── WALL BUTTONS — centered on the back wall ── */
 .wall-btns {
   position:fixed;
@@ -778,6 +823,14 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
     <span id="bubble-text">loading...</span>
     <div class="bubble-btns" id="bubble-btns"></div>
   </div>
+  <div class="timer-badge" id="timer-badge"></div>
+  <div class="timer-extend" id="timer-extend">
+    <div class="timer-extend-msg" id="timer-extend-msg"></div>
+    <div class="timer-extend-btns">
+      <button class="timer-extend-btn" onclick="extendFlowTimer()">extend +11 min</button>
+      <button class="timer-extend-btn ghost" onclick="expireAndWipe()">let it go</button>
+    </div>
+  </div>
   <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
@@ -887,6 +940,16 @@ let activeEntryId   = null; // one uuid per day = one daily_matrix row
 let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
 let activeDayquest = null; // {name,terrain,feeling,tint,cat} for today's location
 let _pendingArchetype = null; // archetype selected in picker, confirmed by continue btn
+
+// ── FLOW TIMER STATE ──────────────────────────────────────
+// Timed mode runs from the dayquest builder through bingo; journal is untimed.
+const TIMER_DURATION_MS = 11 * 60 * 1000;
+const TIMER_EXTEND_WINDOW_MS = 45 * 1000;
+let dailyTimedMode  = false;
+let timerEndAt      = null;
+let timerTickHandle = null;
+let extendEndAt     = null;
+let extendTickHandle = null;
 
 // User's LOCAL calendar day — the daily limit resets at local midnight.
 function localTodayStr(){
@@ -1143,8 +1206,43 @@ async function startToday() {
   if (existing) {
     await showSeeYouTomorrow(existing);
   } else {
-    stepBuildLocation();
+    stepWelcome();
   }
+}
+
+// ── STEP 0: welcome — choose timed or free mode before the dayquest builder ─
+function stepWelcome() {
+  currentStep = 'welcome';
+  stopFlowTimer();
+  setSaveBtnVisible(false);
+  setBubble('ready when you are');
+  showPanel(buildWelcomePanel());
+}
+
+function buildWelcomePanel() {
+  return `<div class="step-panel welcome-panel">
+    <div class="welcome-title">welcome to the daily matrix!</div>
+    <div class="welcome-sub">are you ready to begin?</div>
+    <div class="welcome-modes">
+      <button class="wall-btn" type="button" onclick="chooseDailyMode(true)">timed mode</button>
+      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">free mode</button>
+    </div>
+    <div class="welcome-why" onclick="showTimedModeInfo()">why timed mode? &rarr;</div>
+  </div>`;
+}
+
+function showTimedModeInfo() {
+  HGModal.alert(
+    'timed mode',
+    'a timer can help people who get easily distracted by creating a container that makes it easier to complete tasks. if you are prone to overthinking or walking away, try timed mode!'
+  );
+}
+
+function chooseDailyMode(timed) {
+  dailyTimedMode = timed;
+  hidePanel();
+  stepBuildLocation();
+  if (timed) startFlowTimer();
 }
 
 // Already tracked today — daily limit reached. Show the saved matrix.
@@ -1153,6 +1251,7 @@ async function showSeeYouTomorrow(row) {
   activeEntryId = row.id;
   activePhase   = null;
   _matrixSeed   = row.id;
+  stopFlowTimer();
   setBubble("see you tomorrow!");
   setSaveBtnVisible(false);
   const data = await assembleTodayMatrixData(row.id);
@@ -1334,6 +1433,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
+  stopFlowTimer();
   setBubble('what was important today?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
@@ -1818,6 +1918,105 @@ window.addEventListener('message', async e => {
 
 });
 
+
+// ── FLOW TIMER — timed mode runs location → character → bingo ───
+function msToClock(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function startFlowTimer() {
+  if (!dailyTimedMode) return;
+  timerEndAt = Date.now() + TIMER_DURATION_MS;
+  document.getElementById('timer-badge').classList.add('active');
+  clearInterval(timerTickHandle);
+  timerTickHandle = setInterval(tickFlowTimer, 1000);
+  tickFlowTimer();
+}
+
+function tickFlowTimer() {
+  const badge = document.getElementById('timer-badge');
+  const remaining = timerEndAt - Date.now();
+  if (remaining <= 0) {
+    clearInterval(timerTickHandle);
+    timerTickHandle = null;
+    badge.classList.remove('active', 'warn');
+    handleTimerExpire();
+    return;
+  }
+  badge.textContent = msToClock(remaining);
+  badge.classList.toggle('warn', remaining <= 60000);
+}
+
+// Stops the countdown outright — used entering the (untimed) journal step,
+// on completion, and whenever the flow resets.
+function stopFlowTimer() {
+  clearInterval(timerTickHandle);
+  timerTickHandle = null;
+  timerEndAt = null;
+  document.getElementById('timer-badge').classList.remove('active', 'warn');
+  clearExtendPrompt();
+}
+
+function handleTimerExpire() {
+  extendEndAt = Date.now() + TIMER_EXTEND_WINDOW_MS;
+  document.getElementById('timer-extend').classList.add('active');
+  clearInterval(extendTickHandle);
+  extendTickHandle = setInterval(tickExtendPrompt, 1000);
+  tickExtendPrompt();
+}
+
+function tickExtendPrompt() {
+  const remaining = extendEndAt - Date.now();
+  if (remaining <= 0) {
+    clearInterval(extendTickHandle);
+    extendTickHandle = null;
+    expireAndWipe();
+    return;
+  }
+  document.getElementById('timer-extend-msg').textContent =
+    `time's up! extend 11 min? (${Math.ceil(remaining / 1000)}s)`;
+}
+
+function clearExtendPrompt() {
+  clearInterval(extendTickHandle);
+  extendTickHandle = null;
+  document.getElementById('timer-extend').classList.remove('active');
+}
+
+function extendFlowTimer() {
+  clearExtendPrompt();
+  timerEndAt = Date.now() + TIMER_DURATION_MS;
+  document.getElementById('timer-badge').classList.add('active');
+  clearInterval(timerTickHandle);
+  timerTickHandle = setInterval(tickFlowTimer, 1000);
+  tickFlowTimer();
+}
+
+// Extend window lapsed unanswered — clear today's in-progress entry (if any
+// row was already saved) and send the user back to the welcome step.
+async function expireAndWipe() {
+  clearExtendPrompt();
+  stopFlowTimer();
+  clearTimeout(window._saveFallback);
+  if (activeEntryId) {
+    try { await sb.from('daily_matrix').delete().eq('id', activeEntryId); }
+    catch (e) { console.error('[timer] wipe failed', e); }
+  }
+  activeEntryId   = null;
+  activeDayquest  = null;
+  activePhase     = null;
+  _pendingArchetype = null;
+  dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
+  closeDayquestBuilder();
+  hidePanel();
+  setSaveBtnVisible(false);
+  await HGModal.alert(
+    "time's up",
+    "your progress for today was cleared. take a breath, then try again whenever you're ready."
+  );
+  stepWelcome();
+}
 
 // ── DAYQUEST BUILDER ─────────────────────────────────────
 let dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
