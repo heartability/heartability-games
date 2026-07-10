@@ -42,22 +42,25 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .wall {
   flex: 1; background: var(--wall); position: relative;
   display: flex; flex-direction: column; align-items: center;
-  padding: 24px 16px; overflow-y: auto;
+  padding: 60px 16px 24px; overflow-y: auto;
 }
 .wall::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background-image: repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.04) 59px, rgba(255,255,255,0.04) 60px);
 }
 
-#gear-slot { position: absolute; top: 16px; right: 16px; z-index: 20; }
-
-.room-title {
-  font-family: "PFPixelscript", cursive;
-  font-size: clamp(12px,5.5vw,54px);
-  color: #ffffff;
-  text-shadow: 2px 3px 0 rgba(0,0,0,0.14);
-  text-align: center; margin-bottom: 4px; position: relative; z-index: 1;
+/* NAV — matches matrix/dream.html's .room-nav layout */
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: #6579e2; border-bottom: 2px solid rgba(255,255,255,0.25);
+  z-index: 200; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 clamp(12px,2vw,28px);
+  font-family: var(--font-hand); font-size: clamp(18px,1.6vw,22px); color: #fff;
 }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; color: inherit; text-decoration: none; }
+.nav-btn:hover { background: rgba(0,0,0,.08); }
+
 .room-sub { font-family: var(--font-hand); font-size: clamp(13px,1.6vw,17px); color: #dfe6ff; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; max-width: 640px; line-height: 1.6; }
 
 .rpg-panel {
@@ -164,6 +167,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
   border-left-color: #c8b88a; border-top-color: #c8b88a;
   position: relative; overflow: hidden;
+  padding: 24px;
 }
 .three-act-canvas svg { width: 100%; height: auto; display: block; }
 
@@ -186,20 +190,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .selected-media-card { display: flex; gap: 12px; align-items: center; padding: 10px; background: #e8e0c8; border: 2px solid #8a7a5a; margin-top: 8px; }
 .selected-media-card img { width: 48px; height: 68px; object-fit: cover; background: #ccc; flex-shrink: 0; }
 .selected-media-title { font-family: var(--font-hand); font-size: 18px; color: var(--text-dark); }
-
-/* PHASE OF LIFE CHIPS */
-.phase-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.phase-chip {
-  padding: 5px 12px; background: #f0ead6;
-  border: 2px solid #8a7a5a; border-right-color: #5a4a2a; border-bottom-color: #5a4a2a;
-  border-left-color: #c8b88a; border-top-color: #c8b88a;
-  font-family: var(--font-hand); font-size: 15px; color: var(--text-dark);
-  cursor: pointer; user-select: none;
-}
-.phase-chip:hover { filter: brightness(1.06); }
-.phase-chip.active { border-color: var(--aqua); outline: 2px solid var(--aqua); outline-offset: 1px; background: #e0f0f0; }
-.phase-preview { max-width: 260px; margin: 0 auto; }
-.phase-preview svg { width: 100%; height: auto; display: block; cursor: pointer; }
 
 /* ARCHETYPE PICKER (forked from matrix/dream.html) */
 .arch-picker-loading { padding: 20px; font-family: var(--font-hand); color: #8a7a5a; }
@@ -229,10 +219,13 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 </style>
 </head>
 <body>
+<nav class="room-nav">
+  <div id="gear-slot"></div>
+  <h1 class="nav-title">media matrix</h1>
+  <a class="nav-btn" href="../matrix/archive.html">archive →</a>
+</nav>
 <div class="room">
   <div class="wall">
-    <div id="gear-slot"></div>
-    <div class="room-title">media matrix</div>
     <div class="room-sub">map a book or movie that helped you navigate something hard — your entry joins an anonymous, collective library.</div>
 
     <!-- TITLE SEARCH -->
@@ -250,8 +243,9 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
       <div class="action-row" style="margin-top:8px;">
         <button type="button" class="link-btn" id="manualToggleBtn" onclick="toggleManualEntry()">can't find it? enter it manually</button>
       </div>
-      <div id="manualEntry" style="display:none;margin-top:8px;display:none;flex-direction:column;gap:8px;">
+      <div id="manualEntry" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
         <input class="map-input" id="manualTitle" type="text" placeholder="title">
+        <input class="map-input" id="manualAuthor" type="text" placeholder="author / director (optional)">
         <select class="map-select" id="manualType">
           <option value="book">book</option>
           <option value="movie">movie</option>
@@ -266,6 +260,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
           </label>
           <span id="coverFileName" style="font-family:var(--font-hand);font-size:14px;color:#7a6a5a;"></span>
         </div>
+        <img id="coverPreview" style="display:none;width:80px;height:auto;object-fit:cover;border:2px solid #8a7a5a;">
       </div>
     </div>
 
@@ -282,7 +277,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
       <div class="two-col">
         <div>
           <div class="three-act-canvas">
-            <svg id="threeActSvg" viewBox="0 0 687 188" xmlns="http://www.w3.org/2000/svg">
+            <svg id="threeActSvg" viewBox="-50 -90 787 328" xmlns="http://www.w3.org/2000/svg">
               <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
               <defs id="threeActDefs"></defs>
               <g id="threeActZoneGroup"></g>
@@ -307,13 +302,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
         <div class="section-header">emotional climates</div>
         <div class="weather-categories" id="weatherCategories"></div>
       </div>
-    </div>
-
-    <!-- PHASE OF LIFE -->
-    <div class="rpg-panel">
-      <div class="section-header">what phase of life were you in?</div>
-      <div class="phase-chips" id="phaseChips"></div>
-      <div class="phase-preview" id="phasePreview"></div>
     </div>
 
     <!-- ARCHETYPE -->
@@ -430,18 +418,9 @@ const THREE_ACT_ZONE_POSITIONS = [
 ];
 
 let mapState  = { zones: [{}, {}, {}] };
-let phaseState = {};
-let activeZone = null; // 0 | 1 | 2 | 'phase'
-
-const PHASE_OF_LIFE_OPTIONS = [
-  'childhood','school','first job','new relationship','breakup',
-  'grief','depression','anxiety','recovery','new job','parenthood',
-  'moving / transition','vacation','other'
-];
-let selectedPhase = null;
+let activeZone = null; // 0 | 1 | 2
 
 function zoneTarget() {
-  if (activeZone === 'phase') return phaseState;
   if (activeZone === 0 || activeZone === 1 || activeZone === 2) return mapState.zones[activeZone];
   return null;
 }
@@ -453,14 +432,11 @@ function updateZonePrompt() {
   if (activeZone === null) { prompt.style.display = 'none'; return; }
   title.style.display = 'none';
   title.textContent = '';
-  text.textContent = activeZone === 'phase'
-    ? `what did this feel like during ${selectedPhase || 'this phase'}?`
-    : ZONE_PROMPTS[activeZone];
+  text.textContent = ZONE_PROMPTS[activeZone];
   prompt.style.display = 'block';
 }
 
 function selectZone(i) { activeZone = i; renderThreeActZones(); updateZonePrompt(); }
-function selectPhaseZone() { activeZone = 'phase'; renderThreeActZones(); renderPhasePreview(); updateZonePrompt(); }
 
 function renderThreeActZones() {
   const zoneGroup = document.getElementById('threeActZoneGroup');
@@ -529,47 +505,7 @@ function renderThreeActZones() {
   });
 }
 
-// ── PHASE OF LIFE ──────────────────────────────────────────────────────
-function buildPhaseChips() {
-  const wrap = document.getElementById('phaseChips');
-  PHASE_OF_LIFE_OPTIONS.forEach(p => {
-    const chip = document.createElement('div');
-    chip.className = 'phase-chip'; chip.textContent = p;
-    chip.addEventListener('click', () => {
-      selectedPhase = p; phaseState.phase = p;
-      document.querySelectorAll('.phase-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      selectPhaseZone();
-    });
-    wrap.appendChild(chip);
-  });
-}
-
-function renderPhasePreview() {
-  const loc = phaseState || {};
-  const R = 58, cx = 150, cy = 108;
-  let defs = '', body = '';
-  if (loc.tint) {
-    defs += `<radialGradient id="phaseglow" cx="50%" cy="50%" r="50%">`
-      + `<stop offset="0%" stop-color="${loc.tint}" stop-opacity="1"/>`
-      + `<stop offset="55%" stop-color="${loc.tint}" stop-opacity=".85"/>`
-      + `<stop offset="100%" stop-color="${loc.tint}" stop-opacity="0"/></radialGradient>`;
-    body += `<circle cx="${cx}" cy="${cy}" r="${R+44}" fill="url(#phaseglow)"/>`;
-  }
-  if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
-    body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
-  } else {
-    body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${activeZone==='phase' ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,.55)'}" stroke="${activeZone==='phase' ? '#6579e2' : '#8a7a5a'}" stroke-width="1.5"/>`;
-  }
-  if (loc.feeling) {
-    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000" font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${_escapeHtml(loc.feeling)}</text>`;
-  }
-  document.getElementById('phasePreview').innerHTML =
-    `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${body}</svg>`;
-  document.querySelector('#phasePreview svg').addEventListener('click', selectPhaseZone);
-}
-
-// ── TERRAIN PALETTE (shared across map zones + phase zone) ────────────
+// ── TERRAIN PALETTE ──────────────────────────────────────────────────
 let activeTerrainCat = "landscapes";
 function buildTerrain() {
   const tabs = document.getElementById("terrainCatTabs");
@@ -611,7 +547,6 @@ function selectTerrain(t, el) {
   if (!target) return;
   target.terrain = t.id;
   renderThreeActZones();
-  if (activeZone === 'phase') renderPhasePreview();
 }
 
 function buildWeather() {
@@ -639,7 +574,6 @@ function selectFeeling(feeling, cat, el) {
   if (!target) return;
   target.feeling = feeling; target.tint = cat.tint; target.cat = cat.id;
   renderThreeActZones();
-  if (activeZone === 'phase') renderPhasePreview();
 }
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -682,6 +616,7 @@ async function runSearch(q) {
           year: (info.publishedDate || '').slice(0,4),
           poster: info.imageLinks?.thumbnail?.replace('http://','https://') || null,
           media_type: 'book',
+          author: (info.authors || []).join(', ') || null,
           external_id: isbn?.identifier || it.id,
           external_source: 'google_books',
           canonical_link: info.infoLink || null,
@@ -727,7 +662,10 @@ function renderSelectedMediaCard() {
   if (!selectedMedia) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="selected-media-card">
     ${selectedMedia.cover_url || selectedMedia.poster ? `<img src="${selectedMedia.cover_url || selectedMedia.poster}" alt="">` : ''}
-    <div class="selected-media-title">${_escapeHtml(selectedMedia.title)}</div>
+    <div>
+      <div class="selected-media-title">${_escapeHtml(selectedMedia.title)}</div>
+      ${selectedMedia.author ? `<div style="font-family:var(--font-hand);font-size:14px;color:#7a6a5a;">${_escapeHtml(selectedMedia.author)}</div>` : ''}
+    </div>
   </div>`;
 }
 
@@ -752,6 +690,8 @@ async function onCoverPicked(event) {
     const { data: pub } = sb.storage.from(MEDIA_COVER_BUCKET).getPublicUrl(path);
     manualCoverUrl = pub?.publicUrl || null;
     document.getElementById('coverFileName').textContent = 'photo attached ✓';
+    const preview = document.getElementById('coverPreview');
+    preview.src = manualCoverUrl; preview.style.display = 'block';
   } catch (e) {
     console.error('[cover upload] failed:', e);
     document.getElementById('coverFileName').textContent = '';
@@ -868,8 +808,6 @@ async function submitEntry() {
   const missingFeeling = mapState.zones.some(z => !z.feeling);
   if (missingTerrain || missingFeeling) { statusEl.textContent = 'add a location and emotion to every zone of the map first.'; return; }
 
-  if (!selectedPhase) { statusEl.textContent = 'pick a phase of life first.'; return; }
-
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true; submitBtn.textContent = 'saving…';
 
@@ -878,6 +816,7 @@ async function submitEntry() {
     if (manualOpen) {
       mediaRow = {
         title,
+        author: document.getElementById('manualAuthor').value.trim() || null,
         media_type: document.getElementById('manualType').value,
         external_id: null, external_source: null,
         cover_url: manualCoverUrl,
@@ -886,6 +825,7 @@ async function submitEntry() {
     } else {
       mediaRow = {
         title,
+        author: selectedMedia?.author || null,
         media_type: selectedMedia?.media_type || 'other',
         external_id: selectedMedia?.external_id || null,
         external_source: selectedMedia?.external_source || null,
@@ -904,7 +844,6 @@ async function submitEntry() {
       about_sentence: aboutSentence,
       map_type: 'three-act',
       map_data: mapState,
-      phase_of_life: phaseState,
       archetype_id: selectedArchetypeId,
       comparable_titles: comparableTitles ? comparableTitles.split(',').map(s => s.trim()).filter(Boolean) : null,
       quality_rating: qualityRating || null,
@@ -928,9 +867,7 @@ async function submitEntry() {
 async function initPage() {
   buildTerrain();
   buildWeather();
-  buildPhaseChips();
   renderThreeActZones();
-  renderPhasePreview();
   buildStarRow('qualityStars', () => qualityRating, v => qualityRating = v);
   buildStarRow('experienceStars', () => experienceRating, v => experienceRating = v);
   refreshStars();
