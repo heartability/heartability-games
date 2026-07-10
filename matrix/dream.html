@@ -248,7 +248,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 }
 .step-header-title { font-size:25px; color:#000; text-align:center; }
 .step-back {
-  font-size:16px; color:var(--blue); cursor:pointer; justify-self:start;
+  font-size:22px; color:#fff; cursor:pointer; justify-self:start;
 }
 .step-back:hover { text-decoration:underline; }
 
@@ -293,6 +293,51 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   z-index:21;
 }
 .bubble-btns { display:none; } /* buttons moved to back wall */
+
+/* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
+.timer-badge {
+  position:absolute; top:-74px; left:50%; transform:translateX(-50%);
+  background:#fff; border:4px solid var(--blue); border-radius:40px;
+  padding:8px 32px; font-family:var(--font-hand); font-size:clamp(30px,3vw,38px);
+  color:var(--ink); white-space:nowrap; z-index:401; display:none;
+  box-shadow:4px 4px 0 rgba(0,0,0,.15);
+}
+.timer-badge.active { display:block; }
+.timer-badge.warn { color:#E8478B; border-color:#E8478B; animation:timer-warn-pulse 1s ease-in-out infinite; }
+@keyframes timer-warn-pulse {
+  0%,100% { transform:translateX(-50%) scale(1); }
+  50%     { transform:translateX(-50%) scale(1.08); }
+}
+.timer-extend {
+  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  width:230px; background:#fff; border:2px solid #E8478B; border-radius:8px;
+  padding:12px 14px; font-family:var(--font-hand); font-size:15px; color:#000;
+  text-align:center; z-index:402; display:none;
+  box-shadow:3px 4px 0 rgba(0,0,0,.15);
+}
+.timer-extend.active { display:block; }
+.timer-extend-msg { margin-bottom:9px; line-height:1.4; }
+.timer-extend-btns { display:flex; gap:8px; justify-content:center; }
+.timer-extend-btn {
+  flex:1; padding:7px 8px; font-family:var(--font-hand); font-size:13px; cursor:pointer;
+  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
+  transition:all .05s;
+}
+.timer-extend-btn:hover { background:#4a5bc4; }
+.timer-extend-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.timer-extend-btn.ghost { background:none; border-color:#ccc; color:#999; box-shadow:none; }
+.timer-extend-btn.ghost:hover { border-color:#E8478B; color:#E8478B; }
+
+/* ── WELCOME STEP — timed/free mode choice before the timed portion ── */
+.welcome-panel { gap:20px; }
+.welcome-title { font-family:var(--font-hand); font-size:clamp(30px,3.2vw,44px); color:#fff; text-align:center; }
+.welcome-sub { font-family:var(--font-hand); font-size:clamp(17px,1.7vw,22px); color:var(--ink); text-align:center; margin-top:-8px; }
+.welcome-modes { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+.welcome-why {
+  font-family:var(--font-hand); font-size:15px; color:var(--ink);
+  text-decoration:underline; cursor:pointer; margin-top:2px;
+}
+.welcome-why:hover { color:#E8478B; }
 
 /* ── WALL BUTTONS — centered on the back wall ── */
 .wall-btns {
@@ -447,8 +492,21 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     height:calc(100dvh - 44px); max-height:calc(100dvh - 44px);
     overflow-y:auto; overflow-x:hidden;
   }
-  .char-heart { display:none; }
+  /* Heart guide + bubble are desktop-only, but the flow timer still needs to
+     show somewhere — keep the (invisible) char-heart container around as an
+     anchor and re-pin the timer badge to the bottom-left as its own pill. */
+  .char-heart .char-img, .char-heart .thought-bubble { display:none; }
   .thought-bubble { font-size:clamp(13px,3vw,16px); min-width:140px; left:calc(100% - 6px); }
+  .timer-badge {
+    position:fixed; top:auto; left:14px; bottom:14px; transform:none;
+    padding:5px 16px; font-size:16px; border-width:2px; border-radius:20px;
+    box-shadow:2px 2px 0 rgba(0,0,0,.15);
+  }
+  .timer-badge.warn { animation:none; }
+  .timer-extend {
+    position:fixed; top:auto; bottom:14px; left:14px; transform:none;
+    width:min(230px, calc(100vw - 28px));
+  }
   .phase-key { width:180px; font-size:14px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
   .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
@@ -615,6 +673,11 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   width:76%; height:76%; margin:auto; align-self:center;
   position:relative; overflow:hidden;
 }
+/* On mobile, stretch to the full phone width instead of the desktop-tuned
+   76% so matrix items have more room to spread out. */
+@media (max-width:768px) {
+  .matrix-frame { width:98%; }
+}
 
 .adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
 .adv-grid {
@@ -672,7 +735,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
   pointer-events:none; object-fit:contain; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
-/* Remove control on each matrix photo — hover-reveal on desktop, always on touch */
+/* Remove control on each matrix photo — hover-reveal on desktop, tap-to-select
+   on touch (see the pointerdown .selected toggle in the drag-handling JS) so
+   controls don't permanently clutter the matrix on mobile. */
 .adv-photo-remove {
   position:absolute; top:-8px; right:-8px; z-index:4;
   width:20px; height:20px; padding:0; line-height:1;
@@ -681,9 +746,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-photo:hover .adv-photo-remove { opacity:1; }
+.adv-photo:hover .adv-photo-remove, .adv-photo.selected .adv-photo-remove { opacity:1; }
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-photo-remove { opacity:1; } }
 
 /* Stickers — same removable-thumbnail idea as photos, but draggable freely
    anywhere on the matrix instead of snapping to a quadrant. */
@@ -698,9 +762,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-sticker:hover .adv-sticker-remove { opacity:1; }
+.adv-sticker:hover .adv-sticker-remove, .adv-sticker.selected .adv-sticker-remove { opacity:1; }
 .adv-sticker-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-sticker-remove { opacity:1; } }
 
 /* Freeform text notes — same drag pattern as stickers, set in ZoesHandwriting */
 .mx-note {
@@ -728,9 +791,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.mx-note:hover .mx-note-remove { opacity:1; }
+.mx-note:hover .mx-note-remove, .mx-note.selected .mx-note-remove { opacity:1; }
 .mx-note-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .mx-note-remove { opacity:1; } }
 
 /* Rotate & resize handles — shared by photos, stickers & text notes */
 .adv-rotate-handle, .adv-resize-handle {
@@ -745,9 +807,11 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
 .adv-photo:hover .adv-rotate-handle, .adv-photo:hover .adv-resize-handle,
 .adv-sticker:hover .adv-rotate-handle, .adv-sticker:hover .adv-resize-handle,
-.mx-note:hover .adv-rotate-handle, .mx-note:hover .adv-resize-handle { opacity:1; }
+.mx-note:hover .adv-rotate-handle, .mx-note:hover .adv-resize-handle,
+.adv-photo.selected .adv-rotate-handle, .adv-photo.selected .adv-resize-handle,
+.adv-sticker.selected .adv-rotate-handle, .adv-sticker.selected .adv-resize-handle,
+.mx-note.selected .adv-rotate-handle, .mx-note.selected .adv-resize-handle { opacity:1; }
 .adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
-@media (hover: none) { .adv-rotate-handle, .adv-resize-handle { opacity:1; } }
 
 /* Matrix toolbar — add photo / sticker / text, centered below the matrix */
 .matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
@@ -882,7 +946,18 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .sticker-thumb:hover { border-color:var(--blue); background:#f0edfa; transform:scale(1.04); }
 .sticker-thumb img { width:100%; display:block; }
 
-/* ── TEXT ADD MODAL (reuses .photo-overlay/.photo-card/.photo-head) ── */
+/* ── TEXT ADD MODAL (reuses .photo-overlay/.photo-card/.photo-head; fixed-size
+   card with its own scroll region so the stationery grid can't push the "add
+   to matrix" button off-screen on mobile — same fix as the sticker modal). ── */
+#text-add-overlay .photo-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+#text-add-overlay .photo-head,
+#text-add-overlay .photo-sub,
+#text-add-overlay .text-add-preview,
+#text-add-overlay .text-add-input,
+#text-add-overlay .photo-quad-label,
+#text-add-overlay .photo-status,
+#text-add-overlay .photo-add-btn { flex-shrink:0; }
+#text-add-overlay .photo-frame-grid { overflow-y:auto; flex:1 1 auto; align-content:start; margin-bottom:0; padding-bottom:4px; }
 .text-add-input {
   width:100%; font-family:var(--font-hand); font-size:18px; color:#222;
   background:#f5f0ea; border:1.5px solid #bbb; padding:10px 12px;
@@ -1139,6 +1214,14 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     <span id="bubble-text">loading...</span>
     <div class="bubble-btns" id="bubble-btns"></div>
   </div>
+  <div class="timer-badge" id="timer-badge"></div>
+  <div class="timer-extend" id="timer-extend">
+    <div class="timer-extend-msg" id="timer-extend-msg"></div>
+    <div class="timer-extend-btns">
+      <button class="timer-extend-btn" onclick="extendFlowTimer()">extend +11 min</button>
+      <button class="timer-extend-btn ghost" onclick="expireAndWipe()">let it go</button>
+    </div>
+  </div>
   <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
@@ -1374,6 +1457,16 @@ let currentStep    = null; // 'character' | 'bingo' | 'journal'
 let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row
 let activeSidequest    = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 let activeDreamCameTrue = null; // {name,terrain,feeling,tint,cat} when dream-came-true phase is taken
+
+// ── FLOW TIMER STATE ──────────────────────────────────────
+// Timed mode runs from character selection through bingo; journal is untimed.
+const TIMER_DURATION_MS = 11 * 60 * 1000;
+const TIMER_EXTEND_WINDOW_MS = 45 * 1000;
+let dailyTimedMode  = false;
+let timerEndAt      = null;
+let timerTickHandle = null;
+let extendEndAt     = null;
+let extendTickHandle = null;
 
 function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
 
@@ -1638,9 +1731,12 @@ function autoSizeIframe(iframe) {
   });
 }
 
-function showIframe(src) {
+function showIframe(src, backFn) {
   const panel = document.getElementById('content-panel');
-  panel.innerHTML = `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+  const header = backFn
+    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span><span></span></div>`
+    : '';
+  panel.innerHTML = `${header}<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
   document.getElementById('wall-btns').classList.remove('active');
   autoSizeIframe(document.getElementById('game-iframe'));
@@ -1648,6 +1744,7 @@ function showIframe(src) {
 function showMapBuilder(src) {
   const panel = document.getElementById('content-panel');
   panel.innerHTML = `
+    <div class="step-header"><span class="step-back" onclick="stepLoadGame()">← back</span><span></span><span></span></div>
     <div class="map-builder-card">
       <div class="sq-head"><span class="sq-title">map a new dream</span></div>
       <input class="sq-name" id="dream-map-name" type="text" placeholder="name this dream" maxlength="60">
@@ -1941,10 +2038,161 @@ function selectPhase(idx) {
   document.getElementById('begin-btn').disabled = false;
 }
 
-// ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
+// ── STEP 3.5: WELCOME — choose timed or free mode before the timed portion ─
 function stepBegin() {
   if (!activePhase) return;
+  stepWelcome();
+}
+
+function stepWelcome() {
+  currentStep = 'welcome';
+  stopFlowTimer();
+  setSaveBtnVisible(false);
+  setBubble('ready when you are');
+  showPanel(buildWelcomePanel());
+}
+
+function buildWelcomePanel() {
+  return `<div class="step-panel welcome-panel">
+    <div class="step-header">
+      <span class="step-back" onclick="stepPhaseSelect()">← back</span>
+      <span></span><span></span>
+    </div>
+    <div class="welcome-title">welcome to the dream matrix!</div>
+    <div class="welcome-sub">are you ready to begin?</div>
+    <div class="welcome-modes">
+      <button class="wall-btn" type="button" onclick="chooseDailyMode(true)">timed mode</button>
+      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">free mode</button>
+    </div>
+    <div class="welcome-why" onclick="showTimedModeInfo()">why timed mode? &rarr;</div>
+  </div>`;
+}
+
+function showTimedModeInfo() {
+  HGModal.alert(
+    'timed mode',
+    'a timer can help people who get easily distracted by creating a container that makes it easier to complete tasks. if you are prone to overthinking or walking away, try timed mode!'
+  );
+}
+
+function chooseDailyMode(timed) {
+  dailyTimedMode = timed;
+  hidePanel();
+  stepBeginConfirmed();
+  if (timed) startFlowTimer();
+}
+
+// ── FLOW TIMER — timed mode runs character → bingo ───
+function msToClock(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function startFlowTimer() {
+  if (!dailyTimedMode) return;
+  timerEndAt = Date.now() + TIMER_DURATION_MS;
+  document.getElementById('timer-badge').classList.add('active');
+  clearInterval(timerTickHandle);
+  timerTickHandle = setInterval(tickFlowTimer, 1000);
+  tickFlowTimer();
+}
+
+function tickFlowTimer() {
+  const badge = document.getElementById('timer-badge');
+  const remaining = timerEndAt - Date.now();
+  if (remaining <= 0) {
+    clearInterval(timerTickHandle);
+    timerTickHandle = null;
+    badge.classList.remove('active', 'warn');
+    handleTimerExpire();
+    return;
+  }
+  badge.textContent = msToClock(remaining);
+  badge.classList.toggle('warn', remaining <= 60000);
+}
+
+// Stops the countdown outright — used entering the (untimed) journal step,
+// on completion, and whenever the flow resets.
+function stopFlowTimer() {
+  clearInterval(timerTickHandle);
+  timerTickHandle = null;
+  timerEndAt = null;
+  document.getElementById('timer-badge').classList.remove('active', 'warn');
+  clearExtendPrompt();
+}
+
+function handleTimerExpire() {
+  extendEndAt = Date.now() + TIMER_EXTEND_WINDOW_MS;
+  document.getElementById('timer-extend').classList.add('active');
+  clearInterval(extendTickHandle);
+  extendTickHandle = setInterval(tickExtendPrompt, 1000);
+  tickExtendPrompt();
+}
+
+function tickExtendPrompt() {
+  const remaining = extendEndAt - Date.now();
+  if (remaining <= 0) {
+    clearInterval(extendTickHandle);
+    extendTickHandle = null;
+    expireAndWipe();
+    return;
+  }
+  document.getElementById('timer-extend-msg').textContent =
+    `time's up! extend 11 min? (${Math.ceil(remaining / 1000)}s)`;
+}
+
+function clearExtendPrompt() {
+  clearInterval(extendTickHandle);
+  extendTickHandle = null;
+  document.getElementById('timer-extend').classList.remove('active');
+}
+
+function extendFlowTimer() {
+  clearExtendPrompt();
+  timerEndAt = Date.now() + TIMER_DURATION_MS;
+  document.getElementById('timer-badge').classList.add('active');
+  clearInterval(timerTickHandle);
+  timerTickHandle = setInterval(tickFlowTimer, 1000);
+  tickFlowTimer();
+}
+
+// Extend window lapsed unanswered — clear this session's in-progress entry
+// (if any row was already saved) and send the user back to the phase picker.
+async function expireAndWipe() {
+  clearExtendPrompt();
+  stopFlowTimer();
+  clearTimeout(window._saveFallback);
+  if (activeEntryId) {
+    try { await sb.from('dream_matrix').delete().eq('id', activeEntryId); }
+    catch (e) { console.error('[timer] wipe failed', e); }
+  }
+  activeEntryId       = null;
+  activePhase         = null;
+  activeSidequest      = null;
+  activeDreamCameTrue  = null;
+  closeSidequestBuilder();
+  closeDctBuilder();
+  hidePanel();
+  setSaveBtnVisible(false);
+  await HGModal.alert(
+    "time's up",
+    "your progress for this phase was cleared. take a breath, then try again whenever you're ready."
+  );
+  stepPhaseSelect();
+}
+
+// ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
+function stepBeginConfirmed() {
   activeEntryId = crypto.randomUUID();   // fresh dream_matrix row for this session
+  currentStep = 'character';
+  setBubble('who do you feel like today?', []);
+  showArchetypePicker();
+}
+
+// Re-opens the archetype picker without minting a new activeEntryId — used as
+// the "back" target from steps reached after stepBeginConfirmed already ran,
+// so the in-progress dream_matrix row isn't orphaned by a fresh id.
+function backToCharacterStep() {
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
   showArchetypePicker();
@@ -1952,7 +2200,7 @@ function stepBegin() {
 
 function openCharacterBuilder() {
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src);
+  showIframe(src, 'showArchetypePicker()');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
@@ -1980,14 +2228,20 @@ function renderArchetypePicker(archetypes) {
       <div class="arch-card-name">${_escapeHtml(a.name || 'unnamed')}</div>
     </button>`).join('');
   panel.innerHTML = `
-    <div class="arch-picker">
-      <div class="arch-picker-title">choose an archetype for today</div>
-      <div class="arch-grid">
-        ${cards}
-        <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
-          <div class="arch-card-plus">+</div>
-          <div class="arch-card-name">create new</div>
-        </button>
+    <div class="step-panel">
+      <div class="step-header">
+        <span class="step-back" onclick="stepWelcome()">← back</span>
+        <span></span><span></span>
+      </div>
+      <div class="arch-picker">
+        <div class="arch-picker-title">choose an archetype for today</div>
+        <div class="arch-grid">
+          ${cards}
+          <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
+            <div class="arch-card-plus">+</div>
+            <div class="arch-card-name">create new</div>
+          </button>
+        </div>
       </div>
     </div>`;
   panel.querySelectorAll('.arch-card[data-id]').forEach(btn => {
@@ -2079,7 +2333,7 @@ function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src);
+  showIframe(src, 'backToCharacterStep()');
   setSaveBtnVisible(true, 'continue →');
 }
 
@@ -2087,6 +2341,7 @@ function stepBingo() {
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
+  stopFlowTimer();
   setBubble('any discoveries in this phase?', []);
   showPanel(buildJournalPanel());
   loadJournalEntries();
@@ -2142,6 +2397,7 @@ const journal = { entries: [] };
 
 function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
+    <div class="step-header"><span class="step-back" onclick="stepBingo()">← back</span><span></span><span></span></div>
     <div class="jrc-window">
       <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
       <div class="jrc-messages" id="jrc-messages">
@@ -3171,6 +3427,18 @@ async function updateMatrixItem(kind, id, patch){
     console.error(`[matrix ${kind}] update failed:`, err);
   }
 }
+
+// ── TAP-TO-SELECT reveals a photo/sticker/text's controls (remove/rotate/
+// resize) — mirrors :hover on desktop. Tapping the item selects it; tapping
+// anywhere else (including blank matrix space) deselects everything, so
+// controls don't stay glued onto the matrix when the user wants a clean shot.
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const item = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
+  document.querySelectorAll('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected').forEach(el => {
+    if (el !== item) el.classList.remove('selected');
+  });
+  if (item) item.classList.add('selected');
+});
 
 // ── DRAG-TO-REPOSITION for photos, stickers & text ────────
 let matrixDragState = null;
