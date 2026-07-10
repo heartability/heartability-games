@@ -188,6 +188,24 @@
       + body + `</svg>`;
   }
 
+  // Stationery cards a text note can sit on (mirrors STATIONERY_ITEMS in
+  // dream.html — keep in sync if those cards change).
+  const STATIONERY_BASE = '../assets/elements/stickers/stationary/';
+  const STATIONERY_ITEMS = [
+    { key:'airmail-letter',         file:'stationary-airmail-letter.png',           box:{l:4.2, t:16.7, w:91.6, h:70.8} },
+    { key:'gift-tag-olive',         file:'stationary-gift-tag-olive.png',           box:{l:4.2, t:37.5, w:91.6, h:58.3} },
+    { key:'label-bracket-green',    file:'stationary-label-bracket-green.png',      box:{l:8.3, t:16.7, w:83.4, h:66.6} },
+    { key:'label-bracket-navy',     file:'stationary-label-bracket-navy.png',       box:{l:12.5,t:12.5, w:75,   h:75} },
+    { key:'lace-doily-oval',        file:'stationary-lace-doily-oval-frame.png',    box:{l:25,  t:20.8, w:54.2, h:54.2} },
+    { key:'library-card',           file:'stationary-library-card.png',             box:{l:0,   t:37.5, w:100,  h:62.5} },
+    { key:'notecard-daisies',       file:'stationary-notecard-daisies.png',         box:{l:4.2, t:8.3,  w:62.5, h:83.4} },
+    { key:'notecard-strawberry',    file:'stationary-notecard-strawberry.png',      box:{l:37.5,t:8.3,  w:58.3, h:70.9} },
+    { key:'notepaper-cowboy',       file:'stationary-notepaper-cowboy-western.png', box:{l:12.5,t:29.2, w:75,   h:50} },
+    { key:'notepaper-mushroom-cat', file:'stationary-notepaper-mushroom-cat.png',   box:{l:54.2,t:12.5, w:45.8, h:62.5} },
+  ];
+  const STATIONERY_FILE = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.file]));
+  const STATIONERY_BOX  = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.box]));
+
   // Quadrant geometry for photo placement (matrix %). 2-col grid growing inward
   // from each quadrant's outer corner so photo bodies don't overlap.
   const QUADRANTS = {
@@ -254,6 +272,30 @@
       photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" type="button" data-url="${esc(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
     });
 
+    // Stickers — freeform decorations, placed wherever they were last dragged to.
+    let stickers = '';
+    (data.matrixStickers||[]).forEach(s => {
+      if (!s || !s.url || !s.id) return;
+      const sRot = s.rot || 0, sScale = s.scale || 1;
+      stickers += `<div class="adv-sticker" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});"><img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
+    });
+
+    // Text notes — freeform, optionally set on a stationery card whose
+    // writable rectangle (STATIONERY_BOX) keeps the text off the illustration.
+    let texts = '';
+    (data.matrixTexts||[]).forEach(t => {
+      if (!t || !t.text || !t.id) return;
+      const tRot = t.rot || 0, tScale = t.scale || 1;
+      if (t.stationery && STATIONERY_FILE[t.stationery]) {
+        const box = STATIONERY_BOX[t.stationery];
+        texts += `<div class="adv-text stationery" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+            <img class="adv-text-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
+            <div class="adv-text-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div></div>`;
+      } else {
+        texts += `<div class="adv-text" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}</div>`;
+      }
+    });
+
     // Header buttons (no inline onclick — host wires via attachMatrix).
     const addBtn  = showAddPhoto  ? `<button class="matrix-photo-btn" type="button">+ photo</button>` : '';
     const noteBtn = showEditNotes ? `<button class="matrix-edit-notes" type="button">✎ notes</button>` : '';
@@ -277,6 +319,8 @@
           <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
           ${mapItem}${bingoItem}${charItem}${journalItem}
           ${photos}
+          ${stickers}
+          ${texts}
         </div>
       </div>
     </div>`;
@@ -295,6 +339,7 @@
       zones: (g.map_data || {}).zones || [],
       mapPhase: null, locationData: null, sidequestData: null,
       bingoScore: 0, charState: null, journalText: '', matrixImages: [],
+      matrixStickers: [], matrixTexts: [],
     };
     if (!sb || !entryId) return d;
     try {
@@ -308,7 +353,9 @@
         d.journalText   = (Array.isArray(row.journal_messages)
           ? row.journal_messages.map(m => m && m.text).filter(Boolean).join(' ')
           : '');
-        d.matrixImages  = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+        d.matrixImages   = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+        d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
+        d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
         // dateLabel reflects the SAVE's local day, not "today". Daily rows are
         // dated by entry_date (a plain YYYY-MM-DD), so prefer it when present.
         if (row.entry_date) {
@@ -661,6 +708,19 @@
 .adv-photo:hover .adv-photo-remove { opacity:1; }
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
 @media (hover: none) { .adv-photo-remove { opacity:1; } }
+.adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); }
+.adv-sticker img { width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
+.adv-text {
+  position:absolute; z-index:4; max-width:220px;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
+  text-align:center; line-height:1.2; word-break:break-word;
+}
+.adv-text.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
+.adv-text-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.adv-text-stationery-body {
+  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
+}
 
 /* ── shared photo-upload modal ── */
 .mr-photo-overlay, .mr-jr-overlay {
