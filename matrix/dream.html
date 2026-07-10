@@ -746,7 +746,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   padding:18px 20px; font-family:var(--font-hand);
 }
 .photo-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.photo-title { font-size:clamp(22px,2.2vw,30px); color:var(--blue); }
+.photo-title { font-size:clamp(28px,3vw,30px); color:var(--blue); }
 .photo-close { font-size:25px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
 .photo-close:hover { color:#E8478B; }
 .photo-sub { font-size:15px; color:#8a7a5a; margin:2px 0 14px; }
@@ -784,15 +784,19 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .photo-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
 
-/* ── STICKER PICKER MODAL (reuses .photo-overlay/.photo-card/.photo-head) ── */
-.sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+/* ── STICKER PICKER MODAL (reuses .photo-overlay/.photo-head; fixed-size card so it
+   doesn't reflow the whole modal when switching between categories of different lengths) ── */
+#sticker-overlay .photo-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+#sticker-overlay .photo-head,
+#sticker-overlay .photo-sub { flex-shrink:0; }
+.sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; flex-shrink:0; }
 .sticker-tab {
-  padding:6px 12px; background:#fdf6e3; border:1.5px solid #ccc;
-  font-family:var(--font-hand); font-size:14px; color:#8a7a5a; cursor:pointer; transition:all .1s;
+  padding:8px 16px; background:#fdf6e3; border:1.5px solid #ccc;
+  font-family:var(--font-hand); font-size:22px; color:#8a7a5a; cursor:pointer; transition:all .1s;
 }
 .sticker-tab:hover { border-color:var(--blue); color:var(--blue); }
 .sticker-tab.active { border-color:var(--blue); background:var(--blue); color:#fff; }
-.sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; }
+.sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; overflow-y:auto; flex:1 1 auto; align-content:start; }
 .sticker-thumb {
   background:#fdf6e3; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
 }
