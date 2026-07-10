@@ -715,10 +715,11 @@
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
   text-align:center; line-height:1.2; word-break:break-word;
 }
-.mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:left; }
-.mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:center; }
+.mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; }
 .mx-note-stationery-body {
-  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
+  display:flex; align-items:center; justify-content:center;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
 }
 

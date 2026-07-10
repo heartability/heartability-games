@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact support — Heartability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky-deep: #201a3d;
+    --sky-mid: #372c63;
+    --sky-soft: #6a5da8;
+    --parchment: #f6f2e9;
+    --ink: #241d3f;
+    --ink-soft: #5c5578;
+    --line: rgba(36, 29, 63, 0.12);
+    --accent: #6a5da8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Work Sans', sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 78% 34%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 45% 12%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 60% 68%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 25% 75%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1.5px 1.5px at 90% 80%, rgba(255,255,255,0.5), transparent),
+      linear-gradient(160deg, var(--sky-deep), var(--sky-mid) 55%, var(--sky-soft));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--parchment);
+    border-radius: 20px;
+    padding: 40px 36px;
+    box-shadow: 0 30px 60px rgba(15, 10, 35, 0.35);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.2;
+    margin: 0 0 10px;
+  }
+
+  .sub {
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 28px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 20px 0 6px;
+  }
+
+  input[type="email"],
+  input[type="text"],
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+  }
+
+  input:focus, textarea:focus {
+    outline: 2px solid var(--sky-soft);
+    outline-offset: 1px;
+  }
+
+  textarea { resize: vertical; min-height: 120px; }
+
+  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+  /* Category chips — signature element: what you need, named plainly,
+     picked by tapping rather than a generic dropdown. */
+  .chip-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .chip-option { position: relative; }
+
+  .chip-option input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .chip {
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .chip .glyph { font-size: 17px; }
+  .chip .label { font-weight: 600; font-size: 14px; }
+
+  .chip-option input:checked + .chip {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(106, 93, 168, 0.16);
+  }
+
+  .honeypot { position: absolute; left: -9999px; }
+
+  button {
+    margin-top: 28px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--parchment);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  button:hover { background: var(--sky-mid); }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.6; cursor: default; }
+
+  .status {
+    margin-top: 16px;
+    font-size: 14px;
+    text-align: center;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.error { color: #c2584f; }
+  .status.success { color: #2f6b4f; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">Heartability</p>
+    <h1>Get in touch</h1>
+    <p class="sub">Questions about your account, a charge, or anything else — send it here and we'll reply by email. No account needed.</p>
+
+    <form id="support-form" novalidate>
+      <div class="honeypot" aria-hidden="true">
+        <label for="website">Leave this field empty</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <label for="email">Your email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      <p class="hint">This is where we'll send our reply.</p>
+
+      <label>What's this about?</label>
+      <div class="chip-row">
+        <div class="chip-option">
+          <input type="radio" name="category" value="billing" id="cat-billing" required>
+          <label for="cat-billing" class="chip"><span class="glyph">💳</span><span class="label">Billing</span></label>
+        </div>
+        <div class="chip-option">
+          <input type="radio" name="category" value="account" id="cat-account">
+          <label for="cat-account" class="chip"><span class="glyph">👤</span><span class="label">Account</span></label>
+        </div>
+        <div class="chip-option">
+          <input type="radio" name="category" value="technical" id="cat-technical">
+          <label for="cat-technical" class="chip"><span class="glyph">🛠</span><span class="label">Technical</span></label>
+        </div>
+        <div class="chip-option">
+          <input type="radio" name="category" value="other" id="cat-other">
+          <label for="cat-other" class="chip"><span class="glyph">✉️</span><span class="label">Something else</span></label>
+        </div>
+      </div>
+
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" placeholder="Short summary" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" placeholder="Tell us what's going on..." required></textarea>
+
+      <button type="submit" id="submit-btn">Send message</button>
+      <p class="status" id="status"></p>
+    </form>
+  </main>
+
+  <script>
+    // Point this at your deployed Edge Function URL, e.g.:
+    // https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket
+    const ENDPOINT = "https://YOUR-PROJECT-REF.supabase.co/functions/v1/submit-support-ticket";
+    const ANON_KEY = "YOUR-SUPABASE-ANON-KEY";
+
+    const form = document.getElementById("support-form");
+    const statusEl = document.getElementById("status");
+    const submitBtn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.className = "status";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+
+      const payload = {
+        website: form.website.value, // honeypot
+        email: form.email.value.trim(),
+        category: form.category.value,
+        subject: form.subject.value.trim(),
+        message: form.message.value.trim(),
+      };
+
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": ANON_KEY,
+            "Authorization": `Bearer ${ANON_KEY}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong.");
+        }
+
+        statusEl.textContent = "Sent — check your email for confirmation. We'll reply soon.";
+        statusEl.className = "status show success";
+        form.reset();
+      } catch (err) {
+        statusEl.textContent = err.message || "Couldn't send that. Please try again.";
+        statusEl.className = "status show error";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send message";
+      }
+    });
+  </script>
+</body>
+</html>
