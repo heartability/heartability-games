@@ -86,7 +86,9 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     console.error(err);
-    return new Response(JSON.stringify({ error: "Something went wrong." }), {
+    // TEMP: surfacing the real error message for debugging — revert to a
+    // generic message once the search issue is diagnosed.
+    return new Response(JSON.stringify({ error: err?.message ?? String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
