@@ -812,6 +812,13 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .adv-sticker.selected .adv-rotate-handle, .adv-sticker.selected .adv-resize-handle,
 .mx-note.selected .adv-rotate-handle, .mx-note.selected .adv-resize-handle { opacity:1; }
 .adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
+/* On touchscreens the tiny corner handles are fiddly to grab precisely —
+   two-finger pinch (scale) + twist (rotate) on the item itself replaces them
+   (see the pinch-gesture JS below), so hide the handles there entirely.
+   Mouse/trackpad users keep the drag-handle interaction. */
+@media (pointer: coarse) {
+  .adv-rotate-handle, .adv-resize-handle { display:none; }
+}
 
 /* Matrix toolbar — add photo / sticker / text, centered below the matrix */
 .matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
@@ -3551,6 +3558,65 @@ document.getElementById('content-panel').addEventListener('pointerup', e => {
   el.dataset.scale = lastScale;
   updateMatrixItem(kind, id, { scale: lastScale });
 });
+
+// ── PINCH-TO-SCALE + TWIST-TO-ROTATE (touch only) — a second finger landing
+// on an already-*selected* photo/sticker/text hands off from the single-
+// finger drag to a combined scale+rotate gesture, replacing the small corner
+// handles (fiddly to grab precisely on a touchscreen — see the "pointer:
+// coarse" rule above that hides them there). One finger still just drags.
+let matrixPinchState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
+  const el = e.target.closest('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected');
+  if (!el) return;
+  if (!matrixPinchState || matrixPinchState.el !== el) matrixPinchState = { el, pts:new Map() };
+  matrixPinchState.pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (matrixPinchState.pts.size !== 2) return;
+  // Second finger just landed — cancel any single-finger position-drag on
+  // this item so the two gestures don't fight over the same pointer state.
+  if (matrixDragState && matrixDragState.el === el) matrixDragState = null;
+  el.classList.add('dragging');
+  const [p1, p2] = matrixPinchState.pts.values();
+  Object.assign(matrixPinchState, {
+    kind: el.classList.contains('adv-photo') ? 'photo' : el.classList.contains('adv-sticker') ? 'sticker' : 'text',
+    id: el.classList.contains('adv-photo') ? el.dataset.url : el.dataset.id,
+    startDist:  Math.max(10, Math.hypot(p2.x-p1.x, p2.y-p1.y)),
+    startAngle: Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI,
+    startScale: parseFloat(el.dataset.scale || '1'),
+    startRot:   parseFloat(el.dataset.rot || '0'),
+    lastScale: null, lastRot: null,
+  });
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixPinchState || !matrixPinchState.pts.has(e.pointerId)) return;
+  matrixPinchState.pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (matrixPinchState.pts.size !== 2) return;
+  const s = matrixPinchState;
+  const [p1, p2] = s.pts.values();
+  const dist  = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+  const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
+  let scale = s.startScale * (dist / s.startDist);
+  scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+  let rot = s.startRot + (angle - s.startAngle);
+  rot = ((rot + 180) % 360 + 360) % 360 - 180; // normalize to [-180,180]
+  rot = +rot.toFixed(1);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`;
+  s.lastScale = scale; s.lastRot = rot;
+});
+function endMatrixPinchPointer(e){
+  if (!matrixPinchState || !matrixPinchState.pts.has(e.pointerId)) return;
+  matrixPinchState.pts.delete(e.pointerId);
+  if (matrixPinchState.pts.size > 0) return; // one finger still down — keep the item as-is until it lifts too
+  const { el, kind, id, lastScale, lastRot } = matrixPinchState;
+  el.classList.remove('dragging');
+  matrixPinchState = null;
+  if (lastScale == null) return; // never got a second finger moving — nothing changed
+  el.dataset.scale = lastScale; el.dataset.rot = lastRot;
+  updateMatrixItem(kind, id, { scale: lastScale, rot: lastRot });
+}
+document.getElementById('content-panel').addEventListener('pointerup', endMatrixPinchPointer);
+document.getElementById('content-panel').addEventListener('pointercancel', endMatrixPinchPointer);
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
 window.addEventListener('message', async e => {
