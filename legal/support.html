@@ -133,16 +133,6 @@ html, body {
   margin-bottom: 18px;
 }
 
-.email-block {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--cream-dark);
-  padding: 14px 18px;
-  border: 1.5px solid #ccc;
-}
-
 .email-address {
   font-family: var(--font-pixel);
   font-size: clamp(7px, 1vw, 16px);
@@ -375,15 +365,8 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: n
     <div class="window-titlebar">contact us</div>
     <div class="window-body">
       <div class="contact-intro">
-        Have a question about your membership, a bug to report, or just want to say hi? Send us an email!
+        Have a question question? Send us a support ticket!
       </div>
-      <div class="email-block">
-        <div class="email-address">hello@heartability.com</div>
-        <button class="btn-copy" id="copy-btn" onclick="copyEmail()">copy</button>
-      </div>
-      <div class="response-note">we respond within 1–2 business days</div>
-
-      <div class="form-divider">or send a message</div>
 
       <form id="support-form" novalidate>
         <div class="honeypot" aria-hidden="true">
