@@ -352,11 +352,20 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
   async function callFn(name, body) {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(body || {}),
     });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error || `${name} failed (${res.status})`);
+    const rawText = await res.text();
+    let json = {};
+    try { json = rawText ? JSON.parse(rawText) : {}; } catch (e) { /* non-JSON response, fall through */ }
+    if (!res.ok) {
+      const detail = json.error || rawText.slice(0, 200) || '(empty response)';
+      throw new Error(`${name} failed: ${detail} [status ${res.status}]`);
+    }
     return json;
   }
 
