@@ -478,13 +478,29 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .arch-card-plus { font-size: 46px; line-height: 1; color: #c8b88a; font-family: var(--font-game); }
 .arch-card-new:hover .arch-card-plus { color: var(--blue); }
 
-.adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
-.adv-photo img {
-  width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
-  border:4px solid #fff; border-bottom-width:18px;
-  box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:contain; background:#fff;
+.adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); cursor:grab; touch-action:none; }
+.adv-photo.dragging { cursor:grabbing; z-index:50; }
+/* Fixed-ratio box (matches the standard polaroid frame's own proportions) —
+   the photo fills it edge-to-edge via object-fit:cover, so it always fills the
+   frame properly: a white base shows through if the image doesn't fully cover,
+   and anything outside the box is clipped rather than overflowing. */
+.adv-photo-inner {
+  position:relative; display:block; width:100%; aspect-ratio:602/691;
+  background:#fff; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
-/* Remove control on each matrix photo — hover-reveal on desktop, always on touch */
+.adv-photo-img { width:100%; height:100%; display:block; pointer-events:none; object-fit:cover; }
+/* Frame overlay — stretched to exactly match the photo box, so its border sits
+   on top and crops whatever falls outside its window. */
+.adv-photo-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+/* "no frame" — no box, no white backing, no cropping: shows a clean cutout PNG
+   exactly as uploaded, same sizing convention the photo tool used pre-frames. */
+.adv-photo-img-plain {
+  width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
+  pointer-events:none; object-fit:contain; box-shadow:2px 3px 7px rgba(0,0,0,.18);
+}
+/* Remove control on each matrix photo — hover-reveal on desktop, tap-to-select
+   on touch (see the pointerdown .selected toggle in the drag-handling JS) so
+   controls don't permanently clutter the matrix on mobile. */
 .adv-photo-remove {
   position:absolute; top:-8px; right:-8px; z-index:4;
   width:20px; height:20px; padding:0; line-height:1;
@@ -493,22 +509,92 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-photo:hover .adv-photo-remove { opacity:1; }
+.adv-photo:hover .adv-photo-remove, .adv-photo.selected .adv-photo-remove { opacity:1; }
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-photo-remove { opacity:1; } }
 
-/* Add-photo button — circular white plus, fixed top-right of page */
-.matrix-photo-btn {
-  position:fixed; top:9vh; right:40vw; z-index:100;
+/* Stickers — same removable-thumbnail idea as photos, but draggable freely
+   anywhere on the matrix instead of snapping to a quadrant. */
+.adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); cursor:grab; touch-action:none; }
+.adv-sticker img { width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
+.adv-sticker.dragging { cursor:grabbing; z-index:50; }
+.adv-sticker-remove {
+  position:absolute; top:-8px; right:-8px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-sticker:hover .adv-sticker-remove, .adv-sticker.selected .adv-sticker-remove { opacity:1; }
+.adv-sticker-remove:hover { color:#E8478B; border-color:#E8478B; }
+
+/* Freeform text notes — same drag pattern as stickers, set in ZoesHandwriting */
+.mx-note {
+  position:absolute; z-index:4; max-width:220px; cursor:grab; touch-action:none;
+  font-family:var(--font-hand), cursive; font-size:clamp(20px,2.2vw,30px); color:#3a2e1e;
+  text-align:center; line-height:1.2; word-break:break-word;
+}
+.mx-note.dragging { cursor:grabbing; z-index:50; }
+/* Stationery-backed text note — a background card image with the note's text
+   constrained to its writable rectangle (see STATIONERY_ITEMS' hand-verified
+   box, found with a coarse background-color grid scan + maximal-rectangle
+   search over each card's own PNG, so text never sits on the illustration). */
+.mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:center; }
+.mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; }
+.mx-note-stationery-body {
+  position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-hand), cursive; color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
+}
+.mx-note-remove {
+  position:absolute; top:-10px; right:-14px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:13px; cursor:pointer; font-family:var(--font-hand);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.mx-note:hover .mx-note-remove, .mx-note.selected .mx-note-remove { opacity:1; }
+.mx-note-remove:hover { color:#E8478B; border-color:#E8478B; }
+
+/* Rotate & resize handles — shared by photos, stickers & text notes */
+.adv-rotate-handle, .adv-resize-handle {
+  position:absolute; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:12px; touch-action:none;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-rotate-handle { top:-8px; left:-8px; cursor:grab; }
+.adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
+.adv-photo:hover .adv-rotate-handle, .adv-photo:hover .adv-resize-handle,
+.adv-sticker:hover .adv-rotate-handle, .adv-sticker:hover .adv-resize-handle,
+.mx-note:hover .adv-rotate-handle, .mx-note:hover .adv-resize-handle,
+.adv-photo.selected .adv-rotate-handle, .adv-photo.selected .adv-resize-handle,
+.adv-sticker.selected .adv-rotate-handle, .adv-sticker.selected .adv-resize-handle,
+.mx-note.selected .adv-rotate-handle, .mx-note.selected .adv-resize-handle { opacity:1; }
+.adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
+/* On touchscreens the tiny corner handles are fiddly to grab precisely —
+   two-finger pinch (scale) + twist (rotate) on the item itself replaces them
+   (see the pinch-gesture JS below), so hide the handles there entirely.
+   Mouse/trackpad users keep the drag-handle interaction. */
+@media (pointer: coarse) {
+  .adv-rotate-handle, .adv-resize-handle { display:none; }
+}
+
+/* Matrix toolbar — add photo / sticker / text, centered below the matrix */
+.matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
+.matrix-tool-btn {
   width:40px; height:40px; border-radius:50%;
-  font-size:28px; line-height:1; color:var(--blue);
+  font-size:22px; line-height:1; color:var(--blue);
   background:#fff; border:none;
   box-shadow:0 2px 8px rgba(0,0,0,0.18);
   cursor:pointer; transition:all .1s;
   display:flex; align-items:center; justify-content:center;
 }
-.matrix-photo-btn:hover  { background:var(--blue); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
-.matrix-photo-btn:active { transform:scale(0.93); }
+.matrix-tool-btn:hover  { background:var(--blue); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
+.matrix-tool-btn:active { transform:scale(0.93); }
 
 /* ── PHOTO UPLOAD MODAL — framed to match the matrix ── */
 .photo-overlay {
@@ -532,26 +618,74 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 .photo-drop { display:block; cursor:pointer; }
 .photo-preview {
-  width:100%; aspect-ratio:4/3; background:#e8e0c8;
+  position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
+  aspect-ratio:602/691; background:#fff;
   border:2px dashed #8a7a5a; display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
 .photo-drop:hover .photo-preview { border-color:var(--blue); }
-.photo-preview img { width:100%; height:100%; object-fit:contain; }
+/* object-fit:cover gives a gap-free baseline crop; object-position (panned by
+   dragging the image) + the stretch/rotate corner handles let the user adjust
+   which part of the photo shows through the frame's window. */
+.photo-preview-img {
+  width:100%; height:100%; object-fit:cover; object-position:50% 50%; display:block;
+  cursor:grab; touch-action:none;
+}
+.photo-preview-img:active { cursor:grabbing; }
+.photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+/* Corner handles — same rotate/stretch/remove pattern used for items already
+   placed on the matrix, always visible here (no hover-reveal in a modal). */
+.photo-preview-rotate, .photo-preview-stretch, .photo-preview-clear {
+  position:absolute; z-index:5;
+  width:26px; height:26px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:14px; touch-action:none;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:color .12s, border-color .12s;
+}
+.photo-preview-rotate:hover, .photo-preview-stretch:hover { color:var(--blue); border-color:var(--blue); }
+.photo-preview-clear:hover { color:#E8478B; border-color:#E8478B; }
+.photo-preview-rotate  { top:8px; left:8px; cursor:grab; }
+.photo-preview-stretch { bottom:8px; right:8px; cursor:nwse-resize; }
+.photo-preview-clear   { top:8px; right:8px; }
+/* "no frame" preview — no fixed box/crop, just the clean PNG at its natural
+   size; a checkerboard shows through so transparency is obviously preserved. */
+.photo-preview.no-frame {
+  aspect-ratio:auto; min-height:120px; padding:12px;
+  background-image:
+    linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+    linear-gradient(45deg, #ddd 25%, #fff 25%, #fff 75%, #ddd 75%, #ddd);
+  background-size:16px 16px; background-position:0 0, 8px 8px;
+}
+.photo-preview-img.plain {
+  width:auto; height:auto; max-width:100%; max-height:280px; object-fit:contain; cursor:default;
+}
 .photo-drop-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:16px; }
 
-.photo-quad-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
-.photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-.photo-quad {
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:12px 8px; background:#fdf6e3; border:1.5px solid #ccc;
-  font-family:var(--font-hand); cursor:pointer; color:#555; transition:all .1s;
+/* ── PHOTO FRAME PICKER — stretches the chosen frame to match the photo's own
+   size, so its border covers/crops whatever sits outside its window ── */
+.photo-frame-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.photo-frame-thumb {
+  position:relative; aspect-ratio:1; background:#fdf6e3; border:1.5px solid #ccc;
+  padding:6px; cursor:pointer; transition:all .1s;
+  display:flex; align-items:center; justify-content:center;
 }
-.photo-quad b { font-size:17px; color:#3a2e1e; }
-.photo-quad span { font-size:12px; color:#8a7a5a; }
-.photo-quad:hover { border-color:var(--blue); background:#f0edfa; }
-.photo-quad.selected { border-color:var(--blue); background:var(--blue); box-shadow:2px 2px 0 #3a4aaa; }
-.photo-quad.selected b, .photo-quad.selected span { color:#fff; }
+.photo-frame-thumb img { max-width:100%; max-height:100%; }
+.photo-frame-thumb:hover { border-color:var(--blue); background:#f0edfa; }
+.photo-frame-thumb.selected { border-color:var(--blue); background:var(--blue); box-shadow:2px 2px 0 #3a4aaa; }
+.photo-frame-thumb span {
+  position:absolute; bottom:2px; left:0; right:0; text-align:center;
+  font-size:10px; color:#8a7a5a; background:rgba(253,246,227,.85);
+}
+.photo-frame-thumb.selected span { color:#fff; background:rgba(74,91,196,.85); }
+/* "no frame" — a small rectangle (not a square image thumbnail) pinned to the
+   bottom-right of the 3-col grid, for clean cutout PNGs with no white mat. */
+.photo-frame-none {
+  grid-column:3; aspect-ratio:auto; padding:10px 6px;
+  font-family:var(--font-hand); font-size:13px; color:#555;
+}
+
+.photo-quad-label { font-size:14px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
 
 .photo-status { font-size:15px; min-height:18px; margin-bottom:8px; color:#8a7a5a; }
 .photo-add-btn {
@@ -562,6 +696,53 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .photo-add-btn:hover  { background:#4a5bc4; }
 .photo-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .photo-add-btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+/* ── STICKER PICKER MODAL (reuses .photo-overlay/.photo-head; fixed-size card so it
+   doesn't reflow the whole modal when switching between categories of different lengths) ── */
+#sticker-overlay .photo-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+#sticker-overlay .photo-head,
+#sticker-overlay .photo-sub { flex-shrink:0; }
+.sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; flex-shrink:0; }
+.sticker-tab {
+  padding:8px 16px; background:#fdf6e3; border:1.5px solid #ccc;
+  font-family:var(--font-hand); font-size:22px; color:#8a7a5a; cursor:pointer; transition:all .1s;
+}
+.sticker-tab:hover { border-color:var(--blue); color:var(--blue); }
+.sticker-tab.active { border-color:var(--blue); background:var(--blue); color:#fff; }
+.sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; overflow-y:auto; flex:1 1 auto; align-content:start; }
+.sticker-thumb {
+  background:#fdf6e3; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
+}
+.sticker-thumb:hover { border-color:var(--blue); background:#f0edfa; transform:scale(1.04); }
+.sticker-thumb img { width:100%; display:block; }
+
+/* ── TEXT ADD MODAL (reuses .photo-overlay/.photo-card/.photo-head; fixed-size
+   card with its own scroll region so the stationery grid can't push the "add
+   to matrix" button off-screen on mobile — same fix as the sticker modal). ── */
+#text-add-overlay .photo-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+#text-add-overlay .photo-head,
+#text-add-overlay .photo-sub,
+#text-add-overlay .text-add-preview,
+#text-add-overlay .text-add-input,
+#text-add-overlay .photo-quad-label,
+#text-add-overlay .photo-status,
+#text-add-overlay .photo-add-btn { flex-shrink:0; }
+#text-add-overlay .photo-frame-grid { overflow-y:auto; flex:1 1 auto; align-content:start; margin-bottom:0; padding-bottom:4px; }
+.text-add-input {
+  width:100%; font-family:var(--font-hand); font-size:18px; color:#222;
+  background:#f5f0ea; border:1.5px solid #bbb; padding:10px 12px;
+  outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
+}
+.text-add-input:focus { border-color:var(--blue); }
+/* Live stationery preview — mirrors the actual matrix rendering so what the
+   user sees while typing matches what gets placed. */
+.text-add-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
+.text-add-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.text-add-preview-body {
+  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  font-family:var(--font-hand), cursive; color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
+}
+.stationery-plain-glyph { font-family:var(--font-hand); font-size:28px; color:#3a2e1e; }
 
 /* ── NATIVE JOURNAL — chat-style journal on the back wall ── */
 .jrc-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
@@ -847,6 +1028,62 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 <!-- (add-new map button removed — daily tracker has no map grid) -->
 
+<!-- PHOTO UPLOAD — adds a picture to the matrix -->
+<div class="photo-overlay" id="photo-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">add a photo</span>
+      <button class="photo-close" onclick="closePhotoUpload()">×</button>
+    </div>
+    <div class="photo-sub">pick an image and a frame, then drag it into place.</div>
+
+    <input type="file" id="photo-file" accept="image/*" hidden onchange="onPhotoPicked(event)">
+    <div class="photo-drop" id="photo-drop-zone" onclick="if(!photoDraft.dataUrl) document.getElementById('photo-file').click();">
+      <div class="photo-preview" id="photo-preview">
+        <span class="photo-drop-hint">tap to choose an image</span>
+      </div>
+    </div>
+
+    <div class="photo-quad-label">which frame?</div>
+    <div class="photo-frame-grid" id="photo-frame-grid"></div>
+
+    <div class="photo-status" id="photo-status"></div>
+    <button class="photo-add-btn" id="photo-add-btn" disabled onclick="uploadMatrixPhoto()">add to matrix</button>
+  </div>
+</div>
+
+<!-- STICKER PICKER MODAL -->
+<div class="photo-overlay" id="sticker-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">add a sticker</span>
+      <button class="photo-close" onclick="closeStickerPicker()">×</button>
+    </div>
+    <div class="photo-sub">tap a sticker to drop it on your matrix, then drag it into place.</div>
+    <div class="sticker-tabs" id="sticker-tabs"></div>
+    <div class="sticker-grid" id="sticker-grid"></div>
+  </div>
+</div>
+
+<!-- TEXT ADD MODAL -->
+<div class="photo-overlay" id="text-add-overlay">
+  <div class="photo-card">
+    <div class="photo-head">
+      <span class="photo-title">add text</span>
+      <button class="photo-close" onclick="closeTextAdd()">×</button>
+    </div>
+    <div class="photo-sub">write a few words in your matrix's own handwriting.</div>
+    <div class="text-add-preview" id="text-add-preview" style="display:none;"></div>
+    <textarea class="text-add-input" id="text-add-input" maxlength="80" placeholder="write something..." oninput="updateTextAddPreview()"></textarea>
+
+    <div class="photo-quad-label">which stationery?</div>
+    <div class="photo-frame-grid" id="stationery-grid"></div>
+
+    <div class="photo-status" id="text-add-status"></div>
+    <button class="photo-add-btn" id="text-add-btn" onclick="addMatrixText()">add to matrix</button>
+  </div>
+</div>
+
 <!-- LOGIN MODAL — direct form, no iframe -->
 <div class="login-modal-overlay" id="login-modal">
   <div class="login-modal-window">
@@ -934,7 +1171,35 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 let currentUser = null;
 
 // ── MATRIX PHOTO UPLOADS ──────────────────────────────────
-// (Supabase Storage / photo helpers removed — free daily tracker is text-only.)
+// Same bucket + path convention as the dream matrix (userId/entryId/uuid.ext),
+// so the existing storage policies (authenticated INSERT + public read) cover
+// daily entries too without any new bucket-level policy.
+const MATRIX_PHOTO_BUCKET = 'matrix-photos';
+
+// Convert a stored public URL back to its in-bucket path so storage.remove()
+// can act on it. Returns null for anything not in this bucket (e.g. legacy URLs).
+function matrixPhotoPath(url){
+  if (typeof url !== 'string') return null;
+  const marker = `/object/public/${MATRIX_PHOTO_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  let p = url.slice(i + marker.length);
+  const q = p.indexOf('?'); if (q !== -1) p = p.slice(0, q);   // strip any query string
+  try { p = decodeURIComponent(p); } catch(e){}
+  return p || null;
+}
+
+// Best-effort delete of one or more stored photos. Storage cleanup should never
+// block or fail a save, so this swallows its own errors (just logs them).
+async function deleteMatrixPhotoFiles(urls){
+  const paths = (urls || []).map(matrixPhotoPath).filter(Boolean);
+  if (!paths.length) return;
+  try {
+    await sb.storage.from(MATRIX_PHOTO_BUCKET).remove(paths);
+  } catch(err){
+    console.error('[matrix photo] storage cleanup failed:', err);
+  }
+}
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activePhase     = null;
@@ -1782,6 +2047,80 @@ function buildDailyMatrix(data, seedStr){
   const charName  = data.charState?.name ? `<div class="adv-cap" style="transform:rotate(0deg);margin-top:4px;">${_escapeHtml(data.charState.name)}</div>` : '';
   const charItem  = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName}</div>` : '';
 
+  // Photos — start out placed inside their assigned quadrant (spaced on a
+  // 2-col grid so each photo's body stays visible), but once a photo has been
+  // dragged its saved x/y takes over so it stays where the user put it.
+  const quadCount = {};
+  let photos = '';
+  (data.matrixImages||[]).forEach(img => {
+    if (!img || !img.url) return;
+    let left, top, deg;
+    const scale = img.scale || 1;
+    if (img.x != null && img.y != null) {
+      left = img.x; top = img.y; deg = img.rot || 0;
+    } else {
+      const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
+      const n = quadCount[q] || 0; quadCount[q] = n + 1;
+      const slot = photoSlot(q, n);
+      left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); deg = rot(8);
+    }
+    const handles = `<button class="adv-rotate-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="rotate photo" aria-label="rotate photo">↻</button>
+        <button class="adv-resize-handle" data-kind="photo" data-id="${_escapeHtml(img.url)}" title="resize photo" aria-label="resize photo">⤢</button>
+        <button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button>`;
+    if (img.frame === NO_FRAME_KEY){
+      // Clean cutout PNG — no box, no white backing, no cropping.
+      photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
+          <img class="adv-photo-img-plain" src="${img.url}" alt="" onerror="this.parentElement.style.display='none'">
+          ${handles}</div>`;
+    } else {
+      const frameFile = PHOTO_FRAME_FILE[img.frame] || PHOTO_FRAME_FILE.polaroid;
+      const imgScale = img.imgScale || 1;
+      const imgPosX = img.imgPosX != null ? img.imgPosX : 50;
+      const imgPosY = img.imgPosY != null ? img.imgPosY : 50;
+      const imgRot = img.imgRot || 0;
+      photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
+          <div class="adv-photo-inner" style="${photoFrameMaskStyle(img.frame)}">
+            <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
+            <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
+          </div>
+          ${handles}</div>`;
+    }
+  });
+
+  // Stickers — freeform decorations, placed wherever they were last dragged to.
+  let stickers = '';
+  (data.matrixStickers||[]).forEach(s => {
+    if (!s || !s.url || !s.id) return;
+    const sRot = s.rot || 0, sScale = s.scale || 1;
+    stickers += `<div class="adv-sticker" data-id="${_escapeHtml(s.id)}" data-rot="${sRot}" data-scale="${sScale}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});">
+        <img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'">
+        <button class="adv-rotate-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="rotate sticker" aria-label="rotate sticker">↻</button>
+        <button class="adv-resize-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="resize sticker" aria-label="resize sticker">⤢</button>
+        <button class="adv-sticker-remove" data-id="${_escapeHtml(s.id)}" title="remove sticker" aria-label="remove sticker">✕</button></div>`;
+  });
+
+  // Text notes — freeform, set in ZoesHandwriting. A note can optionally sit
+  // on a stationery card, with its text constrained to that card's writable
+  // rectangle (STATIONERY_BOX) so it never overlaps the illustration.
+  let texts = '';
+  (data.matrixTexts||[]).forEach(t => {
+    if (!t || !t.text || !t.id) return;
+    const tRot = t.rot || 0, tScale = t.scale || 1;
+    const handles = `<button class="adv-rotate-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="rotate text" aria-label="rotate text">↻</button>
+        <button class="adv-resize-handle" data-kind="text" data-id="${_escapeHtml(t.id)}" title="resize text" aria-label="resize text">⤢</button>
+        <button class="mx-note-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button>`;
+    if (t.stationery && STATIONERY_FILE[t.stationery]) {
+      const box = STATIONERY_BOX[t.stationery];
+      texts += `<div class="mx-note stationery" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+          <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
+          <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(t.text)}</div>
+          ${handles}</div>`;
+    } else {
+      texts += `<div class="mx-note" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
+          ${handles}</div>`;
+    }
+  });
+
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
@@ -1796,7 +2135,15 @@ function buildDailyMatrix(data, seedStr){
         <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
         <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) translateZ(0) rotate(-90deg);">action</div>
         ${mapItem}${bingoItem}${charItem}
+        ${photos}
+        ${stickers}
+        ${texts}
       </div>
+    </div>
+    <div class="matrix-toolbar">
+      <button class="matrix-tool-btn" onclick="openPhotoUpload()" title="add photo">&#43;</button>
+      <button class="matrix-tool-btn" onclick="openStickerPicker()" title="add sticker">&#9733;</button>
+      <button class="matrix-tool-btn" onclick="openTextAdd()" title="add text">Aa</button>
     </div>
   </div>`;
 }
@@ -1807,7 +2154,7 @@ async function assembleTodayMatrixData(entryId){
     dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
     mapName: 'today',
     locationData: null,                          // {name,terrain,feeling,tint,cat} of today's place
-    bingoScore: 0, charState: null, matrixImages: [],
+    bingoScore: 0, charState: null, matrixImages: [], matrixStickers: [], matrixTexts: [],
   };
   try {
     const { data: row } = await sb.from('daily_matrix').select('*')
@@ -1816,6 +2163,9 @@ async function assembleTodayMatrixData(entryId){
       d.charState    = row.character_data || null;
       d.bingoScore   = row.bingo_data?.score || 0;
       d.locationData = row.location_data || null;
+      d.matrixImages   = Array.isArray(row.matrix_images) ? row.matrix_images : [];
+      d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
+      d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
       if (row.entry_date){
         // Render the matrix under the day it was actually saved (local-safe).
         const [y,m,dd] = String(row.entry_date).split('-').map(Number);
@@ -1843,7 +2193,770 @@ async function renderMatrix(seeYouTomorrow) {
   showPanel(buildDailyMatrix(data, _matrixSeed));
 }
 
-// (matrix photo upload + remove handlers removed — text-only free tracker)
+// ── MATRIX PHOTOS — frame picker + upload ──────────────────
+// Photo box art (assets/.../stickers/frames/) is a transparent PNG with a
+// window baked in; a matching solid-silhouette mask (frames/masks/) clips the
+// photo box to the frame's true outline (corners included) via CSS mask-image.
+const PHOTO_FRAME_BASE = '../assets/elements/stickers/frames/';
+const PHOTO_FRAME_MASK_BASE = '../assets/elements/stickers/frames/masks/';
+const PHOTO_FRAMES = [
+  { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png',                   mask: 'frame-polaroid-mask.png' },
+  { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png',         mask: 'frame-gold-beaded-square-mask.png' },
+  { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png',           mask: 'frame-gold-heart-shell-mask.png' },
+  { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png',mask: 'frame-green-gold-ornate-rectangle-mask.png' },
+  { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png',      mask: 'frame-lace-heart-floral-red-mask.png' },
+  { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png',    mask: 'frame-scallop-black-rectangle-mask.png' },
+];
+const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
+const PHOTO_FRAME_MASK_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.mask]));
+// Shared inline CSS (both prefixed and standard) that clips an element to a
+// frame's mask, stretched to match that element's own box exactly.
+function photoFrameMaskStyle(frameKey){
+  const maskUrl = PHOTO_FRAME_MASK_BASE + (PHOTO_FRAME_MASK_FILE[frameKey] || PHOTO_FRAME_MASK_FILE.polaroid);
+  return `mask-image:url(${maskUrl});-webkit-mask-image:url(${maskUrl});`
+    + `mask-size:100% 100%;-webkit-mask-size:100% 100%;`
+    + `mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;`
+    + `mask-position:center;-webkit-mask-position:center;`;
+}
+const NO_FRAME_KEY = 'none'; // clean cutout PNGs: no overlay, no white mat, no cropping
+
+let photoDraft = { file:null, dataUrl:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50, imgRot:0 };
+
+function openPhotoUpload(){
+  photoDraft = { file:null, dataUrl:null, frame:'polaroid', imgScale:1, imgPosX:50, imgPosY:50, imgRot:0 };
+  document.getElementById('photo-file').value = '';
+  document.getElementById('photo-preview').classList.remove('no-frame');
+  document.getElementById('photo-preview').style.cssText = '';
+  document.getElementById('photo-preview').innerHTML =
+    '<span class="photo-drop-hint">tap to choose an image</span>';
+  renderPhotoFrameGrid();
+  const st = document.getElementById('photo-status');
+  st.textContent = ''; st.style.color = '#8a7a5a';
+  document.getElementById('photo-add-btn').textContent = 'add to matrix';
+  refreshPhotoAdd();
+  document.getElementById('photo-overlay').classList.add('open');
+}
+function closePhotoUpload(){
+  document.getElementById('photo-overlay').classList.remove('open');
+}
+function renderPhotoFrameGrid(){
+  const noneSelected = photoDraft.frame === NO_FRAME_KEY ? ' selected' : '';
+  document.getElementById('photo-frame-grid').innerHTML = PHOTO_FRAMES.map(f => {
+    const selected = f.key === photoDraft.frame ? ' selected' : '';
+    return `<button class="photo-frame-thumb${selected}" data-frame="${f.key}" onclick="pickFrame('${f.key}',this)">
+        <img src="${PHOTO_FRAME_BASE}${f.file}" alt="${_escapeHtml(f.label)}"><span>${_escapeHtml(f.label)}</span></button>`;
+  }).join('') + `<button class="photo-frame-thumb photo-frame-none${noneSelected}" data-frame="${NO_FRAME_KEY}" onclick="pickFrame('${NO_FRAME_KEY}',this)">no frame</button>`;
+}
+// Rebuilds the preview to match the current frame choice — either the
+// crop-within-a-frame view (with rotate/stretch corner handles + drag-to-pan)
+// or the plain, uncropped cutout view for "no frame".
+function renderPhotoPreviewContents(){
+  const preview = document.getElementById('photo-preview');
+  preview.style.cssText = ''; // clear any mask left from a previous frame choice
+  if (!photoDraft.dataUrl) return;
+  if (photoDraft.frame === NO_FRAME_KEY){
+    preview.classList.add('no-frame');
+    preview.innerHTML = `<img class="photo-preview-img plain" src="${photoDraft.dataUrl}" alt="">
+        <button class="photo-preview-clear" onclick="clearPhotoDraft()" title="remove image" aria-label="remove image">✕</button>`;
+  } else {
+    preview.classList.remove('no-frame');
+    // Clip the whole box (white backing + photo + frame overlay) to the
+    // frame's true silhouette — see PHOTO_FRAMES comment above.
+    preview.style.cssText = photoFrameMaskStyle(photoDraft.frame);
+    const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
+    preview.innerHTML = `<img class="photo-preview-img" src="${photoDraft.dataUrl}" alt="">
+       <img class="photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
+       <button class="photo-preview-rotate" title="rotate" aria-label="rotate photo">↻</button>
+       <button class="photo-preview-stretch" title="stretch" aria-label="stretch photo">⤢</button>
+       <button class="photo-preview-clear" onclick="clearPhotoDraft()" title="remove image" aria-label="remove image">✕</button>`;
+    updatePhotoPreviewFit();
+  }
+}
+// Applies the current pan/zoom/rotate draft to the live preview image —
+// called by the drag-to-pan, stretch-handle and rotate-handle interactions.
+function updatePhotoPreviewFit(){
+  const img = document.querySelector('#photo-preview .photo-preview-img');
+  if (!img) return;
+  img.style.objectPosition = `${photoDraft.imgPosX}% ${photoDraft.imgPosY}%`;
+  img.style.transform = `rotate(${photoDraft.imgRot}deg) scale(${photoDraft.imgScale})`;
+}
+function clearPhotoDraft(){
+  photoDraft.file = null; photoDraft.dataUrl = null;
+  photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
+  document.getElementById('photo-file').value = '';
+  document.getElementById('photo-preview').classList.remove('no-frame');
+  document.getElementById('photo-preview').style.cssText = '';
+  document.getElementById('photo-preview').innerHTML =
+    '<span class="photo-drop-hint">tap to choose an image</span>';
+  refreshPhotoAdd();
+}
+function pickFrame(key, el){
+  photoDraft.frame = key;
+  document.querySelectorAll('.photo-frame-thumb').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  renderPhotoPreviewContents();
+}
+function onPhotoPicked(e){
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const st = document.getElementById('photo-status');
+  if (!file.type.startsWith('image/')){
+    st.style.color = '#E8478B'; st.textContent = 'that file isn’t an image';
+    photoDraft.file = null; refreshPhotoAdd(); return;
+  }
+  photoDraft.file = file;
+  photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoDraft.dataUrl = ev.target.result;
+    renderPhotoPreviewContents();
+  };
+  reader.readAsDataURL(file);
+  st.textContent = '';
+  refreshPhotoAdd();
+}
+function refreshPhotoAdd(){
+  document.getElementById('photo-add-btn').disabled = !photoDraft.file;
+}
+
+// Drag-to-reposition the photo within its frame window (mirrors the matrix's
+// own drag pattern) — plain div wrapper (not a <label>) so dragging here never
+// triggers the file picker. object-position pans the crop.
+let photoPanState = null;
+document.getElementById('photo-preview').addEventListener('pointerdown', e => {
+  const img = e.target.closest('.photo-preview-img');
+  if (!img || img.classList.contains('plain')) return; // "no frame" — nothing to pan
+  img.setPointerCapture(e.pointerId);
+  const box = document.getElementById('photo-preview').getBoundingClientRect();
+  photoPanState = {
+    pointerId: e.pointerId, box,
+    startX: e.clientX, startY: e.clientY,
+    startPosX: photoDraft.imgPosX, startPosY: photoDraft.imgPosY,
+  };
+  e.preventDefault();
+});
+document.getElementById('photo-preview').addEventListener('pointermove', e => {
+  if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+  const dx = e.clientX - photoPanState.startX;
+  const dy = e.clientY - photoPanState.startY;
+  const posX = Math.max(0, Math.min(100, photoPanState.startPosX - (dx / photoPanState.box.width) * 100));
+  const posY = Math.max(0, Math.min(100, photoPanState.startPosY - (dy / photoPanState.box.height) * 100));
+  photoDraft.imgPosX = +posX.toFixed(1);
+  photoDraft.imgPosY = +posY.toFixed(1);
+  updatePhotoPreviewFit();
+});
+document.getElementById('photo-preview').addEventListener('pointerup', e => {
+  if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+  photoPanState = null;
+});
+
+// ── STRETCH handle (drag toward/away from center to zoom the crop) ──
+let photoStretchState = null;
+document.getElementById('photo-preview').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.photo-preview-stretch');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  handle.setPointerCapture(e.pointerId);
+  const rect = document.getElementById('photo-preview').getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  photoStretchState = {
+    pointerId: e.pointerId, cx, cy,
+    startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)),
+    startScale: photoDraft.imgScale,
+  };
+});
+document.getElementById('photo-preview').addEventListener('pointermove', e => {
+  if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
+  const dist = Math.hypot(e.clientX - photoStretchState.cx, e.clientY - photoStretchState.cy);
+  let scale = photoStretchState.startScale * (dist / photoStretchState.startDist);
+  photoDraft.imgScale = +Math.max(1, Math.min(2.5, scale)).toFixed(2);
+  updatePhotoPreviewFit();
+});
+document.getElementById('photo-preview').addEventListener('pointerup', e => {
+  if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
+  photoStretchState = null;
+});
+
+// ── ROTATE handle (drag around center to spin the photo within its frame) ──
+let photoRotateState = null;
+document.getElementById('photo-preview').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.photo-preview-rotate');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  handle.setPointerCapture(e.pointerId);
+  const rect = document.getElementById('photo-preview').getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  photoRotateState = {
+    pointerId: e.pointerId, cx, cy,
+    startAngle: Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI,
+    startRot: photoDraft.imgRot,
+  };
+});
+document.getElementById('photo-preview').addEventListener('pointermove', e => {
+  if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
+  const angle = Math.atan2(e.clientY - photoRotateState.cy, e.clientX - photoRotateState.cx) * 180/Math.PI;
+  let rot = photoRotateState.startRot + (angle - photoRotateState.startAngle);
+  rot = ((rot + 180) % 360 + 360) % 360 - 180;
+  photoDraft.imgRot = +rot.toFixed(1);
+  updatePhotoPreviewFit();
+});
+document.getElementById('photo-preview').addEventListener('pointerup', e => {
+  if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
+  photoRotateState = null;
+});
+
+async function uploadMatrixPhoto(){
+  if (!photoDraft.file) return;
+  const st  = document.getElementById('photo-status');
+  const btn = document.getElementById('photo-add-btn');
+  if (!currentUser){
+    st.style.color = '#E8478B'; st.textContent = 'sign in to save photos';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'uploading…';
+  st.style.color = '#8a7a5a'; st.textContent = 'uploading…';
+
+  try {
+    const file = photoDraft.file;
+    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path = `${currentUser.id}/${activeEntryId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error: upErr } = await sb.storage
+      .from(MATRIX_PHOTO_BUCKET)
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
+    const publicUrl = pub?.publicUrl;
+    if (!publicUrl) throw new Error('could not resolve image url');
+
+    // Append {url,frame,imgScale,imgPosX,imgPosY,imgRot,x,y,rot} to daily_matrix.matrix_images
+    // (read-modify-write). Lands at a random spot (same convention as stickers).
+    const { data: row, error: readErr } = await sb.from('daily_matrix')
+      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
+    const next = [...current, {
+      url: publicUrl, frame: photoDraft.frame,
+      imgScale: photoDraft.imgScale, imgPosX: photoDraft.imgPosX, imgPosY: photoDraft.imgPosY, imgRot: photoDraft.imgRot,
+      x: +(20 + Math.random()*60).toFixed(1),
+      y: +(20 + Math.random()*60).toFixed(1),
+      rot: +((Math.random()*2-1)*8).toFixed(1),
+    }];
+
+    const { error: updErr } = await sb.from('daily_matrix')
+      .update({ matrix_images: next }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+
+    closePhotoUpload();
+    showRoomStatus('photo added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch (err) {
+    console.error('[matrix photo] upload failed:', err);
+    st.style.color = '#E8478B';
+    st.textContent = err?.message ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
+    btn.disabled = false; btn.textContent = 'add to matrix';
+  }
+}
+
+// Remove a photo from the matrix: drop its reference from matrix_images, then
+// delete the file from storage. Keyed by url (UUID filenames are unique).
+async function removeMatrixPhoto(url){
+  if (!url || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('daily_matrix')
+      .select('matrix_images').eq('id', activeEntryId).maybeSingle();
+    const imgs = Array.isArray(row?.matrix_images) ? row.matrix_images : [];
+    const next = imgs.filter(i => !(i && i.url === url));
+    if (next.length === imgs.length) { await renderMatrix(); return; }  // nothing matched
+    const { error } = await sb.from('daily_matrix')
+      .update({ matrix_images: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch (err) {
+    console.error('[matrix photo] remove failed:', err);
+    HGModal.alert('oops', 'couldn’t remove photo — try again');
+    return;
+  }
+  await deleteMatrixPhotoFiles([url]);   // best-effort storage cleanup
+  showRoomStatus('photo removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// One delegated listener handles every photo's ✕ (the panel's innerHTML is
+// rebuilt on each render, so per-button listeners would be lost).
+document.getElementById('content-panel').addEventListener('click', e => {
+  const btn = e.target.closest('.adv-photo-remove');
+  if (!btn) return;
+  e.stopPropagation();
+  removeMatrixPhoto(btn.dataset.url);
+});
+
+// ── MATRIX STICKERS ────────────────────────────────────────
+// Static lists of filenames living in assets/elements/stickers/<category>/ (no
+// server-side directory listing on a static site, so the picker hardcodes them).
+const STICKER_BASE = '../assets/elements/stickers/';
+const STICKER_CATEGORIES = {
+  'affirmations': { label: 'affirmations', files: [
+    'affirmation-banner-let-it-come-go.png','affirmation-license-plate-meant-for-you.png',
+    'affirmation-sticker-taking-time.png','affirmation-ticket-beautiful-life.png','affirmation-ticket-good-things-coming.png',
+  ]},
+  'angel-numbers': { label: 'angel numbers', files: [
+    'angel-number-111-intuition.png','angel-number-222-alignment.png','angel-number-333-support.png',
+    'angel-number-444-protection.png','angel-number-555-change.png','angel-number-777-luck.png',
+    'angel-number-888-balance.png','angel-number-999-release.png',
+  ]},
+  'ephemera': { label: 'ephemera', files: [
+    'ephemera-butterfly-pink-green.png','ephemera-butterfly-stamp-korea.png','ephemera-butterfly-white-lace.png',
+    'ephemera-cloud.png','ephemera-disco-ball.png','ephemera-fish-bottle-green.png','ephemera-key-head-profile.png',
+    'ephemera-lace-heart-doily-blue.png','ephemera-locket.png','ephemera-lovers-eye-pearl-brooch.png',
+    'ephemera-moon-woman-vintage.png','ephemera-museum-of-everything-ive-loved.png','ephemera-spiral-silver.png',
+    'ephemera-star-embroidered-silver.png','ephemera-watercolor-flower-pink.png','ephemera-wax-seal-rose.png',
+  ]},
+  'fruit-stickers': { label: 'fruit stickers', files: [
+    'fruit-sticker-appealing-bananas.png','fruit-sticker-banana-fruit-love-heart.png','fruit-sticker-berry-good-strawberry.png',
+    'fruit-sticker-chill-peel-asian-pear.png','fruit-sticker-eat-more-veggies.png','fruit-sticker-eat-squeeze-me-lemon.png',
+    'fruit-sticker-extra-fruity.png','fruit-sticker-go-go-mango.png','fruit-sticker-juicy-plantains.png',
+    'fruit-sticker-lime-crush.png','fruit-sticker-patience-is-sweet-peach.png','fruit-sticker-pear-fect.png',
+    'fruit-sticker-ripe-n-juicy.png','fruit-sticker-take-me-to-lunch-chiquita.png','fruit-sticker-that-a-way-groundhog.png',
+    'fruit-sticker-the-best-banana-ecuador.png','fruit-sticker-thumping-good-watermelon-bunny.png',
+  ]},
+  'fruits': { label: 'fruits', files: [
+    'fruit-circle-blood-orange.png','fruit-circle-blueberry.png','fruit-circle-feijoa.png','fruit-circle-guava.png',
+    'fruit-circle-kiwi.png','fruit-circle-lime.png','fruit-circle-orange.png','fruit-circle-papaya.png',
+    'fruit-circle-peach.png','fruit-circle-pineapple.png','fruit-circle-pomegranate.png','fruit-circle-watermelon.png',
+    'fruit-glitter-apple.png','fruit-glitter-cherries.png','fruit-glitter-grapes.png','fruit-glitter-lemon.png',
+    'fruit-glitter-strawberry.png','fruit-glitter-watermelon-slice.png',
+  ]},
+  'gems': { label: 'gems', files: [
+    'gem-baguette-blue.png','gem-cabochon-oval-blue.png','gem-cluster-cloud-emerald.png','gem-cluster-crescent-moon-blue.png',
+    'gem-cluster-flower-green.png','gem-cluster-flower-pink.png','gem-emerald-cut-pink.png','gem-heart-fuchsia.png',
+    'gem-oval-green.png','gem-pear-mint.png','gem-pear-teal.png','gem-rough-blue-green.png','gem-rough-green.png',
+    'gem-round-rose.png','gem-sparkle-purple.png','gem-star-gold.png','gem-star-teal.png','gem-trillion-red.png',
+  ]},
+  'stars': { label: 'stars', files: [
+    'star-foil-blue.png','star-foil-gold.png','star-foil-lime.png','star-foil-pink.png','star-foil-rainbow.png',
+    'star-foil-red.png','star-foil-silver.png','star-foil-teal.png','star-glitter-blue.png','star-glitter-green.png',
+    'star-glitter-hot-pink.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-olive.png',
+    'star-glitter-orange.png','star-glitter-purple-pink.png','star-paint-blue.png',
+  ]},
+};
+let activeStickerTab = Object.keys(STICKER_CATEGORIES)[0];
+
+function openStickerPicker(){
+  renderStickerTabs();
+  renderStickerGrid();
+  document.getElementById('sticker-overlay').classList.add('open');
+}
+function renderStickerTabs(){
+  document.getElementById('sticker-tabs').innerHTML = Object.entries(STICKER_CATEGORIES).map(([key, cat]) => {
+    return `<button class="sticker-tab${key === activeStickerTab ? ' active' : ''}" onclick="selectStickerTab('${key}')">${_escapeHtml(cat.label)}</button>`;
+  }).join('');
+}
+function selectStickerTab(key){
+  activeStickerTab = key;
+  renderStickerTabs();
+  renderStickerGrid();
+}
+function renderStickerGrid(){
+  const cat = STICKER_CATEGORIES[activeStickerTab];
+  document.getElementById('sticker-grid').innerHTML = cat.files.map(f => {
+    const url = STICKER_BASE + activeStickerTab + '/' + f;
+    const label = f.replace(/\.png$/,'').replace(/-/g,' ');
+    return `<button class="sticker-thumb" onclick="addMatrixSticker('${url}')" title="${_escapeHtml(label)}">
+        <img src="${url}" alt="${_escapeHtml(label)}"></button>`;
+  }).join('');
+}
+function closeStickerPicker(){
+  document.getElementById('sticker-overlay').classList.remove('open');
+}
+
+async function addMatrixSticker(url){
+  if (!currentUser || !activeEntryId) { HGModal.alert('sign in', 'sign in to save stickers'); return; }
+  const entry = {
+    id: crypto.randomUUID(), url,
+    x: +(20 + Math.random()*60).toFixed(1),
+    y: +(20 + Math.random()*60).toFixed(1),
+    rot: +((Math.random()*2-1)*15).toFixed(1),
+  };
+  try {
+    const { data: row, error: readErr } = await sb.from('daily_matrix')
+      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
+    const { error: updErr } = await sb.from('daily_matrix')
+      .update({ matrix_stickers: [...current, entry] }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+    closeStickerPicker();
+    showRoomStatus('sticker added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch(err){
+    console.error('[matrix sticker] add failed:', err);
+    HGModal.alert('oops', 'couldn’t add sticker — try again');
+  }
+}
+
+async function removeMatrixSticker(id){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('daily_matrix')
+      .select('matrix_stickers').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers : [];
+    const next = items.filter(s => s && s.id !== id);
+    const { error } = await sb.from('daily_matrix')
+      .update({ matrix_stickers: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch(err){
+    console.error('[matrix sticker] remove failed:', err);
+    HGModal.alert('oops', 'couldn’t remove sticker — try again');
+    return;
+  }
+  showRoomStatus('sticker removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// ── MATRIX TEXT NOTES ─────────────────────────────────────
+// Stationery cards a text note can sit on. Each "box" is the card's writable
+// rectangle (% of its own image, left/top/width/height) — see dream.html's
+// STATIONERY_ITEMS comment for how these numbers were derived. Keep in sync.
+const STATIONERY_BASE = '../assets/elements/stickers/stationary/';
+const STATIONERY_ITEMS = [
+  { key:'airmail-letter',         label:'airmail',       file:'stationary-airmail-letter.png',           box:{l:4.2, t:16.7, w:91.6, h:70.8} },
+  { key:'gift-tag-olive',         label:'gift tag',      file:'stationary-gift-tag-olive.png',           box:{l:4.2, t:37.5, w:91.6, h:58.3} },
+  { key:'label-bracket-green',    label:'green label',   file:'stationary-label-bracket-green.png',      box:{l:8.3, t:16.7, w:83.4, h:66.6} },
+  { key:'label-bracket-navy',     label:'navy label',    file:'stationary-label-bracket-navy.png',       box:{l:12.5,t:12.5, w:75,   h:75} },
+  { key:'lace-doily-oval',        label:'lace doily',    file:'stationary-lace-doily-oval-frame.png',    box:{l:25,  t:20.8, w:54.2, h:54.2} },
+  { key:'library-card',           label:'library card',  file:'stationary-library-card.png',             box:{l:0,   t:37.5, w:100,  h:62.5} },
+  { key:'notecard-daisies',       label:'daisies',       file:'stationary-notecard-daisies.png',         box:{l:4.2, t:8.3,  w:62.5, h:83.4} },
+  { key:'notecard-strawberry',    label:'strawberry',    file:'stationary-notecard-strawberry.png',      box:{l:37.5,t:8.3,  w:58.3, h:70.9} },
+  { key:'notepaper-cowboy',       label:'cowboy',        file:'stationary-notepaper-cowboy-western.png', box:{l:12.5,t:29.2, w:75,   h:50} },
+  { key:'notepaper-mushroom-cat', label:'mushroom cat',  file:'stationary-notepaper-mushroom-cat.png',   box:{l:54.2,t:12.5, w:45.8, h:62.5} },
+];
+const STATIONERY_FILE = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.file]));
+const STATIONERY_BOX  = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.box]));
+
+let textDraft = { stationery: null };
+
+function openTextAdd(){
+  document.getElementById('text-add-input').value = '';
+  document.getElementById('text-add-input').maxLength = 80;
+  textDraft = { stationery: null };
+  renderStationeryGrid();
+  updateTextAddPreview();
+  const st = document.getElementById('text-add-status');
+  st.textContent = ''; st.style.color = '#8a7a5a';
+  document.getElementById('text-add-btn').disabled = false;
+  document.getElementById('text-add-btn').textContent = 'add to matrix';
+  document.getElementById('text-add-overlay').classList.add('open');
+}
+function closeTextAdd(){
+  document.getElementById('text-add-overlay').classList.remove('open');
+}
+function renderStationeryGrid(){
+  const plainSelected = !textDraft.stationery ? ' selected' : '';
+  const plainThumb = `<button class="photo-frame-thumb${plainSelected}" data-stationery="" onclick="pickStationery('',this)">
+      <div class="stationery-plain-glyph">Aa</div><span>plain</span></button>`;
+  const cardThumbs = STATIONERY_ITEMS.map(s => {
+    const selected = s.key === textDraft.stationery ? ' selected' : '';
+    return `<button class="photo-frame-thumb${selected}" data-stationery="${s.key}" onclick="pickStationery('${s.key}',this)">
+        <img src="${STATIONERY_BASE}${s.file}" alt="${_escapeHtml(s.label)}"><span>${_escapeHtml(s.label)}</span></button>`;
+  }).join('');
+  document.getElementById('stationery-grid').innerHTML = plainThumb + cardThumbs;
+}
+function pickStationery(key, el){
+  textDraft.stationery = key || null;
+  document.querySelectorAll('#stationery-grid .photo-frame-thumb').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('text-add-input').maxLength = textDraft.stationery ? 300 : 80;
+  updateTextAddPreview();
+}
+// Mirrors the actual matrix rendering so what's shown while typing matches
+// what gets placed. Plain notes just use the textarea alone (today's look).
+function updateTextAddPreview(){
+  const preview = document.getElementById('text-add-preview');
+  const input = document.getElementById('text-add-input');
+  if (!textDraft.stationery){
+    preview.style.display = 'none';
+    return;
+  }
+  preview.style.display = 'block';
+  const file = STATIONERY_FILE[textDraft.stationery];
+  const box = STATIONERY_BOX[textDraft.stationery];
+  preview.innerHTML = `<img class="text-add-preview-img" src="${STATIONERY_BASE}${file}" alt="">
+      <div class="text-add-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(input.value)}</div>`;
+}
+
+async function addMatrixText(){
+  const input = document.getElementById('text-add-input');
+  const st = document.getElementById('text-add-status');
+  const text = input.value.trim();
+  if (!text) { st.style.color = '#E8478B'; st.textContent = 'write something first'; return; }
+  if (!currentUser || !activeEntryId) { st.style.color = '#E8478B'; st.textContent = 'sign in to save text'; return; }
+
+  const btn = document.getElementById('text-add-btn');
+  btn.disabled = true; btn.textContent = 'adding…';
+  const entry = {
+    id: crypto.randomUUID(), text,
+    x: +(20 + Math.random()*60).toFixed(1),
+    y: +(20 + Math.random()*60).toFixed(1),
+    rot: +((Math.random()*2-1)*8).toFixed(1),
+  };
+  if (textDraft.stationery) entry.stationery = textDraft.stationery;
+  try {
+    const { data: row, error: readErr } = await sb.from('daily_matrix')
+      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const current = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
+    const { error: updErr } = await sb.from('daily_matrix')
+      .update({ matrix_texts: [...current, entry] }).eq('id', activeEntryId);
+    if (updErr) throw updErr;
+    closeTextAdd();
+    showRoomStatus('text added ✓', '#6ab86a');
+    await renderMatrix();
+  } catch(err){
+    console.error('[matrix text] add failed:', err);
+    st.style.color = '#E8478B'; st.textContent = 'couldn’t add text — try again';
+    btn.disabled = false; btn.textContent = 'add to matrix';
+  }
+}
+
+async function removeMatrixText(id){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('daily_matrix')
+      .select('matrix_texts').eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.matrix_texts) ? row.matrix_texts : [];
+    const next = items.filter(t => t && t.id !== id);
+    const { error } = await sb.from('daily_matrix')
+      .update({ matrix_texts: next }).eq('id', activeEntryId);
+    if (error) throw error;
+  } catch(err){
+    console.error('[matrix text] remove failed:', err);
+    HGModal.alert('oops', 'couldn’t remove text — try again');
+    return;
+  }
+  showRoomStatus('text removed', '#8a7a5a');
+  await renderMatrix();
+}
+
+// Delegated remove-button handler for stickers/text (panel innerHTML is
+// rebuilt on each render, so per-button listeners would be lost).
+document.getElementById('content-panel').addEventListener('click', e => {
+  const stickerBtn = e.target.closest('.adv-sticker-remove');
+  if (stickerBtn) { e.stopPropagation(); removeMatrixSticker(stickerBtn.dataset.id); return; }
+  const textBtn = e.target.closest('.mx-note-remove');
+  if (textBtn) { e.stopPropagation(); removeMatrixText(textBtn.dataset.id); return; }
+});
+
+// Read-modify-write one field (x/y, rot, or scale) on a matrix item after a
+// drag ends. Photos are keyed by url (UUID filenames are a reliable unique
+// key); stickers & text notes are keyed by their generated id.
+const MATRIX_ITEM_TABLE = {
+  photo:   { column: 'matrix_images',   key: 'url' },
+  sticker: { column: 'matrix_stickers', key: 'id'  },
+  text:    { column: 'matrix_texts',    key: 'id'  },
+};
+async function updateMatrixItem(kind, id, patch){
+  const cfg = MATRIX_ITEM_TABLE[kind];
+  if (!cfg || !id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('daily_matrix')
+      .select(cfg.column).eq('id', activeEntryId).maybeSingle();
+    const items = Array.isArray(row?.[cfg.column]) ? row[cfg.column] : [];
+    const next = items.map(i => (i && i[cfg.key] === id) ? { ...i, ...patch } : i);
+    await sb.from('daily_matrix').update({ [cfg.column]: next }).eq('id', activeEntryId);
+  } catch(err){
+    console.error(`[matrix ${kind}] update failed:`, err);
+  }
+}
+
+// ── TAP-TO-SELECT reveals a photo/sticker/text's controls (remove/rotate/
+// resize) — mirrors :hover on desktop. Tapping the item selects it; tapping
+// anywhere else (including blank matrix space) deselects everything, so
+// controls don't stay glued onto the matrix when the user wants a clean shot.
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const item = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
+  document.querySelectorAll('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected').forEach(el => {
+    if (el !== item) el.classList.remove('selected');
+  });
+  if (item) item.classList.add('selected');
+});
+
+// ── DRAG-TO-REPOSITION for photos, stickers & text ────────
+let matrixDragState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove, .adv-rotate-handle, .adv-resize-handle')) return;
+  const el = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
+  if (!el) return;
+  const frame = el.closest('.matrix-frame');
+  if (!frame) return;
+  el.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  const kind = el.classList.contains('adv-photo') ? 'photo'
+    : el.classList.contains('adv-sticker') ? 'sticker' : 'text';
+  matrixDragState = {
+    el, frame, pointerId: e.pointerId, kind,
+    id: kind === 'photo' ? el.dataset.url : el.dataset.id,
+    lastX: null, lastY: null,
+  };
+  e.preventDefault();
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixDragState || matrixDragState.pointerId !== e.pointerId) return;
+  const rect = matrixDragState.frame.getBoundingClientRect();
+  let x = ((e.clientX - rect.left) / rect.width) * 100;
+  let y = ((e.clientY - rect.top) / rect.height) * 100;
+  x = Math.max(2, Math.min(98, x));
+  y = Math.max(2, Math.min(98, y));
+  matrixDragState.el.style.left = x + '%';
+  matrixDragState.el.style.top  = y + '%';
+  matrixDragState.lastX = x; matrixDragState.lastY = y;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixDragState || matrixDragState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastX, lastY } = matrixDragState;
+  el.classList.remove('dragging');
+  matrixDragState = null;
+  if (lastX == null) return; // tapped without moving — nothing changed
+  updateMatrixItem(kind, id, { x: lastX, y: lastY });
+});
+
+// ── ROTATE handle — drag around the item's center to spin it ────
+let matrixRotateState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.adv-rotate-handle');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
+  if (!el) return;
+  handle.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  const rect = el.getBoundingClientRect();
+  matrixRotateState = {
+    el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+    cx: rect.left + rect.width/2, cy: rect.top + rect.height/2,
+    startAngle: Math.atan2(e.clientY - (rect.top+rect.height/2), e.clientX - (rect.left+rect.width/2)) * 180/Math.PI,
+    startRot: parseFloat(el.dataset.rot || '0'),
+    scale: parseFloat(el.dataset.scale || '1'),
+    lastRot: null,
+  };
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixRotateState || matrixRotateState.pointerId !== e.pointerId) return;
+  const s = matrixRotateState;
+  const angle = Math.atan2(e.clientY - s.cy, e.clientX - s.cx) * 180/Math.PI;
+  let rot = s.startRot + (angle - s.startAngle);
+  rot = ((rot + 180) % 360 + 360) % 360 - 180; // normalize to [-180,180]
+  rot = +rot.toFixed(1);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${s.scale})`;
+  s.lastRot = rot;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixRotateState || matrixRotateState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastRot } = matrixRotateState;
+  el.classList.remove('dragging');
+  matrixRotateState = null;
+  if (lastRot == null) return;
+  el.dataset.rot = lastRot;
+  updateMatrixItem(kind, id, { rot: lastRot });
+});
+
+// ── RESIZE handle — drag toward/away from the item's center to scale it ──
+let matrixResizeState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  const handle = e.target.closest('.adv-resize-handle');
+  if (!handle) return;
+  e.stopPropagation(); e.preventDefault();
+  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
+  if (!el) return;
+  handle.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  matrixResizeState = {
+    el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+    cx, cy, startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)),
+    startScale: parseFloat(el.dataset.scale || '1'),
+    rot: parseFloat(el.dataset.rot || '0'),
+    lastScale: null,
+  };
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixResizeState || matrixResizeState.pointerId !== e.pointerId) return;
+  const s = matrixResizeState;
+  const dist = Math.hypot(e.clientX - s.cx, e.clientY - s.cy);
+  let scale = s.startScale * (dist / s.startDist);
+  scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${s.rot}deg) scale(${scale})`;
+  s.lastScale = scale;
+});
+document.getElementById('content-panel').addEventListener('pointerup', e => {
+  if (!matrixResizeState || matrixResizeState.pointerId !== e.pointerId) return;
+  const { el, kind, id, lastScale } = matrixResizeState;
+  el.classList.remove('dragging');
+  matrixResizeState = null;
+  if (lastScale == null) return;
+  el.dataset.scale = lastScale;
+  updateMatrixItem(kind, id, { scale: lastScale });
+});
+
+// ── PINCH-TO-SCALE + TWIST-TO-ROTATE (touch only) — a second finger landing
+// on an already-*selected* photo/sticker/text hands off from the single-
+// finger drag to a combined scale+rotate gesture, replacing the small corner
+// handles (fiddly to grab precisely on a touchscreen — see the "pointer:
+// coarse" rule that hides them there). One finger still just drags.
+let matrixPinchState = null;
+document.getElementById('content-panel').addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
+  const el = e.target.closest('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected');
+  if (!el) return;
+  if (!matrixPinchState || matrixPinchState.el !== el) matrixPinchState = { el, pts:new Map() };
+  matrixPinchState.pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (matrixPinchState.pts.size !== 2) return;
+  // Second finger just landed — cancel any single-finger position-drag on
+  // this item so the two gestures don't fight over the same pointer state.
+  if (matrixDragState && matrixDragState.el === el) matrixDragState = null;
+  el.classList.add('dragging');
+  const [p1, p2] = matrixPinchState.pts.values();
+  Object.assign(matrixPinchState, {
+    kind: el.classList.contains('adv-photo') ? 'photo' : el.classList.contains('adv-sticker') ? 'sticker' : 'text',
+    id: el.classList.contains('adv-photo') ? el.dataset.url : el.dataset.id,
+    startDist:  Math.max(10, Math.hypot(p2.x-p1.x, p2.y-p1.y)),
+    startAngle: Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI,
+    startScale: parseFloat(el.dataset.scale || '1'),
+    startRot:   parseFloat(el.dataset.rot || '0'),
+    lastScale: null, lastRot: null,
+  });
+});
+document.getElementById('content-panel').addEventListener('pointermove', e => {
+  if (!matrixPinchState || !matrixPinchState.pts.has(e.pointerId)) return;
+  matrixPinchState.pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (matrixPinchState.pts.size !== 2) return;
+  const s = matrixPinchState;
+  const [p1, p2] = s.pts.values();
+  const dist  = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+  const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
+  let scale = s.startScale * (dist / s.startDist);
+  scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+  let rot = s.startRot + (angle - s.startAngle);
+  rot = ((rot + 180) % 360 + 360) % 360 - 180; // normalize to [-180,180]
+  rot = +rot.toFixed(1);
+  s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`;
+  s.lastScale = scale; s.lastRot = rot;
+});
+function endMatrixPinchPointer(e){
+  if (!matrixPinchState || !matrixPinchState.pts.has(e.pointerId)) return;
+  matrixPinchState.pts.delete(e.pointerId);
+  if (matrixPinchState.pts.size > 0) return; // one finger still down — keep the item as-is until it lifts too
+  const { el, kind, id, lastScale, lastRot } = matrixPinchState;
+  el.classList.remove('dragging');
+  matrixPinchState = null;
+  if (lastScale == null) return; // never got a second finger moving — nothing changed
+  el.dataset.scale = lastScale; el.dataset.rot = lastRot;
+  updateMatrixItem(kind, id, { scale: lastScale, rot: lastRot });
+}
+document.getElementById('content-panel').addEventListener('pointerup', endMatrixPinchPointer);
+document.getElementById('content-panel').addEventListener('pointercancel', endMatrixPinchPointer);
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
 window.addEventListener('message', async e => {
