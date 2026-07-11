@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+  <link rel="stylesheet" href="../assets/css/modal.css">
+  <script src="../assets/js/modal.js" defer></script>
+  <title>Admin — Heartability</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand:     "ZoesHandwriting", cursive;
+  --font-pixel:    "PFPixelscript", cursive;
+  --purple:        #6579e2;
+  --purple-dark:   #4a5bc4;
+  --purple-shadow: #3a4aaa;
+  --blue-glow:     #83d2e6;
+  --cream:         #f5f0ea;
+  --cream-dark:    #e8e3da;
+  --line-col:      #111;
+  --danger:        #d9534f;
+  --danger-dark:   #b33a36;
+  --danger-shadow: #8a2a27;
+  --good:          #4caf7d;
+  --warn:          #e2a545;
+}
+
+html, body {
+  width: 100vw;
+  min-height: 100dvh;
+  font-family: var(--font-hand);
+  background: url('../assets/elements/garden-sky.png') center / cover no-repeat fixed;
+  background-color: #5b7fe0;
+}
+
+/* ── NAV ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: #6578e2;
+  border-bottom: 2px solid var(--line-col);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(16px, 1.6vw, 20px);
+  color: #fff;
+}
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background 0.15s; color: inherit; text-decoration: none; background: none; border: none; font: inherit; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+.nav-title { font-weight: 600; }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab { cursor: pointer; padding: 5px 12px; border-radius: 2px; background: none; border: none; font-family: var(--font-hand); font-size: clamp(14px, 1.4vw, 18px); color: rgba(255,255,255,0.7); transition: background 0.15s, color 0.15s; }
+.nav-tab:hover { background: rgba(0,0,0,0.08); color: #fff; }
+.nav-tab.active { background: rgba(0,0,0,0.18); color: #fff; }
+
+/* ── LOADING / GATE STATES ── */
+#loading-state, #login-state, #unauthorized-state {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+}
+#loading-state { font-family: var(--font-pixel); font-size: clamp(16px, 2vw, 22px); color: var(--blue-glow); text-shadow: 0 0 20px rgba(131,210,230,0.6); }
+#unauthorized-state { display: none; }
+#unauthorized-state .window { width: min(90vw, 420px); text-align: center; }
+
+.login-card {
+  width: min(90vw, 380px);
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  overflow: hidden;
+}
+.login-titlebar { height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb; display: flex; align-items: center; padding: 0 20px; font-family: var(--font-pixel); font-size: 12px; color: #333; }
+.login-body { padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 12px; }
+.field-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+.field-input { width: 100%; padding: 9px 10px; border: 1.5px solid #ccc; font-family: var(--font-hand); font-size: 16px; background: #fff; }
+.field-input:focus { outline: none; border-color: var(--purple); }
+.login-msg { font-size: 13px; min-height: 16px; }
+.login-msg.error { color: var(--danger); }
+.login-msg.success { color: var(--good); }
+.btn-primary {
+  padding: 9px 16px; background: var(--purple); border: 2px solid var(--purple-dark);
+  box-shadow: 2px 2px 0 var(--purple-shadow); font-family: var(--font-hand); font-size: 16px;
+  color: #fff; cursor: pointer; transition: all 0.05s;
+}
+.btn-primary:hover { background: var(--purple-dark); }
+.btn-primary:active { box-shadow: none; transform: translate(2px,2px); }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+/* ── PAGE ── */
+#app { display: none; padding: 64px 20px 40px; max-width: 1200px; margin: 0 auto; }
+.tab-section { display: none; }
+.tab-section.active { display: block; }
+
+.window {
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 20px rgba(0,0,0,0.24);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.window-titlebar {
+  height: 34px; background: var(--cream-dark); border-bottom: 2px solid #bbb;
+  display: flex; align-items: center; padding: 0 16px;
+  font-family: var(--font-pixel); font-size: 11px; color: #333;
+}
+.window-body { padding: 16px 18px; }
+
+/* ── STAT CARDS (Analytics headline) ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat-card { background: var(--cream); box-shadow: 0 0 0 2px var(--purple-dark), 3px 4px 0 rgba(0,0,0,.15); padding: 14px 16px; }
+.stat-card.warn { box-shadow: 0 0 0 2px var(--danger-dark), 3px 4px 0 rgba(0,0,0,.15); }
+.stat-num { font-size: clamp(24px, 3vw, 34px); font-weight: 700; color: var(--purple-dark); line-height: 1; }
+.stat-card.warn .stat-num { color: var(--danger); }
+.stat-label { font-size: 13px; color: #888; margin-top: 4px; }
+
+/* ── INBOX ── */
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.type-tabs { display: flex; gap: 4px; }
+.type-tab { padding: 6px 14px; background: none; border: 1.5px solid var(--purple); font-family: var(--font-hand); font-size: 14px; color: var(--purple); cursor: pointer; }
+.type-tab.active { background: var(--purple); color: #fff; }
+select.field-input { width: auto; padding: 7px 8px; font-size: 14px; }
+
+.split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start; }
+@media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+
+.list-scroll { max-height: 70vh; overflow-y: auto; }
+.ticket-row {
+  padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px; border-left: 4px solid transparent;
+}
+.ticket-row:hover { background: rgba(101,121,226,0.08); }
+.ticket-row.selected { background: rgba(101,121,226,0.16); }
+.ticket-row.urgent { border-left-color: var(--danger); }
+.ticket-row-top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.ticket-row-sub { font-size: 12px; color: #888; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-urgent { background: #fbe3e2; color: var(--danger-dark); }
+.badge-minor { background: #fff4dd; color: #a8781f; }
+.badge-open, .badge-new { background: #e3ebfb; color: var(--purple-dark); }
+.badge-pending, .badge-investigating { background: #fff4dd; color: #a8781f; }
+.badge-resolved, .badge-fixed { background: #e1f5eb; color: #2f8a5f; }
+.badge-wontfix { background: #eee; color: #888; }
+.badge-flagged { background: #fbe3e2; color: var(--danger-dark); }
+
+.detail-empty { color: #999; padding: 30px; text-align: center; }
+.detail-field { margin-bottom: 10px; }
+.detail-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+.detail-value { font-size: 15px; color: #333; white-space: pre-wrap; word-break: break-word; }
+
+.thread { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; max-height: 40vh; overflow-y: auto; }
+.msg { padding: 8px 12px; border-radius: 4px; max-width: 80%; font-size: 14px; white-space: pre-wrap; }
+.msg-user { background: #eee; align-self: flex-start; }
+.msg-admin { background: var(--blue-glow); align-self: flex-end; }
+.msg-meta { font-size: 11px; color: #888; margin-top: 3px; }
+
+.reply-box { display: flex; flex-direction: column; gap: 8px; }
+textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--font-hand); }
+.reply-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── USERS ── */
+.search-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.search-row .field-input { flex: 1; }
+.cap-line { font-size: 13px; color: #888; margin-bottom: 14px; }
+
+.user-row { padding: 9px 12px; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.user-row:hover { background: rgba(101,121,226,0.08); }
+
+.section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .section-grid { grid-template-columns: 1fr; } }
+
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.07); font-size: 14px; gap: 10px; }
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { color: #888; }
+.setting-value { font-weight: 600; text-align: right; word-break: break-all; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn-action { padding: 7px 13px; background: none; border: 1.5px solid var(--purple); font-family: var(--font-hand); font-size: 14px; color: var(--purple); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.btn-action:hover { background: var(--purple); color: white; }
+.btn-danger { padding: 7px 13px; background: none; border: 1.5px solid var(--danger); font-family: var(--font-hand); font-size: 14px; color: var(--danger); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+.payment-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+.payment-row:last-child { border-bottom: none; }
+
+.activity-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.activity-row:last-child { border-bottom: none; }
+
+/* ── ANALYTICS ── */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-wrap { position: relative; height: 260px; }
+
+.muted { color: #999; font-size: 13px; }
+
+  </style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <div class="nav-title">heartability admin</div>
+  <div class="nav-tabs" id="nav-tabs" style="display:none;">
+    <button class="nav-tab active" data-tab="inbox">inbox</button>
+    <button class="nav-tab" data-tab="users">users</button>
+    <button class="nav-tab" data-tab="analytics">analytics</button>
+  </div>
+  <button class="nav-btn" id="btn-signout" style="display:none;" onclick="signOut()">sign out</button>
+</nav>
+
+<div id="loading-state">loading</div>
+
+<div id="login-state" style="display:none;">
+  <div class="login-card">
+    <div class="login-titlebar">admin login</div>
+    <div class="login-body">
+      <form id="login-form">
+        <div class="field-label">email</div>
+        <input class="field-input" type="email" id="login-email" required autocomplete="email" style="margin-bottom:10px;">
+        <div class="field-label">password</div>
+        <input class="field-input" type="password" id="login-password" required autocomplete="current-password">
+        <div class="login-msg" id="login-msg"></div>
+        <button type="submit" class="btn-primary" id="login-btn" style="width:100%;margin-top:6px;">log in</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="unauthorized-state">
+  <div class="window">
+    <div class="window-titlebar">not authorized</div>
+    <div class="window-body">
+      <p style="margin-bottom:14px;">this account isn't on the admin allowlist.</p>
+      <button class="btn-action" onclick="signOut()">sign out</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- INBOX -->
+  <section class="tab-section active" id="tab-inbox">
+    <div class="filter-row">
+      <div class="type-tabs" id="type-tabs">
+        <button class="type-tab active" data-type="all">all</button>
+        <button class="type-tab" data-type="bug">bugs</button>
+        <button class="type-tab" data-type="support">support</button>
+      </div>
+      <select class="field-input" id="filter-status"><option value="">any status</option></select>
+      <select class="field-input" id="filter-category"><option value="">any category</option></select>
+      <button class="btn-action" onclick="loadInbox()">refresh</button>
+    </div>
+
+    <div class="split">
+      <div class="window">
+        <div class="window-titlebar">inbox</div>
+        <div class="list-scroll" id="inbox-list"></div>
+      </div>
+      <div class="window">
+        <div class="window-titlebar" id="detail-titlebar">detail</div>
+        <div class="window-body" id="inbox-detail">
+          <div class="detail-empty">select a report or ticket</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USERS -->
+  <section class="tab-section" id="tab-users">
+    <div class="search-row">
+      <input class="field-input" id="user-search-input" placeholder="search by email or user id" autocomplete="off">
+      <button class="btn-primary" onclick="searchUsers()">search</button>
+    </div>
+    <div class="cap-line" id="user-cap-line"></div>
+
+    <div class="split">
+      <div class="window">
+        <div class="window-titlebar">results</div>
+        <div class="list-scroll" id="user-list"></div>
+      </div>
+      <div class="window">
+        <div class="window-titlebar">account detail</div>
+        <div class="window-body" id="user-detail">
+          <div class="detail-empty">search for a user</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYTICS -->
+  <section class="tab-section" id="tab-analytics">
+    <div class="stat-grid" id="analytics-headline"></div>
+
+    <div class="chart-grid">
+      <div class="window"><div class="window-titlebar">signups (last 90 days)</div>
+        <div class="window-body"><div class="chart-wrap"><canvas id="chart-signups"></canvas></div></div></div>
+      <div class="window"><div class="window-titlebar">membership breakdown</div>
+        <div class="window-body"><div class="chart-wrap"><canvas id="chart-membership"></canvas></div></div></div>
+      <div class="window"><div class="window-titlebar">game engagement</div>
+        <div class="window-body"><div class="chart-wrap"><canvas id="chart-games"></canvas></div></div></div>
+      <div class="window"><div class="window-titlebar">support volume by category</div>
+        <div class="window-body"><div class="chart-wrap"><canvas id="chart-support"></canvas></div></div></div>
+    </div>
+    <p class="muted" id="analytics-meta" style="margin-top:10px;"></p>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function () {
+  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let accessToken = null;
+  let currentTab = 'inbox';
+
+  // ── state ──
+  let inboxItems = [];      // merged {kind:'bug'|'support', ...row}
+  let selectedInboxItem = null;
+  let selectedUser = null;
+  let charts = {};
+
+  const STATUS_OPTIONS = {
+    all:     [],
+    bug:     ['new', 'investigating', 'fixed', 'wontfix'],
+    support: ['open', 'pending', 'resolved'],
+  };
+  const CATEGORY_OPTIONS = {
+    all:     [],
+    bug:     ['urgent', 'minor'],
+    support: ['billing', 'account', 'technical', 'other'],
+  };
+
+  async function callFn(name, body) {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      body: JSON.stringify(body || {}),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || `${name} failed (${res.status})`);
+    return json;
+  }
+
+  // ── auth ──
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    document.getElementById('loading-state').style.display = 'none';
+
+    if (!session) { showLogin(); return; }
+    accessToken = session.access_token;
+
+    try {
+      await callFn('admin-whoami');
+    } catch (e) {
+      showUnauthorized();
+      return;
+    }
+
+    document.getElementById('nav-tabs').style.display = 'flex';
+    document.getElementById('btn-signout').style.display = '';
+    document.getElementById('app').style.display = 'block';
+    setupTabs();
+    populateFilterOptions();
+    loadInbox();
+  }
+
+  function showLogin() {
+    document.getElementById('login-state').style.display = 'flex';
+  }
+  function showUnauthorized() {
+    document.getElementById('login-state').style.display = 'none';
+    document.getElementById('unauthorized-state').style.display = 'flex';
+    document.getElementById('btn-signout').style.display = '';
+  }
+
+  window.signOut = async function () {
+    await sb.auth.signOut();
+    window.location.reload();
+  };
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const msg = document.getElementById('login-msg');
+    btn.disabled = true; btn.textContent = 'entering...';
+    msg.className = 'login-msg'; msg.textContent = '';
+
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: document.getElementById('login-email').value.trim(),
+      password: document.getElementById('login-password').value,
+    });
+    if (error) {
+      msg.className = 'login-msg error'; msg.textContent = error.message;
+      btn.disabled = false; btn.textContent = 'log in';
+      return;
+    }
+    accessToken = data.session.access_token;
+    try {
+      await callFn('admin-whoami');
+    } catch (e) {
+      document.getElementById('login-state').style.display = 'none';
+      showUnauthorized();
+      return;
+    }
+    document.getElementById('login-state').style.display = 'none';
+    document.getElementById('nav-tabs').style.display = 'flex';
+    document.getElementById('btn-signout').style.display = '';
+    document.getElementById('app').style.display = 'block';
+    setupTabs();
+    populateFilterOptions();
+    loadInbox();
+  });
+
+  // ── tabs ──
+  function setupTabs() {
+    document.querySelectorAll('.nav-tab').forEach((btn) => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+  }
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.nav-tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('active', s.id === 'tab-' + tab));
+    if (tab === 'analytics') loadAnalytics();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // INBOX
+  // ══════════════════════════════════════════════════════════
+  let activeType = 'all';
+
+  function populateFilterOptions() {
+    document.querySelectorAll('.type-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeType = btn.dataset.type;
+        document.querySelectorAll('.type-tab').forEach((b) => b.classList.toggle('active', b === btn));
+        fillSelect('filter-status', STATUS_OPTIONS[activeType], 'any status');
+        fillSelect('filter-category', CATEGORY_OPTIONS[activeType], 'any category');
+        loadInbox();
+      });
+    });
+    fillSelect('filter-status', [], 'any status');
+    fillSelect('filter-category', [], 'any category');
+    document.getElementById('filter-status').addEventListener('change', loadInbox);
+    document.getElementById('filter-category').addEventListener('change', loadInbox);
+  }
+
+  function fillSelect(id, options, placeholder) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">${placeholder}</option>` +
+      options.map((o) => `<option value="${o}">${o}</option>`).join('');
+  }
+
+  async function loadInbox() {
+    const status = document.getElementById('filter-status').value;
+    const category = document.getElementById('filter-category').value;
+    const listEl = document.getElementById('inbox-list');
+    listEl.innerHTML = '<div class="detail-empty">loading...</div>';
+
+    try {
+      const res = await callFn('admin-list-tickets', { type: activeType, status, category, page: 0, pageSize: 50 });
+      const bugs = (res.bugs || []).map((b) => ({ kind: 'bug', ...b }));
+      const support = (res.support || []).map((t) => ({ kind: 'support', ...t }));
+      inboxItems = [...bugs, ...support].sort((a, b) => {
+        const aUrgent = a.kind === 'bug' && a.category === 'urgent';
+        const bUrgent = b.kind === 'bug' && b.category === 'urgent';
+        if (aUrgent !== bUrgent) return aUrgent ? -1 : 1;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      renderInboxList();
+    } catch (e) {
+      listEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
+    }
+  }
+
+  function renderInboxList() {
+    const listEl = document.getElementById('inbox-list');
+    if (!inboxItems.length) {
+      listEl.innerHTML = '<div class="detail-empty">nothing here</div>';
+      return;
+    }
+    listEl.innerHTML = inboxItems.map((item, idx) => {
+      const isBug = item.kind === 'bug';
+      const isUrgent = isBug && item.category === 'urgent';
+      const title = isBug ? (item.description || '').slice(0, 60) : item.subject;
+      const badge = isBug
+        ? `<span class="badge badge-${item.category}">${item.category}</span>`
+        : `<span class="badge badge-${item.category === 'billing' ? 'open' : 'pending'}" style="background:#eee;color:#666;">${item.category}</span>`;
+      return `
+        <div class="ticket-row ${isUrgent ? 'urgent' : ''}" data-idx="${idx}" onclick="selectInboxItem(${idx})">
+          <div class="ticket-row-top">
+            <span>${isBug ? '🐛' : '💬'} ${escapeHtml(title)}</span>
+            <span class="badge badge-${item.status}">${item.status}</span>
+          </div>
+          <div class="ticket-row-sub">${badge} · ${item.email} · ${formatDate(item.created_at)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  window.selectInboxItem = async function (idx) {
+    const item = inboxItems[idx];
+    selectedInboxItem = item;
+    document.querySelectorAll('#inbox-list .ticket-row').forEach((r, i) => r.classList.toggle('selected', i === idx));
+
+    const detailEl = document.getElementById('inbox-detail');
+    detailEl.innerHTML = '<div class="detail-empty">loading...</div>';
+    try {
+      const res = await callFn('admin-get-ticket', { type: item.kind, id: item.id });
+      if (item.kind === 'bug') renderBugDetail(res.ticket);
+      else renderSupportDetail(res.ticket, res.messages);
+    } catch (e) {
+      detailEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
+    }
+  };
+
+  function renderBugDetail(bug) {
+    document.getElementById('detail-titlebar').textContent = `bug report · ${bug.category}`;
+    const detailEl = document.getElementById('inbox-detail');
+    detailEl.innerHTML = `
+      <div class="detail-field"><div class="detail-label">from</div><div class="detail-value">${escapeHtml(bug.email)}</div></div>
+      <div class="detail-field"><div class="detail-label">page</div><div class="detail-value">${escapeHtml(bug.page_url || '—')}</div></div>
+      <div class="detail-field"><div class="detail-label">description</div><div class="detail-value">${escapeHtml(bug.description)}</div></div>
+      <div class="detail-field"><div class="detail-label">steps to reproduce</div><div class="detail-value">${escapeHtml(bug.steps_to_reproduce || '—')}</div></div>
+      <div class="detail-field"><div class="detail-label">browser</div><div class="detail-value">${escapeHtml(bug.browser_info || '—')}</div></div>
+      ${bug.screenshot_url ? `<div class="detail-field"><div class="detail-label">screenshot</div><div class="detail-value"><a href="${bug.screenshot_url}" target="_blank" rel="noopener">${bug.screenshot_url}</a></div></div>` : ''}
+      <div class="detail-field">
+        <div class="detail-label">status</div>
+        <select class="field-input" id="bug-status-select">
+          ${STATUS_OPTIONS.bug.map((s) => `<option value="${s}" ${s === bug.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn-action" style="margin-top:8px;" onclick="updateBugStatus('${bug.id}')">save status</button>
+      </div>
+    `;
+  }
+
+  window.updateBugStatus = async function (id) {
+    const status = document.getElementById('bug-status-select').value;
+    try {
+      await callFn('admin-update-status', { type: 'bug', id, status });
+      const item = inboxItems.find((i) => i.kind === 'bug' && i.id === id);
+      if (item) item.status = status;
+      renderInboxList();
+      await HGModal.alert('saved', `status set to ${status}`);
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  };
+
+  function renderSupportDetail(ticket, messages) {
+    document.getElementById('detail-titlebar').textContent = `support · ${ticket.subject}`;
+    const detailEl = document.getElementById('inbox-detail');
+    detailEl.innerHTML = `
+      <div class="detail-field"><div class="detail-label">from</div><div class="detail-value">${escapeHtml(ticket.email)} · ${ticket.category} · priority: ${ticket.priority || 'normal'}</div></div>
+      <div class="thread" id="thread-scroll">
+        ${messages.map((m) => `
+          <div class="msg msg-${m.sender}">
+            ${escapeHtml(m.body)}
+            <div class="msg-meta">${m.sender} · ${formatDate(m.created_at)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="reply-box">
+        <textarea class="field-input" id="reply-body" placeholder="write a reply..."></textarea>
+        <div class="reply-actions">
+          <select class="field-input" id="reply-status-select">
+            ${STATUS_OPTIONS.support.map((s) => `<option value="${s}" ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button class="btn-primary" onclick="sendReply('${ticket.id}')">send reply</button>
+        </div>
+      </div>
+    `;
+    const thread = document.getElementById('thread-scroll');
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  window.sendReply = async function (ticketId) {
+    const body = document.getElementById('reply-body').value.trim();
+    if (!body) return;
+    const newStatus = document.getElementById('reply-status-select').value;
+    try {
+      await callFn('admin-reply-ticket', { ticketId, body, newStatus });
+      const item = inboxItems.find((i) => i.kind === 'support' && i.id === ticketId);
+      if (item) item.status = newStatus;
+      renderInboxList();
+      selectInboxItem(inboxItems.findIndex((i) => i.kind === 'support' && i.id === ticketId));
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════
+  // USERS
+  // ══════════════════════════════════════════════════════════
+  window.searchUsers = async function () {
+    const query = document.getElementById('user-search-input').value.trim();
+    const listEl = document.getElementById('user-list');
+    listEl.innerHTML = '<div class="detail-empty">searching...</div>';
+    try {
+      const res = await callFn('admin-search-users', { query });
+      document.getElementById('user-cap-line').textContent = `${res.userCount} / ${res.userCap} users`;
+      if (!res.items.length) {
+        listEl.innerHTML = '<div class="detail-empty">no matches</div>';
+        return;
+      }
+      listEl.innerHTML = res.items.map((u) => `
+        <div class="user-row" onclick="selectUser('${u.id}')">
+          <span>${escapeHtml(u.email)} ${u.flagged ? '<span class=\"badge badge-flagged\">flagged</span>' : ''}</span>
+          <span class="muted">${u.membership_status}</span>
+        </div>`).join('');
+    } catch (e) {
+      listEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
+    }
+  };
+  document.getElementById('user-search-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') searchUsers();
+  });
+
+  window.selectUser = async function (userId) {
+    const detailEl = document.getElementById('user-detail');
+    detailEl.innerHTML = '<div class="detail-empty">loading...</div>';
+    try {
+      const res = await callFn('admin-get-user-detail', { userId });
+      selectedUser = res;
+      renderUserDetail(res);
+    } catch (e) {
+      detailEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
+    }
+  };
+
+  function renderUserDetail(d) {
+    const { account, membership, activity, support } = d;
+    const profile = membership.profile || {};
+    const detailEl = document.getElementById('user-detail');
+
+    const paymentsHtml = (membership.recentPayments || []).length
+      ? membership.recentPayments.map((p) => `
+        <div class="payment-row">
+          <span>$${(p.amount / 100).toFixed(2)} ${p.currency.toUpperCase()} · ${p.status}${p.refunded ? ' (refunded)' : ''} · ${formatDate(new Date(p.created * 1000).toISOString())}</span>
+          ${!p.refunded ? `<button class="btn-danger" onclick="refundPayment('${account.id}', '${p.id}')">refund</button>` : ''}
+        </div>`).join('')
+      : '<div class="muted">no payments on file</div>';
+
+    const activityHtml = activity.map((a) => `
+      <div class="activity-row">
+        <span>${a.table}</span>
+        <span>${a.entries} entries${a.lastPlayed ? ' · last ' + formatDate(a.lastPlayed) : ''}
+          ${a.entries ? `<button class="btn-danger" style="margin-left:8px;padding:3px 8px;font-size:12px;" onclick="resetGameSave('${account.id}','${a.table}')">reset</button>` : ''}
+        </span>
+      </div>`).join('');
+
+    const supportHtml = [
+      ...support.bugReports.map((b) => `<div class="activity-row"><span>🐛 ${escapeHtml((b.description||'').slice(0,40))}</span><span class="badge badge-${b.status}">${b.status}</span></div>`),
+      ...support.supportTickets.map((t) => `<div class="activity-row"><span>💬 ${escapeHtml(t.subject)}</span><span class="badge badge-${t.status}">${t.status}</span></div>`),
+    ].join('') || '<div class="muted">no reports or tickets</div>';
+
+    detailEl.innerHTML = `
+      <div class="section-grid">
+        <div>
+          <div class="window-titlebar" style="margin:-16px -18px 12px;">account</div>
+          <div class="setting-row"><span class="setting-label">email</span><span class="setting-value">${escapeHtml(account.email)}</span></div>
+          <div class="setting-row"><span class="setting-label">username</span><span class="setting-value">${escapeHtml(profile.username || '—')}</span></div>
+          <div class="setting-row"><span class="setting-label">joined</span><span class="setting-value">${formatDate(account.created_at)}</span></div>
+          <div class="setting-row"><span class="setting-label">last sign in</span><span class="setting-value">${account.last_sign_in_at ? formatDate(account.last_sign_in_at) : '—'}</span></div>
+          <div class="setting-row"><span class="setting-label">flagged</span><span class="setting-value">${profile.flagged ? `⚠️ ${escapeHtml(profile.flag_reason || '')}` : 'no'}</span></div>
+          <div class="btn-row">
+            ${profile.flagged
+              ? `<button class="btn-action" onclick="unflagAccount('${account.id}')">unflag</button>`
+              : `<button class="btn-danger" onclick="flagAccount('${account.id}')">flag account</button>`}
+            <button class="btn-action" onclick="revokeSessions('${account.id}')">sign out everywhere</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="window-titlebar" style="margin:-16px -18px 12px;">membership</div>
+          <div class="setting-row"><span class="setting-label">status</span><span class="setting-value">${profile.membership_status || 'free'} ${profile.membership_tier ? '(' + profile.membership_tier + ')' : ''}</span></div>
+          <div class="setting-row"><span class="setting-label">expires</span><span class="setting-value">${profile.membership_expires_at ? formatDate(profile.membership_expires_at) : '—'}</span></div>
+          ${profile.stripe_customer_id ? `<div class="setting-row"><span class="setting-label">stripe</span><span class="setting-value"><a href="https://dashboard.stripe.com/customers/${profile.stripe_customer_id}" target="_blank" rel="noopener">view customer</a></span></div>` : ''}
+          <div class="btn-row">
+            <button class="btn-action" onclick="compMembership('${account.id}','basic')">comp basic</button>
+            <button class="btn-action" onclick="compMembership('${account.id}','founding')">comp founding</button>
+            <button class="btn-action" onclick="downgradeMembership('${account.id}')">downgrade to free</button>
+            <button class="btn-action" onclick="resendWelcome('${account.id}')">resend welcome email</button>
+          </div>
+          <div style="margin-top:10px;">${paymentsHtml}</div>
+        </div>
+      </div>
+
+      <div class="section-grid" style="margin-top:16px;">
+        <div>
+          <div class="window-titlebar" style="margin:0 -18px 12px;">game activity</div>
+          ${activityHtml}
+        </div>
+        <div>
+          <div class="window-titlebar" style="margin:0 -18px 12px;">support history</div>
+          ${supportHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  async function runUserAction(userId, action, params, confirmTitle, confirmMsg, danger) {
+    if (confirmTitle) {
+      const ok = await HGModal.confirm(confirmTitle, confirmMsg, { danger: !!danger, confirmLabel: confirmTitle });
+      if (!ok) return;
+    }
+    try {
+      await callFn('admin-update-user', { userId, action, ...params });
+      await selectUser(userId);
+      await HGModal.alert('done', 'change applied.');
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  }
+
+  window.compMembership = (userId, tier) =>
+    runUserAction(userId, 'comp_membership', { tier, months: 12 }, `comp ${tier}`, `grant a free ${tier} membership for 12 months?`);
+  window.downgradeMembership = (userId) =>
+    runUserAction(userId, 'downgrade_membership', {}, 'downgrade to free', 'reset this account to a free membership?', true);
+  window.resetGameSave = (userId, table) =>
+    runUserAction(userId, 'reset_game_save', { table }, `reset ${table}`, `permanently delete this user's ${table} data?`, true);
+  window.flagAccount = async (userId) => {
+    const reason = prompt('reason for flagging this account:');
+    if (!reason || !reason.trim()) return;
+    runUserAction(userId, 'flag_account', { reason: reason.trim() });
+  };
+  window.unflagAccount = (userId) => runUserAction(userId, 'unflag_account', {});
+  window.resendWelcome = (userId) =>
+    runUserAction(userId, 'resend_welcome_email', {}, 'resend welcome email', 'send the welcome email to this user again?');
+  window.revokeSessions = (userId) =>
+    runUserAction(userId, 'revoke_sessions', {}, 'sign out everywhere', "sign this user out of all active sessions?", true);
+  window.refundPayment = async (userId, chargeId) => {
+    const ok = await HGModal.confirm('refund payment', 'issue a full refund for this charge? this cannot be undone.', { danger: true, confirmLabel: 'refund' });
+    if (!ok) return;
+    runUserAction(userId, 'refund_payment', { chargeId, reason: 'requested_by_customer' });
+  };
+
+  // ══════════════════════════════════════════════════════════
+  // ANALYTICS
+  // ══════════════════════════════════════════════════════════
+  let analyticsLoaded = false;
+  async function loadAnalytics() {
+    if (analyticsLoaded) return;
+    try {
+      const res = await callFn('admin-get-analytics', {});
+      analyticsLoaded = true;
+      renderAnalytics(res);
+    } catch (e) {
+      document.getElementById('analytics-headline').innerHTML = `<div class="detail-empty">${e.message}</div>`;
+    }
+  }
+
+  function renderAnalytics(d) {
+    const h = d.headline;
+    document.getElementById('analytics-headline').innerHTML = `
+      <div class="stat-card ${h.userCount >= h.userCap ? 'warn' : ''}">
+        <div class="stat-num">${h.userCount}/${h.userCap}</div>
+        <div class="stat-label">users (cap)</div>
+      </div>
+      <div class="stat-card ${h.openUrgentBugs ? 'warn' : ''}">
+        <div class="stat-num">${h.openUrgentBugs}</div>
+        <div class="stat-label">open urgent bugs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${h.openMinorBugs}</div>
+        <div class="stat-label">open minor bugs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${h.openTicketCount}</div>
+        <div class="stat-label">open tickets</div>
+      </div>
+    `;
+    document.getElementById('analytics-meta').textContent =
+      `updated ${formatDate(d.generatedAt)}${d.cached ? ' (cached)' : ''}` +
+      (d.support.avgTimeToFirstReplyHours != null ? ` · avg time to first reply: ${d.support.avgTimeToFirstReplyHours}h` : '');
+
+    // signups line chart
+    const days = Object.keys(d.signups.byDay).sort();
+    renderChart('chart-signups', 'line', {
+      labels: days,
+      datasets: [{ label: 'signups', data: days.map((k) => d.signups.byDay[k]), borderColor: '#6579e2', backgroundColor: 'rgba(101,121,226,0.15)', tension: 0.25, fill: true }],
+    });
+
+    // membership donut
+    const memberKeys = Object.keys(d.membership.counts);
+    renderChart('chart-membership', 'doughnut', {
+      labels: memberKeys,
+      datasets: [{ data: memberKeys.map((k) => d.membership.counts[k]), backgroundColor: ['#ccc', '#83d2e6', '#6579e2', '#e2a545'] }],
+    });
+
+    // game engagement bar
+    renderChart('chart-games', 'bar', {
+      labels: d.gameEngagement.map((g) => g.table),
+      datasets: [
+        { label: 'total', data: d.gameEngagement.map((g) => g.total), backgroundColor: '#6579e2' },
+        { label: 'last 30 days', data: d.gameEngagement.map((g) => g.last30Days), backgroundColor: '#83d2e6' },
+      ],
+    });
+
+    // support category bar
+    const catKeys = Object.keys(d.support.categoryBreakdown);
+    renderChart('chart-support', 'bar', {
+      labels: catKeys,
+      datasets: [{ label: 'tickets', data: catKeys.map((k) => d.support.categoryBreakdown[k]), backgroundColor: '#e2a545' }],
+    });
+  }
+
+  function renderChart(canvasId, type, data) {
+    if (charts[canvasId]) charts[canvasId].destroy();
+    charts[canvasId] = new Chart(document.getElementById(canvasId), {
+      type, data,
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'doughnut' ? true : true } } },
+    });
+  }
+
+  // ── utils ──
+  function escapeHtml(str) {
+    return (str ?? '').toString().replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+      d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+
+</body>
+</html>
