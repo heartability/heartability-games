@@ -48,13 +48,15 @@ html, body {
 /* ── Room layers ── */
 .room-walls {
   position: absolute; inset: 0;
-  background: var(--side-col) url("../assets/elements/wall-texture.jpg") center/cover;
+  background: var(--side-col) url("../assets/elements/wall-texture.jpg") repeat;
+  background-size: 180px 180px;
   z-index: 0; pointer-events: none;
 }
 
 .room-floor {
   position: absolute; inset: 0;
-  background: var(--side-col) url("../assets/elements/floor-texture.jpg") center/cover;
+  background: var(--side-col) url("../assets/elements/floor-texture.jpg") repeat;
+  background-size: 200px 200px;
   clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
   z-index: 1; pointer-events: none;
 }
@@ -66,7 +68,8 @@ html, body {
   position: absolute;
   top: var(--bw-top); left: var(--bw-left);
   width: var(--bw-width); height: var(--bw-height);
-  background: var(--back-wall) url("../assets/elements/wall-texture.jpg") center/cover;
+  background: var(--back-wall) url("../assets/elements/wall-texture.jpg") repeat;
+  background-size: 180px 180px;
   border: 2px solid var(--line-col);
   z-index: 3; pointer-events: none;
 }
