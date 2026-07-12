@@ -46,6 +46,13 @@ html, body {
 }
 
 /* ── Room layers ── */
+.room-floor {
+  position: absolute; inset: 0;
+  background: var(--side-col) url("../assets/elements/floor-texture.jpg") center/cover;
+  clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
+  z-index: 1; pointer-events: none;
+}
+
 .room-lines { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .room-lines svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
@@ -53,7 +60,7 @@ html, body {
   position: absolute;
   top: var(--bw-top); left: var(--bw-left);
   width: var(--bw-width); height: var(--bw-height);
-  background: var(--back-wall);
+  background: var(--back-wall) url("../assets/elements/wall-texture.jpg") center/cover;
   border: 2px solid var(--line-col);
   z-index: 3; pointer-events: none;
 }
@@ -369,6 +376,9 @@ body.game-mode .char-heart {
     <div class="cal-month" id="cal-month"></div>
     <div class="cal-day"   id="cal-day"></div>
   </div>
+
+  <!-- ROOM FLOOR -->
+  <div class="room-floor" aria-hidden="true"></div>
 
   <!-- ROOM LINES -->
   <div class="room-lines" aria-hidden="true">
