@@ -46,6 +46,12 @@ html, body {
 }
 
 /* ── Room layers ── */
+.room-walls {
+  position: absolute; inset: 0;
+  background: var(--side-col) url("../assets/elements/wall-texture.jpg") center/cover;
+  z-index: 0; pointer-events: none;
+}
+
 .room-floor {
   position: absolute; inset: 0;
   background: var(--side-col) url("../assets/elements/floor-texture.jpg") center/cover;
@@ -376,6 +382,9 @@ body.game-mode .char-heart {
     <div class="cal-month" id="cal-month"></div>
     <div class="cal-day"   id="cal-day"></div>
   </div>
+
+  <!-- ROOM WALLS (side walls + ceiling) -->
+  <div class="room-walls" aria-hidden="true"></div>
 
   <!-- ROOM FLOOR -->
   <div class="room-floor" aria-hidden="true"></div>
