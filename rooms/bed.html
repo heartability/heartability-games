@@ -50,10 +50,32 @@ html, body {
 }
 
 /* ── ROOM BACKGROUND ── */
+.room-side-wall-left,
+.room-side-wall-right {
+  position: absolute;
+  inset: 0;
+  background: var(--side-col) url("../assets/elements/wallpaper-texture.jpg") repeat;
+  background-size: 180px 180px;
+  z-index: 0;
+  pointer-events: none;
+}
+.room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
+.room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
+
+.room-carpet {
+  position: absolute;
+  inset: 0;
+  background: var(--side-col) url("../assets/elements/carpet-texture.jpg") repeat;
+  background-size: 200px 200px;
+  clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 .room-bg {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
 }
 .room-bg svg { width: 100%; height: 100%; display: block; }
@@ -61,9 +83,10 @@ html, body {
   position: absolute;
   top: 9%; left: 15%;
   width: 70%; height: 70%;
-  background: #f0ece4;
+  background: #f0ece4 url("../assets/elements/wallpaper-texture.jpg") repeat;
+  background-size: 180px 180px;
   border: 2px solid var(--line-col);
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -321,6 +344,9 @@ html, body {
 <div class="room-scroll"><div class="scene room-stage">
 
   <!-- ROOM BACKGROUND -->
+  <div class="room-side-wall-left" aria-hidden="true"></div>
+  <div class="room-side-wall-right" aria-hidden="true"></div>
+  <div class="room-carpet" aria-hidden="true"></div>
   <div class="room-bg" aria-hidden="true">
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
