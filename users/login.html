@@ -333,7 +333,7 @@ input:focus { border-color: var(--purple); }
     const username = document.getElementById('signup-username').value.trim();
     const email    = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
-    const { data, error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
     if (error) {
       if (isCapError(error)) {
         signupCapFull = true;
@@ -345,9 +345,6 @@ input:focus { border-color: var(--purple); }
       showMsg('signup-msg', error.message, 'error');
       btn.disabled = false; btn.textContent = 'create account!';
       return;
-    }
-    if (data.user) {
-      await sb.from('user-profiles').insert({ id: data.user.id, username });
     }
     showMsg('signup-msg', 'account created! taking you to membership options...', 'success');
     setTimeout(() => window.location.href = 'membership.html', 1000);

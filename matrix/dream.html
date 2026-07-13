@@ -1521,14 +1521,11 @@ async function lmSignup() {
   const username = document.getElementById('lm-username').value.trim();
   const email    = document.getElementById('lm-su-email').value.trim();
   const password = document.getElementById('lm-su-password').value;
-  const { data, error } = await sb.auth.signUp({ email, password });
+  const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
   if (error) {
     lmShowMsg('lm-signup-msg', error.message, 'error');
     btn.disabled = false; btn.textContent = 'create account';
     return;
-  }
-  if (data.user && username) {
-    await sb.from('user-profiles').insert({ id: data.user.id, username });
   }
   lmShowMsg('lm-signup-msg', 'account created! loading your maps...', 'success');
   // onAuthStateChange will handle the rest

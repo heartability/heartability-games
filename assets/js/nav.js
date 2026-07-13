@@ -172,19 +172,13 @@ window.HeartabilityNav = (function () {
     const username = $('hn-signup-username').value.trim();
     const email = $('hn-signup-email').value.trim();
     const password = $('hn-signup-password').value;
-    const { data, error } = await cfg.sb.auth.signUp({ email, password });
+    const { data, error } = await cfg.sb.auth.signUp({ email, password, options: { data: { username } } });
     if (error) {
       showMsg('hn-signup-msg', error.message, 'error');
       btn.disabled = false; btn.textContent = 'create account';
       return;
     }
     if (data.user) {
-      const { error: profileError } = await cfg.sb.from('user-profiles').insert({ id: data.user.id, username });
-      if (profileError) {
-        showMsg('hn-signup-msg', profileError.message, 'error');
-        btn.disabled = false; btn.textContent = 'create account';
-        return;
-      }
       showMsg('hn-signup-msg', `welcome, ${username}`, 'success');
       setTimeout(closeLoginPopup, 900);
     }
