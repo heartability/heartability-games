@@ -844,12 +844,12 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   padding:0;
   pointer-events:none;
 }
-.dq-overlay.open { display:flex; }
+.dq-overlay.open { display:flex; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .dq-card {
-  position:fixed;
+  position:absolute;
   top:var(--bw-top); left:var(--bw-left);
-  width:var(--bw-width); height:var(--bw-height);
-  max-height:none; overflow-y:auto;
+  width:var(--bw-width); height:auto; min-height:var(--bw-height);
+  max-height:none;
   padding:28px 36px;
   background:var(--back-wall);
   border:3px solid var(--blue);
