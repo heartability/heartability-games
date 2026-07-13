@@ -42,16 +42,18 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   user-select: none;
-  background: var(--side-col);
+  background: #dfe2ef;
 }
 
 /* ── Room walls & floor ── */
 .room-walls {
   position: absolute; inset: 0;
   background: var(--side-col) url("../assets/elements/wall-texture.jpg") repeat;
-  background-size: 180px 180px;
+  background-size: 360px 360px;
   z-index: 0; pointer-events: none;
 }
+.room-walls-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
+.room-walls-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
 
 .room-floor {
   position: absolute; inset: 0;
@@ -73,7 +75,7 @@ html, body {
   top: var(--bw-top); left: var(--bw-left);
   width: var(--bw-width); height: var(--bw-height);
   background: var(--back-wall) url("../assets/elements/wall-texture.jpg") repeat;
-  background-size: 180px 180px;
+  background-size: 360px 360px;
   border: 2px solid var(--line-col);
   z-index: 3; pointer-events: none;
 }
