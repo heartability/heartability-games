@@ -9,6 +9,7 @@
 window.HeartabilityNav = (function () {
   let cfg = null;
   let musicPlaying = false;
+  let signupCapFull = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -77,6 +78,15 @@ window.HeartabilityNav = (function () {
               <div class="popup-msg" id="hn-signup-msg"></div>
               <button type="submit" class="popup-btn" id="hn-signup-btn">create account</button>
             </form>
+            <div class="popup-form" id="hn-form-waitlist">
+              <div class="popup-msg error cap-notice" style="display:block;">we have reached capacity but are opening up more space soon! sign up for updates</div>
+              <div class="popup-field">
+                <div class="popup-label">email</div>
+                <input class="popup-input" type="email" id="hn-waitlist-email" placeholder="your@email.com" required autocomplete="email">
+              </div>
+              <div class="popup-msg" id="hn-waitlist-msg"></div>
+              <button type="button" class="popup-btn" id="hn-waitlist-btn" onclick="HeartabilityNav._handleWaitlistSignup()">join waitlist</button>
+            </div>
           </div>
         </div>
       </div>`;
@@ -125,15 +135,35 @@ window.HeartabilityNav = (function () {
     $('hn-login-overlay').classList.remove('open');
     clearMsgs();
   }
-  function switchTab(tab, btn) {
+  async function checkSignupCapacity() {
+    if (signupCapFull !== null) return signupCapFull;
+    const { data, error } = await cfg.sb.rpc('get_signup_capacity');
+    signupCapFull = !error && data && data[0] ? data[0].is_full : false;
+    return signupCapFull;
+  }
+
+  function isCapError(error) {
+    const msg = (error.message || '').toLowerCase();
+    return msg.includes('signup_cap_reached') || msg.includes('database error saving new user');
+  }
+
+  async function switchTab(tab, btn) {
     document.querySelectorAll('#hn-login-overlay .popup-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('#hn-login-overlay .popup-form').forEach(f => f.classList.remove('active'));
     btn.classList.add('active');
-    $('hn-form-' + tab).classList.add('active');
     clearMsgs();
+
+    if (tab === 'signup') {
+      const full = await checkSignupCapacity();
+      $(full ? 'hn-form-waitlist' : 'hn-form-signup').classList.add('active');
+    } else {
+      $('hn-form-' + tab).classList.add('active');
+    }
   }
   function clearMsgs() {
-    document.querySelectorAll('#hn-login-overlay .popup-msg').forEach(m => { m.className = 'popup-msg'; m.textContent = ''; });
+    document.querySelectorAll('#hn-login-overlay .popup-msg').forEach(m => {
+      if (m.id !== 'hn-waitlist-msg' && !m.classList.contains('cap-notice')) { m.className = 'popup-msg'; m.textContent = ''; }
+    });
   }
   function showMsg(id, text, type) {
     const el = $(id); el.textContent = text; el.className = 'popup-msg ' + type;
@@ -174,6 +204,13 @@ window.HeartabilityNav = (function () {
     const password = $('hn-signup-password').value;
     const { data, error } = await cfg.sb.auth.signUp({ email, password, options: { data: { username } } });
     if (error) {
+      if (isCapError(error)) {
+        signupCapFull = true;
+        $('hn-form-signup').classList.remove('active');
+        $('hn-form-waitlist').classList.add('active');
+        $('hn-waitlist-email').value = email;
+        return;
+      }
       showMsg('hn-signup-msg', error.message, 'error');
       btn.disabled = false; btn.textContent = 'create account';
       return;
@@ -183,6 +220,21 @@ window.HeartabilityNav = (function () {
       setTimeout(closeLoginPopup, 900);
     }
     btn.disabled = false; btn.textContent = 'create account';
+  }
+
+  async function handleWaitlistSignup() {
+    const btn = $('hn-waitlist-btn');
+    const email = $('hn-waitlist-email').value.trim();
+    if (!email) return;
+    btn.disabled = true; btn.textContent = 'joining...';
+    const { error } = await cfg.sb.from('waitlist').insert({ email });
+    if (error) {
+      const alreadyOn = error.code === '23505';
+      showMsg('hn-waitlist-msg', alreadyOn ? "you're already on the list!" : error.message, alreadyOn ? 'success' : 'error');
+    } else {
+      showMsg('hn-waitlist-msg', "you're on the list! we'll email you when space opens up.", 'success');
+    }
+    btn.disabled = false; btn.textContent = 'join waitlist';
   }
 
   function profileClick() {
@@ -249,5 +301,6 @@ window.HeartabilityNav = (function () {
     _toggleMusic: toggleMusic,
     _seekBack: seekBack,
     _seekFwd: seekFwd,
+    _handleWaitlistSignup: handleWaitlistSignup,
   };
 })();
