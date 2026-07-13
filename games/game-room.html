@@ -42,7 +42,7 @@
 html, body {
   width: 100vw; height: 100dvh;
   overflow: hidden; user-select: none;
-  background: var(--side-col);
+  background: #dfe2ef;
 }
 
 /* ── Room layers ── */
@@ -52,6 +52,8 @@ html, body {
   background-size: 250px 250px;
   z-index: 0; pointer-events: none;
 }
+.room-walls-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
+.room-walls-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
 
 .room-floor {
   position: absolute; inset: 0;
@@ -387,7 +389,8 @@ body.game-mode .char-heart {
   </div>
 
   <!-- ROOM WALLS (side walls + ceiling) -->
-  <div class="room-walls" aria-hidden="true"></div>
+  <div class="room-walls room-walls-left" aria-hidden="true"></div>
+  <div class="room-walls room-walls-right" aria-hidden="true"></div>
 
   <!-- ROOM FLOOR -->
   <div class="room-floor" aria-hidden="true"></div>
