@@ -319,7 +319,7 @@ input:focus { border-color: var(--purple); }
     });
     if (error) {
       showMsg('login-msg', error.message, 'error');
-      btn.disabled = false; btn.textContent = 'enter ♡';
+      btn.disabled = false; btn.textContent = 'enter';
     } else {
       showMsg('login-msg', 'welcome back! loading your profile...', 'success');
       setTimeout(() => window.location.href = '../rooms/bed.html', 800);
@@ -343,7 +343,7 @@ input:focus { border-color: var(--purple); }
         return;
       }
       showMsg('signup-msg', error.message, 'error');
-      btn.disabled = false; btn.textContent = 'create account ♡';
+      btn.disabled = false; btn.textContent = 'create account!';
       return;
     }
     if (data.user) {
