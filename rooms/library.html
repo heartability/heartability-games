@@ -6,8 +6,12 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/room-slider.css">
+<script src="../assets/js/room-slider.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
 <title>The Library — Heartability</title>
-<meta name="robots" content="noindex,follow">
+<meta name="description" content="Browse the Heartability library — a collective, anonymous archive of books and films that helped people navigate something hard.">
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
 <style>
 
 @font-face {
@@ -22,92 +26,484 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --font-hand:   "ZoesHandwriting", cursive;
-  --font-pixel:  "PFPixelscript", cursive;
-  --back-wall:   #f0ece4;
-  --side-col:    #dbd6ce;
-  --line-col:    #111;
-
-  /*
-    Vanishing point: 50% across, 30% down.
-
-    Back wall rectangle corners sit exactly ON the four diagonal lines:
-      t_top=0.30 → top edge at y=9%,  left=15%, right=85%,  width=70%
-      t_bot=0.55 → bot edge at y=61.5%, left=27.5%, right=72.5%
-
-    Since it's a rectangle (not a trapezoid) we use:
-      top:   9%   left: 15%   width: 70%   height: 52.5%
-    The top corners land on the top-left and top-right diagonal lines.
-    The bottom corners land on the bottom-left and bottom-right diagonal lines.
-  */
-  --bw-top:    9%;
-  --bw-left:   15%;
-  --bw-width:  70%;
-  --bw-height: 70%;
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --blue:       #6579e2;
+  --aqua:       #83d2e6;
+  --line-col:   #111;
+  --side-col:   #e8e4dc;
+  --room-stage-width: 1300px;
 }
 
 html, body {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
+  background: #dfe2ef;
+  font-family: var(--font-hand);
   user-select: none;
-  /* side/ceiling fill color shows outside the back wall */
-  background: var(--side-col);
 }
 
-/* ── Four diagonal lines ── */
-.room-lines {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
+/* ── ROOM BACKGROUND (bed.html pattern) ── */
+.room-side-wall-left,
+.room-side-wall-right {
+  position: absolute; inset: 0;
+  background: var(--side-col) url("../assets/elements/wall-texture.jpg") repeat;
+  background-size: 360px 360px;
+  z-index: 0; pointer-events: none;
 }
-.room-lines svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
+.room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
+.room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
+
+.room-carpet {
+  position: absolute; inset: 0;
+  background: var(--side-col) url("../assets/elements/floor-texture.jpg") repeat;
+  background-size: 200px 200px;
+  clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
+  z-index: 1; pointer-events: none;
 }
 
-/* ── Back wall: plain rectangle, ON TOP of lines ── */
-.back-wall {
-  position: fixed;
-  top:    var(--bw-top);
-  left:   var(--bw-left);
-  width:  var(--bw-width);
-  height: var(--bw-height);
-  background: var(--back-wall);
+.room-bg { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.room-bg svg { width: 100%; height: 100%; display: block; }
+.room-back-wall {
+  position: absolute; top: 9%; left: 15%; width: 70%; height: 70%;
+  background: #f0ece4 url("../assets/elements/wall-texture.jpg") repeat;
+  background-size: 360px 360px;
   border: 2px solid var(--line-col);
-  z-index: 3;
-  pointer-events: none;
+  z-index: 3; pointer-events: none;
 }
 
+/* ── TOP NAV ── */
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: #6578e2; border-bottom: 2px solid var(--line-col);
+  z-index: 200; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand); font-size: clamp(21px, 1.6vw, 25px); color: #fff;
+}
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; color: inherit; text-decoration: none; transition: background 0.15s; }
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
 
+.map-wrap { position: relative; }
+.map-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; }
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6578e2; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block; font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s; text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,0.07); }
+.map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
+.map-item.current:hover { background: none; }
+
+/* ── ROOM ICONS ── */
+.room-icon {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; padding: 10px; border-radius: 4px;
+  transition: transform 0.15s; transform-origin: bottom center;
+  z-index: 10;
+}
+.room-icon:hover { transform: translateY(-5px); }
+.room-icon:active { transform: translateY(-2px); }
+.room-icon img { width: clamp(90px, 20cqw, 220px); height: auto; }
+
+#icon-bookshelf { bottom: 10cqh; left: 22cqw; }
+#icon-projector { bottom: 10cqh; right: 22cqw; }
+
+.room-icon-label { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); color: #444; text-align: center; }
+
+/* ── THOUGHT BUBBLE ── */
+.thought-bubble {
+  position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) scale(0.92);
+  min-width: clamp(140px, 20cqw, 220px); max-width: clamp(160px, 24cqw, 260px);
+  background: #fff; border: 2px solid #000; border-radius: 50%;
+  padding: 12px 18px; font-family: var(--font-hand); font-size: clamp(13px, 1.2cqw, 16px);
+  color: #000; text-align: center; line-height: 1.4; z-index: 21;
+  opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none;
+}
+.room-icon:hover .thought-bubble { opacity: 1; transform: translateX(-50%) scale(1); }
+
+/* ── LIBRARY MODAL ── */
+.hg-modal-body.lib-body { overflow-y: auto; flex: 1; }
+.lib-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.lib-tab-btn {
+  font-family: var(--font-hand); font-size: 17px; color: #555; background: #e8e3da;
+  border: 2px solid #bbb; padding: 7px 16px; cursor: pointer;
+}
+.lib-tab-btn.active { background: var(--blue); color: #fff; border-color: #4a5bc4; }
+.lib-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.lib-filters select {
+  font-family: var(--font-hand); font-size: 15px; padding: 5px 8px;
+  border: 2px solid #bbb; background: #fff; color: #333;
+}
+.lib-loading, .lib-empty { font-family: var(--font-hand); font-size: 16px; color: #888; padding: 20px 0; text-align: center; }
+.lib-empty a { color: var(--blue); }
+.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px; }
+.lib-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.lib-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #ddd; border: 2px solid #ccc; }
+.lib-card-noimg { width: 100%; aspect-ratio: 2/3; background: #ddd; border: 2px solid #ccc; }
+.lib-card-title { font-family: var(--font-hand); font-size: 15px; color: #222; line-height: 1.25; }
+.lib-card-meta { font-family: var(--font-hand); font-size: 13px; color: #888; }
+.lib-detail-title { font-family: var(--font-hand); font-size: 22px; color: #222; margin: 10px 0 6px; }
+.lib-add-cta { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 14px; }
+.lib-add-cta a { color: var(--blue); }
+.lib-comments, .lib-own-entries { display: flex; flex-direction: column; gap: 12px; }
+.lib-comment, .lib-own-entry { background: #f0ead6; border: 2px solid #c8b88a; padding: 10px 14px; }
+.lib-comment-author { font-family: var(--font-hand); font-size: 15px; color: var(--blue); margin-bottom: 4px; }
+.lib-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
+.lib-comment-zones { font-family: var(--font-hand); font-size: 13px; color: #7a6a5a; margin-bottom: 4px; }
+.lib-comment-ratings { font-family: var(--font-hand); font-size: 13px; color: #8a7a00; }
+.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; }
+
+@media (max-width: 480px) {
+  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+}
 
 </style>
 </head>
 <body>
 
+<!-- TOP NAV -->
+<nav class="room-nav">
+  <div id="gear-slot"></div>
+  <h1 class="nav-title">the library</h1>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../rooms/bed.html">bedroom</a>
+      <a class="map-item" href="../rooms/courtroom.html">courtroom</a>
+      <a class="map-item" href="../rooms/mailroom.html">mailroom</a>
+      <a class="map-item" href="../rooms/garden.html">garden</a>
+      <span class="map-item current">library</span>
+    </div>
+  </div>
+</nav>
 
-<!-- FOUR DIAGONAL LINES  z:2
-     All four corners → vanishing point (50%, 30%).
-     SVG viewBox 0 0 100 100 with preserveAspectRatio=none
-     so coordinates are always exactly % of the viewport. -->
-<div class="room-lines" aria-hidden="true">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-    <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width="0.18"/>
-  </svg>
+<div class="room-scroll"><div class="scene room-stage">
+
+  <!-- ROOM BACKGROUND -->
+  <div class="room-side-wall-left" aria-hidden="true"></div>
+  <div class="room-side-wall-right" aria-hidden="true"></div>
+  <div class="room-carpet" aria-hidden="true"></div>
+  <div class="room-bg" aria-hidden="true">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0"   y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="100" y1="0"   x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="0"   y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+      <line x1="100" y1="100" x2="50" y2="30" stroke="#111" stroke-width=".18"/>
+    </svg>
+  </div>
+  <div class="room-back-wall" aria-hidden="true"></div>
+
+  <!-- ROOM ICONS -->
+  <div class="room-icon" id="icon-bookshelf" onclick="openLibrary('book')">
+    <div class="thought-bubble">browse the texts people've read</div>
+    <img src="../assets/elements/bed.png" alt="bookshelf (texts)">
+    <div class="room-icon-label">texts</div>
+  </div>
+  <div class="room-icon" id="icon-projector" onclick="openLibrary('visual')">
+    <div class="thought-bubble">browse the films &amp; shows people've watched</div>
+    <img src="../assets/elements/bed.png" alt="projector (visuals)">
+    <div class="room-icon-label">visuals</div>
+  </div>
+
+</div></div>
+
+<!-- LIBRARY MODAL -->
+<div class="hg-modal-overlay" id="library-overlay">
+  <div class="hg-modal" style="width:min(94vw,900px); max-height:86vh; display:flex; flex-direction:column;">
+    <div class="hg-modal-titlebar">
+      <span id="library-modal-title">library</span>
+      <span class="hg-modal-close" id="library-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body lib-body" id="library-modal-body"></div>
+  </div>
 </div>
 
-<!-- BACK WALL  z:3
-     Rectangle whose corners land exactly on the four diagonal lines.
-     Calculated: t_top=0.30 → top 9%, left 15%, width 70%
-                 t_bot=0.55 → bottom at 61.5% from top → height 52.5% -->
-<div class="back-wall"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
+<script>
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
 
+function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const CATEGORY_META = {
+  book:   { label: 'texts',   types: ['book', 'other'] },
+  visual: { label: 'visuals', types: ['movie', 'tv'] },
+};
+
+let libState = { category: null, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0 };
+const publicCache = {};       // category -> rows from media_submissions_public
+let privateAllCache = null;   // all of the current user's own submissions (any category)
+
+async function fetchPublic(category) {
+  const { data, error } = await sb.from('media_submissions_public').select('*')
+    .in('media_type', CATEGORY_META[category].types)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('[library] public fetch failed:', error); publicCache[category] = []; return; }
+  publicCache[category] = data || [];
+}
+
+async function fetchPrivateAll() {
+  const { data, error } = await sb.from('media_submissions').select('*, media(*)')
+    .eq('submitted_by', currentUser.id).order('created_at', { ascending: false });
+  if (error) { console.error('[library] private fetch failed:', error); privateAllCache = []; return; }
+  privateAllCache = data || [];
+}
+
+function groupByMedia(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const id = r.media_id;
+    if (!map.has(id)) {
+      map.set(id, {
+        media_id: id,
+        title: r.title || r.media?.title || 'untitled',
+        cover_url: r.cover_url || r.media?.cover_url || null,
+        media_type: r.media_type || r.media?.media_type,
+        submissions: [],
+      });
+    }
+    map.get(id).submissions.push(r);
+  });
+  return [...map.values()];
+}
+
+function zonesOf(sub) {
+  const z1 = sub.map_data?.zones || [];
+  const z2 = sub.story_arc_map_data?.zones || [];
+  return [...z1, ...z2];
+}
+function cardAvgRating(card) {
+  const vals = [];
+  card.submissions.forEach(s => { if (s.quality_rating) vals.push(s.quality_rating); if (s.experience_rating) vals.push(s.experience_rating); });
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+function cardHasTerrain(card, terrain) { return card.submissions.some(s => zonesOf(s).some(z => z.terrain === terrain)); }
+function cardHasFeeling(card, feeling) { return card.submissions.some(s => zonesOf(s).some(z => z.feeling === feeling)); }
+function computeFacets(cards) {
+  const terrains = new Set(), feelings = new Set();
+  cards.forEach(c => c.submissions.forEach(s => zonesOf(s).forEach(z => {
+    if (z.terrain) terrains.add(z.terrain);
+    if (z.feeling) feelings.add(z.feeling);
+  })));
+  return { terrains: [...terrains].sort(), feelings: [...feelings].sort() };
+}
+function filteredCards(cards) {
+  return cards.filter(c => {
+    if (libState.filterTerrain && !cardHasTerrain(c, libState.filterTerrain)) return false;
+    if (libState.filterFeeling && !cardHasFeeling(c, libState.filterFeeling)) return false;
+    if (libState.minRating > 0) {
+      const avg = cardAvgRating(c);
+      if (!avg || avg < libState.minRating) return false;
+    }
+    return true;
+  });
+}
+
+function summarizeZones(mapData) {
+  const zones = mapData?.zones || [];
+  const labels = ['beginning', 'middle', 'end'];
+  return zones.map((z, i) => `${labels[i]}: ${z.terrain || '—'} / ${z.feeling || '—'}`).join('  ·  ');
+}
+function ratingsLine(r) {
+  const parts = [];
+  if (r.quality_rating) parts.push(`quality ★${r.quality_rating}`);
+  if (r.experience_rating) parts.push(`experience ★${r.experience_rating}`);
+  return parts.join(' · ');
+}
+
+function cardHtml(c) {
+  const avg = cardAvgRating(c);
+  return `<div class="lib-card" onclick="openDetail('${c.media_id}')">
+    ${c.cover_url ? `<img src="${_escapeHtml(c.cover_url)}" alt="">` : '<div class="lib-card-noimg"></div>'}
+    <div class="lib-card-title">${_escapeHtml(c.title)}</div>
+    <div class="lib-card-meta">${c.submissions.length} ${c.submissions.length === 1 ? 'entry' : 'entries'}${avg ? ` · ★${avg.toFixed(1)}` : ''}</div>
+  </div>`;
+}
+
+function buildPublicGridHtml() {
+  const rows = publicCache[libState.category] || [];
+  const cards = groupByMedia(rows);
+  const facets = computeFacets(cards);
+  const shown = filteredCards(cards);
+  const filterHtml = `<div class="lib-filters">
+    <select onchange="setTerrainFilter(this.value)">
+      <option value="">any terrain</option>
+      ${facets.terrains.map(t => `<option value="${t}" ${libState.filterTerrain === t ? 'selected' : ''}>${t}</option>`).join('')}
+    </select>
+    <select onchange="setFeelingFilter(this.value)">
+      <option value="">any climate</option>
+      ${facets.feelings.map(f => `<option value="${f}" ${libState.filterFeeling === f ? 'selected' : ''}>${f}</option>`).join('')}
+    </select>
+    <select onchange="setMinRating(this.value)">
+      <option value="0" ${libState.minRating == 0 ? 'selected' : ''}>any rating</option>
+      <option value="3" ${libState.minRating == 3 ? 'selected' : ''}>3★ +</option>
+      <option value="4" ${libState.minRating == 4 ? 'selected' : ''}>4★ +</option>
+      <option value="5" ${libState.minRating == 5 ? 'selected' : ''}>5★ only</option>
+    </select>
+  </div>`;
+  if (!cards.length) return filterHtml + `<div class="lib-empty">no public entries yet — be the first to <a href="../matrix/media.html">add one</a>.</div>`;
+  if (!shown.length) return filterHtml + `<div class="lib-empty">nothing matches those filters.</div>`;
+  return filterHtml + `<div class="lib-grid">${shown.map(cardHtml).join('')}</div>`;
+}
+
+function buildPrivateGridHtml() {
+  if (!currentUser) {
+    return `<div class="lib-empty">log in to view your private shelf.<br><br><a href="../users/login.html">log in</a></div>`;
+  }
+  const rows = (privateAllCache || []).filter(r => CATEGORY_META[libState.category].types.includes(r.media?.media_type));
+  const cards = groupByMedia(rows);
+  if (!cards.length) return `<div class="lib-empty">you haven't added anything here yet — <a href="../matrix/media.html">fill out the form</a>.</div>`;
+  return `<div class="lib-grid">${cards.map(cardHtml).join('')}</div>`;
+}
+
+function buildDetailHtml() {
+  const id = libState.detailMediaId;
+  const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
+  if (libState.tab === 'public') {
+    const rows = (publicCache[libState.category] || []).filter(r => r.media_id === id);
+    if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
+    const title = rows[0].title;
+    const addCta = currentUser
+      ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(title)}&type=${encodeURIComponent(rows[0].media_type)}">+ add your own take on this</a></div>`
+      : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
+    const comments = rows.map(r => `<div class="lib-comment">
+      <div class="lib-comment-author">${r.author_username ? _escapeHtml(r.author_username) : 'anonymous'}</div>
+      <div class="lib-comment-text">${_escapeHtml(r.about_sentence || '')}</div>
+      <div class="lib-comment-zones">${summarizeZones(r.map_data)}</div>
+      ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
+      ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
+    </div>`).join('');
+    return backBtn + `<div class="lib-detail-title">${_escapeHtml(title)}</div>` + addCta + `<div class="lib-comments">${comments}</div>`;
+  } else {
+    const rows = (privateAllCache || []).filter(r => r.media_id === id);
+    if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
+    const title = rows[0].media?.title || 'untitled';
+    const entries = rows.map(r => `<div class="lib-own-entry">
+      <div class="lib-comment-text">${_escapeHtml(r.about_sentence || '')}</div>
+      <div class="lib-comment-zones">${summarizeZones(r.map_data)}</div>
+      ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
+      ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
+      <div class="lib-comment-ratings">${r.is_public ? (r.is_author_public ? 'shared publicly, with your name' : 'shared publicly, anonymously') : 'private — only visible to you'}</div>
+    </div>`).join('');
+    return backBtn + `<div class="lib-detail-title">${_escapeHtml(title)}</div><div class="lib-own-entries">${entries}</div>`;
+  }
+}
+
+function buildBodyHtml() {
+  const tabsHtml = `<div class="lib-tabs">
+    <button class="lib-tab-btn ${libState.tab === 'public' ? 'active' : ''}" onclick="switchTab('public')">public library</button>
+    <button class="lib-tab-btn ${libState.tab === 'private' ? 'active' : ''}" onclick="switchTab('private')">my shelf</button>
+  </div>`;
+  if (libState.detailMediaId) return tabsHtml + buildDetailHtml();
+  return tabsHtml + (libState.tab === 'public' ? buildPublicGridHtml() : buildPrivateGridHtml());
+}
+
+function renderModalBody(html) { document.getElementById('library-modal-body').innerHTML = html; }
+function render() { renderModalBody(buildBodyHtml()); }
+
+function setTerrainFilter(v) { libState.filterTerrain = v || null; render(); }
+function setFeelingFilter(v) { libState.filterFeeling = v || null; render(); }
+function setMinRating(v) { libState.minRating = Number(v) || 0; render(); }
+
+function openDetail(mediaId) { libState.detailMediaId = mediaId; render(); }
+function backToGrid() { libState.detailMediaId = null; render(); }
+
+async function switchTab(tab) {
+  libState.tab = tab; libState.detailMediaId = null;
+  renderModalBody('<div class="lib-loading">loading…</div>');
+  if (tab === 'public' && !publicCache[libState.category]) await fetchPublic(libState.category);
+  if (tab === 'private' && currentUser && !privateAllCache) await fetchPrivateAll();
+  render();
+}
+
+async function openLibrary(category) {
+  libState = { category, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0 };
+  document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
+  document.getElementById('library-overlay').classList.add('open');
+  renderModalBody('<div class="lib-loading">loading…</div>');
+  if (!publicCache[category]) await fetchPublic(category);
+  render();
+}
+function closeLibrary() { document.getElementById('library-overlay').classList.remove('open'); }
+
+document.getElementById('library-close').addEventListener('click', closeLibrary);
+document.getElementById('library-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('library-overlay')) closeLibrary();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLibrary(); });
+
+// ── Deep link: rooms/library.html?media=<media_id> opens straight to a title's detail ──
+async function handleDeepLink() {
+  const mediaId = new URLSearchParams(location.search).get('media');
+  if (!mediaId) return;
+  const { data } = await sb.from('media_submissions_public').select('media_id, media_type').eq('media_id', mediaId).limit(1);
+  const row = data && data[0];
+  if (!row) return;
+  const category = CATEGORY_META.visual.types.includes(row.media_type) ? 'visual' : 'book';
+  await openLibrary(category);
+  openDetail(mediaId);
+}
+
+// ── Map dropdown ──
+document.getElementById('map-btn').addEventListener('click', () => {
+  document.getElementById('map-dropdown').classList.toggle('open');
+});
+document.addEventListener('click', e => {
+  const mw = document.getElementById('map-wrap');
+  if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+});
+
+// ── Gear / login / music (dynamic — logged-out visitors can still browse) ──
+async function resolveUsername(user) {
+  try {
+    const { data: profile } = await sb.from('user-profiles').select('username').eq('id', user.id).single();
+    return profile?.username || user.email.split('@')[0];
+  } catch (e) { return user.email.split('@')[0]; }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  HeartabilityNav.init({
+    mount: '#gear-slot', assetsBase: '../assets', authMode: 'dynamic', sb,
+    profileHref: '../users/account-settings.html',
+  });
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      privateAllCache = null;
+      resolveUsername(session.user).then(username => HeartabilityNav.setAuthState({ loggedIn: true, username }));
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      privateAllCache = null;
+      HeartabilityNav.setAuthState({ loggedIn: false });
+      if (libState.tab === 'private') render();
+    }
+  });
+
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (session) {
+      currentUser = session.user;
+      const username = await resolveUsername(session.user);
+      HeartabilityNav.setAuthState({ loggedIn: true, username });
+    }
+    handleDeepLink();
+  });
+});
+</script>
 
 </body>
 </html>

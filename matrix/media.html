@@ -42,7 +42,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .wall {
   flex: 1; background: var(--wall); position: relative;
   display: flex; flex-direction: column; align-items: center;
-  padding: 60px 16px 24px; overflow-y: auto;
+  padding: 60px 16px 100px; overflow-y: auto;
 }
 .wall::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -62,6 +62,19 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .nav-btn:hover { background: rgba(0,0,0,.08); }
 
 .room-sub { font-family: var(--font-hand); font-size: clamp(13px,1.6vw,17px); color: #dfe6ff; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; max-width: 640px; line-height: 1.6; }
+
+/* STEP WIZARD */
+.step-panel { display: none; flex-direction: column; align-items: center; width: 100%; }
+.step-panel.active { display: flex; }
+.step-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.step-header-title { font-family: var(--font-hand); font-size: 18px; color: var(--text-mid); opacity: 0.8; }
+.step-back-link { font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
+.save-continue-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  display: flex; justify-content: center; padding: 14px;
+  background: linear-gradient(to top, rgba(20,20,40,0.35), transparent);
+}
+.save-continue-bar .rpg-btn { padding: 10px 30px; font-size: 19px; }
 
 .rpg-panel {
   position: relative; z-index: 1; background: #f0ead6;
@@ -90,7 +103,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   padding: 8px 12px; font-family: var(--font-hand); font-size: 20px; color: var(--text-mid);
   min-height: 40px; line-height: 1.4;
 }
-.prompt-title { font-family: var(--font-hand); font-size: 15px; color: var(--text-mid); letter-spacing: 0.3px; margin-bottom: 4px; opacity: 0.7; }
 
 /* TERRAIN PALETTE */
 .palette-section {
@@ -191,25 +203,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .selected-media-card img { width: 48px; height: 68px; object-fit: cover; background: #ccc; flex-shrink: 0; }
 .selected-media-title { font-family: var(--font-hand); font-size: 18px; color: var(--text-dark); }
 
-/* ARCHETYPE PICKER (forked from matrix/dream.html) */
-.arch-picker-loading { padding: 20px; font-family: var(--font-hand); color: #8a7a5a; }
-.arch-empty { font-family: var(--font-hand); font-size: 16px; color: #7a6a5a; padding: 10px 0; }
-.arch-grid { display: grid; grid-template-columns: repeat(4, minmax(100px, 160px)); gap: 12px; padding: 4px; justify-content: center; }
-@media (max-width:600px) { .arch-grid { grid-template-columns: repeat(2, 1fr); } }
-.arch-card {
-  border: 2px solid #ccc; background: #fdf6e3;
-  cursor: pointer; display: flex; flex-direction: column;
-  align-items: stretch; padding: 8px 8px 6px; gap: 5px;
-  font-family: var(--font-hand); text-align: center;
-  transition: border-color .15s, box-shadow .12s, transform .1s;
-  position: relative; aspect-ratio: 4/5;
-}
-.arch-card:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
-.arch-card.selected { border-color: var(--blue); outline: 2px solid var(--blue); outline-offset: 1px; }
-.arch-card-name { font-size: 15px; color: #3a2e1e; }
-.adv-char-stack { position: relative; flex: 1; }
-.adv-char-stack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-
 /* STAR RATINGS */
 .star-row { display: flex; gap: 4px; }
 .star-btn { background: none; border: none; font-size: 30px; line-height: 1; cursor: pointer; color: #c8b88a; padding: 0; }
@@ -228,107 +221,190 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
   <div class="wall">
     <div class="room-sub">map a book or movie that helped you navigate something hard — your entry joins an anonymous, collective library.</div>
 
-    <!-- TITLE SEARCH -->
-    <div class="rpg-panel" style="z-index: 20;">
-      <div class="section-header">what did you read or watch?</div>
-      <div class="search-toggle">
-        <button class="rpg-btn mode-active" id="btn-book" onclick="setSearchMode('book')">BOOK</button>
-        <button class="rpg-btn" id="btn-movie" onclick="setSearchMode('movie')">MOVIE / TV</button>
-      </div>
-      <div class="search-wrap">
-        <input class="map-input" id="titleSearch" type="text" placeholder="start typing a title…" autocomplete="off">
-        <div class="search-results" id="searchResults" style="display:none;"></div>
-      </div>
-      <div id="selectedMediaCard"></div>
-      <div class="action-row" style="margin-top:8px;">
-        <button type="button" class="link-btn" id="manualToggleBtn" onclick="toggleManualEntry()">can't find it? enter it manually</button>
-      </div>
-      <div id="manualEntry" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
-        <input class="map-input" id="manualTitle" type="text" placeholder="title">
-        <input class="map-input" id="manualAuthor" type="text" placeholder="author / director (optional)">
-        <select class="map-select" id="manualType">
-          <option value="book">book</option>
-          <option value="movie">movie</option>
-          <option value="tv">tv</option>
-          <option value="other">other</option>
-        </select>
-        <input class="map-input" id="manualLink" type="text" placeholder="link (optional)">
-        <div class="action-row">
-          <label class="rpg-btn" style="cursor:pointer;">
-            upload cover photo
-            <input type="file" id="coverFile" accept="image/*" hidden onchange="onCoverPicked(event)">
-          </label>
-          <span id="coverFileName" style="font-family:var(--font-hand);font-size:14px;color:#7a6a5a;"></span>
+    <!-- STEP 1: TITLE SEARCH -->
+    <div class="step-panel" data-step="title">
+      <div class="rpg-panel" style="z-index: 20;">
+        <div class="section-header">what did you read or watch?</div>
+        <div class="search-toggle">
+          <button class="rpg-btn mode-active" id="btn-book" onclick="setSearchMode('book')">BOOK</button>
+          <button class="rpg-btn" id="btn-movie" onclick="setSearchMode('movie')">MOVIE / TV</button>
         </div>
-        <img id="coverPreview" style="display:none;width:80px;height:auto;object-fit:cover;border:2px solid #8a7a5a;">
-      </div>
-    </div>
-
-    <!-- ABOUT -->
-    <div class="rpg-panel">
-      <div class="section-header">what was this story about to you?</div>
-      <textarea class="map-textarea" id="aboutSentence" placeholder="one sentence…" maxlength="240"></textarea>
-    </div>
-
-    <!-- THREE-ACT MAP -->
-    <div class="rpg-panel">
-      <div class="section-header">map your reading experience</div>
-      <div class="section-sub">how did you feel reading the beginning, middle and end?</div>
-      <div class="two-col">
-        <div>
-          <div class="three-act-canvas">
-            <svg id="threeActSvg" viewBox="-50 -90 787 328" xmlns="http://www.w3.org/2000/svg">
-              <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
-              <defs id="threeActDefs"></defs>
-              <g id="threeActZoneGroup"></g>
-            </svg>
+        <div class="search-wrap">
+          <input class="map-input" id="titleSearch" type="text" placeholder="start typing a title…" autocomplete="off">
+          <div class="search-results" id="searchResults" style="display:none;"></div>
+        </div>
+        <div id="selectedMediaCard"></div>
+        <div class="action-row" style="margin-top:8px;">
+          <button type="button" class="link-btn" id="manualToggleBtn" onclick="toggleManualEntry()">can't find it? enter it manually</button>
+        </div>
+        <div id="manualEntry" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
+          <input class="map-input" id="manualTitle" type="text" placeholder="title">
+          <input class="map-input" id="manualAuthor" type="text" placeholder="author / director (optional)">
+          <select class="map-select" id="manualType">
+            <option value="book">book</option>
+            <option value="movie">movie</option>
+            <option value="tv">tv</option>
+            <option value="other">other</option>
+          </select>
+          <input class="map-input" id="manualLink" type="text" placeholder="link (optional)">
+          <div class="action-row">
+            <label class="rpg-btn" style="cursor:pointer;">
+              upload cover photo
+              <input type="file" id="coverFile" accept="image/*" hidden onchange="onCoverPicked(event)">
+            </label>
+            <span id="coverFileName" style="font-family:var(--font-hand);font-size:14px;color:#7a6a5a;"></span>
           </div>
+          <img id="coverPreview" style="display:none;width:80px;height:auto;object-fit:cover;border:2px solid #8a7a5a;">
         </div>
-        <div>
-          <div style="margin-bottom:8px;">
-            <div class="status-bar" id="zonePrompt" style="display:none;">
-              <div class="prompt-title" id="promptTitle"></div>
-              <span id="promptText"></span>
+      </div>
+    </div>
+
+    <!-- STEP 2: ABOUT -->
+    <div class="step-panel" data-step="about">
+      <div class="rpg-panel">
+        <div class="step-header">
+          <span class="step-back-link" onclick="goBack()">← back</span>
+          <span class="step-header-title">about the story</span>
+          <span></span>
+        </div>
+        <div class="section-header">what was this story about to you?</div>
+        <textarea class="map-textarea" id="aboutSentence" placeholder="one sentence…" maxlength="240"></textarea>
+      </div>
+    </div>
+
+    <!-- STEP 3: THREE-ACT MAP -->
+    <div class="step-panel" data-step="map">
+      <div class="rpg-panel">
+        <div class="step-header">
+          <span class="step-back-link" onclick="goBack()">← back</span>
+          <span class="step-header-title">map your reading experience</span>
+          <span></span>
+        </div>
+        <div class="section-sub">how did you feel reading the beginning, middle and end?</div>
+        <div class="two-col">
+          <div>
+            <div class="three-act-canvas">
+              <svg id="threeActSvg" viewBox="-50 -90 787 328" xmlns="http://www.w3.org/2000/svg">
+                <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
+                <defs id="threeActDefs"></defs>
+                <g id="threeActZoneGroup"></g>
+              </svg>
             </div>
           </div>
-          <div class="section-header">terrain</div>
-          <div class="palette-section">
-            <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
-            <div class="palette-items" id="terrainPalette"></div>
+          <div>
+            <div style="margin-bottom:8px;">
+              <div class="status-bar" id="zonePrompt" style="display:none;">
+                <span id="promptText"></span>
+              </div>
+            </div>
+            <div class="section-header">terrain</div>
+            <div class="palette-section">
+              <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
+              <div class="palette-items" id="terrainPalette"></div>
+            </div>
+          </div>
+        </div>
+        <div class="feelings-section" style="margin-top:14px;">
+          <div class="section-header">emotional climates</div>
+          <div class="weather-categories" id="weatherCategories"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: OPTIONAL -->
+    <div class="step-panel" data-step="optional">
+      <div class="rpg-panel">
+        <div class="step-header">
+          <span class="step-back-link" onclick="goBack()">← back</span>
+          <span class="step-header-title">optional</span>
+          <span></span>
+        </div>
+        <div class="section-sub">what other stories would you compare it to?</div>
+        <input class="map-input" id="comparableTitles" type="text" placeholder="comma-separated titles…" style="margin-bottom:12px;">
+        <div class="section-sub">rate the quality</div>
+        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
+        <div class="section-sub">rate the experience</div>
+        <div class="star-row" id="experienceStars"></div>
+
+        <div class="action-row" style="margin-top:16px;">
+          <button type="button" class="link-btn" id="arcToggleBtn" onclick="toggleArcMap()">+ map to story arc</button>
+        </div>
+        <div id="arcMapContainer" style="display:none;margin-top:10px;padding-top:14px;border-top:1px solid var(--panel-border);">
+          <div class="section-header">story arc: map the exposition → climax → resolution</div>
+          <div class="section-sub">how does the plot itself move — beginning, middle, end?</div>
+          <div class="two-col">
+            <div>
+              <div class="three-act-canvas">
+                <svg id="threeActSvgArc" viewBox="-50 -90 787 328" xmlns="http://www.w3.org/2000/svg">
+                  <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
+                  <defs id="threeActDefsArc"></defs>
+                  <g id="threeActZoneGroupArc"></g>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div style="margin-bottom:8px;">
+                <div class="status-bar" id="zonePromptArc" style="display:none;">
+                  <span id="promptTextArc"></span>
+                </div>
+              </div>
+              <div class="section-header">terrain</div>
+              <div class="palette-section">
+                <div class="terrain-cat-tabs" id="terrainCatTabsArc"></div>
+                <div class="palette-items" id="terrainPaletteArc"></div>
+              </div>
+            </div>
+          </div>
+          <div class="feelings-section" style="margin-top:14px;">
+            <div class="section-header">emotional climates</div>
+            <div class="weather-categories" id="weatherCategoriesArc"></div>
           </div>
         </div>
       </div>
-      <div class="feelings-section" style="margin-top:14px;">
-        <div class="section-header">emotional climates</div>
-        <div class="weather-categories" id="weatherCategories"></div>
+    </div>
+
+    <!-- STEP 5: SHARING -->
+    <div class="step-panel" data-step="sharing">
+      <div class="rpg-panel">
+        <div class="step-header">
+          <span class="step-back-link" onclick="goBack()">← back</span>
+          <span class="step-header-title">sharing</span>
+          <span></span>
+        </div>
+        <div class="section-header">share this in the collective library?</div>
+        <div class="action-row" style="margin-bottom:16px;">
+          <button type="button" class="rpg-btn" id="btn-public-yes" onclick="setIsPublic(true)">yes, share it</button>
+          <button type="button" class="rpg-btn" id="btn-public-no" onclick="setIsPublic(false)">keep it private</button>
+        </div>
+        <div id="attributionRow">
+          <div class="section-header">show your name, or stay anonymous?</div>
+          <div class="action-row">
+            <button type="button" class="rpg-btn" id="btn-anon-yes" onclick="setIsAuthorPublic(false)">stay anonymous</button>
+            <button type="button" class="rpg-btn" id="btn-anon-no" onclick="setIsAuthorPublic(true)">show my name</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ARCHETYPE -->
-    <div class="rpg-panel">
-      <div class="section-header">which part of you loved this?</div>
-      <div id="archetypeContainer"></div>
-    </div>
-
-    <!-- OPTIONAL -->
-    <div class="rpg-panel">
-      <div class="section-header">optional</div>
-      <div class="section-sub">what other stories would you compare it to?</div>
-      <input class="map-input" id="comparableTitles" type="text" placeholder="comma-separated titles…" style="margin-bottom:12px;">
-      <div class="section-sub">rate the quality</div>
-      <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
-      <div class="section-sub">rate the experience</div>
-      <div class="star-row" id="experienceStars"></div>
-    </div>
-
-    <!-- SUBMIT -->
-    <div class="rpg-panel">
-      <div id="submitStatus" style="font-family:var(--font-hand);color:#a04040;min-height:20px;"></div>
-      <div class="panel-action-bar">
-        <button class="rpg-btn primary" id="submitBtn" onclick="submitEntry()">save to the library</button>
+    <!-- STEP 6: SUBMIT -->
+    <div class="step-panel" data-step="submit">
+      <div class="rpg-panel">
+        <div class="step-header">
+          <span class="step-back-link" onclick="goBack()">← back</span>
+          <span class="step-header-title">review &amp; save</span>
+          <span></span>
+        </div>
+        <div id="submitStatus" style="font-family:var(--font-hand);color:#a04040;min-height:20px;"></div>
+        <div class="panel-action-bar">
+          <button class="rpg-btn primary" id="submitBtn" onclick="submitEntry()">save to the library</button>
+        </div>
       </div>
     </div>
 
+  </div>
+
+  <div class="save-continue-bar" id="stepContinueBar">
+    <button type="button" class="rpg-btn primary" id="continueBtn" onclick="goNext()">continue →</button>
   </div>
 </div>
 
@@ -403,7 +479,7 @@ const WEATHER_CATS = [
   { id:"snowy", label:"snowy", desc:"cold/stuck/isolating", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","self-confrontation"] },
 ];
 
-// ── THREE-ACT MAP STATE ────────────────────────────────────────────────
+// ── THREE-ACT MAP (factory — supports multiple independent instances) ───
 const ZONE_PROMPTS = [
   "exposition — how does the story begin?",
   "climax — what is the problem?",
@@ -417,163 +493,193 @@ const THREE_ACT_ZONE_POSITIONS = [
   { x: 618, y: 140 },
 ];
 
-let mapState  = { zones: [{}, {}, {}] };
-let activeZone = null; // 0 | 1 | 2
+function createThreeActMap(ids) {
+  const state = { zones: [{}, {}, {}] };
+  let activeZone = null;
+  let activeTerrainCat = "landscapes";
 
-function zoneTarget() {
-  if (activeZone === 0 || activeZone === 1 || activeZone === 2) return mapState.zones[activeZone];
-  return null;
-}
+  function zoneTarget() {
+    if (activeZone === 0 || activeZone === 1 || activeZone === 2) return state.zones[activeZone];
+    return null;
+  }
 
-function updateZonePrompt() {
-  const prompt = document.getElementById("zonePrompt");
-  const title  = document.getElementById("promptTitle");
-  const text   = document.getElementById("promptText");
-  if (activeZone === null) { prompt.style.display = 'none'; return; }
-  title.style.display = 'none';
-  title.textContent = '';
-  text.textContent = ZONE_PROMPTS[activeZone];
-  prompt.style.display = 'block';
-}
+  function updateZonePrompt() {
+    const prompt = document.getElementById(ids.promptId);
+    const text   = document.getElementById(ids.promptTextId);
+    if (activeZone === null) { prompt.style.display = 'none'; return; }
+    text.textContent = ZONE_PROMPTS[activeZone];
+    prompt.style.display = 'block';
+  }
 
-function selectZone(i) { activeZone = i; renderThreeActZones(); updateZonePrompt(); }
+  function selectZone(i) { activeZone = i; render(); updateZonePrompt(); }
 
-function renderThreeActZones() {
-  const zoneGroup = document.getElementById('threeActZoneGroup');
-  const defs      = document.getElementById('threeActDefs');
-  zoneGroup.innerHTML = ''; defs.innerHTML = '';
-  const R = 30;
-  THREE_ACT_ZONE_POSITIONS.forEach((pos, i) => {
-    const zone = mapState.zones[i] || {};
-    const isActive = activeZone === i;
-    if (zone.tint) {
-      const gradId = `three-act-halo-${i}`;
-      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-      grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
-      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','1');
-      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s2.setAttribute('offset','55%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.85');
-      const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
-      grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
-      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 38);
-      halo.setAttribute('fill', `url(#${gradId})`); halo.style.pointerEvents = 'none';
-      zoneGroup.appendChild(halo);
-    }
-    const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
-    if (hasTerrain) { circle.setAttribute('fill', 'transparent'); circle.setAttribute('stroke', 'transparent'); }
-    else {
-      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
-      circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
-    }
-    circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
-    zoneGroup.appendChild(circle);
-    if (hasTerrain) {
-      const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-      img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
-      img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
-      img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
-      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      img.style.pointerEvents = 'none';
-      zoneGroup.appendChild(img);
-    }
-    const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    numEl.setAttribute('x', pos.x); numEl.setAttribute('y', pos.y + 4);
-    numEl.setAttribute('text-anchor', 'middle');
-    numEl.setAttribute('fill', hasTerrain ? '#00000000' : (isActive ? '#6579e2' : '#5a4a2a'));
-    numEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); numEl.setAttribute('font-size', '20');
-    numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
-    if (!hasTerrain) zoneGroup.appendChild(numEl);
-    if (zone.feeling) {
-      const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 16);
-      feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
-      feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '13');
-      feelEl.setAttribute('font-weight', 'bold');
-      feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
-      zoneGroup.appendChild(feelEl);
-    }
-    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    hit.setAttribute('cx', pos.x); hit.setAttribute('cy', pos.y); hit.setAttribute('r', R + 6);
-    hit.setAttribute('fill', 'transparent'); hit.style.cursor = 'pointer';
-    hit.addEventListener('click', () => selectZone(i));
-    zoneGroup.appendChild(hit);
-  });
-}
-
-// ── TERRAIN PALETTE ──────────────────────────────────────────────────
-let activeTerrainCat = "landscapes";
-function buildTerrain() {
-  const tabs = document.getElementById("terrainCatTabs");
-  const allCats = [...TERRAIN_CATEGORIES, { id: "all", label: "view all" }];
-  allCats.forEach(cat => {
-    const btn = document.createElement("div");
-    btn.className = "terrain-cat-btn" + (cat.id === activeTerrainCat ? " active" : "");
-    btn.id = "terrain-cat-" + cat.id;
-    btn.textContent = cat.label;
-    btn.addEventListener("click", () => selectTerrainCat(cat.id));
-    tabs.appendChild(btn);
-  });
-  const tp = document.getElementById("terrainPalette");
-  TERRAIN.forEach(t => {
-    const el = document.createElement("div");
-    el.className = "palette-item"; el.id = "terrain-btn-" + t.id;
-    el.dataset.cat = t.cat;
-    el.innerHTML = `<img src="${TERRAIN_IMGS[t.id]}" alt="${t.label}"><div class="palette-item-name">${t.label}</div>`;
-    el.addEventListener("click", () => selectTerrain(t, el));
-    tp.appendChild(el);
-  });
-  applyTerrainCatFilter();
-}
-function selectTerrainCat(catId) {
-  activeTerrainCat = catId;
-  document.querySelectorAll(".terrain-cat-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("terrain-cat-" + catId).classList.add("active");
-  applyTerrainCatFilter();
-}
-function applyTerrainCatFilter() {
-  document.querySelectorAll("#terrainPalette .palette-item").forEach(el => {
-    el.style.display = (activeTerrainCat === "all" || el.dataset.cat === activeTerrainCat) ? "flex" : "none";
-  });
-}
-function selectTerrain(t, el) {
-  document.querySelectorAll(".palette-item").forEach(p => p.classList.remove("active"));
-  el.classList.add("active");
-  const target = zoneTarget();
-  if (!target) return;
-  target.terrain = t.id;
-  renderThreeActZones();
-}
-
-function buildWeather() {
-  const wc = document.getElementById("weatherCategories");
-  WEATHER_CATS.forEach(cat => {
-    const section = document.createElement("div");
-    section.className = `weather-category ${cat.cls}`;
-    const header = document.createElement("div");
-    header.className = "weather-cat-header";
-    header.innerHTML = `${cat.label} <span class="weather-cat-desc">(${cat.desc})</span>`;
-    const chips = document.createElement("div"); chips.className = "feeling-chips";
-    cat.feelings.forEach(feeling => {
-      const chip = document.createElement("div");
-      chip.className = "feeling-chip"; chip.textContent = feeling;
-      chip.addEventListener("click", () => selectFeeling(feeling, cat, chip));
-      chips.appendChild(chip);
+  function render() {
+    const zoneGroup = document.getElementById(ids.zoneGroupId);
+    const defs      = document.getElementById(ids.defsId);
+    zoneGroup.innerHTML = ''; defs.innerHTML = '';
+    const R = 30;
+    THREE_ACT_ZONE_POSITIONS.forEach((pos, i) => {
+      const zone = state.zones[i] || {};
+      const isActive = activeZone === i;
+      if (zone.tint) {
+        const gradId = `${ids.svgId}-halo-${i}`;
+        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+        grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
+        const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','1');
+        const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        s2.setAttribute('offset','55%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.85');
+        const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
+        grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
+        const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 38);
+        halo.setAttribute('fill', `url(#${gradId})`); halo.style.pointerEvents = 'none';
+        zoneGroup.appendChild(halo);
+      }
+      const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
+      if (hasTerrain) { circle.setAttribute('fill', 'transparent'); circle.setAttribute('stroke', 'transparent'); }
+      else {
+        circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
+        circle.setAttribute('stroke', isActive ? '#6579e2' : '#8a7a5a');
+      }
+      circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
+      zoneGroup.appendChild(circle);
+      if (hasTerrain) {
+        const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
+        img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
+        img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
+        img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        img.style.pointerEvents = 'none';
+        zoneGroup.appendChild(img);
+      }
+      const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      numEl.setAttribute('x', pos.x); numEl.setAttribute('y', pos.y + 4);
+      numEl.setAttribute('text-anchor', 'middle');
+      numEl.setAttribute('fill', hasTerrain ? '#00000000' : (isActive ? '#6579e2' : '#5a4a2a'));
+      numEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); numEl.setAttribute('font-size', '20');
+      numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
+      if (!hasTerrain) zoneGroup.appendChild(numEl);
+      if (zone.feeling) {
+        const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 16);
+        feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
+        feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '13');
+        feelEl.setAttribute('font-weight', 'bold');
+        feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
+        zoneGroup.appendChild(feelEl);
+      }
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      hit.setAttribute('cx', pos.x); hit.setAttribute('cy', pos.y); hit.setAttribute('r', R + 6);
+      hit.setAttribute('fill', 'transparent'); hit.style.cursor = 'pointer';
+      hit.addEventListener('click', () => selectZone(i));
+      zoneGroup.appendChild(hit);
     });
-    section.appendChild(header); section.appendChild(chips); wc.appendChild(section);
-  });
+  }
+
+  function buildTerrain() {
+    const tabs = document.getElementById(ids.terrainTabsId);
+    const allCats = [...TERRAIN_CATEGORIES, { id: "all", label: "view all" }];
+    allCats.forEach(cat => {
+      const btn = document.createElement("div");
+      btn.className = "terrain-cat-btn" + (cat.id === activeTerrainCat ? " active" : "");
+      btn.dataset.catId = cat.id;
+      btn.textContent = cat.label;
+      btn.addEventListener("click", () => selectTerrainCat(cat.id));
+      tabs.appendChild(btn);
+    });
+    const tp = document.getElementById(ids.terrainPaletteId);
+    TERRAIN.forEach(t => {
+      const el = document.createElement("div");
+      el.className = "palette-item";
+      el.dataset.cat = t.cat;
+      el.innerHTML = `<img src="${TERRAIN_IMGS[t.id]}" alt="${t.label}"><div class="palette-item-name">${t.label}</div>`;
+      el.addEventListener("click", () => selectTerrain(t, el));
+      tp.appendChild(el);
+    });
+    applyTerrainCatFilter();
+  }
+  function selectTerrainCat(catId) {
+    activeTerrainCat = catId;
+    document.getElementById(ids.terrainTabsId).querySelectorAll(".terrain-cat-btn").forEach(b => b.classList.toggle("active", b.dataset.catId === catId));
+    applyTerrainCatFilter();
+  }
+  function applyTerrainCatFilter() {
+    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(el => {
+      el.style.display = (activeTerrainCat === "all" || el.dataset.cat === activeTerrainCat) ? "flex" : "none";
+    });
+  }
+  function selectTerrain(t, el) {
+    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(p => p.classList.remove("active"));
+    el.classList.add("active");
+    const target = zoneTarget();
+    if (!target) return;
+    target.terrain = t.id;
+    render();
+  }
+
+  function buildWeather() {
+    const wc = document.getElementById(ids.weatherId);
+    WEATHER_CATS.forEach(cat => {
+      const section = document.createElement("div");
+      section.className = `weather-category ${cat.cls}`;
+      const header = document.createElement("div");
+      header.className = "weather-cat-header";
+      header.innerHTML = `${cat.label} <span class="weather-cat-desc">(${cat.desc})</span>`;
+      const chips = document.createElement("div"); chips.className = "feeling-chips";
+      cat.feelings.forEach(feeling => {
+        const chip = document.createElement("div");
+        chip.className = "feeling-chip"; chip.textContent = feeling;
+        chip.addEventListener("click", () => selectFeeling(feeling, cat, chip));
+        chips.appendChild(chip);
+      });
+      section.appendChild(header); section.appendChild(chips); wc.appendChild(section);
+    });
+  }
+  function selectFeeling(feeling, cat, el) {
+    document.querySelectorAll(`#${ids.weatherId} .feeling-chip`).forEach(c => c.classList.remove("active"));
+    el.classList.add("active");
+    const target = zoneTarget();
+    if (!target) return;
+    target.feeling = feeling; target.tint = cat.tint; target.cat = cat.id;
+    render();
+  }
+
+  function reset() {
+    state.zones = [{}, {}, {}];
+    activeZone = null;
+    render();
+    updateZonePrompt();
+    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(p => p.classList.remove('active'));
+    document.querySelectorAll(`#${ids.weatherId} .feeling-chip`).forEach(c => c.classList.remove('active'));
+  }
+  function isTouched()  { return state.zones.some(z => z.terrain || z.feeling); }
+  function isComplete() { return state.zones.every(z => z.terrain && z.feeling); }
+
+  return { state, buildTerrain, buildWeather, render, reset, isTouched, isComplete };
 }
-function selectFeeling(feeling, cat, el) {
-  document.querySelectorAll(".feeling-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
-  const target = zoneTarget();
-  if (!target) return;
-  target.feeling = feeling; target.tint = cat.tint; target.cat = cat.id;
-  renderThreeActZones();
+
+const readingMap = createThreeActMap({
+  svgId: 'threeActSvg', zoneGroupId: 'threeActZoneGroup', defsId: 'threeActDefs',
+  promptId: 'zonePrompt', promptTextId: 'promptText',
+  terrainTabsId: 'terrainCatTabs', terrainPaletteId: 'terrainPalette', weatherId: 'weatherCategories',
+});
+const arcMap = createThreeActMap({
+  svgId: 'threeActSvgArc', zoneGroupId: 'threeActZoneGroupArc', defsId: 'threeActDefsArc',
+  promptId: 'zonePromptArc', promptTextId: 'promptTextArc',
+  terrainTabsId: 'terrainCatTabsArc', terrainPaletteId: 'terrainPaletteArc', weatherId: 'weatherCategoriesArc',
+});
+
+function toggleArcMap() {
+  const container = document.getElementById('arcMapContainer');
+  const btn = document.getElementById('arcToggleBtn');
+  const show = container.style.display === 'none';
+  container.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? 'remove story arc map' : '+ map to story arc';
+  if (!show) arcMap.reset();
 }
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -603,6 +709,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (q.length < 2) { document.getElementById('searchResults').style.display = 'none'; return; }
     searchDebounce = setTimeout(() => runSearch(q), 350);
   });
+
+  // Deep-link prefill from rooms/library.html's "add your take" CTA
+  const params = new URLSearchParams(location.search);
+  const prefillTitle = params.get('title');
+  if (prefillTitle) {
+    toggleManualEntry();
+    document.getElementById('manualTitle').value = prefillTitle;
+    const prefillType = params.get('type');
+    if (prefillType) document.getElementById('manualType').value = prefillType;
+  }
 });
 
 function showSearchMessage(text) {
@@ -729,80 +845,6 @@ async function onCoverPicked(event) {
   }
 }
 
-// ── ARCHETYPE PICKER (forked from matrix/dream.html) ───────────────────
-const CHAR_FULL_ASSETS = {
-  body_red:    "../assets/characters-full/01.01-RED_BODY.png",
-  body_orange: "../assets/characters-full/02.01-ORANGE_BODY.png",
-  body_yellow: "../assets/characters-full/03.01-YELLOW_BODY.png",
-  body_green:  "../assets/characters-full/04.01-GREEN_BODY.png",
-  body_cyan:   "../assets/characters-full/05.01-CYAN_BODY.png",
-  body_blue:   "../assets/characters-full/06.01-BLUE_BODY.png",
-  body_purple: "../assets/characters-full/07.01-PURPLE_BODY.png",
-  body_pink:   "../assets/characters-full/08.01-PINK_BODY.png",
-  eyes_open:       "../assets/characters-full/01.02-OPEN_EYES.png",
-  eyes_closed:     "../assets/characters-full/02.02-EYES_CLOSED.png",
-  eyes_cyclops:    "../assets/characters-full/03.02-SINGLE_EYE.png",
-  eyes_glasses:    "../assets/characters-full/04.02-GLASSES.png",
-  eyes_serious:    "../assets/characters-full/05.02-SERIOUS_EYES.png",
-  eyes_up:         "../assets/characters-full/06.02-UP_EYES.png",
-  eyes_sunglasses: "../assets/characters-full/07.02-SUNGLASSES.png",
-  eyes_sideways:   "../assets/characters-full/08.02-SIDE_EYES.png",
-  mouth_lips:     "../assets/characters-full/01.03-RED_LIPS.png",
-  mouth_tongue:   "../assets/characters-full/02.03-TONGUE_SMILE.png",
-  mouth_thin:     "../assets/characters-full/03.03-THIN_SMILE.png",
-  mouth_flat:     "../assets/characters-full/04.03-FLAT_MOUTH.png",
-  mouth_straight: "../assets/characters-full/05.03-STRAIGHT_MOUTH.png",
-  mouth_sad:      "../assets/characters-full/06.03-SLIGHT_SAD.png",
-  mouth_grin:     "../assets/characters-full/07.03-BIG_GRIN.png",
-  mouth_smooch:   "../assets/characters-full/08.03-SMOOCH.png",
-  hair_fire:     "../assets/characters-full/01.04-FIRE_HAIR.png",
-  hair_flower:   "../assets/characters-full/02.04-ORANGE_HAIR.png",
-  hair_rays:     "../assets/characters-full/03.04-RAY_HAIR.png",
-  hair_spikes:   "../assets/characters-full/04.04-SPIKE_HAIR.png",
-  hair_squiggle: "../assets/characters-full/05.04-SQUIGGLE_HAIR.png",
-  hair_wings:    "../assets/characters-full/06.04-BLUE_HAIR.png",
-  hair_pigtails: "../assets/characters-full/07.04-PIGTAIL_HAIR.png",
-  hair_wideray:  "../assets/characters-full/08.04-WIDE_RAY.png",
-};
-function _buildCharStack(charState){
-  if(!charState) return '';
-  const resolve = v => !v ? null : (typeof v === 'string' && v.includes('/') ? v : (CHAR_FULL_ASSETS[v] || null));
-  const layers = [charState.body, charState.hair, charState.eyes, charState.mouth].map(resolve).filter(Boolean);
-  if(!layers.length) return '';
-  return `<div class="adv-char-stack">${layers.map(s=>`<img src="${s}" alt="" onerror="this.style.display='none'">`).join('')}</div>`;
-}
-
-let archetypes = [];
-let selectedArchetypeId = null;
-async function loadArchetypePicker() {
-  const container = document.getElementById('archetypeContainer');
-  container.innerHTML = `<div class="arch-picker-loading">loading your cast…</div>`;
-  const { data, error } = await sb.from('character_archetypes')
-    .select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-  if (error) console.error('[archetypes] fetch failed:', error);
-  archetypes = data || [];
-  renderArchetypePicker();
-}
-function renderArchetypePicker() {
-  const container = document.getElementById('archetypeContainer');
-  if (!archetypes.length) {
-    container.innerHTML = `<div class="arch-empty">you haven't created any characters yet — <a href="../games/infinity-mirror.html" style="color:var(--blue);">go make one</a> (optional, you can still save without one)</div>`;
-    return;
-  }
-  const cards = archetypes.map(a => `
-    <button class="arch-card${a.id === selectedArchetypeId ? ' selected' : ''}" data-id="${a.id}" type="button">
-      ${_buildCharStack(a)}
-      <div class="arch-card-name">${_escapeHtml(a.name || 'unnamed')}</div>
-    </button>`).join('');
-  container.innerHTML = `<div class="arch-grid">${cards}</div>`;
-  container.querySelectorAll('.arch-card[data-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedArchetypeId = btn.dataset.id === selectedArchetypeId ? null : btn.dataset.id;
-      renderArchetypePicker();
-    });
-  });
-}
-
 // ── STAR RATINGS ─────────────────────────────────────────────────────────
 let qualityRating = 0, experienceRating = 0;
 function buildStarRow(containerId, getVal, setVal) {
@@ -821,22 +863,77 @@ function refreshStars() {
   });
 }
 
+// ── SHARING ───────────────────────────────────────────────────────────────
+let isPublic = true;
+let isAuthorPublic = false;
+function setIsPublic(val) {
+  isPublic = val;
+  document.getElementById('btn-public-yes').classList.toggle('primary', val);
+  document.getElementById('btn-public-no').classList.toggle('primary', !val);
+  document.getElementById('attributionRow').style.display = val ? 'block' : 'none';
+}
+function setIsAuthorPublic(val) {
+  isAuthorPublic = val;
+  document.getElementById('btn-anon-yes').classList.toggle('primary', !val);
+  document.getElementById('btn-anon-no').classList.toggle('primary', val);
+}
+
+// ── STEP WIZARD ───────────────────────────────────────────────────────────
+const STEPS = ['title', 'about', 'map', 'optional', 'sharing', 'submit'];
+let currentStepIndex = 0;
+
+function currentTitleValue() {
+  const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
+  const manualTitle = document.getElementById('manualTitle').value.trim();
+  return manualOpen ? manualTitle : (selectedMedia?.title || document.getElementById('titleSearch').value.trim());
+}
+
+function validateStep(i) {
+  const step = STEPS[i];
+  if (step === 'title') {
+    if (!currentTitleValue()) return { ok: false, message: 'add a title first.' };
+  } else if (step === 'about') {
+    if (!document.getElementById('aboutSentence').value.trim()) return { ok: false, message: 'add a one-sentence description first.' };
+  } else if (step === 'map') {
+    if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) return { ok: false, message: 'add a location and emotion to every zone of the map first.' };
+  } else if (step === 'optional') {
+    if (arcMap.isTouched() && !arcMap.isComplete()) return { ok: false, message: 'finish all three zones of the story arc map, or remove it before continuing.' };
+  }
+  return { ok: true };
+}
+
+function showStep(i) {
+  currentStepIndex = i;
+  STEPS.forEach((s, idx) => {
+    document.querySelector(`.step-panel[data-step="${s}"]`).classList.toggle('active', idx === i);
+  });
+  document.getElementById('stepContinueBar').style.display = (i === STEPS.length - 1) ? 'none' : 'flex';
+  window.scrollTo(0, 0);
+}
+function goNext() {
+  const check = validateStep(currentStepIndex);
+  if (!check.ok) { HGModal.alert('hold on', check.message); return; }
+  if (currentStepIndex < STEPS.length - 1) showStep(currentStepIndex + 1);
+}
+function goBack() {
+  if (currentStepIndex > 0) showStep(currentStepIndex - 1);
+}
+
 // ── SUBMIT ────────────────────────────────────────────────────────────────
 async function submitEntry() {
   const statusEl = document.getElementById('submitStatus');
   statusEl.textContent = '';
 
   const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
-  const manualTitle = document.getElementById('manualTitle').value.trim();
-  const title = manualOpen ? manualTitle : (selectedMedia?.title || document.getElementById('titleSearch').value.trim());
+  const title = currentTitleValue();
   if (!title) { statusEl.textContent = 'add a title first.'; return; }
 
   const aboutSentence = document.getElementById('aboutSentence').value.trim();
   if (!aboutSentence) { statusEl.textContent = 'add a one-sentence description first.'; return; }
 
-  const missingTerrain = mapState.zones.some(z => !z.terrain);
-  const missingFeeling = mapState.zones.some(z => !z.feeling);
-  if (missingTerrain || missingFeeling) { statusEl.textContent = 'add a location and emotion to every zone of the map first.'; return; }
+  if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) {
+    statusEl.textContent = 'add a location and emotion to every zone of the map first.'; return;
+  }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true; submitBtn.textContent = 'saving…';
@@ -873,12 +970,14 @@ async function submitEntry() {
       submitted_by: currentUser.id,
       about_sentence: aboutSentence,
       map_type: 'three-act',
-      map_data: mapState,
-      archetype_id: selectedArchetypeId,
+      map_data: readingMap.state,
+      story_arc_map_data: arcMap.isTouched() ? arcMap.state : null,
       comparable_titles: comparableTitles ? comparableTitles.split(',').map(s => s.trim()).filter(Boolean) : null,
       quality_rating: qualityRating || null,
       experience_rating: experienceRating || null,
       cover_url_override: manualOpen ? manualCoverUrl : null,
+      is_public: isPublic,
+      is_author_public: isPublic ? isAuthorPublic : false,
     });
     if (sErr) throw sErr;
 
@@ -895,13 +994,14 @@ async function submitEntry() {
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function initPage() {
-  buildTerrain();
-  buildWeather();
-  renderThreeActZones();
+  readingMap.buildTerrain(); readingMap.buildWeather(); readingMap.render();
+  arcMap.buildTerrain(); arcMap.buildWeather(); arcMap.render();
   buildStarRow('qualityStars', () => qualityRating, v => qualityRating = v);
   buildStarRow('experienceStars', () => experienceRating, v => experienceRating = v);
   refreshStars();
-  await loadArchetypePicker();
+  setIsPublic(true);
+  setIsAuthorPublic(false);
+  showStep(0);
 
   HeartabilityNav.init({
     mount: '#gear-slot', assetsBase: '../assets', authMode: 'dynamic', sb,
