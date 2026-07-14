@@ -90,9 +90,15 @@ html, body {
 }
 .wall-art.wiggling { animation: art-wiggle 0.48s ease; }
 
+@keyframes art-wiggle-mirror {
+  0%,100% { transform: translateX(-50%) rotate(0deg); } 20% { transform: translateX(-50%) rotate(-3deg); }
+  40% { transform: translateX(-50%) rotate(3deg); } 60% { transform: translateX(-50%) rotate(-2deg); } 80% { transform: translateX(-50%) rotate(2deg); }
+}
+.art-mirror.wiggling { animation: art-wiggle-mirror 0.48s ease; }
+
 .art-map      { left: 21cqw; top: 24cqh; width: clamp(120px, 22cqw, 340px); }
-.art-mirror   { left: 50%; top: 24cqh; width: clamp(80px, 16cqw, 280px); }
-.art-bingo    { right: 21cqw; top: 24cqh; width: clamp(120x, 22cqw, 340px); }
+.art-mirror   { left: 50%; top: 24cqh; width: clamp(80px, 16cqw, 280px); transform: translateX(-50%); }
+.art-bingo    { right: 21cqw; top: 24cqh; width: clamp(120px, 22cqw, 340px); }
 .art-about    { left: 2cqw;  top: 28cqh; width: clamp(60px, 9cqw, 130px); }
 .art-matrix { right: 2cqw; top: 28cqh; width: clamp(60px, 9cqw, 130px); }
 
