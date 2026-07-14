@@ -199,7 +199,7 @@ body {
 }
 
 .meter-track {
-  background: #5465c5;
+  background: #cdd3ec;
   border: 2px solid var(--panel-border-dark);
   border-right-color: var(--panel-border-light);
   border-bottom-color: var(--panel-border-light);
@@ -210,13 +210,7 @@ body {
 
 .meter-fill {
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    #e8478b 0px,
-    #e8478b 18px,
-    #ff6ba8 18px,
-    #ff6ba8 20px
-  );
+  background: #6f84d3;
   transition: width 0.4s steps(12);
   min-width: 0;
 }
@@ -477,8 +471,8 @@ function buildGrid() {
 
     const heart = document.createElement("div");
     heart.className = "cell-heart";
-    heart.textContent = "♥";
-    heart.style.color = "#E8478B";
+    heart.textContent = "★";
+    heart.style.color = "#6f84d3";
     cell.appendChild(heart);
 
     cell.addEventListener("click", () => {

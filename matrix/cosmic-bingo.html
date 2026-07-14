@@ -127,8 +127,8 @@ body {
 }
 
 .cell.free-space {
-  background: #d4e8d4;
-  border-color: #4a8a4a;
+  background: #cdd3ec;
+  border-color: #3a4aaa;
   cursor: default;
 }
 
@@ -201,7 +201,7 @@ body {
 }
 
 .meter-track {
-  background: #5465c5;
+  background: #cdd3ec;
   border: 2px solid var(--panel-border-dark);
   border-right-color: var(--panel-border-light);
   border-bottom-color: var(--panel-border-light);
@@ -212,11 +212,7 @@ body {
 
 .meter-fill {
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    #e8478b 0px, #e8478b 18px,
-    #ff6ba8 18px, #ff6ba8 20px
-  );
+  background: #6f84d3;
   transition: width 0.4s steps(12);
   min-width: 0;
 }
@@ -456,8 +452,8 @@ function buildGrid() {
 
     const heart = document.createElement('div');
     heart.className = 'cell-heart';
-    heart.textContent = '\u2665';
-    heart.style.color = 'var(--heart-pink)';
+    heart.textContent = '\u2605';
+    heart.style.color = '#6f84d3';
     el.appendChild(heart);
 
     if (!cell.free) {
