@@ -60,9 +60,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; color: inherit; text-decoration: none; }
 .nav-btn:hover { background: rgba(0,0,0,.08); }
-
-.room-sub { font-family: var(--font-hand); font-size: clamp(18px,4vw,30px); color: #dfe6ff; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; max-width: 640px; line-height: 1.6; }
-
 /* STEP WIZARD */
 .step-panel { display: none; flex-direction: column; align-items: center; width: 100%; }
 .step-panel.active { display: flex; }
@@ -223,7 +220,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 </nav>
 <div class="room">
   <div class="wall">
-    <div class="room-sub">map a story that helped you navigate something hard</div>
 
     <!-- STEP 1: TITLE SEARCH -->
     <div class="step-panel" data-step="title">
@@ -269,7 +265,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
       <div class="rpg-panel">
         <div class="step-header">
           <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">about the story</span>
+          <span class="step-header-title">summary</span>
           <span></span>
         </div>
         <div class="section-header">what was this story about to you?</div>
