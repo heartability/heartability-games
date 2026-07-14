@@ -264,17 +264,6 @@ body {
   min-height: 76px;
 }
 
-.reading-guide {
-  width: clamp(44px, 9vw, 58px);
-  height: auto;
-  flex-shrink: 0;
-  animation: guideFloat 4s ease-in-out infinite;
-}
-@keyframes guideFloat {
-  0%,100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-6px) rotate(2deg); }
-}
-
 .reading-body { flex: 1; }
 
 .reading-transit {
@@ -356,7 +345,6 @@ body {
       </div>
 
       <div class="reading-panel" id="readingPanel">
-        <img class="reading-guide" src="../assets/elements/guides/heart.png" alt="Heart guide">
         <div class="reading-body">
           <div class="reading-transit" id="readingTransit">tap a square to read its transit</div>
           <div class="reading-date" id="readingDate"></div>
