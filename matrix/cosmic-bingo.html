@@ -304,14 +304,6 @@ body {
 }
 .bingo-tab:not(.active):hover { background: rgba(101,120,226,0.08); }
 .bingo-tabs { justify-content: flex-start; align-items: center; }
-.bingo-season {
-  margin-left: auto;
-  font-family: var(--font-game);
-  font-size: 15px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-mid);
-}
 
 @media (max-width: 500px) {
   .wall { padding: 16px 10px 0; }
@@ -325,11 +317,10 @@ body {
 
     <div class="rpg-panel">
 
-      <span class="bingo-season" id="seasonLabel">cancer season</span>
       <div class="bingo-grid" id="bingoGrid"></div>
 
       <div class="meter-section">
-        <div class="meter-label">season progress</div>
+        <div class="meter-label" id="meterLabel">cancer season progress</div>
         <div class="meter-track">
           <div class="meter-fill" id="meterFill" style="width:0%"></div>
         </div>
@@ -368,7 +359,7 @@ body {
 // ── URL params (set by the cosmic matrix when it builds the iframe src) ──
 const _params = new URLSearchParams(window.location.search);
 const SEASON  = _params.get('season') || 'cancer season';
-document.getElementById('seasonLabel').textContent = SEASON.toLowerCase();
+document.getElementById('meterLabel').textContent = SEASON.toLowerCase() + ' progress';
 
 /* ── BOARD CONTENT ──────────────────────────────────────────
    COLUMN-MAJOR: five categories are the five columns, five prompts
