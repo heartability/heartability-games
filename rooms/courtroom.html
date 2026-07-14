@@ -624,7 +624,7 @@ function launchGame(slug) {
   const existing = popup.querySelector('iframe');
   if (existing) existing.remove();
   const iframe = document.createElement('iframe');
-  iframe.src = slug + '.html';
+  iframe.src = '../games/' + slug + '.html';
   popup.appendChild(iframe);
   overlay.classList.add('open');
   const toggle = document.getElementById('bingo-mode-toggle');
@@ -652,7 +652,7 @@ function switchBingoMode(mode) {
   const popup = document.getElementById('game-popup');
   const iframe = popup.querySelector('iframe');
   if (!iframe) return;
-  iframe.src = mode === 'cosmic' ? '../matrix/cosmic-bingo.html' : 'bingo.html';
+  iframe.src = mode === 'cosmic' ? '../matrix/cosmic-bingo.html' : '../games/bingo.html';
   setBingoTabActive(mode);
 }
 function handleGamePopupOverlayClick(e) {
