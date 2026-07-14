@@ -243,8 +243,8 @@ let currentUser = null;
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 const CATEGORY_META = {
-  book:   { label: 'texts',   types: ['book', 'other'] },
-  visual: { label: 'visuals', types: ['movie', 'tv'] },
+  book:   { label: 'textual media',   types: ['book', 'other'] },
+  visual: { label: 'visual media', types: ['movie', 'tv'] },
 };
 
 let libState = { category: null, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null };
