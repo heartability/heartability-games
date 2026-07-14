@@ -61,7 +61,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; color: inherit; text-decoration: none; }
 .nav-btn:hover { background: rgba(0,0,0,.08); }
 
-.room-sub { font-family: var(--font-hand); font-size: clamp(13px,1.6vw,17px); color: #dfe6ff; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; max-width: 640px; line-height: 1.6; }
+.room-sub { font-family: var(--font-hand); font-size: clamp(18px,4vw,30px); color: #dfe6ff; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; max-width: 640px; line-height: 1.6; }
 
 /* STEP WIZARD */
 .step-panel { display: none; flex-direction: column; align-items: center; width: 100%; }
@@ -223,7 +223,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 </nav>
 <div class="room">
   <div class="wall">
-    <div class="room-sub">map a book or movie that helped you navigate something hard — your entry joins an anonymous, collective library.</div>
+    <div class="room-sub">map a story that helped you navigate something hard</div>
 
     <!-- STEP 1: TITLE SEARCH -->
     <div class="step-panel" data-step="title">
@@ -240,7 +240,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
         <div id="searchResults"></div>
         <div id="selectedMediaCard"></div>
         <div class="action-row" style="margin-top:8px;">
-          <button type="button" class="link-btn" id="manualToggleBtn" onclick="toggleManualEntry()">can't find it? enter it manually</button>
+          <button type="button" class="link-btn" id="manualToggleBtn" onclick="toggleManualEntry()">can't find what you are looking for? enter it manually</button>
         </div>
         <div id="manualEntry" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
           <input class="map-input" id="manualTitle" type="text" placeholder="title">
@@ -856,7 +856,7 @@ function toggleManualEntry() {
   const el = document.getElementById('manualEntry');
   const show = el.style.display === 'none';
   el.style.display = show ? 'flex' : 'none';
-  document.getElementById('manualToggleBtn').textContent = show ? 'use search instead' : "can't find it? enter it manually";
+  document.getElementById('manualToggleBtn').textContent = show ? 'use search instead' : "can't find what you are looking for? enter it manually";
 }
 
 async function onCoverPicked(event) {
