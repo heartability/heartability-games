@@ -264,6 +264,10 @@ body {
   letter-spacing: 0.3px;
 }
 
+.reading-transit.centered {
+  text-align: center;
+}
+
 .reading-date {
   font-family: var(--font-game);
   font-size: 15px;
@@ -490,9 +494,12 @@ function update() {
     document.getElementById('meterFill').style.width = '100%';
     document.getElementById('meterCount').textContent = '24 of 24';
     document.getElementById('readingTransit').textContent = 'you are cosmically aligned';
+    document.getElementById('readingTransit').classList.add('centered');
     document.getElementById('readingDate').textContent = '';
     return;
   }
+
+  document.getElementById('readingTransit').classList.remove('centered');
 
   const score = marked.filter((v, i) => v && i !== FREE_INDEX).length;
   document.getElementById('meterFill').style.width = (score / 24) * 100 + '%';
