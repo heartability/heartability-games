@@ -37,7 +37,8 @@
   --heart-pink: #E8478B;
   --heart-light: #ffb3d1;
   --gold: #c8a84b;
-  --font-hand: "PFPixelscript", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --font-hand: "ZoesHandwriting", cursive
   --font-game: "VT323", monospace;
 }
 
@@ -46,7 +47,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background: transparent;
-  font-family: var(--font-game);
+  font-family: var(--font-hand);
   display: flex;
   flex-direction: column;
 }
@@ -137,7 +138,7 @@ body {
 
 .cell.free-space {
   background: #d4e8d4;
-  border-color: #4a8a4a;
+  border-color: #3a4aaa;
 }
 
 .cell.marked {
@@ -155,7 +156,7 @@ body {
 }
 
 .cell-text {
-  font-family: var(--font-game);
+  font-family: var(--font-hand);
   font-size: clamp(8px, 1.3vw, 12px);
   color: var(--text-dark);
   text-align: center;
@@ -192,7 +193,7 @@ body {
 }
 
 .meter-label {
-  font-family: var(--font-game);
+  font-family: var(--font-pixel);
   font-size: 15px;
   color: var(--text-mid);
   letter-spacing: 2px;
@@ -230,7 +231,7 @@ body {
 }
 
 .meter-stage {
-  font-family: var(--font-game);
+  font-family: var(--font-hand);
   font-size: 12px;
   color: #7a86bb;
   letter-spacing: 0.5px;
@@ -245,7 +246,7 @@ body {
 /* BINGO ALERT */
 .bingo-alert {
   display: none;
-  font-family: var(--font-hand);
+  font-family: var(--font-pixel);
   font-size: 15px;
   color: #fff0a0;
   text-shadow: 1px 2px 0 rgba(0,0,0,0.5);
@@ -323,7 +324,7 @@ body {
   margin-bottom: 10px;
 }
 .bingo-tab {
-  font-family: var(--font-game);
+  font-family: var(--font-hand);
   font-size: 15px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -367,7 +368,7 @@ body {
 <div class="room">
   <div class="wall">
 
-    <div class="bingo-alert" id="bingoAlert">&#x2605; BINGO! &#x2605;</div>
+    <div class="bingo-alert" id="bingoAlert">&#x2605; bingo! &#x2605;</div>
 
     <div class="rpg-panel">
 
