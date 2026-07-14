@@ -41,8 +41,8 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .room { min-height: 100vh; display: flex; flex-direction: column; }
 .wall {
   flex: 1; background: var(--wall); position: relative;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 60px 16px 100px; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 16px; overflow-y: auto;
 }
 .wall::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -70,9 +70,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 .step-header-title { font-family: var(--font-hand); font-size: 18px; color: var(--text-mid); opacity: 0.8; }
 .step-back-link { font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
 .save-continue-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
-  display: flex; justify-content: center; padding: 14px;
-  background: linear-gradient(to top, rgba(20,20,40,0.35), transparent);
+  width: 100%; display: flex; justify-content: center; padding-top: 14px;
 }
 .save-continue-bar .rpg-btn { padding: 10px 30px; font-size: 19px; }
 
@@ -408,10 +406,10 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
       </div>
     </div>
 
-  </div>
+    <div class="save-continue-bar" id="stepContinueBar">
+      <button type="button" class="rpg-btn primary" id="continueBtn" onclick="goNext()">continue →</button>
+    </div>
 
-  <div class="save-continue-bar" id="stepContinueBar">
-    <button type="button" class="rpg-btn primary" id="continueBtn" onclick="goNext()">continue →</button>
   </div>
 </div>
 
