@@ -35,7 +35,9 @@ serve(async (req) => {
       })
     }
 
-    const results = omdbData.Search.slice(0, 5).map((item: any) => ({
+    // OMDB returns up to 10 results per page for a search — hand back the full page
+    // so the client can show the first 5 and reveal the rest via "see more results".
+    const results = omdbData.Search.slice(0, 10).map((item: any) => ({
       title: item.Title,
       year: item.Year,
       poster: item.Poster && item.Poster !== 'N/A' ? item.Poster : null,
