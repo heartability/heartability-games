@@ -556,7 +556,9 @@ update();
 // Respond to chart-room state requests
 window.addEventListener('message', e => {
   if (e.data && e.data.type === 'request_state') {
-    const score = marked.filter((v,i) => v && i !== 12).length;
+    const hasBingo = LINES.some(line => line.every(i => marked[i]||i===12));
+    const rawScore = marked.filter((v,i) => v && i !== 12).length;
+    const score = hasBingo ? 24 : rawScore;
     window.parent.postMessage({ type: 'bingo_state', marked: Array.from(marked), score }, '*');
   }
 });

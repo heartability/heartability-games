@@ -2048,10 +2048,8 @@ function buildDailyMatrix(data, seedStr){
   // Show ONLY the day's chosen destination from location_data,
   // not the entire map.
   const dayLoc = data.locationData || {};
-  const mapCap = data.locationData?.name || data.mapName || 'my map';
   const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-      <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
-      <div class="adv-cap">${_escapeHtml(mapCap)}</div></div>`;
+      <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div></div>`;
 
   // BINGO (heart meter) → bottom-left quadrant (internal + action)
   const hmScore = data.bingoScore || 0;
@@ -2063,8 +2061,7 @@ function buildDailyMatrix(data, seedStr){
       <div class="hm-box${hmFull ? ' hm-full' : ''}">
         <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
         <img class="hm-heart" src="${hmHeartImg}" alt="heart meter" style="bottom:${hmHeartPos}%">
-      </div>
-      <div class="adv-cap">heart meter</div></div>`;
+      </div></div>`;
 
   // CHARACTER / infinity mirror → bottom-right quadrant (internal + feeling)
   const charStack = _buildCharStack(data.charState);
