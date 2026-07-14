@@ -254,6 +254,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
         <div id="manualEntry" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
           <input class="map-input" id="manualTitle" type="text" placeholder="title">
           <input class="map-input" id="manualAuthor" type="text" placeholder="author / director (optional)">
+          <input class="map-input" id="manualYear" type="text" inputmode="numeric" placeholder="year released (optional)">
           <select class="map-select" id="manualType">
             <option value="book">book</option>
             <option value="movie">movie</option>
@@ -698,6 +699,7 @@ function toggleArcMap() {
 }
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function parseYear(v) { const n = parseInt(String(v || '').trim(), 10); return Number.isFinite(n) ? n : null; }
 
 // ── TITLE SEARCH ────────────────────────────────────────────────────────
 // Google's Books API caps unauthenticated (keyless) requests at a quota of 0 —
@@ -962,12 +964,13 @@ function renderReviewSummary() {
   const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
   const title = currentTitleValue();
   const author = manualOpen ? document.getElementById('manualAuthor').value.trim() : (selectedMedia?.author || '');
+  const year = manualOpen ? parseYear(document.getElementById('manualYear').value) : parseYear(selectedMedia?.year);
   const cover = manualOpen ? manualCoverUrl : (selectedMedia?.cover_url || selectedMedia?.poster || null);
   const about = document.getElementById('aboutSentence').value.trim();
   const comparable = document.getElementById('comparableTitles').value.trim();
 
   const rows = [];
-  rows.push(['title', _escapeHtml(title) + (author ? ` — ${_escapeHtml(author)}` : '')]);
+  rows.push(['title', _escapeHtml(title) + (author ? ` — ${_escapeHtml(author)}` : '') + (year ? ` (${year})` : '')]);
   rows.push(['summary', _escapeHtml(about)]);
   rows.push(['reading experience map', _escapeHtml(summarizeZones(readingMap))]);
   if (arcMap.isTouched()) rows.push(['story arc map', _escapeHtml(summarizeZones(arcMap))]);
@@ -1031,6 +1034,7 @@ async function submitEntry() {
         external_id: null, external_source: null,
         cover_url: manualCoverUrl,
         canonical_link: document.getElementById('manualLink').value.trim() || null,
+        release_year: parseYear(document.getElementById('manualYear').value),
       };
     } else {
       mediaRow = {
@@ -1041,6 +1045,7 @@ async function submitEntry() {
         external_source: selectedMedia?.external_source || null,
         cover_url: selectedMedia?.cover_url || selectedMedia?.poster || null,
         canonical_link: selectedMedia?.canonical_link || null,
+        release_year: parseYear(selectedMedia?.year),
       };
     }
 

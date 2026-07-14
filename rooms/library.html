@@ -152,6 +152,12 @@ html, body {
 .lib-card-title { font-family: var(--font-hand); font-size: 15px; color: #222; line-height: 1.25; }
 .lib-card-meta { font-family: var(--font-hand); font-size: 13px; color: #888; }
 .lib-detail-title { font-family: var(--font-hand); font-size: 22px; color: #222; margin: 10px 0 6px; }
+.lib-detail-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 4px; }
+.lib-detail-header .lib-detail-title { margin-top: 0; }
+.lib-detail-cover { width: 110px; aspect-ratio: 2/3; object-fit: cover; background: #ddd; border: 2px solid #ccc; flex-shrink: 0; }
+.lib-detail-meta { flex: 1; min-width: 0; }
+.lib-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 2px; }
+.lib-author-link { color: var(--blue); text-decoration: underline; cursor: pointer; }
 .lib-add-cta { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 14px; }
 .lib-add-cta a { color: var(--blue); }
 .lib-comments, .lib-own-entries { display: flex; flex-direction: column; gap: 12px; }
@@ -240,9 +246,10 @@ const CATEGORY_META = {
   visual: { label: 'visuals', types: ['movie', 'tv'] },
 };
 
-let libState = { category: null, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0 };
+let libState = { category: null, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null };
 const publicCache = {};       // category -> rows from media_submissions_public
 let privateAllCache = null;   // all of the current user's own submissions (any category)
+let authorBrowseCache = [];   // media_submissions_public rows for the currently browsed author
 
 async function fetchPublic(category) {
   const { data, error } = await sb.from('media_submissions_public').select('*')
@@ -367,6 +374,25 @@ function buildPrivateGridHtml() {
   return `<div class="lib-grid">${cards.map(cardHtml).join('')}</div>`;
 }
 
+// `info` is either a media_submissions_public row (public tab) or a joined `media` row
+// (private tab, via media_submissions.select('*, media(*)')) — both carry title/cover_url/
+// author/media_type, and release_year once that column exists on `media`.
+function detailHeaderHtml(info, fallbackTitle) {
+  const title = info?.title || fallbackTitle || 'untitled';
+  const cover = info?.cover_url;
+  const mediaType = info?.media_type;
+  const isVisual = CATEGORY_META.visual.types.includes(mediaType);
+  const authorLabel = isVisual ? 'director' : 'author';
+  return `<div class="lib-detail-header">
+    ${cover ? `<img class="lib-detail-cover" src="${_escapeHtml(cover)}" alt="">` : '<div class="lib-detail-cover lib-card-noimg"></div>'}
+    <div class="lib-detail-meta">
+      <div class="lib-detail-title">${_escapeHtml(title)}</div>
+      ${info?.release_year ? `<div class="lib-detail-fact">released ${_escapeHtml(String(info.release_year))}</div>` : ''}
+      ${info?.author ? `<div class="lib-detail-fact">${authorLabel}: <a href="#" class="lib-author-link" data-author="${_escapeHtml(info.author)}" data-type="${_escapeHtml(mediaType || '')}">${_escapeHtml(info.author)}</a></div>` : ''}
+    </div>
+  </div>`;
+}
+
 function buildDetailHtml() {
   const id = libState.detailMediaId;
   const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
@@ -384,7 +410,7 @@ function buildDetailHtml() {
       ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
     </div>`).join('');
-    return backBtn + `<div class="lib-detail-title">${_escapeHtml(title)}</div>` + addCta + `<div class="lib-comments">${comments}</div>`;
+    return backBtn + detailHeaderHtml(rows[0], title) + addCta + `<div class="lib-comments">${comments}</div>`;
   } else {
     const rows = (privateAllCache || []).filter(r => r.media_id === id);
     if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
@@ -396,8 +422,16 @@ function buildDetailHtml() {
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
       <div class="lib-comment-ratings">${r.is_public ? (r.is_author_public ? 'shared publicly, with your name' : 'shared publicly, anonymously') : 'private — only visible to you'}</div>
     </div>`).join('');
-    return backBtn + `<div class="lib-detail-title">${_escapeHtml(title)}</div><div class="lib-own-entries">${entries}</div>`;
+    return backBtn + detailHeaderHtml(rows[0].media, title) + `<div class="lib-own-entries">${entries}</div>`;
   }
+}
+
+function buildAuthorBrowseHtml() {
+  const backBtn = `<button type="button" class="link-btn" onclick="clearAuthorFilter()">← back</button>`;
+  const header = `<div class="lib-detail-title">entries by ${_escapeHtml(libState.authorFilter.author)}</div>`;
+  const cards = groupByMedia(authorBrowseCache);
+  if (!cards.length) return backBtn + header + `<div class="lib-empty">no other public entries found.</div>`;
+  return backBtn + header + `<div class="lib-grid">${cards.map(cardHtml).join('')}</div>`;
 }
 
 function buildBodyHtml() {
@@ -405,22 +439,46 @@ function buildBodyHtml() {
     <button class="lib-tab-btn ${libState.tab === 'public' ? 'active' : ''}" onclick="switchTab('public')">public library</button>
     <button class="lib-tab-btn ${libState.tab === 'private' ? 'active' : ''}" onclick="switchTab('private')">my shelf</button>
   </div>`;
+  if (libState.authorFilter) return tabsHtml + buildAuthorBrowseHtml();
   if (libState.detailMediaId) return tabsHtml + buildDetailHtml();
   return tabsHtml + (libState.tab === 'public' ? buildPublicGridHtml() : buildPrivateGridHtml());
 }
 
 function renderModalBody(html) { document.getElementById('library-modal-body').innerHTML = html; }
-function render() { renderModalBody(buildBodyHtml()); }
+function bindAuthorLinks() {
+  document.querySelectorAll('.lib-author-link').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); openAuthorBrowse(a.dataset.author, a.dataset.type); });
+  });
+}
+function render() { renderModalBody(buildBodyHtml()); bindAuthorLinks(); }
 
 function setTerrainFilter(v) { libState.filterTerrain = v || null; render(); }
 function setFeelingFilter(v) { libState.filterFeeling = v || null; render(); }
 function setMinRating(v) { libState.minRating = Number(v) || 0; render(); }
 
-function openDetail(mediaId) { libState.detailMediaId = mediaId; render(); }
-function backToGrid() { libState.detailMediaId = null; render(); }
+function openDetail(mediaId) {
+  libState.detailMediaId = mediaId;
+  libState.authorFilter = null;
+  render();
+}
+function backToGrid() { libState.detailMediaId = null; libState.authorFilter = null; render(); }
+
+// "other entries by this creator" — queried straight from media_submissions_public (same
+// anonymous-readable view the grids use), since the raw `media` table is RLS-locked and
+// can't be queried directly by anonymous/public visitors.
+async function openAuthorBrowse(author, mediaType) {
+  libState.detailMediaId = null;
+  libState.authorFilter = { author, mediaType };
+  renderModalBody('<div class="lib-loading">loading…</div>');
+  const { data, error } = await sb.from('media_submissions_public').select('*').eq('author', author);
+  if (error) console.error('[library] author browse failed:', error);
+  authorBrowseCache = data || [];
+  render();
+}
+function clearAuthorFilter() { libState.authorFilter = null; render(); }
 
 async function switchTab(tab) {
-  libState.tab = tab; libState.detailMediaId = null;
+  libState.tab = tab; libState.detailMediaId = null; libState.authorFilter = null;
   renderModalBody('<div class="lib-loading">loading…</div>');
   if (tab === 'public' && !publicCache[libState.category]) await fetchPublic(libState.category);
   if (tab === 'private' && currentUser && !privateAllCache) await fetchPrivateAll();
@@ -428,7 +486,7 @@ async function switchTab(tab) {
 }
 
 async function openLibrary(category) {
-  libState = { category, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0 };
+  libState = { category, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null };
   document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
   document.getElementById('library-overlay').classList.add('open');
   renderModalBody('<div class="lib-loading">loading…</div>');
