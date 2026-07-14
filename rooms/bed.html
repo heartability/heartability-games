@@ -172,12 +172,12 @@ html, body {
 
 /* ── PER-ICON POSITION & SIZE — adjust these ── */
 
-/* DRESSER — lower-left, sits on floor */
-#icon-dresser {
-  bottom: 17cqh;
-  left: 18cqw;
+/* settings — lower-left, sits on floor */
+#icon-settings {
+  bottom: 43cqh;
+  left: 25cqw;
 }
-#icon-dresser img { width: clamp(200px, 28cqw, 480px); }
+#icon-settings img { width: clamp(200px, 28cqw, 480px); }
 
 /* BED — lower-center/right, sits on floor */
 #icon-bed {
@@ -253,7 +253,7 @@ html, body {
 
 /* The fixed-width portrait stage is much more square than the fluid desktop
    canvas these cqw/cqh values were tuned for, so the heart guide (anchored
-   near the dresser icon's much larger artwork) needs to run smaller here to
+   near the settings icon's much larger artwork) needs to run smaller here to
    avoid overlapping it. */
 @media (orientation: portrait) {
   .char-heart { width: clamp(70px, 10cqw, 180px); }
@@ -359,8 +359,8 @@ html, body {
 
   <!-- ROOM ICONS -->
   <div class="room-icons" id="main-content">
-    <div class="room-icon" id="icon-dresser" onclick="window.location.href='../users/account-settings.html'">
-      <img src="../assets/elements/dresser.png" alt="account settings" />
+    <div class="room-icon" id="icon-settings" onclick="window.location.href='../users/account-settings.html'">
+      <img src="../assets/elements/settings.png" alt="account settings" />
     </div>
     <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
       <img src="../assets/elements/bed.png" alt="adventure archive" />
@@ -478,7 +478,7 @@ html, body {
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
   const bubbleMessages = {
-    'icon-dresser': 'access your account settings',
+    'icon-settings': 'access your account settings',
     'icon-bed':     'view the dream archive',
     'icon-matrix': 'enter the matrix',
   };
