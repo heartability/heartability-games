@@ -434,10 +434,23 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .adv-map-svg { width:100%; aspect-ratio:5/4; }
 .adv-map-svg svg { width:100%; height:100%; }
 
-.adv-bingo { width:clamp(130px,16vw,200px); }
-.adv-meter { width:100%; height:14px; border:1.5px solid var(--blue); background:#e7e1d6; margin-top:2px; }
-.adv-meter-fill { height:100%; background:linear-gradient(90deg,#E8478B,#f3a0c4); }
-.adv-mode { font-family:var(--font-hand); font-size:clamp(12px,1.1vw,15px); color:#8a7a5a; margin-top:3px; }
+.adv-bingo { width:clamp(56px,7vw,84px); }
+/* Vertical pixel-heart meter: a bordered box holding an unfilled "empty" cell
+   (shrinks to nothing as the score climbs), a pixel heart marking the fill
+   line, and a stack of small filled cells below it. Flips to the gold
+   palette + heart-gold.png only once every segment is filled. */
+.hm-box {
+  --hm-seg: clamp(8px,0.9vw,13px);
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  width:100%; padding:6px 5px; box-sizing:border-box; border-radius:4px;
+  border:2px solid #4a5bc4; background:var(--blue);
+}
+.hm-box.hm-full { border-color:#a8842a; background:#f0dc6b; }
+.hm-empty { width:100%; box-sizing:border-box; border-radius:2px; border:1px solid #4a5bc4; background:#dfe0ee; }
+.hm-heart { width:58%; display:block; image-rendering:pixelated; }
+.hm-segments { display:flex; flex-direction:column; gap:2px; width:100%; }
+.hm-seg { width:100%; height:var(--hm-seg); box-sizing:border-box; border-radius:1px; border:1px solid #4a5bc4; background:#8797e8; }
+.hm-box.hm-full .hm-seg { border-color:#a8842a; background:#f5e37a; }
 
 .adv-char { width:clamp(90px,11vw,140px); }
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
@@ -2032,12 +2045,22 @@ function buildDailyMatrix(data, seedStr){
       <div class="adv-cap">${_escapeHtml(mapCap)}</div></div>`;
 
   // BINGO (heart meter) → bottom-left quadrant (internal + action)
-  const meterPct = Math.round(((data.bingoScore||0)/24)*100);
-  const mode = (data.bingoScore||0)<=9 ? 'hard mode' : (data.bingoScore||0)<=19 ? 'medium mode' : 'easy mode';
+  const HM_SEGS = 8;
+  const hmFilled = Math.max(0, Math.min(HM_SEGS, Math.round(((data.bingoScore||0)/24)*HM_SEGS)));
+  const hmEmpty = HM_SEGS - hmFilled;
+  const hmFull = hmFilled >= HM_SEGS;
+  const hmHeartImg = hmFull ? '../assets/elements/heart-gold.png' : '../assets/elements/heart-pink.png';
+  const hmEmptyBox = hmEmpty > 0
+    ? `<div class="hm-empty" style="height:calc(var(--hm-seg) * ${hmEmpty} + ${Math.max(hmEmpty-1,0)*2}px)"></div>`
+    : '';
+  const hmSegCells = Array.from({length:hmFilled}, () => `<div class="hm-seg"></div>`).join('');
   const bingoItem = `<div class="adv-item adv-bingo" style="left:${(27+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-      <div class="adv-cap">heart meter</div>
-      <div class="adv-meter"><div class="adv-meter-fill" style="width:${meterPct}%"></div></div>
-      <div class="adv-mode">${mode}</div></div>`;
+      <div class="hm-box${hmFull ? ' hm-full' : ''}">
+        ${hmEmptyBox}
+        <img class="hm-heart" src="${hmHeartImg}" alt="heart meter">
+        <div class="hm-segments">${hmSegCells}</div>
+      </div>
+      <div class="adv-cap">heart meter</div></div>`;
 
   // CHARACTER / infinity mirror → bottom-right quadrant (internal + feeling)
   const charStack = _buildCharStack(data.charState);
