@@ -454,7 +454,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   position:absolute; left:0; right:0; bottom:0; width:100%;
   background:repeating-linear-gradient(0deg, #6f84d3 0px, #6f84d3 16px, #9aa9e0 16px, #9aa9e0 18px);
 }
-.hm-box.hm-full .hm-fill { background:repeating-linear-gradient(0deg, #d8b53a 0px, #d8b53a 16px, #ecd67a 16px, #ecd67a 18px); }
+.hm-box.hm-full .hm-fill { background:repeating-linear-gradient(0deg, #f4d900 0px, #f4d900 16px, #ecd67a 16px, #ecd67a 18px); }
 .hm-heart {
   position:absolute; left:50%; width:68%; z-index:2;
   transform:translate(-50%,50%); image-rendering:pixelated;
@@ -858,6 +858,53 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .jrc-confirm-skip { background:none; border:none; color:#7a86bb; text-decoration:underline; }
 .jrc-confirm-skip:hover { color:#E8478B; }
 
+/* ── LIBRARY PANEL (media matrix tie-in, between bingo and journal) ── */
+.lib-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
+.lib-window {
+  width:75%; height:75%; background:#dfe2ef;
+  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.35);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.lib-titlebar {
+  flex-shrink:0; height:38px; background:#cdd3ec; border-bottom:2px solid var(--blue);
+  display:flex; align-items:center; justify-content:center; position:relative;
+  font-family:var(--font-hand); font-size:clamp(16px,1.5vw,22px); color:#333; letter-spacing:.5px;
+}
+.lib-body { flex:1; overflow-y:auto; padding:16px 18px; }
+.lib-empty { margin:auto; text-align:center; color:#7a86bb; font-style:italic; font-size:clamp(15px,1.4vw,18px); line-height:1.6; padding:24px 0; }
+.lib-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:12px; }
+.lib-card { cursor:pointer; position:relative; display:flex; flex-direction:column; gap:3px; }
+.lib-card img, .lib-card-noimg { width:100%; aspect-ratio:2/3; object-fit:cover; background:#ccc; border:2px solid var(--blue); display:block; }
+.lib-card-noimg { display:flex; align-items:center; justify-content:center; font-family:var(--font-hand); font-size:11px; color:#555; text-align:center; padding:4px; }
+.lib-card-title { font-family:var(--font-hand); font-size:12px; color:#444; text-align:center; line-height:1.25; }
+.lib-card.selected img, .lib-card.selected .lib-card-noimg { border-color:#2a6a3a; box-shadow:0 0 0 3px rgba(42,106,58,.35); }
+.lib-check { position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:#2a6a3a; color:#fff; font-size:12px; align-items:center; justify-content:center; display:none; }
+.lib-card.selected .lib-check { display:flex; }
+.lib-footer { flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; justify-content:center; background:#cdd3ec; }
+.lib-add-btn {
+  background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#fff; cursor:pointer; padding:8px 18px; transition:all .05s;
+}
+.lib-add-btn:hover { background:#4a5bc4; }
+.lib-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
+
+/* iframe overlay for adding a new library entry (media matrix) without leaving this page */
+.lib-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900; display:none; align-items:center; justify-content:center; padding:18px; }
+.lib-overlay.open { display:flex; }
+.lib-overlay-window {
+  width:min(96vw,900px); height:min(90vh,820px); background:#dfe2ef;
+  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.4);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.lib-overlay-titlebar {
+  flex-shrink:0; height:40px; background:#cdd3ec; border-bottom:2px solid var(--blue);
+  display:flex; align-items:center; justify-content:space-between; padding:0 14px;
+  font-family:var(--font-hand); font-size:19px; color:#333;
+}
+.lib-overlay-close { cursor:pointer; font-size:22px; color:#aaa; padding:2px 6px; }
+.lib-overlay-close:hover { color:#E8478B; }
+.lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }
+
 /* ── DAYQUEST BUILDER MODAL ── */
 .dq-overlay {
   position:fixed; inset:0; z-index:300;
@@ -1225,7 +1272,7 @@ async function deleteMatrixPhotoFiles(urls){
 
 // ── SESSION STATE ─────────────────────────────────────────
 let activePhase     = null;
-let currentStep     = null; // 'location' | 'character' | 'bingo' | 'journal' | 'done'
+let currentStep     = null; // 'location' | 'character' | 'bingo' | 'library' | 'journal' | 'done'
 let activeEntryId   = null; // one uuid per day = one daily_matrix row
 let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) for this entry
 let activeDayquest = null; // {name,terrain,feeling,tint,cat} for today's location
@@ -1346,6 +1393,11 @@ async function saveAndContinue() {
   // Journal step — save notes directly
   if (currentStep === 'journal') {
     await saveJournalEntry();
+    return;
+  }
+  // Library step — save the tagged entries directly (no iframe involved)
+  if (currentStep === 'library') {
+    await saveLibrarySelection();
     return;
   }
 
@@ -1716,7 +1768,103 @@ function stepBingo() {
   setSaveBtnVisible(true, 'continue →');
 }
 
-// ── STEP 6: BINGO DONE → JOURNAL (native, no iframe) ─────
+// ── STEP 6: BINGO DONE → LIBRARY (native, no iframe) ─────
+// Lets the player tag any of their own library entries (matrix/media.html
+// submissions) to today's entry before writing their journal.
+let librarySubmissions  = [];        // this user's media_submissions, newest first
+let librarySelectedIds  = new Set(); // media_submissions.id values picked this session
+
+function buildLibraryPanel(){
+  return `<div class="step-panel lib-panel">
+    <div class="step-header"><span class="step-back" onclick="stepBingo()">← back</span><span></span><span></span></div>
+    <div class="lib-window">
+      <div class="lib-titlebar">your library</div>
+      <div class="lib-body">
+        <div class="lib-empty" id="lib-empty" style="display:none;">you haven't added anything to your library yet</div>
+        <div class="lib-grid" id="lib-grid"></div>
+      </div>
+      <div class="lib-footer">
+        <button type="button" class="lib-add-btn" onclick="openLibraryAddEntry()">+ add an entry</button>
+      </div>
+    </div>
+  </div>
+  <div class="lib-overlay" id="lib-overlay">
+    <div class="lib-overlay-window">
+      <div class="lib-overlay-titlebar"><span>add to your library</span><span class="lib-overlay-close" onclick="closeLibraryAddEntry()">✕</span></div>
+      <iframe id="lib-overlay-iframe" src="about:blank"></iframe>
+    </div>
+  </div>`;
+}
+
+async function loadLibraryEntries(){
+  const { data, error } = await sb.from('media_submissions')
+    .select('id, media_id, cover_url_override, media(title, cover_url)')
+    .eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
+  if (error) console.error('[library panel] fetch failed:', error);
+  librarySubmissions = data || [];
+  renderLibraryGrid();
+}
+
+function renderLibraryGrid(){
+  const grid = document.getElementById('lib-grid');
+  const emptyEl = document.getElementById('lib-empty');
+  if (!grid) return;
+  emptyEl.style.display = librarySubmissions.length ? 'none' : 'block';
+  grid.innerHTML = librarySubmissions.map(r => {
+    const title = r.media?.title || 'untitled';
+    const cover = r.cover_url_override || r.media?.cover_url;
+    const selected = librarySelectedIds.has(r.id);
+    return `<div class="lib-card${selected ? ' selected' : ''}" data-id="${r.id}">
+      <span class="lib-check">✓</span>
+      ${cover ? `<img src="${_escapeHtml(cover)}" alt="">` : '<div class="lib-card-noimg"></div>'}
+      <div class="lib-card-title">${_escapeHtml(title)}</div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.lib-card').forEach(card => {
+    card.addEventListener('click', () => toggleLibraryCard(card.dataset.id, card));
+  });
+}
+
+function toggleLibraryCard(id, card){
+  if (librarySelectedIds.has(id)) librarySelectedIds.delete(id); else librarySelectedIds.add(id);
+  card.classList.toggle('selected', librarySelectedIds.has(id));
+}
+
+function openLibraryAddEntry(){
+  document.getElementById('lib-overlay-iframe').src = '../matrix/media.html?embed=1';
+  document.getElementById('lib-overlay').classList.add('open');
+}
+function closeLibraryAddEntry(){
+  document.getElementById('lib-overlay').classList.remove('open');
+  document.getElementById('lib-overlay-iframe').src = 'about:blank';
+}
+
+function stepLibrary() {
+  currentStep = 'library';
+  setBubble('want to pull anything from your library into today?', []);
+  librarySelectedIds = new Set();
+  showPanel(buildLibraryPanel());
+  loadLibraryEntries();
+  setSaveBtnVisible(true, 'continue →');
+}
+
+async function saveLibrarySelection(){
+  const btn = document.getElementById('save-continue-btn');
+  const { error } = await sb.from('daily_matrix').upsert({
+    id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate,
+    library_entry_ids: [...librarySelectedIds],
+  }, { onConflict: 'id' });
+  if (error) {
+    console.error('[library panel] save failed:', error);
+    HGModal.alert('oops', 'save failed');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+    return;
+  }
+  setSaveBtnVisible(false);
+  stepJournal();
+}
+
+// ── STEP 7: LIBRARY DONE → JOURNAL (native, no iframe) ───
 function stepJournal() {
   currentStep = 'journal';
   clearTimeout(window._saveFallback);
@@ -3035,12 +3183,19 @@ window.addEventListener('message', async e => {
     if (!error) {
       showRoomStatus('all saved ✓', '#6ab86a');
       setSaveBtnVisible(false);
-      stepJournal();
+      stepLibrary();
     } else {
       HGModal.alert('oops', 'save failed');
       const btn = document.getElementById('save-continue-btn');
       btn.disabled = false; btn.innerHTML = 'continue →';
     }
+    return;
+  }
+
+  // ── Library "add an entry" iframe finished submitting ─────
+  if (msg.type === 'media_entry_saved') {
+    closeLibraryAddEntry();
+    loadLibraryEntries();
     return;
   }
 

@@ -37,6 +37,10 @@
 }
 
 body { min-height: 100vh; background: var(--wall); font-family: var(--font-game); display: flex; flex-direction: column; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+/* Embedded mode: loaded in an iframe overlay by the dream/daily/cosmic matrix
+   games' library step, so the page's own nav bar would be redundant chrome. */
+body.embedded .room-nav { display: none; }
+body.embedded .wall { padding-top: 16px; }
 
 .room { min-height: 100vh; display: flex; flex-direction: column; }
 .wall {
@@ -433,6 +437,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const MEDIA_COVER_BUCKET = 'media-covers';
 let currentUser = null;
+
+// Embedded mode: dream/daily/cosmic matrix load this page in an iframe overlay
+// from their library step so a fresh entry can be added without navigating
+// away from the game. Submitting posts back to the parent instead of
+// redirecting to rooms/library.html.
+const isEmbedded = new URLSearchParams(location.search).get('embed') === '1';
+if (isEmbedded) document.body.classList.add('embedded');
 
 async function resolveUsername(user) {
   try {
@@ -1069,10 +1080,16 @@ async function submitEntry() {
     });
     if (sErr) throw sErr;
 
-    statusEl.style.color = '#2a6a3a';
-    statusEl.textContent = 'saved — taking you to the library…';
     submitBtn.textContent = 'saved ✓';
-    window.location.href = '../rooms/library.html';
+    if (isEmbedded && window.parent !== window) {
+      statusEl.style.color = '#2a6a3a';
+      statusEl.textContent = 'saved ✓';
+      window.parent.postMessage({ type: 'media_entry_saved', mediaId: media.id }, '*');
+    } else {
+      statusEl.style.color = '#2a6a3a';
+      statusEl.textContent = 'saved — taking you to the library…';
+      window.location.href = '../rooms/library.html';
+    }
   } catch (e) {
     console.error('[media submit] failed:', e);
     statusEl.style.color = '#a04040';
