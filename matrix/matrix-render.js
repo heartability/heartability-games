@@ -127,7 +127,7 @@
       body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
         + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
     } else {
-      body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#8a7a5a" stroke-width="1.5"/>`;
+      body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#6e83d3" stroke-width="1.5"/>`;
     }
     if (loc.feeling) {
       body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14" `
@@ -158,7 +158,7 @@
     if (z.terrain && TERRAIN_IMGS[z.terrain]){
       body += `<image x="${p.x-R}" y="${p.y-R}" width="${R*2}" height="${R*2}" href="${TERRAIN_IMGS[z.terrain]}" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`;
     } else {
-      body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#8a7a5a" stroke-width="1.5" pointer-events="none"/>`;
+      body += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="rgba(200,196,180,.82)" stroke="#6e83d3" stroke-width="1.5" pointer-events="none"/>`;
     }
     if (z.feeling){
       body += `<text x="${p.x}" y="${p.y+R+feelOffset}" text-anchor="middle" fill="#2a1e14" font-family="ZoesHandwriting,cursive" font-size="${feelSize}" font-weight="bold" pointer-events="none">${esc(z.feeling)}</text>`;
@@ -534,7 +534,7 @@
         return;
       }
       await deletePhotoFiles(sb, [url]);
-      status('photo removed', '#8a7a5a');
+      status('photo removed', '#7a86bb');
       deps.onChange && deps.onChange();
     }
 
@@ -622,21 +622,21 @@
 .matrix-panel.step-panel { width:100%; height:100%; display:flex; flex-direction:column; font-family:var(--font-hand,"ZoesHandwriting",cursive); }
 .matrix-date {
   position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.5vw,17px); color:#8a7a5a; z-index:6;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.5vw,17px); color:#7a86bb; z-index:6;
 }
 .matrix-photo-btn {
   position:absolute; top:8px; left:12px; z-index:6;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
-  color:var(--blue,#6579e2); background:rgba(255,255,255,.72);
-  border:2px solid var(--blue,#6579e2); box-shadow:2px 2px 0 var(--aqua,#83d2e6);
+  color:var(--blue,#6e83d3); background:rgba(255,255,255,.72);
+  border:2px solid var(--blue,#6e83d3); box-shadow:2px 2px 0 var(--aqua,#83d2e6);
   padding:5px 14px; cursor:pointer; transition:all .05s;
 }
-.matrix-photo-btn:hover  { background:var(--blue,#6579e2); color:#fff; }
+.matrix-photo-btn:hover  { background:var(--blue,#6e83d3); color:#fff; }
 .matrix-photo-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .matrix-edit-notes, .matrix-archive-btn {
   position:absolute; top:8px; right:12px; z-index:6;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
-  color:#fff; background:var(--blue,#6579e2); border:2px solid #4a5bc4;
+  color:#fff; background:var(--blue,#6e83d3); border:2px solid #4a5bc4;
   box-shadow:2px 2px 0 #3a4aaa; padding:5px 14px; cursor:pointer; transition:all .05s;
 }
 .matrix-edit-notes:hover, .matrix-archive-btn:hover { background:#4a5bc4; }
@@ -647,8 +647,8 @@
   position:relative; overflow:hidden;
 }
 .matrix-frame.framed {
-  border:2px solid var(--blue,#6579e2);
-  box-shadow: 0 0 0 3px var(--blue,#6579e2), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,0.35);
+  border:2px solid var(--blue,#6e83d3);
+  box-shadow: 0 0 0 3px var(--blue,#6e83d3), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,0.35);
 }
 .adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
 .adv-grid {
@@ -663,18 +663,18 @@
 .adv-axis-y { top:7%; bottom:7%; left:50%; width:1.5px; }
 .adv-axlbl {
   position:absolute; z-index:5; white-space:nowrap;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#5a4a2a; letter-spacing:.5px;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a4aaa; letter-spacing:.5px;
   font-size:clamp(14px,1.9vw,23px);
 }
 .adv-item { position:absolute; z-index:3; text-align:center; }
-.adv-cap  { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(10px,1.1vw,13px); color:#8a7a5a; margin-top:3px; }
+.adv-cap  { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(10px,1.1vw,13px); color:#7a86bb; margin-top:3px; }
 .adv-map { width:clamp(150px,20vw,240px); }
 .adv-map-svg { width:100%; aspect-ratio:5/4; }
 .adv-map-svg svg { width:100%; height:100%; }
 .adv-bingo { width:clamp(130px,16vw,200px); }
-.adv-meter { width:100%; height:14px; border:1.5px solid var(--blue,#6579e2); background:#e7e1d6; margin-top:2px; }
+.adv-meter { width:100%; height:14px; border:1.5px solid var(--blue,#6e83d3); background:#e7e1d6; margin-top:2px; }
 .adv-meter-fill { height:100%; background:linear-gradient(90deg,#E8478B,#f3a0c4); }
-.adv-mode { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(10px,1.1vw,13px); color:#8a7a5a; margin-top:3px; }
+.adv-mode { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(10px,1.1vw,13px); color:#7a86bb; margin-top:3px; }
 .adv-char { width:clamp(90px,11vw,140px); }
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
 .adv-char-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
@@ -720,25 +720,25 @@
 .mr-photo-card, .mr-jr-card {
   width:min(440px,94vw); max-height:92vh; overflow-y:auto;
   background:var(--back-wall,#f1ebe4);
-  border:2px solid var(--blue,#6579e2);
-  box-shadow:0 0 0 3px var(--blue,#6579e2), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,.4);
+  border:2px solid var(--blue,#6e83d3);
+  box-shadow:0 0 0 3px var(--blue,#6e83d3), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,.4);
   padding:18px 20px; font-family:var(--font-hand,"ZoesHandwriting",cursive);
 }
 .mr-photo-head, .mr-jr-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.mr-photo-title, .mr-jr-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue,#6579e2); }
+.mr-photo-title, .mr-jr-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue,#6e83d3); }
 .mr-photo-close, .mr-jr-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
 .mr-photo-close:hover, .mr-jr-close:hover { color:#E8478B; }
-.mr-photo-sub, .mr-jr-sub { font-size:13px; color:#8a7a5a; margin:2px 0 14px; }
+.mr-photo-sub, .mr-jr-sub { font-size:13px; color:#7a86bb; margin:2px 0 14px; }
 .mr-photo-drop { display:block; cursor:pointer; }
 .mr-photo-preview {
-  width:100%; aspect-ratio:4/3; background:#e8e0c8;
-  border:2px dashed #8a7a5a; display:flex; align-items:center; justify-content:center;
+  width:100%; aspect-ratio:4/3; background:#cdd3ec;
+  border:2px dashed var(--blue); display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
-.mr-photo-drop:hover .mr-photo-preview { border-color:var(--blue,#6579e2); }
+.mr-photo-drop:hover .mr-photo-preview { border-color:var(--blue,#6e83d3); }
 .mr-photo-preview img { width:100%; height:100%; object-fit:contain; }
 .mr-photo-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:14px; }
-.mr-photo-quad-label { font-size:12px; color:#8a7a5a; letter-spacing:.4px; margin-bottom:6px; }
+.mr-photo-quad-label { font-size:12px; color:#7a86bb; letter-spacing:.4px; margin-bottom:6px; }
 .mr-photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
 .mr-photo-quad {
   display:flex; flex-direction:column; align-items:center; gap:2px;
@@ -746,13 +746,13 @@
   font-family:var(--font-hand,"ZoesHandwriting",cursive); cursor:pointer; color:#555; transition:all .1s;
 }
 .mr-photo-quad b { font-size:15px; color:#3a2e1e; }
-.mr-photo-quad span { font-size:10px; color:#8a7a5a; }
-.mr-photo-quad:hover { border-color:var(--blue,#6579e2); background:#f0edfa; }
-.mr-photo-quad.selected { border-color:var(--blue,#6579e2); background:var(--blue,#6579e2); box-shadow:2px 2px 0 #3a4aaa; }
+.mr-photo-quad span { font-size:10px; color:#7a86bb; }
+.mr-photo-quad:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; }
+.mr-photo-quad.selected { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); box-shadow:2px 2px 0 #3a4aaa; }
 .mr-photo-quad.selected b, .mr-photo-quad.selected span { color:#fff; }
-.mr-photo-status, .mr-jr-status { font-size:13px; min-height:18px; margin-bottom:8px; color:#8a7a5a; }
+.mr-photo-status, .mr-jr-status { font-size:13px; min-height:18px; margin-bottom:8px; color:#7a86bb; }
 .mr-photo-add {
-  width:100%; padding:12px 18px; background:var(--blue,#6579e2);
+  width:100%; padding:12px 18px; background:var(--blue,#6e83d3);
   border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#fff; cursor:pointer; transition:all .05s;
 }
@@ -763,20 +763,20 @@
 /* ── shared journal editor ── */
 .mr-jr-text {
   width:100%; min-height:200px; resize:vertical;
-  background:rgba(255,255,255,.7); border:1.5px solid #c8b88a;
+  background:rgba(255,255,255,.7); border:1.5px solid var(--blue);
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#3a2e1e;
   line-height:1.6; padding:12px 14px; margin-bottom:8px; outline:none;
 }
-.mr-jr-text:focus { border-color:var(--blue,#6579e2); }
+.mr-jr-text:focus { border-color:var(--blue,#6e83d3); }
 .mr-jr-actions { display:flex; justify-content:flex-end; gap:10px; }
 .mr-jr-cancel {
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#888;
   background:none; border:1.5px solid #ccc; padding:8px 16px; cursor:pointer;
 }
-.mr-jr-cancel:hover { color:var(--blue,#6579e2); border-color:var(--blue,#6579e2); }
+.mr-jr-cancel:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
 .mr-jr-save {
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#fff;
-  background:var(--blue,#6579e2); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  background:var(--blue,#6e83d3); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
   padding:8px 18px; cursor:pointer; transition:all .05s;
 }
 .mr-jr-save:hover  { background:#4a5bc4; }

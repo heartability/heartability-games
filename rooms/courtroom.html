@@ -31,7 +31,7 @@
   --back-wall:  #f0ece4;
   --side-col:   #dbd6ce;
   --line-col:   #111;
-  --blue:       #6579e2;
+  --blue:       #6e83d3;
   --aqua:       #83d2e6;
   --bw-top:    9%;
   --bw-left:   15%;
@@ -108,7 +108,7 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 /* ── Nav ── */
 .room-nav {
   position: fixed; top: 0; left: 0; right: 0; height: 44px;
-  background: #6578e2; border-bottom: 2px solid var(--line-col);
+  background: #6e83d3; border-bottom: 2px solid var(--line-col);
   z-index: 20; display: flex; align-items: center; justify-content: space-between;
   padding: 0 clamp(12px, 2vw, 28px);
   font-family: var(--font-hand); font-size: clamp(21px, 1.6vw, 25px); color: #fff;
@@ -129,7 +129,7 @@ body.game-mode .wall-art { opacity: 0; pointer-events: none; }
 }
 .map-dropdown {
   position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
-  background: #6578e2; border: 2px solid var(--line-col);
+  background: #6e83d3; border: 2px solid var(--line-col);
   box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
   z-index: 21; display: none; flex-direction: column; overflow: hidden;
 }
@@ -235,12 +235,12 @@ body.game-mode .char-heart {
 }
 .howto-overlay.open { display: flex; }
 .howto-popup {
-  background: #f5f0ea;
-  box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35);
+  background: #dfe2ef;
+  box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35);
   width: clamp(280px, 88vw, 420px); overflow: hidden; animation: popIn 0.2s ease both;
 }
 .howto-titlebar {
-  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb;
+  height: 38px; background: #cdd3ec; border-bottom: 2px solid #6e83d3;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 14px; font-family: var(--font-hand); font-size: 25px; color: #555;
 }
@@ -275,8 +275,8 @@ body.game-mode .char-heart {
 /* MATRIX PICKER */
 .matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
 .matrix-picker-overlay.open { display: flex; }
-.matrix-picker-popup { background: #f5f0ea; box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
-.matrix-picker-titlebar { height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: 25px; color: #555; }
+.matrix-picker-popup { background: #dfe2ef; box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
+.matrix-picker-titlebar { height: 38px; background: #cdd3ec; border-bottom: 2px solid #6e83d3; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: var(--modal-font-title,21px); color: #555; }
 .matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
 .matrix-pick-btn { display: block; text-decoration: none; font-family: var(--font-hand); font-size: clamp(18px,2vw,23px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: center; transition: background .1s; }
 .matrix-pick-btn:hover { background: #4a5bc4; }
@@ -291,14 +291,14 @@ body.game-mode .char-heart {
 }
 .game-popup-overlay.open { display: flex; }
 .game-popup {
-  background: #f5f0ea;
-  box-shadow: 0 0 0 3px var(--blue), 0 0 0 6px var(--aqua), 4px 8px 28px rgba(0,0,0,0.35);
+  background: #dfe2ef;
+  box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35);
   width: clamp(300px, 92vw, 1100px); height: clamp(400px, calc(100dvh - 64px), 1000px);
   display: flex; flex-direction: column; overflow: hidden;
   animation: popIn 0.2s ease both;
 }
 .game-popup-titlebar {
-  height: 38px; background: #e8e3da; border-bottom: 2px solid #bbb; flex-shrink: 0;
+  height: 38px; background: #cdd3ec; border-bottom: 2px solid #6e83d3; flex-shrink: 0;
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
   padding: 0 14px; font-family: var(--font-hand); font-size: 25px; color: #555;
 }

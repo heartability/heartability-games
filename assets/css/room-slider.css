@@ -57,8 +57,8 @@
 .room-hint-overlay.open { display: flex; }
 .room-hint-popup {
   position: relative;
-  background: #f5f0ea;
-  box-shadow: 0 0 0 3px #6579e2, 0 0 0 6px #83d2e6, 4px 8px 28px rgba(0, 0, 0, 0.35);
+  background: #dfe2ef;
+  box-shadow: 0 0 0 4px #6e83d3, 4px 8px 28px rgba(0, 0, 0, 0.35);
   max-width: min(86vw, 340px);
   padding: 28px 24px 22px;
   text-align: center;
@@ -76,4 +76,4 @@
   cursor: pointer; color: #aaa; font-size: 16px; padding: 4px; line-height: 1;
   background: none; border: none; font-family: inherit;
 }
-.room-hint-close:hover { color: #6579e2; }
+.room-hint-close:hover { color: #6e83d3; }

@@ -28,7 +28,7 @@
 :root {
   --font-hand:  "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
-  --blue:       #6579e2;
+  --blue:       #6e83d3;
   --aqua:       #83d2e6;
   --line-col:   #111;
   --side-col:   #e8e4dc;
@@ -76,7 +76,7 @@ html, body {
 /* ── TOP NAV ── */
 .room-nav {
   position: fixed; top: 0; left: 0; right: 0; height: 44px;
-  background: #6578e2; border-bottom: 2px solid var(--line-col);
+  background: #6e83d3; border-bottom: 2px solid var(--line-col);
   z-index: 200; display: flex; align-items: center; justify-content: space-between;
   padding: 0 clamp(12px, 2vw, 28px);
   font-family: var(--font-hand); font-size: clamp(21px, 1.6vw, 25px); color: #fff;
@@ -89,7 +89,7 @@ html, body {
 .map-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; }
 .map-dropdown {
   position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
-  background: #6578e2; border: 2px solid var(--line-col);
+  background: #6e83d3; border: 2px solid var(--line-col);
   box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
   z-index: 201; display: none; flex-direction: column; overflow: hidden;
 }
@@ -135,10 +135,10 @@ html, body {
 .lib-tabs { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .lib-add-top { margin-left: auto; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; white-space: nowrap; }
 .lib-tab-btn {
-  font-family: var(--font-hand); font-size: 17px; color: #555; background: #e8e3da;
-  border: 2px solid #bbb; padding: 7px 16px; cursor: pointer;
+  font-family: var(--font-hand); font-size: 17px; color: #555; background: #cdd3ec;
+  border: 2px solid var(--blue); padding: 7px 16px; cursor: pointer;
 }
-.lib-tab-btn.active { background: var(--blue); color: #fff; border-color: #4a5bc4; }
+.lib-tab-btn.active { background: var(--blue); color: #fff; border-color: #3a4aaa; }
 .lib-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .lib-filters select {
   font-family: var(--font-hand); font-size: 15px; padding: 5px 8px;
@@ -162,10 +162,10 @@ html, body {
 .lib-add-cta { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 14px; }
 .lib-add-cta a { color: var(--blue); }
 .lib-comments, .lib-own-entries { display: flex; flex-direction: column; gap: 12px; }
-.lib-comment, .lib-own-entry { background: #f0ead6; border: 2px solid #c8b88a; padding: 10px 14px; }
+.lib-comment, .lib-own-entry { background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 14px; }
 .lib-comment-author { font-family: var(--font-hand); font-size: 15px; color: var(--blue); margin-bottom: 4px; }
 .lib-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
-.lib-comment-zones { font-family: var(--font-hand); font-size: 13px; color: #7a6a5a; margin-bottom: 4px; }
+.lib-comment-zones { font-family: var(--font-hand); font-size: 13px; color: #4a5bc4; margin-bottom: 4px; }
 .lib-comment-ratings { font-family: var(--font-hand); font-size: 13px; color: #8a7a00; }
 .link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; }
 

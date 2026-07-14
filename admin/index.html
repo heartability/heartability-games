@@ -24,12 +24,12 @@
 :root {
   --font-hand:     "ZoesHandwriting", cursive;
   --font-pixel:    "PFPixelscript", cursive;
-  --purple:        #6579e2;
+  --purple:        #6e83d3;
   --purple-dark:   #4a5bc4;
   --purple-shadow: #3a4aaa;
   --blue-glow:     #83d2e6;
-  --cream:         #f5f0ea;
-  --cream-dark:    #e8e3da;
+  --cream:         #dfe2ef;
+  --cream-dark:    #cdd3ec;
   --line-col:      #111;
   --danger:        #d9534f;
   --danger-dark:   #b33a36;
@@ -51,7 +51,7 @@ html, body {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 44px;
-  background: #6578e2;
+  background: #6e83d3;
   border-bottom: 2px solid var(--line-col);
   z-index: 200;
   display: flex;
@@ -83,7 +83,7 @@ html, body {
 .login-card {
   width: min(90vw, 380px);
   background: var(--cream);
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 28px rgba(0,0,0,0.28);
+  box-shadow: 0 0 0 4px var(--purple), 4px 8px 28px rgba(0,0,0,0.28);
   overflow: hidden;
 }
 .login-titlebar { height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb; display: flex; align-items: center; padding: 0 20px; font-family: var(--font-pixel); font-size: 15px; color: #333; }
@@ -110,7 +110,7 @@ html, body {
 
 .window {
   background: var(--cream);
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 4px 8px 20px rgba(0,0,0,0.24);
+  box-shadow: 0 0 0 4px var(--purple), 4px 8px 20px rgba(0,0,0,0.24);
   overflow: hidden;
   margin-bottom: 18px;
 }
@@ -804,21 +804,21 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     const days = Object.keys(d.signups.byDay).sort();
     renderChart('chart-signups', 'line', {
       labels: days,
-      datasets: [{ label: 'signups', data: days.map((k) => d.signups.byDay[k]), borderColor: '#6579e2', backgroundColor: 'rgba(101,121,226,0.15)', tension: 0.25, fill: true }],
+      datasets: [{ label: 'signups', data: days.map((k) => d.signups.byDay[k]), borderColor: '#6e83d3', backgroundColor: 'rgba(101,121,226,0.15)', tension: 0.25, fill: true }],
     });
 
     // membership donut
     const memberKeys = Object.keys(d.membership.counts);
     renderChart('chart-membership', 'doughnut', {
       labels: memberKeys,
-      datasets: [{ data: memberKeys.map((k) => d.membership.counts[k]), backgroundColor: ['#ccc', '#83d2e6', '#6579e2', '#e2a545'] }],
+      datasets: [{ data: memberKeys.map((k) => d.membership.counts[k]), backgroundColor: ['#ccc', '#83d2e6', '#6e83d3', '#e2a545'] }],
     });
 
     // game engagement bar
     renderChart('chart-games', 'bar', {
       labels: d.gameEngagement.map((g) => g.table),
       datasets: [
-        { label: 'total', data: d.gameEngagement.map((g) => g.total), backgroundColor: '#6579e2' },
+        { label: 'total', data: d.gameEngagement.map((g) => g.total), backgroundColor: '#6e83d3' },
         { label: 'last 30 days', data: d.gameEngagement.map((g) => g.last30Days), backgroundColor: '#83d2e6' },
       ],
     });

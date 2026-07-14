@@ -21,13 +21,13 @@
 :root {
   --font-hand:     "ZoesHandwriting", cursive;
   --font-pixel:    "PFPixelscript", cursive;
-  --purple:        #6579e2;
+  --purple:        #6e83d3;
   --purple-dark:   #4a5bc4;
   --purple-shadow: #3a4aaa;
   --blue-glow:     #83d2e6;
   --mint:          #c9fff5;
-  --cream:         #f5f0ea;
-  --cream-dark:    #e8e3da;
+  --cream:         #dfe2ef;
+  --cream-dark:    #cdd3ec;
   --line-col:      #111;
   --comet:         #c2584f;
   --firefly:       #d9a441;
@@ -45,7 +45,7 @@ html, body {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 44px;
-  background: #6578e2;
+  background: #6e83d3;
   border-bottom: 2px solid var(--line-col);
   z-index: 200;
   display: flex;
@@ -75,7 +75,7 @@ html, body {
 }
 .map-dropdown {
   position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
-  background: #6578e2; border: 2px solid var(--line-col);
+  background: #6e83d3; border: 2px solid var(--line-col);
   box-shadow: 3px 4px 0 rgba(0,0,0,.12);
   z-index: 201; display: none; flex-direction: column; overflow: hidden;
 }
@@ -101,7 +101,7 @@ html, body {
   width: 100%;
   max-width: 560px;
   background: var(--cream);
-  box-shadow: 0 0 0 3px var(--purple), 0 0 0 6px var(--blue-glow), 6px 10px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 4px var(--purple), 6px 10px 40px rgba(0,0,0,0.35);
   overflow: hidden;
   animation: windowIn 0.35s ease both;
 }
