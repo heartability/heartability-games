@@ -1054,13 +1054,11 @@ async function initPage() {
 }
 
 sb.auth.getSession().then(async ({ data: { session } }) => {
-  if (!session && !location.search.includes('previewbypass')) { window.location.href = '../users/login.html'; return; }
-  currentUser = session ? session.user : { id: 'preview-test-user', email: 'preview@test.com' };
+  if (!session) { window.location.href = '../users/login.html'; return; }
+  currentUser = session.user;
   await initPage();
-  if (session) {
-    const username = await resolveUsername(session.user);
-    HeartabilityNav.setAuthState({ loggedIn: true, username });
-  }
+  const username = await resolveUsername(session.user);
+  HeartabilityNav.setAuthState({ loggedIn: true, username });
 });
 </script>
 </body>
