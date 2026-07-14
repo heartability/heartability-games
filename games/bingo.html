@@ -365,8 +365,6 @@ body {
 <div class="room">
   <div class="wall">
 
-    <div class="bingo-alert" id="bingoAlert">&#x2605; bingo! &#x2605;</div>
-
     <div class="rpg-panel">
 
 
@@ -386,6 +384,7 @@ body {
 
       <div class="bottom-row">
         <div class="reading-panel" id="readingPanel">
+          <div class="bingo-alert" id="bingoAlert">&#x2605; bingo! &#x2605;</div>
           <div class="reading-header">
             <div class="reading-title" id="readingTitle"></div>
             <div class="reading-score" id="readingScore"></div>
@@ -514,6 +513,16 @@ function update() {
 
   const score = marked.filter((v,i) => v && i!==12).length;
   document.getElementById("bingoAlert").classList.toggle("show", hasBingo);
+
+  if (hasBingo) {
+    document.getElementById("meterFill").style.width = "100%";
+    document.querySelectorAll(".meter-stage").forEach((el,i) => el.classList.toggle("active", i===2));
+    document.getElementById("readingTitle").textContent = "perfect score";
+    document.getElementById("readingScore").textContent = "24 hearts";
+    document.getElementById("readingText").textContent = "sometimes everything just aligns";
+    document.getElementById("readingPanel").classList.add("show");
+    return;
+  }
 
   const pct = (score/24)*100;
   document.getElementById("meterFill").style.width = pct + "%";

@@ -155,17 +155,6 @@ body {
   letter-spacing: 0.3px;
 }
 
-.cell-date {
-  font-family: var(--font-game);
-  font-size: clamp(7px, 1.1vw, 10px);
-  color: var(--text-mid);
-  text-align: center;
-  line-height: 1;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
 .cell.free-space .cell-text {
   font-family: var(--font-hand);
   font-size: clamp(9px, 1.2vw, 14px);
@@ -186,7 +175,6 @@ body {
 
 .cell.marked .cell-heart { opacity: 1; }
 .cell.marked .cell-text,
-.cell.marked .cell-date { opacity: 0.15; }
 
 /* METER */
 .meter-section { margin-top: 16px; }
@@ -331,8 +319,6 @@ body {
 <div class="room">
   <div class="wall">
 
-    <div class="bingo-alert" id="bingoAlert">&#x2726; BINGO &#x2726;</div>
-
     <div class="rpg-panel">
 
       <span class="bingo-season" id="seasonLabel">cancer season</span>
@@ -348,6 +334,7 @@ body {
 
       <div class="reading-panel" id="readingPanel">
         <div class="reading-body">
+          <div class="bingo-alert" id="bingoAlert">&#x2726; BINGO &#x2726;</div>
           <div class="reading-transit" id="readingTransit">tap a square to read its transit</div>
           <div class="reading-date" id="readingDate"></div>
         </div>
@@ -449,13 +436,6 @@ function buildGrid() {
     txt.textContent = cell.prompt;
     el.appendChild(txt);
 
-    if (cell.date) {
-      const d = document.createElement('div');
-      d.className = 'cell-date';
-      d.textContent = '(' + cell.date + ')';
-      el.appendChild(d);
-    }
-
     const heart = document.createElement('div');
     heart.className = 'cell-heart';
     heart.textContent = '\u2605';
@@ -505,6 +485,14 @@ function update() {
     }
   });
   document.getElementById('bingoAlert').classList.toggle('show', hasBingo);
+
+  if (hasBingo) {
+    document.getElementById('meterFill').style.width = '100%';
+    document.getElementById('meterCount').textContent = '24 of 24';
+    document.getElementById('readingTransit').textContent = 'sometimes everything just aligns';
+    document.getElementById('readingDate').textContent = '';
+    return;
+  }
 
   const score = marked.filter((v, i) => v && i !== FREE_INDEX).length;
   document.getElementById('meterFill').style.width = (score / 24) * 100 + '%';
