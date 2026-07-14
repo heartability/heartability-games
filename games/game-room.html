@@ -94,7 +94,7 @@ html, body {
 .art-mirror   { left: 43cqw; top: 24cqh; width: clamp(100px, 16cqw, 280px); }
 .art-bingo    { right: 21cqw; top: 24cqh; width: clamp(120px, 18cqw, 265px); }
 .art-about    { left: 2cqw;  top: 28cqh; width: clamp(60px, 9cqw, 130px); }
-.art-exclaim { right: 2cqw; top: 28cqh; width: clamp(60px, 9cqw, 130px); }
+.art-matrix { right: 2cqw; top: 28cqh; width: clamp(60px, 9cqw, 130px); }
 
 /* Fade wall art in game mode */
 body.game-mode .wall-art { opacity: 0; pointer-events: none; }
@@ -382,8 +382,8 @@ body.game-mode .char-heart {
   </div>
 
   <!-- MATRIX LINKS -->
-  <div class="art-exclaim wall-art" id="art-exclaim" role="button" tabindex="0" onclick="openMatrixPicker()">
-    <img src="../assets/elements/exclaim.png" alt="Track today">
+  <div class="art-matrix wall-art" id="art-matrix" role="button" tabindex="0" onclick="openMatrixPicker()">
+    <img src="../assets/elements/matrix.png" alt="Track today">
     <div class="cal-month" id="cal-month"></div>
     <div class="cal-day"   id="cal-day"></div>
   </div>
@@ -496,7 +496,7 @@ document.addEventListener('click', e => {
     'art-map':      'if you feel lost, make a map',
     'art-bingo':    'celebrate the care you give yourself',
     'art-mirror':   'who do you want to be today?',
-    'art-exclaim':    'enter the matrix',
+    'art-matrix':    'enter the matrix',
     'art-about':    'a message from the creator of Heartability',
   };
 

@@ -186,12 +186,12 @@ html, body {
 }
 #icon-bed img { width: clamp(200px, 33cqw, 550px); }
 
-/* EXCLAIM — enter the matrix, upper-right wall */
-#icon-exclaim {
+/* matrix — enter the matrix, upper-right wall */
+#icon-matrix {
   bottom:  43cqh;
   right: 2cqw;
 }
-#icon-exclaim img { width: clamp(60px, 9cqw, 130px); }
+#icon-matrix img { width: clamp(60px, 9cqw, 130px); }
 
 /* Portrait/vertical viewports are handled by the room slider
    (assets/css/room-slider.css) instead of squeezing this layout. */
@@ -365,8 +365,8 @@ html, body {
     <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
       <img src="../assets/elements/bed.png" alt="adventure archive" />
     </div>
-    <div class="room-icon" id="icon-exclaim" onclick="openMatrixPicker()">
-      <img src="../assets/elements/exclaim.png" alt="enter the matrix" />
+    <div class="room-icon" id="icon-matrix" onclick="openMatrixPicker()">
+      <img src="../assets/elements/matrix.png" alt="enter the matrix" />
     </div>
   </div>
 
@@ -480,7 +480,7 @@ html, body {
   const bubbleMessages = {
     'icon-dresser': 'access your account settings',
     'icon-bed':     'view the dream archive',
-    'icon-exclaim': 'enter the matrix',
+    'icon-matrix': 'enter the matrix',
   };
 
   document.querySelectorAll('.room-icon').forEach(icon => {
