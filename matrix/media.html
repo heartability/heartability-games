@@ -737,7 +737,10 @@ async function runSearch(q) {
         showSearchMessage("book search isn't set up yet — enter it manually below.");
         return;
       }
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20&key=${GOOGLE_BOOKS_API_KEY}`);
+      // intitle: biases matches toward the title field (cuts down on random full-text/description
+      // hits), and maxResults=40 (the API's max) widens the pool re-ranked by ratingsCount below —
+      // Google Books' own relevance order otherwise buries popular titles under old public-domain scans.
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${GOOGLE_BOOKS_API_KEY}`);
       const data = await res.json();
       if (data.error) {
         console.error('[media search] google books error:', data.error);
