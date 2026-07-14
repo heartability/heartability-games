@@ -569,8 +569,9 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../rooms/bed.html">bedroom</a>
       <a class="map-item" href="../rooms/courtroom.html">courtroom</a>
-      <a class="map-item" href="../rooms/mailroom.html">mailroom</a>
+      <a class="map-item" href="../rooms/reception.html">reception</a>
       <a class="map-item" href="../rooms/garden.html">garden</a>
+      <a class="map-item" href="../rooms/library.html">library</a>
     </div>
   </div>
 </nav>
@@ -582,6 +583,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   <button class="tab-btn" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   <button class="tab-btn" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
+  <button class="tab-btn" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
   <button class="tab-btn" data-tab="journal" onclick="switchTab('journal')">journal</button>
   <button class="tab-btn" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
 </div>
@@ -595,6 +597,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     <button class="tab-bar-mobile-item" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
     <button class="tab-bar-mobile-item" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
     <button class="tab-bar-mobile-item" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
+    <button class="tab-bar-mobile-item" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
     <button class="tab-bar-mobile-item" data-tab="journal" onclick="switchTab('journal')">journal</button>
     <button class="tab-bar-mobile-item" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   </div>
@@ -791,6 +794,21 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
             <div class="loc-list" id="arch-history-list"></div>
             <div class="day-list-empty" id="arch-history-empty" style="display:none;">this archetype hasn't traveled anywhere yet</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY TAB: the media library entries this person has submitted -->
+<div id="tab-inventory" style="display:none;">
+  <div class="page-wrap uniform-tab-wrap">
+    <div class="page-body uniform-tab-body">
+      <div class="window" id="inventory-window">
+        <div class="window-titlebar"><span>your library entries</span></div>
+        <div class="window-body">
+          <div class="loc-list" id="inv-list"></div>
+          <div class="day-list-empty" id="inv-empty" style="display:none;">you haven't added anything to the library yet — visit <a href="../rooms/library.html" style="color:var(--purple);">the library</a> to add one</div>
         </div>
       </div>
     </div>
@@ -1022,7 +1040,7 @@ function updatePlayLink(){
   el.style.display = '';
 }
 
-const TAB_LABELS = { daily:'daily', dream:'dream', cosmic:'cosmic', archetype:'archetypes', journal:'journal', completed:'completed' };
+const TAB_LABELS = { daily:'daily', dream:'dream', cosmic:'cosmic', archetype:'archetypes', inventory:'inventory', journal:'journal', completed:'completed' };
 function updateTabControls(tab){
   document.querySelectorAll('.tab-btn, .tab-bar-mobile-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.getElementById('tab-bar-mobile-label').textContent = TAB_LABELS[tab] || tab;
@@ -1044,6 +1062,7 @@ function switchTab(tab){
   document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='completed'||tab==='daily') ? 'block' : 'none';
   document.getElementById('tab-cosmic').style.display    = tab==='cosmic'    ? 'block' : 'none';
   document.getElementById('tab-archetype').style.display = tab==='archetype' ? 'block' : 'none';
+  document.getElementById('tab-inventory').style.display  = tab==='inventory' ? 'block' : 'none';
   document.getElementById('tab-journal').style.display    = tab==='journal'   ? 'block' : 'none';
 
   if (tab==='dream' || tab==='completed'){
@@ -1055,6 +1074,8 @@ function switchTab(tab){
     loadCosmicTab();
   } else if (tab==='archetype'){
     loadArchetypeTab();
+  } else if (tab==='inventory'){
+    loadInventoryTab();
   } else if (tab==='journal'){
     loadJournalTab();
   }
@@ -1899,6 +1920,35 @@ async function jumpToArchetypeRow(row){
     const ph = activeCosmicPhases.find(p => p.map_phase === row.raw.map_phase);
     if (ph && ph.done) openCosmicPhasePopup(ph);
   }
+}
+
+// ── INVENTORY TAB (the library entries this person has submitted) ────────
+async function loadInventoryTab(){
+  const list = document.getElementById('inv-list');
+  const emptyEl = document.getElementById('inv-empty');
+  emptyEl.style.display = 'none';
+  list.innerHTML = '<div class="day-list-empty">gathering your library entries…</div>';
+
+  const { data, error } = await sb.from('media_submissions')
+    .select('*, media(*)').eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
+  if (error) console.error('[inventory] fetch failed:', error);
+  const rows = data || [];
+
+  list.innerHTML = '';
+  if (!rows.length){ emptyEl.style.display = 'block'; return; }
+  rows.forEach(r => {
+    const title = r.title || r.media?.title || 'untitled';
+    const mediaType = r.media_type || r.media?.media_type || '';
+    const el = document.createElement('div');
+    el.className = 'loc-row';
+    el.innerHTML = `<span class="loc-name">${escapeHtml(title)} <span style="color:#bbb;font-size:11px;">· ${escapeHtml(mediaType)}</span></span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span class="loc-time">${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+        <span class="loc-arrow">→</span>
+      </span>`;
+    el.onclick = () => window.location.href = `../rooms/library.html?media=${r.media_id}`;
+    list.appendChild(el);
+  });
 }
 
 // ── JOURNAL TAB (chat-style feed combining daily/dream/cosmic entries) ────

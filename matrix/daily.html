@@ -157,7 +157,7 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .timer-extend-btn.ghost { background:none; border-color:#ccc; color:#999; box-shadow:none; }
 .timer-extend-btn.ghost:hover { border-color:#E8478B; color:#E8478B; }
 
-/* ── WELCOME STEP — timed/free mode choice before the dayquest builder ── */
+/* ── WELCOME STEP — timed/untimed mode choice before the dayquest builder ── */
 .welcome-panel { gap:20px; }
 .welcome-title { font-family:var(--font-hand); font-size:clamp(30px,3.2vw,44px); color:#fff; text-align:center; }
 .welcome-sub { font-family:var(--font-hand); font-size:clamp(17px,1.7vw,22px); color:var(--ink); text-align:center; margin-top:-8px; }
@@ -1497,7 +1497,7 @@ async function startToday() {
   }
 }
 
-// ── STEP 0: welcome — choose timed or free mode before the dayquest builder ─
+// ── STEP 0: welcome — choose timed or untimed mode before the dayquest builder ─
 function stepWelcome() {
   currentStep = 'welcome';
   stopFlowTimer();
@@ -1512,7 +1512,7 @@ function buildWelcomePanel() {
     <div class="welcome-sub">ready to begin? choose a mode:?</div>
     <div class="welcome-modes">
       <button class="wall-btn" type="button" onclick="chooseDailyMode(true)">timed mode</button>
-      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">free mode</button>
+      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">untimed mode</button>
     </div>
     <div class="welcome-why" onclick="showTimedModeInfo()">why timed mode? &rarr;</div>
   </div>`;
