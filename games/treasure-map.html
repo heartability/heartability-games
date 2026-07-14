@@ -260,10 +260,10 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-game)
 /* BUTTONS */
 .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .rpg-btn {
-  background: var(--wall-mid); border: 3px solid var(--panel-border);
-  outline: 2px solid var(--panel-border-light); outline-offset: -4px;
+  background: var(--wall-mid); border: 3px solid var(--lilac);
+  outline: 2px solid var(--lilac); outline-offset: -4px;
   padding: 7px 16px; font-family: var(--font-game); font-size: 17px;
-  color: #a8cce8; cursor: pointer; letter-spacing: 1px;
+  color: var(--lilac); cursor: pointer; letter-spacing: 1px;
 }
 .rpg-btn:hover { filter: brightness(1.15); }
 .rpg-btn:active { transform: translate(1px,1px); }
@@ -289,7 +289,7 @@ body, .wall { background: transparent; }
 .mode-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
 
 .rpg-btn.mode-active {
-  background: var(--lilac);
+  background: var(--panel-border);
   color: var(--text-dark);
   outline-color: var(--panel-border);
 }
