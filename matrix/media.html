@@ -13,10 +13,12 @@
 @font-face {
   font-family: "ZoesHandwriting";
   src: url(../assets/fonts/ZoesHandwriting-Regular.ttf) format("truetype");
+  font-display: swap;
 }
 @font-face {
   font-family: "PFPixelscript";
   src: url(../assets/fonts/PFPixelscriptProRegular.ttf) format("truetype");
+  font-display: swap;
 }
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
@@ -126,7 +128,7 @@ body.embedded .wall { padding-top: 16px; }
 }
 .palette-item:hover { filter: brightness(1.06); }
 .palette-item.active { border-color: var(--aqua); outline: 2px solid var(--aqua); outline-offset: 1px; background: #e0f0f0; }
-.palette-item img { width: 38px; height: 32px; object-fit: contain; pointer-events: none; }
+.palette-item img { width: 60px; height: 50px; object-fit: contain; pointer-events: none; }
 .palette-item-name { font-family: var(--font-game); font-size: 12px; color: var(--text-mid); pointer-events: none; letter-spacing: 0.5px; }
 
 .terrain-cat-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
@@ -175,9 +177,12 @@ body.embedded .wall { padding-top: 16px; }
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 .link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; }
 
-/* TWO COL layout for the three-act map + palette */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+/* TWO COL layout for the three-act map + palette — canvas gets more of the
+   row than the palette so the map itself renders bigger. */
+.two-col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: start; }
 @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+.step-panel[data-step="map"] .rpg-panel,
+.step-panel[data-step="optional"] .rpg-panel { max-width: 900px; }
 
 .three-act-canvas {
   background: #cdd3ec;
@@ -303,7 +308,7 @@ body.embedded .wall { padding-top: 16px; }
         <div class="two-col">
           <div>
             <div class="three-act-canvas">
-              <svg id="threeActSvg" viewBox="-90 -140 870 465" xmlns="http://www.w3.org/2000/svg">
+              <svg id="threeActSvg" viewBox="-135 -140 950 465" xmlns="http://www.w3.org/2000/svg">
                 <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
                 <defs id="threeActDefs"></defs>
                 <g id="threeActZoneGroup"></g>
@@ -354,7 +359,7 @@ body.embedded .wall { padding-top: 16px; }
           <div class="two-col">
             <div>
               <div class="three-act-canvas">
-                <svg id="threeActSvgArc" viewBox="-90 -140 870 465" xmlns="http://www.w3.org/2000/svg">
+                <svg id="threeActSvgArc" viewBox="-135 -140 950 465" xmlns="http://www.w3.org/2000/svg">
                   <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
                   <defs id="threeActDefsArc"></defs>
                   <g id="threeActZoneGroupArc"></g>
@@ -410,7 +415,7 @@ body.embedded .wall { padding-top: 16px; }
       <div class="rpg-panel">
         <div class="step-header">
           <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">review &amp; save</span>
+          <span class="step-header-title">review and save</span>
           <span></span>
         </div>
         <div id="reviewSummary" class="review-summary"></div>
@@ -590,11 +595,20 @@ function createThreeActMap(ids) {
       numEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); numEl.setAttribute('font-size', '40');
       numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
       if (!hasTerrain) zoneGroup.appendChild(numEl);
+      if (hasTerrain) {
+        const terrainEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        terrainEl.setAttribute('x', pos.x); terrainEl.setAttribute('y', pos.y - R - 22);
+        terrainEl.setAttribute('text-anchor', 'middle'); terrainEl.setAttribute('fill', '#000000');
+        terrainEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainEl.setAttribute('font-size', '52');
+        terrainEl.setAttribute('font-weight', 'bold');
+        terrainEl.style.pointerEvents = 'none'; terrainEl.textContent = TERRAIN_LABELS[zone.terrain];
+        zoneGroup.appendChild(terrainEl);
+      }
       if (zone.feeling) {
         const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 32);
+        feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 48);
         feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
-        feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '26');
+        feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '52');
         feelEl.setAttribute('font-weight', 'bold');
         feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
         zoneGroup.appendChild(feelEl);
