@@ -37,6 +37,11 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   background:url("../assets/elements/matrix-sky.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
+/* ── PANEL SCROLL REGION — no-op by default (just a plain wrapper); becomes
+   the scroll container for iframe-mode steps on mobile, see the max-width:
+   768px block. ── */
+.panel-scroll-region { display:contents; }
+
 /* ── CONTENT PANEL — sits where back wall was ── */
 .content-panel { position:fixed; top:var(--bw-top); left:var(--bw-left);
   width:var(--bw-width); height:var(--bw-height); z-index:10; display:none;
@@ -504,12 +509,26 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   .welcome-panel { justify-content:center; }
   /* iframe panels (bingo, builders) used to scroll away with the whole page —
      tall content (like the bingo board) would scroll its top rows up under
-     the fixed nav bar. Pin the panel below the nav and scroll within it instead. */
-  .content-panel.iframe-mode {
-    position:fixed; top:44px; left:50%; transform:translateX(-50%);
-    width:94vw; margin-bottom:0;
-    height:calc(100dvh - 44px); max-height:calc(100dvh - 44px);
-    overflow-y:auto; overflow-x:hidden;
+     the fixed nav bar, AND the continue bar (a separate fixed sibling) would
+     float on top of whatever content was currently in view instead of
+     trailing it. Fix: .panel-scroll-region becomes the single pinned-below-
+     nav scroll container for both the panel and the continue bar, so the
+     continue button flows in normal document order after the panel's
+     content — same fix as the dayquest builder's .dq-scroll — instead of
+     floating fixed over it, while the whole region still stays below the
+     nav rather than scrolling under it. Only kicks in for iframe steps;
+     non-iframe steps keep their own self-contained fixed box below. */
+  body:has(.content-panel.iframe-mode) .panel-scroll-region {
+    display:flex; flex-direction:column; align-items:center;
+    position:fixed; top:44px; left:0; right:0; bottom:0;
+    overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
+  }
+  body:has(.content-panel.iframe-mode) .content-panel.iframe-mode {
+    position:static; width:94vw; height:auto; max-height:none; overflow:visible;
+    margin:0 auto;
+  }
+  body:has(.content-panel.iframe-mode) .save-continue-bar {
+    position:static; height:auto; padding:0; margin:20px 0 30px; z-index:auto;
   }
   /* Heart guide + bubble are desktop-only, but the flow timer still needs to
      show somewhere — keep the (invisible) char-heart container around as an
@@ -529,10 +548,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   .phase-key { width:180px; font-size:14px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
   .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
-  /* leave room below the panel so the continue bar doesn't sit on top of it */
-  body:has(.save-continue-bar.visible) .content-panel.iframe-mode {
-    height:calc(100dvh - 44px - 100px); max-height:calc(100dvh - 44px - 100px);
-  }
   .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
     top: 80px !important;
@@ -1304,9 +1319,23 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   <a class="nav-btn" href="../matrix/archive.html">archive →</a>
 </nav>
 
-<!-- CONTENT PANEL -->
-<div class="content-panel" id="content-panel">
-  <!-- filled dynamically -->
+<!-- PANEL SCROLL REGION — on mobile, when an iframe step is active, this
+     becomes the single scroll container for both the panel and the continue
+     bar (see .panel-scroll-region CSS), so the continue button trails the
+     content instead of floating fixed on top of it. Otherwise it's just a
+     plain, non-positioned wrapper and everything behaves as before. -->
+<div class="panel-scroll-region" id="panel-scroll-region">
+  <!-- CONTENT PANEL -->
+  <div class="content-panel" id="content-panel">
+    <!-- filled dynamically -->
+  </div>
+
+  <!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
+  <div class="save-continue-bar" id="save-continue-bar">
+    <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
+      continue →
+    </button>
+  </div>
 </div>
 
 <!-- WALL BUTTONS — centered on back wall for step choices -->
@@ -1329,12 +1358,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
 
-<!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
-<div class="save-continue-bar" id="save-continue-bar">
-  <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
-    continue →
-  </button>
-</div>
 <div class="save-status-bar" id="save-status-bar"></div>
 
 <!-- ADD NEW BUTTON — shown on map selector screen -->

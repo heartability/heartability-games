@@ -167,6 +167,38 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   .top-row .graph-col { order:1; }
 }
 
+/* ── DAILY PREVIEW WINDOW — daily tab only. Replaces the map+graph top-row
+   with a single full-width preview (same width as the calendar) plus a
+   right-side menu (recent history / energy / weather / locations). ── */
+#daily-preview-window { display:none; }
+.dp-body { display:flex; min-height:340px; }
+.dp-main { flex:1; min-width:0; padding:18px 20px; overflow-y:auto; }
+.dp-view { display:none; }
+.dp-section-label { font-family:var(--font-game); font-size:12px; letter-spacing:1.2px; text-transform:uppercase; color:#aaa; margin-bottom:12px; }
+#dp-day-stage { position:relative; width:100%; height:min(60vh,520px); background:#cdd3ec; border:1.5px solid var(--purple); overflow:hidden; }
+.dp-climate-dot { display:inline-block; width:11px; height:11px; border-radius:50%; border:1.5px solid; margin-right:8px; vertical-align:middle; }
+.dp-menu { width:200px; flex-shrink:0; background:var(--cream-dk); border-left:2px solid #bbb; display:flex; flex-direction:column; }
+.dp-menu-btn {
+  background:none; border:none; border-bottom:1.5px solid rgba(0,0,0,.08);
+  font-family:var(--font-hand); font-size:clamp(14px,1.2vw,17px); color:#666;
+  padding:16px 16px; text-align:left; cursor:pointer; transition:background .12s, color .12s;
+}
+.dp-menu-btn:last-child { border-bottom:none; }
+.dp-menu-btn:hover { background:rgba(101,121,226,.1); color:#333; }
+.dp-menu-btn.active { background:var(--purple); color:#fff; }
+
+.weather-report { display:flex; align-items:flex-end; justify-content:center; gap:26px; flex-wrap:wrap; padding:20px 10px 10px; }
+.weather-circle-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.weather-circle { border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.weather-circle-pct { font-family:var(--font-game); font-size:13px; color:#333; text-shadow:0 1px 3px rgba(255,255,255,.6); }
+.weather-circle-label { font-family:var(--font-hand); font-size:15px; color:#555; text-transform:capitalize; }
+
+@media (max-width:700px) {
+  .dp-body { flex-direction:column; }
+  .dp-menu { width:100%; flex-direction:row; flex-wrap:wrap; border-left:none; border-top:2px solid #bbb; }
+  .dp-menu-btn { flex:1 1 45%; text-align:center; }
+}
+
 /* ── WINDOW ── */
 .window {
   background:var(--cream);
@@ -732,6 +764,30 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
         </div>
       </div>
 
+      <!-- DAILY PREVIEW WINDOW (daily tab only) — merges the map+graph area into
+           one full-width preview with a right-side menu (recent / energy /
+           weather / locations). Toggled by enterDailyView() / showMapSelectorForCurrentMode(). -->
+      <div class="window" id="daily-preview-window">
+        <div class="window-titlebar"><span id="dp-window-title">recent activity</span></div>
+        <div class="dp-body">
+          <div class="dp-main" id="dp-main">
+            <div class="dp-view" id="dp-view-recent"></div>
+            <div class="dp-view" id="dp-view-day">
+              <div id="dp-day-stage"></div>
+            </div>
+            <div class="dp-view" id="dp-view-energy"></div>
+            <div class="dp-view" id="dp-view-weather"></div>
+            <div class="dp-view" id="dp-view-locations"></div>
+          </div>
+          <div class="dp-menu">
+            <button class="dp-menu-btn active" data-view="recent" onclick="setDailyPreviewView('recent')">recent history</button>
+            <button class="dp-menu-btn" data-view="energy" onclick="setDailyPreviewView('energy')">energy over time</button>
+            <button class="dp-menu-btn" data-view="weather" onclick="setDailyPreviewView('weather')">weather report</button>
+            <button class="dp-menu-btn" data-view="locations" onclick="setDailyPreviewView('locations')">commonly visited</button>
+          </div>
+        </div>
+      </div>
+
       <!-- CALENDAR -->
       <div class="window" id="cal-window">
         <div class="window-titlebar">
@@ -837,6 +893,19 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     <div class="day-body" style="padding:18px 20px 22px;">
       <div class="loc-list" id="inv-entry-list"></div>
       <div class="day-list-empty" id="inv-entry-empty" style="display:none;">you haven't tagged this in any of your matrix entries yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOCATION HISTORY POPUP: every daily entry logged at one commonly-visited location -->
+<div class="day-overlay" id="loc-history-overlay" onclick="handleLocHistoryOverlayClick(event)">
+  <div class="day-window">
+    <div class="day-titlebar">
+      <span id="loc-history-title">location</span>
+      <span class="day-close" onclick="closeLocHistoryPopup()">✕</span>
+    </div>
+    <div class="day-body" style="padding:18px 20px 22px;">
+      <div class="loc-list" id="loc-history-list"></div>
     </div>
   </div>
 </div>
@@ -963,6 +1032,18 @@ let weekPage      = 0;
 let graphMode     = 'week';   // 'week' | 'month'
 let graphMonth    = new Date().getMonth();
 let graphYear     = new Date().getFullYear();
+
+// daily preview window state ('recent' | 'day' | 'energy' | 'weather' | 'locations')
+let dpView = 'recent';
+// mirrors WEATHER_CATS in daily.html / dream.html — the emotional-climate colors
+// used across the dayquest builder maps, reused here so the weather report reads as the same system.
+const DP_WEATHER_ORDER  = ['sunny','rainy','windy','snowy'];
+const DP_WEATHER_COLORS = {
+  sunny: { fill:'#f2e6a8', border:'#715f04' },
+  rainy: { fill:'#ae87e2', border:'#260156' },
+  windy: { fill:'#a3eac9', border:'#046957' },
+  snowy: { fill:'#6cd1ea', border:'#033f50' },
+};
 
 // popup state
 let activeDayKey  = null;
@@ -1350,7 +1431,7 @@ function openDayPopup(dateStr) {
   const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at||a.entry_date) - new Date(b.created_at||b.entry_date));
 
   if (currentMode === 'daily') {
-    if (saves.length) renderDailyMatrixWindow(saves[0].id);
+    if (saves.length) openDailyDayInPreview(dateStr);
     return;
   }
 
@@ -1392,7 +1473,7 @@ function closeDayPopup() {
   activeSaveId = null;
 }
 function handleDayOverlayClick(e) { if (e.target === document.getElementById('day-overlay')) closeDayPopup(); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopup(); closeCosmicPhasePopup(); closeInvEntryPopup(); } });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopup(); closeCosmicPhasePopup(); closeInvEntryPopup(); closeLocHistoryPopup(); } });
 
 async function openMatrixView(saveId) {
   activeSaveId = saveId;
@@ -1467,6 +1548,9 @@ async function loadEntries() {
 // ── MAP SELECTOR (dream / completed) ──────────────────────
 async function showMapSelectorForCurrentMode(){
   viewingSelector = true;
+  document.querySelector('.top-row').style.display = 'grid';
+  document.getElementById('daily-preview-window').style.display = 'none';
+  homeGraphWindow();
   document.getElementById('map-selector').style.display = 'block';
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('map-sel-title').textContent = currentMode === 'completed' ? 'completed maps' : 'your maps';
@@ -1525,15 +1609,12 @@ async function enterDailyView(){
   document.getElementById('map-selector').style.display = 'none';
   document.getElementById('main-content').style.display = 'flex';
   document.getElementById('win-back-btn').style.display = 'none';
-  document.getElementById('map-window-label').textContent = '';
-  document.getElementById('map-window-title').textContent = 'pick a day below';
-  document.getElementById('map-window-type').textContent = '';
-  document.getElementById('map-svg-wrap').innerHTML = '<div class="daily-window-empty">click a day on the calendar to preview it here</div>';
+  document.querySelector('.top-row').style.display = 'none';
+  document.getElementById('daily-preview-window').style.display = 'block';
   await loadDailyEntries();
   renderCalendar();
-  renderGraph();
-  // Default preview: most recent entry (allSaves is entry_date-ascending, so the last one).
-  if (allSaves.length) await renderDailyMatrixWindow(allSaves[allSaves.length - 1].id);
+  // Default preview: last three locations tracked.
+  setDailyPreviewView('recent');
 }
 async function loadDailyEntries(){
   const { data, error } = await sb.from('daily_matrix')
@@ -1548,17 +1629,155 @@ async function loadDailyEntries(){
   graphMonth = new Date().getMonth();
   graphYear  = new Date().getFullYear();
 }
-// Renders one daily entry's matrix into the persistent map-window preview —
-// the sole way daily entries are viewed now (no popup for this tab).
+
+// The energy graph is a single shared DOM node (#graph-window) reused by both
+// the dream/completed top-row and the daily preview's "energy over time" view —
+// homeGraphWindow() puts it back in the top-row grid whenever another tab needs it.
+function homeGraphWindow(){
+  const gw = document.getElementById('graph-window');
+  const gc = document.getElementById('graph-col');
+  if (gw && gc && gw.parentElement !== gc) gc.appendChild(gw);
+}
+
+function showDpSubview(name){
+  ['recent','day','energy','weather','locations'].forEach(n => {
+    document.getElementById('dp-view-' + n).style.display = (n === name) ? 'block' : 'none';
+  });
+}
+
+// Menu-driven views (recent history / energy / weather / locations) — clicking a
+// calendar day or a graph dot instead routes through openDailyDayInPreview below.
+function setDailyPreviewView(view){
+  dpView = view;
+  document.querySelectorAll('.dp-menu-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  if (view === 'energy')         renderDpEnergyView();
+  else if (view === 'weather')   renderDpWeatherView();
+  else if (view === 'locations') renderDpLocationsView();
+  else                            renderDpRecentView();
+}
+
+function renderDpRecentView(){
+  showDpSubview('recent');
+  document.getElementById('dp-window-title').textContent = 'recent activity';
+  const wrap = document.getElementById('dp-view-recent');
+  const recent = allSaves.slice(-3).reverse(); // most recent first
+  if (!recent.length){
+    wrap.innerHTML = '<div class="day-list-empty">no daily entries yet — start today\'s quest to begin your archive</div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="dp-section-label">your last ${recent.length === 1 ? 'location' : 'three locations'} tracked</div>
+    <div class="loc-list">${recent.map(dpLocRowHTML).join('')}</div>`;
+  recent.forEach(s => { document.getElementById('dp-loc-row-' + s.id).onclick = () => openDailyDayInPreview(s.entry_date); });
+}
+function dpLocRowHTML(s){
+  const cat = s.location_data && s.location_data.cat;
+  const c = DP_WEATHER_COLORS[cat];
+  const dot = c ? `<span class="dp-climate-dot" style="background:${c.fill};border-color:${c.border};"></span>` : '';
+  return `<div class="loc-row" id="dp-loc-row-${s.id}">
+    <span class="loc-name">${dot}${escapeHtml(locationLabel(s))}</span>
+    <span style="display:flex;align-items:center;gap:10px;">
+      <span class="loc-time">${escapeHtml(formatDateLabel(s.entry_date))}</span>
+      <span class="loc-arrow">→</span>
+    </span>
+  </div>`;
+}
+
+function renderDpEnergyView(){
+  showDpSubview('energy');
+  document.getElementById('dp-window-title').textContent = 'energy over time';
+  const gw = document.getElementById('graph-window');
+  const container = document.getElementById('dp-view-energy');
+  if (gw.parentElement !== container) container.appendChild(gw);
+  renderGraph();
+}
+
+function renderDpWeatherView(){
+  showDpSubview('weather');
+  document.getElementById('dp-window-title').textContent = 'weather report';
+  const wrap = document.getElementById('dp-view-weather');
+  const counts = { sunny:0, rainy:0, windy:0, snowy:0 };
+  let total = 0;
+  allSaves.forEach(s => {
+    const cat = s.location_data && s.location_data.cat;
+    if (Object.prototype.hasOwnProperty.call(counts, cat)) { counts[cat]++; total++; }
+  });
+  if (!total){
+    wrap.innerHTML = '<div class="day-list-empty">no emotional climate data yet — log a dayquest to begin tracking</div>';
+    return;
+  }
+  const MIN_D = 46, MAX_D = 150;
+  wrap.innerHTML = `<div class="dp-section-label">emotional climate — ${total} ${total === 1 ? 'day' : 'days'} tracked</div>
+    <div class="weather-report">${DP_WEATHER_ORDER.map(id => {
+      const n = counts[id], pct = Math.round(n / total * 100);
+      const d = Math.round(MIN_D + Math.sqrt(n / total) * (MAX_D - MIN_D));
+      const c = DP_WEATHER_COLORS[id];
+      return `<div class="weather-circle-wrap">
+        <div class="weather-circle" style="width:${d}px;height:${d}px;background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.7), ${c.fill} 65%);border:3px solid ${c.border};">
+          <span class="weather-circle-pct">${pct}%</span>
+        </div>
+        <div class="weather-circle-label">${id}</div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+function renderDpLocationsView(){
+  showDpSubview('locations');
+  document.getElementById('dp-window-title').textContent = 'commonly visited locations';
+  const wrap = document.getElementById('dp-view-locations');
+  const groups = {};
+  allSaves.forEach(s => { const label = locationLabel(s); (groups[label] = groups[label] || []).push(s); });
+  const top = Object.entries(groups).sort((a, b) => b[1].length - a[1].length).slice(0, 3);
+  if (!top.length){
+    wrap.innerHTML = '<div class="day-list-empty">no locations tracked yet</div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="dp-section-label">your top ${top.length === 1 ? 'location' : 'three locations'}</div>
+    <div class="loc-list">${top.map(([label, entries], i) => `
+      <div class="loc-row" id="dp-top-loc-${i}">
+        <span class="loc-name">${escapeHtml(label)}</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="loc-time">${entries.length} ${entries.length === 1 ? 'visit' : 'visits'}</span>
+          <span class="loc-arrow">→</span>
+        </span>
+      </div>`).join('')}</div>`;
+  top.forEach(([label, entries], i) => {
+    document.getElementById('dp-top-loc-' + i).onclick = () => openLocationHistoryPopup(label, entries);
+  });
+}
+function openLocationHistoryPopup(label, entries){
+  document.getElementById('loc-history-title').textContent = label;
+  const sorted = entries.slice().sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
+  document.getElementById('loc-history-list').innerHTML = sorted.map((s, i) => `
+    <div class="loc-row" id="loc-hist-row-${i}">
+      <span class="loc-name">${escapeHtml(formatDateLabel(s.entry_date))}</span>
+      <span class="loc-arrow">→</span>
+    </div>`).join('');
+  sorted.forEach((s, i) => {
+    document.getElementById('loc-hist-row-' + i).onclick = () => { closeLocHistoryPopup(); openDailyDayInPreview(s.entry_date); };
+  });
+  document.getElementById('loc-history-overlay').classList.add('open');
+}
+function closeLocHistoryPopup(){ document.getElementById('loc-history-overlay').classList.remove('open'); }
+function handleLocHistoryOverlayClick(e){ if (e.target === document.getElementById('loc-history-overlay')) closeLocHistoryPopup(); }
+
+// Switches the preview to one date's matrix entry — used by calendar clicks,
+// graph dots, and the "commonly visited" popup. No menu item stays highlighted.
+async function openDailyDayInPreview(dateStr){
+  const saves = daysByKey[dateStr] || [];
+  if (!saves.length) return;
+  dpView = 'day';
+  document.querySelectorAll('.dp-menu-btn').forEach(b => b.classList.remove('active'));
+  showDpSubview('day');
+  await renderDailyMatrixWindow(saves[0].id);
+}
+// Renders one daily entry's matrix into the preview's day view.
 async function renderDailyMatrixWindow(saveId){
   activeSaveId = saveId;
   const save = allSaves.find(s => s.id === saveId);
-  document.getElementById('map-window-label').textContent = '';
-  document.getElementById('map-window-title').textContent = save ? formatDateLabel(save.entry_date) : 'your day';
-  document.getElementById('map-window-type').textContent = 'daily entry';
-  document.getElementById('map-svg-wrap').innerHTML = '<div class="daily-window-empty">loading…</div>';
+  document.getElementById('dp-window-title').textContent = save ? formatDateLabel(save.entry_date) : 'your day';
+  document.getElementById('dp-day-stage').innerHTML = '<div class="daily-window-empty">loading…</div>';
   const data = await MatrixRender.assemble(sb, saveId, null, 'daily_matrix');
-  document.getElementById('map-svg-wrap').innerHTML =
+  document.getElementById('dp-day-stage').innerHTML =
     MatrixRender.buildHTML(data, `daily|${saveId}`, { showAddPhoto:false, showEditNotes:false, showFrame:false });
 }
 
@@ -2042,7 +2261,7 @@ async function jumpToInventoryRow(row){
   } else if (row.source === 'daily') {
     switchTab('daily');
     await enterDailyView();
-    renderDailyMatrixWindow(row.raw.id);
+    openDailyDayInPreview(row.raw.entry_date);
   } else if (row.source === 'cosmic') {
     switchTab('cosmic');
     await loadCosmicTab();
