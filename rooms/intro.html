@@ -101,8 +101,6 @@ html, body {
   height: auto;
 }
 
-.el-grass      { bottom: 0;   left: 0;      width: 100cqw; z-index: 2; }
-.el-sky        { top: 0;      left: 0;      width: 100cqw; height: 100cqh; z-index: 1; }
 .el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
 .el-fountain   { left: 50%;  bottom: 18cqh; width: 30cqw;  z-index: 3; transform: translateX(-50%); }
 .el-phonebooth { left: 8cqw;   bottom: 22cqh; width: 11cqw;  z-index: 3; }
@@ -204,6 +202,11 @@ html, body {
 <div class="scene room-stage">
 
 
+  <!-- Grass ground -->
+  <div class="garden-el el-sky">
+    <img src="../assets/elements/garden-sky.png" alt="">
+  </div>
+
   <!-- Heart guide -->
   <div class="char-heart" id="char-heart">
     <div class="thought-bubble" id="cloud-bubble"></div>
@@ -212,6 +215,8 @@ html, body {
 
 </div>
 </div>
+
+
 
 <!-- FOUNTAIN MODAL: donate or wish choice -->
 <div class="hg-modal-overlay" id="fountain-overlay">
