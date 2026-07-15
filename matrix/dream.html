@@ -44,17 +44,19 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .content-panel.active { display:flex; }
 .content-panel.active:not(.iframe-mode) { background:transparent; border:none; box-shadow:none; }
 
-/* ── IFRAME PANEL — anchored near the top like every other step (leaving
-   #save-continue-bar's strip free at the bottom), just wider than the
-   back-wall proportions so builder UIs have room to breathe. Unlike other
-   steps it isn't fixed to the viewport: if its content runs taller than the
-   screen, it scrolls away with the whole page (via html/body's overflow-y)
-   instead of clipping into its own internal scrollbar. ── */
+/* ── IFRAME PANEL — anchored near the top like every other step, just wider
+   than the back-wall proportions so builder UIs have room to breathe. Unlike
+   other steps it isn't fixed to the viewport: it sits in normal document
+   flow, so if its content runs taller than the screen, the whole page grows
+   and scrolls with it (via html/body's overflow-y) instead of clipping into
+   its own internal scrollbar — and #save-continue-bar, which follows right
+   after it in the DOM, trails along below instead of floating on top. ── */
 .game-iframe { width:100%; height:70vh; border:none; display:block; flex-shrink:0; }
 .content-panel.iframe-mode {
   border:none; box-shadow:none; background:transparent;
-  position:absolute; top:var(--bw-top); left:50%; transform:translateX(-50%);
-  width:min(1050px, 94vw); height:auto; margin-bottom:100px;
+  position:relative; top:auto; left:auto;
+  width:min(1050px, 94vw); height:auto;
+  margin:var(--bw-top) auto 0;
   overflow:visible;
 }
 
@@ -401,6 +403,20 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   transform: none !important; box-shadow: 3px 3px 0 #3a4aaa;
 }
 
+/* Iframe-mode steps (bingo, builders) now grow taller than the viewport in
+   normal flow (see .content-panel.iframe-mode) — keep the continue bar in
+   flow right after it instead of pinned to the viewport bottom, so it
+   trails the frame instead of floating on top of it. Mobile keeps its own
+   fixed footer (see the max-width:768px block) since that panel scrolls
+   internally instead of growing the page. */
+@media (min-width:769px) {
+  body:has(.content-panel.iframe-mode) .save-continue-bar {
+    position: static;
+    height: auto;
+    padding: 24px 0 60px;
+  }
+}
+
 .save-status-bar {
   position: fixed;
   bottom: 8px; left: 50%;
@@ -483,6 +499,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
      the centering pushed the top rows up and under the fixed nav bar
      instead of just scrolling. Start from the top so it only scrolls down. */
   .step-panel { justify-content:flex-start; }
+  /* The welcome step is short and never overflows, so it can stay vertically
+     centered on mobile instead of hugging the top like the taller steps. */
+  .welcome-panel { justify-content:center; }
   /* iframe panels (bingo, builders) used to scroll away with the whole page —
      tall content (like the bingo board) would scroll its top rows up under
      the fixed nav bar. Pin the panel below the nav and scroll within it instead. */

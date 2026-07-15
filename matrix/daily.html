@@ -104,14 +104,15 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .char-heart {
   position:fixed; left:4vw; bottom:6vh;
   width:clamp(100px,14vw,220px);
-  z-index:400; cursor:default;
+  z-index:400; cursor:pointer;
 }
 .char-heart .char-img {
   display:block; width:100%; height:auto;
   animation:idle-pulse 3.6s ease-in-out 1s infinite;
 }
 
-/* ── THOUGHT BUBBLE ── */
+/* ── THOUGHT BUBBLE — hidden until the heart is hovered or clicked, so it
+   doesn't sit permanently on top of whatever step content is behind it ── */
 .thought-bubble {
   position:absolute; left:calc(100% - 8px); bottom:60%;
   min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
@@ -120,6 +121,16 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   font-size:clamp(13px,1.3vw,17px); color:#000; text-align:center;
   line-height:1.5;
   z-index:21;
+  opacity:0;
+  transform:scale(0.92) translateY(4px);
+  transition:opacity .2s ease, transform .2s ease;
+  pointer-events:none;
+}
+.char-heart:hover .thought-bubble,
+.thought-bubble.pinned {
+  opacity:1;
+  transform:scale(1) translateY(0);
+  pointer-events:auto;
 }
 .bubble-btns { display:none; } /* buttons moved to back wall */
 
@@ -914,26 +925,29 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .lib-overlay-close:hover { color:#E8478B; }
 .lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }
 
-/* ── DAYQUEST BUILDER MODAL ── */
+/* ── DAYQUEST BUILDER MODAL ──
+   The card sits in normal document flow (padding-top:var(--bw-top) keeps it
+   below the fixed nav) instead of being position:absolute, so .dq-foot below
+   it in the DOM naturally trails underneath — even if the card's content
+   stretches the page taller than the viewport — rather than floating fixed
+   over whatever's currently in view. ── */
 .dq-overlay {
   position:fixed; inset:0; z-index:300;
   background:none;
-  display:none; align-items:flex-start; justify-content:flex-start;
-  padding:0;
+  display:none; flex-direction:column; align-items:center;
+  padding:var(--bw-top) 0 40px;
   pointer-events:none;
 }
 .dq-overlay.open { display:flex; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .dq-card {
-  position:absolute;
-  top:var(--bw-top); left:var(--bw-left);
   width:var(--bw-width); height:auto; min-height:var(--bw-height);
   max-height:none;
-  padding:28px 36px;
+  padding:18px 20px; font-family:var(--font-hand);
   background:var(--back-wall);
   border:3px solid var(--blue);
   box-shadow:0 0 0 3px var(--blue), 6px 10px 40px rgba(0,0,0,.4);
-  padding:18px 20px; font-family:var(--font-hand);
   pointer-events:auto;
+  flex-shrink:0;
 }
 .dq-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
 .dq-close { font-size:32px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
@@ -1010,11 +1024,9 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .dq-climate.snowy .dq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
 
 .dq-foot {
-  position:fixed;
-  bottom:0; left:0; right:0;
-  height:calc(21% - 44px);
   display:none; align-items:center; justify-content:center;
-  z-index:302; pointer-events:none;
+  margin-top:20px; flex-shrink:0;
+  pointer-events:none;
 }
 .dq-overlay.open .dq-foot { display:flex; }
 .dq-foot > * { pointer-events:all; }
@@ -1481,6 +1493,11 @@ function setBubble(text, buttons=[]) {
     wall.classList.remove('active');
   }
 }
+
+// Tapping the heart on touch devices (no hover) toggles the bubble open/closed.
+document.getElementById('char-heart').addEventListener('click', () => {
+  document.getElementById('thought-bubble').classList.toggle('pinned');
+});
 
 // ── CONTENT PANEL HELPERS ────────────────────────────────
 function showPanel(html) {
