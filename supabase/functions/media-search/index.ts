@@ -26,8 +26,17 @@ serve(async (req) => {
       })
     }
 
-    const omdbRes = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=${apiKey}`)
-    const omdbData = await omdbRes.json()
+    // Without a bound here, a slow OMDB response hangs the function until Supabase's own
+    // request timeout kicks in, which can take far longer than a client is willing to wait.
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 8000)
+    let omdbRes, omdbData
+    try {
+      omdbRes = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=${apiKey}`, { signal: controller.signal })
+      omdbData = await omdbRes.json()
+    } finally {
+      clearTimeout(timeout)
+    }
 
     if (omdbData.Response === 'False' || !Array.isArray(omdbData.Search)) {
       return new Response(JSON.stringify([]), {

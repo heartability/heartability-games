@@ -726,6 +726,29 @@ function toggleArcMap() {
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseYear(v) { const n = parseInt(String(v || '').trim(), 10); return Number.isFinite(n) ? n : null; }
 
+async function _fetchJSON(url, timeoutMs) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+// Neither the Google Books nor the Supabase media-search fetches had any timeout, so a slow
+// response (most often a cold-starting Supabase Edge Function) just hung with the button stuck
+// on "searching…" until the user gave up and clicked again. Bound each attempt and retry once
+// automatically so that cold-start latency resolves itself instead of requiring a manual retry.
+async function _fetchJSONWithRetry(url) {
+  try {
+    return await _fetchJSON(url, 8000);
+  } catch (e) {
+    if (e.name !== 'AbortError') throw e;
+    return await _fetchJSON(url, 15000);
+  }
+}
+
 // ── TITLE SEARCH ────────────────────────────────────────────────────────
 // Google's Books API caps unauthenticated (keyless) requests at a quota of 0 —
 // an API key is required even for client-side use. Restrict the key by HTTP
@@ -791,8 +814,7 @@ async function runSearch(q) {
       // intitle: biases matches toward the title field (cuts down on random full-text/description
       // hits), and maxResults=40 (the API's max) widens the pool re-ranked by ratingsCount below —
       // Google Books' own relevance order otherwise buries popular titles under old public-domain scans.
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${GOOGLE_BOOKS_API_KEY}`);
-      const data = await res.json();
+      const data = await _fetchJSONWithRetry(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${GOOGLE_BOOKS_API_KEY}`);
       if (seq !== searchSeq) return; // a newer search superseded this one — drop it
       if (data.error) {
         console.error('[media search] google books error:', data.error);
@@ -818,8 +840,7 @@ async function runSearch(q) {
       // ratingsCount is the closest real signal it exposes, so re-rank fetched candidates by it.
       items.sort((a, b) => b.ratingsCount - a.ratingsCount);
     } else {
-      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
+      const data = await _fetchJSONWithRetry(`${SUPABASE_FUNCTIONS_URL}?q=${encodeURIComponent(q)}`);
       if (seq !== searchSeq) return;
       if (data.error) {
         console.error('[media search] media-search function error:', data.error);
@@ -841,7 +862,11 @@ async function runSearch(q) {
     renderSearchResults();
   } catch (e) {
     console.error('[media search] failed:', e);
-    if (seq === searchSeq) showSearchMessage("search isn't working right now — enter it manually below.");
+    if (seq === searchSeq) {
+      showSearchMessage(e.name === 'AbortError'
+        ? "search is taking too long right now — try again, or enter it manually below."
+        : "search isn't working right now — enter it manually below.");
+    }
   } finally {
     if (seq === searchSeq) { goBtn.disabled = false; goBtn.textContent = 'search'; }
   }

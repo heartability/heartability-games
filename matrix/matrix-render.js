@@ -84,6 +84,34 @@
     island:"../assets/elements/maps/island.png", forest:"../assets/elements/maps/forest.png",
   };
 
+  // ── PHOTO FRAMES (mirrors PHOTO_FRAMES in dream.html/daily.html) ──
+  // Each frame also has a solid-silhouette mask (assets/.../frames/masks/,
+  // generated with scipy.ndimage.binary_fill_holes over the frame's alpha
+  // channel) applied via CSS mask-image on the photo box, so the photo is
+  // truly clipped to the frame's outline, corners included.
+  const PHOTO_FRAME_BASE = '../assets/elements/stickers/frames/';
+  const PHOTO_FRAME_MASK_BASE = '../assets/elements/stickers/frames/masks/';
+  const PHOTO_FRAMES = [
+    { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png',                   mask: 'frame-polaroid-mask.png' },
+    { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png',         mask: 'frame-gold-beaded-square-mask.png' },
+    { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png',           mask: 'frame-gold-heart-shell-mask.png' },
+    { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png',mask: 'frame-green-gold-ornate-rectangle-mask.png' },
+    { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png',      mask: 'frame-lace-heart-floral-red-mask.png' },
+    { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png',    mask: 'frame-scallop-black-rectangle-mask.png' },
+  ];
+  const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
+  const PHOTO_FRAME_MASK_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.mask]));
+  // Shared inline CSS (both prefixed and standard) that clips an element to a
+  // frame's mask, stretched to match that element's own box exactly.
+  function photoFrameMaskStyle(frameKey){
+    const maskUrl = PHOTO_FRAME_MASK_BASE + (PHOTO_FRAME_MASK_FILE[frameKey] || PHOTO_FRAME_MASK_FILE.polaroid);
+    return `mask-image:url(${maskUrl});-webkit-mask-image:url(${maskUrl});`
+      + `mask-size:100% 100%;-webkit-mask-size:100% 100%;`
+      + `mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;`
+      + `mask-position:center;-webkit-mask-position:center;`;
+  }
+  const NO_FRAME_KEY = 'none'; // clean cutout PNGs: no overlay, no white mat, no cropping
+
   // ── PURE HELPERS ──────────────────────────────────────────
   function seedRand(str){
     let h = 1779033703 ^ (str ? str.length : 0);
@@ -125,12 +153,14 @@
     }
     if (loc.terrain && TERRAIN_IMGS[loc.terrain]) {
       body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}" `
-        + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`;
+        + `href="${TERRAIN_IMGS[loc.terrain]}" preserveAspectRatio="xMidYMid meet"/>`
+        + `<text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000" `
+        + `font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${esc(loc.terrain)} of</text>`;
     } else {
       body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.55)" stroke="#6e83d3" stroke-width="1.5"/>`;
     }
     if (loc.feeling) {
-      body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#2a1e14" `
+      body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000" `
         + `font-family="ZoesHandwriting,cursive" font-size="17" font-weight="bold">${esc(loc.feeling)}</text>`;
     }
     return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"><defs>${defs}</defs>${body}</svg>`;
@@ -191,19 +221,70 @@
   // dream.html — keep in sync if those cards change).
   const STATIONERY_BASE = '../assets/elements/stickers/stationary/';
   const STATIONERY_ITEMS = [
-    { key:'airmail-letter',         file:'stationary-airmail-letter.png',           box:{l:4.2, t:16.7, w:91.6, h:70.8} },
-    { key:'gift-tag-olive',         file:'stationary-gift-tag-olive.png',           box:{l:4.2, t:37.5, w:91.6, h:58.3} },
-    { key:'label-bracket-green',    file:'stationary-label-bracket-green.png',      box:{l:8.3, t:16.7, w:83.4, h:66.6} },
-    { key:'label-bracket-navy',     file:'stationary-label-bracket-navy.png',       box:{l:12.5,t:12.5, w:75,   h:75} },
-    { key:'lace-doily-oval',        file:'stationary-lace-doily-oval-frame.png',    box:{l:25,  t:20.8, w:54.2, h:54.2} },
-    { key:'library-card',           file:'stationary-library-card.png',             box:{l:0,   t:37.5, w:100,  h:62.5} },
-    { key:'notecard-daisies',       file:'stationary-notecard-daisies.png',         box:{l:4.2, t:8.3,  w:62.5, h:83.4} },
-    { key:'notecard-strawberry',    file:'stationary-notecard-strawberry.png',      box:{l:37.5,t:8.3,  w:58.3, h:70.9} },
-    { key:'notepaper-cowboy',       file:'stationary-notepaper-cowboy-western.png', box:{l:12.5,t:29.2, w:75,   h:50} },
-    { key:'notepaper-mushroom-cat', file:'stationary-notepaper-mushroom-cat.png',   box:{l:54.2,t:12.5, w:45.8, h:62.5} },
+    { key:'airmail-letter',         label:'airmail',       file:'stationary-airmail-letter.png',           box:{l:4.2, t:16.7, w:91.6, h:70.8} },
+    { key:'gift-tag-olive',         label:'gift tag',      file:'stationary-gift-tag-olive.png',           box:{l:4.2, t:37.5, w:91.6, h:58.3} },
+    { key:'label-bracket-green',    label:'green label',   file:'stationary-label-bracket-green.png',      box:{l:8.3, t:16.7, w:83.4, h:66.6} },
+    { key:'label-bracket-navy',     label:'navy label',    file:'stationary-label-bracket-navy.png',       box:{l:12.5,t:12.5, w:75,   h:75} },
+    { key:'lace-doily-oval',        label:'lace doily',    file:'stationary-lace-doily-oval-frame.png',    box:{l:25,  t:20.8, w:54.2, h:54.2} },
+    { key:'library-card',           label:'library card',  file:'stationary-library-card.png',             box:{l:0,   t:37.5, w:100,  h:62.5} },
+    { key:'notecard-daisies',       label:'daisies',       file:'stationary-notecard-daisies.png',         box:{l:4.2, t:8.3,  w:62.5, h:83.4} },
+    { key:'notecard-strawberry',    label:'strawberry',    file:'stationary-notecard-strawberry.png',      box:{l:37.5,t:8.3,  w:58.3, h:70.9} },
+    { key:'notepaper-cowboy',       label:'cowboy',        file:'stationary-notepaper-cowboy-western.png', box:{l:12.5,t:29.2, w:75,   h:50} },
+    { key:'notepaper-mushroom-cat', label:'mushroom cat',  file:'stationary-notepaper-mushroom-cat.png',   box:{l:54.2,t:12.5, w:45.8, h:62.5} },
   ];
   const STATIONERY_FILE = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.file]));
   const STATIONERY_BOX  = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.box]));
+
+  // Sticker picker categories — static lists of filenames living in
+  // assets/elements/stickers/<category>/ (no server-side directory listing on
+  // a static site, so the picker hardcodes them; mirrors STICKER_CATEGORIES
+  // in dream.html/daily.html).
+  const STICKER_BASE = '../assets/elements/stickers/';
+  const STICKER_CATEGORIES = {
+    'affirmations': { label: 'affirmations', files: [
+      'affirmation-banner-let-it-come-go.png','affirmation-license-plate-meant-for-you.png',
+      'affirmation-sticker-taking-time.png','affirmation-ticket-beautiful-life.png','affirmation-ticket-good-things-coming.png',
+    ]},
+    'angel-numbers': { label: 'angel numbers', files: [
+      'angel-number-111-intuition.png','angel-number-222-alignment.png','angel-number-333-support.png',
+      'angel-number-444-protection.png','angel-number-555-change.png','angel-number-777-luck.png',
+      'angel-number-888-balance.png','angel-number-999-release.png',
+    ]},
+    'ephemera': { label: 'ephemera', files: [
+      'ephemera-butterfly-pink-green.png','ephemera-butterfly-stamp-korea.png','ephemera-butterfly-white-lace.png',
+      'ephemera-cloud.png','ephemera-disco-ball.png','ephemera-fish-bottle-green.png','ephemera-key-head-profile.png',
+      'ephemera-lace-heart-doily-blue.png','ephemera-locket.png','ephemera-lovers-eye-pearl-brooch.png',
+      'ephemera-moon-woman-vintage.png','ephemera-museum-of-everything-ive-loved.png','ephemera-spiral-silver.png',
+      'ephemera-star-embroidered-silver.png','ephemera-watercolor-flower-pink.png','ephemera-wax-seal-rose.png',
+    ]},
+    'fruit-stickers': { label: 'fruit stickers', files: [
+      'fruit-sticker-appealing-bananas.png','fruit-sticker-banana-fruit-love-heart.png','fruit-sticker-berry-good-strawberry.png',
+      'fruit-sticker-chill-peel-asian-pear.png','fruit-sticker-eat-more-veggies.png','fruit-sticker-eat-squeeze-me-lemon.png',
+      'fruit-sticker-extra-fruity.png','fruit-sticker-go-go-mango.png','fruit-sticker-juicy-plantains.png',
+      'fruit-sticker-lime-crush.png','fruit-sticker-patience-is-sweet-peach.png','fruit-sticker-pear-fect.png',
+      'fruit-sticker-ripe-n-juicy.png','fruit-sticker-take-me-to-lunch-chiquita.png','fruit-sticker-that-a-way-groundhog.png',
+      'fruit-sticker-the-best-banana-ecuador.png','fruit-sticker-thumping-good-watermelon-bunny.png',
+    ]},
+    'fruits': { label: 'fruits', files: [
+      'fruit-circle-blood-orange.png','fruit-circle-blueberry.png','fruit-circle-feijoa.png','fruit-circle-guava.png',
+      'fruit-circle-kiwi.png','fruit-circle-lime.png','fruit-circle-orange.png','fruit-circle-papaya.png',
+      'fruit-circle-peach.png','fruit-circle-pineapple.png','fruit-circle-pomegranate.png','fruit-circle-watermelon.png',
+      'fruit-glitter-apple.png','fruit-glitter-cherries.png','fruit-glitter-grapes.png','fruit-glitter-lemon.png',
+      'fruit-glitter-strawberry.png','fruit-glitter-watermelon-slice.png',
+    ]},
+    'gems': { label: 'gems', files: [
+      'gem-baguette-blue.png','gem-cabochon-oval-blue.png','gem-cluster-cloud-emerald.png','gem-cluster-crescent-moon-blue.png',
+      'gem-cluster-flower-green.png','gem-cluster-flower-pink.png','gem-emerald-cut-pink.png','gem-heart-fuchsia.png',
+      'gem-oval-green.png','gem-pear-mint.png','gem-pear-teal.png','gem-rough-blue-green.png','gem-rough-green.png',
+      'gem-round-rose.png','gem-sparkle-purple.png','gem-star-gold.png','gem-star-teal.png','gem-trillion-red.png',
+    ]},
+    'stars': { label: 'stars', files: [
+      'star-foil-blue.png','star-foil-gold.png','star-foil-lime.png','star-foil-pink.png','star-foil-rainbow.png',
+      'star-foil-red.png','star-foil-silver.png','star-foil-teal.png','star-glitter-blue.png','star-glitter-green.png',
+      'star-glitter-hot-pink.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-olive.png',
+      'star-glitter-orange.png','star-glitter-purple-pink.png','star-paint-blue.png',
+    ]},
+  };
 
   // Quadrant geometry for photo placement (matrix %). 2-col grid growing inward
   // from each quadrant's outer corner so photo bodies don't overlap.
@@ -220,18 +301,41 @@
     return { left: q.x0 + q.dx * col * PHOTO_COL_GAP, top: q.y0 + row * PHOTO_ROW_GAP };
   }
 
+  // Rotate & resize handles — shared by every draggable item kind (photo/
+  // sticker/text/map/bingo/char/book). Only emitted when opts.editable.
+  function itemHandles(kind, id){
+    return `<button class="adv-rotate-handle" type="button" data-kind="${kind}" data-id="${esc(id)}" title="rotate" aria-label="rotate">↻</button>
+      <button class="adv-resize-handle" type="button" data-kind="${kind}" data-id="${esc(id)}" title="resize" aria-label="resize">⤢</button>`;
+  }
+
   /* PORTABLE RENDER: data + stable seed string → matrix HTML.
      data = { dateLabel, mapName, mapType, zones, bingoScore(0-24), charState,
-              locationData, sidequestData, journalText, matrixImages[] }
+              locationData, sidequestData, journalText, matrixImages[],
+              matrixLayout{} }
      journalText isn't drawn on the matrix (no preview item) — it's only read
      by callers to prefill the "✎ notes" editor (see showEditNotes below).
-     opts = { showAddPhoto=true, showEditNotes=false, archiveHref=null }      */
+     opts = { showAddPhoto=true, showEditNotes=false, archiveHref=null,
+              editable=false }
+     editable=true additionally makes every item draggable/rotatable/
+     resizable (adv-draggable + handles), adds the +/★/Aa toolbar and the
+     explicit "save" button, and adds remove controls to stickers/text notes
+     (photos already get one either way — that's existing archive behavior).
+     Wire the actual interactions with createMatrixEditor(deps) — buildHTML
+     only emits the markup, it never touches Supabase itself.            */
   function buildHTML(data, seedStr, opts){
     data = data || {};
     opts = opts || {};
     const showAddPhoto  = opts.showAddPhoto !== false;
     const showEditNotes = !!opts.showEditNotes;
     const archiveHref   = opts.archiveHref || null;
+    const editable      = !!opts.editable;
+    // Class + data-* attrs for a draggable item's wrapper div — '' in
+    // non-editable mode, so the div just gets its plain kind class.
+    const dragClass = editable ? ' adv-draggable' : '';
+    const dragAttrs = (kind, id, itemRot, itemScale) => editable
+      ? ` data-kind="${kind}" data-id="${esc(id)}" data-rot="${itemRot}" data-scale="${itemScale}"`
+      : '';
+    const dragHandles = (kind, id) => editable ? itemHandles(kind, id) : '';
 
     const rnd = seedRand(seedStr || 'matrix');
     const jit = r => (rnd()*2-1)*r;
@@ -253,9 +357,10 @@
     const mapTop   = mapLayout.y != null ? mapLayout.y : (30+jit(2)).toFixed(1);
     const mapRot   = mapLayout.rot != null ? mapLayout.rot : rot(3);
     const mapScale = mapLayout.scale || 1;
-    const mapItem = `<div class="adv-item adv-map" style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
+    const mapItem = `<div class="adv-item adv-map${dragClass}"${dragAttrs('map','map',mapRot,mapScale)} style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
         <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
-        <div class="adv-cap">${esc(mapCap)}</div></div>`;
+        <div class="adv-cap">${esc(mapCap)}</div>
+        ${dragHandles('map','map')}</div>`;
 
     // BINGO (heart meter) → bottom-left (internal + action). Vertical striped
     // track with a pixel heart marker riding the fill line — matches the
@@ -270,11 +375,12 @@
     const bingoTop   = bingoLayout.y != null ? bingoLayout.y : (71+jit(2)).toFixed(1);
     const bingoRot   = bingoLayout.rot != null ? bingoLayout.rot : rot(3);
     const bingoScale = bingoLayout.scale || 1;
-    const bingoItem = `<div class="adv-item adv-bingo" style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
+    const bingoItem = `<div class="adv-item adv-bingo${dragClass}"${dragAttrs('bingo','bingo',bingoRot,bingoScale)} style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
         <div class="hm-box${hmFull ? ' hm-full' : ''}">
           <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
           <img class="hm-heart" src="${hmHeartImg}" alt="heart meter" style="bottom:${hmHeartPos}%">
-        </div></div>`;
+        </div>
+        ${dragHandles('bingo','bingo')}</div>`;
 
     // CHARACTER (infinity mirror archetype) → bottom-right (internal + feeling).
     const charStack = buildCharStack(data.charState);
@@ -284,7 +390,8 @@
     const charTop   = charLayout.y != null ? charLayout.y : (71+jit(2)).toFixed(1);
     const charRot   = charLayout.rot != null ? charLayout.rot : rot(3);
     const charScale = charLayout.scale || 1;
-    const charItem = charStack ? `<div class="adv-item adv-char" style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${esc(charName)}</div>` : ''}</div>` : '';
+    const charItem = charStack ? `<div class="adv-item adv-char${dragClass}"${dragAttrs('char','char',charRot,charScale)} style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${esc(charName)}</div>` : ''}
+        ${dragHandles('char','char')}</div>` : '';
 
     // LIBRARY BOOKS tagged to this entry → top-right (external + feeling).
     const bookLayout = layout.books || {};
@@ -297,9 +404,10 @@
       const bScale = saved.scale || 1;
       const cover = entry.cover_url_override || (entry.media && entry.media.cover_url);
       const title = (entry.media && entry.media.title) || 'untitled';
-      return `<div class="adv-item adv-book" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
+      return `<div class="adv-item adv-book${dragClass}"${dragAttrs('book',entry.id,bRot,bScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
           ${cover ? `<img class="adv-book-cover" src="${esc(cover)}" alt="">` : '<div class="adv-book-noimg"></div>'}
-          <div class="adv-cap">${esc(title)}</div></div>`;
+          <div class="adv-cap">${esc(title)}</div>
+          ${dragHandles('book', entry.id)}</div>`;
     }).join('');
 
     // Photos — start out placed inside their assigned quadrant (2-col grid so
@@ -319,7 +427,29 @@
         const slot = photoSlot(q, n);
         left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); pRot = rot(8);
       }
-      photos += `<div class="adv-photo" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${pRot}deg) scale(${scale});"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" type="button" data-url="${esc(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
+      // Photo removal is existing archive behavior too — always present,
+      // not gated on editable (only drag/rotate/resize handles are).
+      const removeBtn = `<button class="adv-photo-remove" type="button" data-url="${esc(img.url)}" title="remove photo" aria-label="remove photo">✕</button>`;
+      const photoAttrs = `${dragClass}"${dragAttrs('photo',img.url,pRot,scale)}`;
+      const photoHandles = dragHandles('photo', img.url);
+      if (img.frame === NO_FRAME_KEY) {
+        // Clean cutout PNG — no box, no white backing, no cropping.
+        photos += `<div class="adv-photo${photoAttrs} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${pRot}deg) scale(${scale});">
+            <img class="adv-photo-img-plain" src="${img.url}" alt="" onerror="this.parentElement.style.display='none'">
+            ${photoHandles}${removeBtn}</div>`;
+      } else {
+        const frameFile = PHOTO_FRAME_FILE[img.frame] || PHOTO_FRAME_FILE.polaroid;
+        const imgScale = img.imgScale || 1;
+        const imgPosX = img.imgPosX != null ? img.imgPosX : 50;
+        const imgPosY = img.imgPosY != null ? img.imgPosY : 50;
+        const imgRot = img.imgRot || 0;
+        photos += `<div class="adv-photo${photoAttrs} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${pRot}deg) scale(${scale});">
+            <div class="adv-photo-inner" style="${photoFrameMaskStyle(img.frame)}">
+              <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
+              <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
+            </div>
+            ${photoHandles}${removeBtn}</div>`;
+      }
     });
 
     // Stickers — freeform decorations, placed wherever they were last dragged to.
@@ -327,7 +457,8 @@
     (data.matrixStickers||[]).forEach(s => {
       if (!s || !s.url || !s.id) return;
       const sRot = s.rot || 0, sScale = s.scale || 1;
-      stickers += `<div class="adv-sticker" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});"><img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'"></div>`;
+      const removeBtn = editable ? `<button class="adv-sticker-remove" type="button" data-id="${esc(s.id)}" title="remove sticker" aria-label="remove sticker">✕</button>` : '';
+      stickers += `<div class="adv-sticker${dragClass}"${dragAttrs('sticker',s.id,sRot,sScale)} style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});"><img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'">${dragHandles('sticker',s.id)}${removeBtn}</div>`;
     });
 
     // Text notes — freeform, optionally set on a stationery card whose
@@ -336,13 +467,17 @@
     (data.matrixTexts||[]).forEach(t => {
       if (!t || !t.text || !t.id) return;
       const tRot = t.rot || 0, tScale = t.scale || 1;
+      const removeBtn = editable ? `<button class="mx-note-remove" type="button" data-id="${esc(t.id)}" title="remove text" aria-label="remove text">✕</button>` : '';
+      const noteHandles = dragHandles('text', t.id);
       if (t.stationery && STATIONERY_FILE[t.stationery]) {
         const box = STATIONERY_BOX[t.stationery];
-        texts += `<div class="mx-note stationery" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+        texts += `<div class="mx-note stationery${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
             <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
-            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div></div>`;
+            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div>
+            ${noteHandles}${removeBtn}</div>`;
       } else {
-        texts += `<div class="mx-note" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}</div>`;
+        texts += `<div class="mx-note${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}
+            ${noteHandles}${removeBtn}</div>`;
       }
     });
 
@@ -350,13 +485,24 @@
     const addBtn  = showAddPhoto  ? `<button class="matrix-photo-btn" type="button">+ photo</button>` : '';
     const noteBtn = showEditNotes ? `<button class="matrix-edit-notes" type="button">✎ notes</button>` : '';
     const archBtn = archiveHref   ? `<button class="matrix-archive-btn" type="button" data-href="${esc(archiveHref)}">archive →</button>` : '';
+    // Explicit "save" button — drag/rotate/resize already autosave per-gesture
+    // (see createMatrixEditor), but this batches every item's current
+    // on-screen position into one write, so rearranging a lot at once can't
+    // lose anything to overlapping autosaves.
+    const saveBtn = editable ? `<button class="matrix-save-btn" type="button">save</button>` : '';
+    // Add photo / sticker / text — centered below the matrix frame.
+    const toolbar = editable ? `<div class="matrix-toolbar">
+        <button class="matrix-tool-btn" type="button" data-tool="photo" title="add photo">&#43;</button>
+        <button class="matrix-tool-btn" type="button" data-tool="sticker" title="add sticker">&#9733;</button>
+        <button class="matrix-tool-btn" type="button" data-tool="text" title="add text">Aa</button>
+      </div>` : '';
 
     const bgStyle = opts.bgImage ? ` style="background:url('${opts.bgImage}') center/cover no-repeat"` : '';
     const frameClass = opts.showFrame ? ' framed' : '';
     return `<div class="step-panel matrix-panel">
       <div class="matrix-header">
         <div class="matrix-date">${esc(data.dateLabel||'')}</div>
-        ${addBtn}${noteBtn}${archBtn}
+        ${addBtn}${noteBtn}${archBtn}${saveBtn}
       </div>
       <div class="matrix-frame${frameClass}">
         <div class="adv-matrix"${bgStyle}>
@@ -373,6 +519,7 @@
           ${texts}
         </div>
       </div>
+      ${toolbar}
     </div>`;
   }
 
@@ -676,6 +823,764 @@
     return { open, close, destroy };
   }
 
+  // ── MATRIX EDITOR — drag/rotate/resize/pinch on every item, plus the
+  // add-photo (with frame + crop/pan/zoom/rotate), add-sticker, and add-text
+  // (with stationery) modals, and the explicit save button. This is the full
+  // interactive layer buildHTML's opts.editable markup expects to be wired
+  // up by. deps = { sb, table, getEntryId(), getUserId(), status(msg,color),
+  // onChange() } — onChange() is called after any edit that changes what's
+  // on the matrix (add/remove) so the host can re-render from fresh data;
+  // drag/rotate/resize/pinch update the DOM directly and autosave without
+  // forcing a full re-render (matches dream.html's original behavior). ──
+  const MATRIX_ITEM_TABLE = {
+    photo:   { column: 'matrix_images',   key: 'url' },
+    sticker: { column: 'matrix_stickers', key: 'id'  },
+    text:    { column: 'matrix_texts',    key: 'id'  },
+  };
+  // map/bingo/char are singleton layout slots and book entries are keyed by
+  // their media_submissions id — none of them live in their own array column
+  // like photos/stickers/text do, so their x/y/rot/scale overrides are stored
+  // together in one small matrix_layout jsonb column instead.
+  const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book']);
+
+  function createMatrixEditor(deps){
+    deps = deps || {};
+    const status = deps.status || function(){};
+    const onChange = deps.onChange || function(){};
+    const table = deps.table || 'dream_matrix';
+
+    // ── PERSISTENCE ──────────────────────────────────────────
+    async function updateMatrixLayoutItem(kind, id, patch){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!id || !sb || !entryId) return;
+      try {
+        const { data: row } = await sb.from(table)
+          .select('matrix_layout').eq('id', entryId).maybeSingle();
+        const layout = (row && row.matrix_layout) || {};
+        if (kind === 'book') {
+          const books = { ...(layout.books || {}) };
+          books[id] = { ...(books[id] || {}), ...patch };
+          layout.books = books;
+        } else {
+          layout[kind] = { ...(layout[kind] || {}), ...patch };
+        }
+        await sb.from(table).update({ matrix_layout: layout }).eq('id', entryId);
+      } catch(err){
+        console.error(`[matrix-render] layout ${kind} update failed:`, err);
+      }
+    }
+    async function updateMatrixItem(kind, id, patch){
+      if (LAYOUT_KINDS.has(kind)) return updateMatrixLayoutItem(kind, id, patch);
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      const cfg = MATRIX_ITEM_TABLE[kind];
+      if (!cfg || !id || !sb || !entryId) return;
+      try {
+        const { data: row } = await sb.from(table)
+          .select(cfg.column).eq('id', entryId).maybeSingle();
+        const items = Array.isArray(row && row[cfg.column]) ? row[cfg.column] : [];
+        const next = items.map(i => (i && i[cfg.key] === id) ? { ...i, ...patch } : i);
+        await sb.from(table).update({ [cfg.column]: next }).eq('id', entryId);
+      } catch(err){
+        console.error(`[matrix-render] ${kind} update failed:`, err);
+      }
+    }
+
+    // Explicit "save" button — reads every .adv-draggable's current on-screen
+    // position/rotation/scale straight from the DOM (scoped to rootEl) and
+    // writes it all in one update, atomically.
+    async function saveAllPositions(rootEl){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!sb || !entryId) return;
+      const btn = rootEl.querySelector('.matrix-save-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'saving…'; }
+      try {
+        const { data: row, error: readErr } = await sb.from(table)
+          .select('matrix_images, matrix_stickers, matrix_texts, matrix_layout')
+          .eq('id', entryId).maybeSingle();
+        if (readErr) throw readErr;
+        const images   = Array.isArray(row && row.matrix_images)   ? row.matrix_images.map(i => ({ ...i }))   : [];
+        const stickers = Array.isArray(row && row.matrix_stickers) ? row.matrix_stickers.map(i => ({ ...i })) : [];
+        const texts    = Array.isArray(row && row.matrix_texts)    ? row.matrix_texts.map(i => ({ ...i }))    : [];
+        const layout   = { ...((row && row.matrix_layout) || {}) };
+        if (layout.books) layout.books = { ...layout.books };
+
+        rootEl.querySelectorAll('.adv-draggable').forEach(el => {
+          const kind = el.dataset.kind, id = el.dataset.id;
+          const x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+          if (!kind || !id || Number.isNaN(x) || Number.isNaN(y)) return;
+          const rot = parseFloat(el.dataset.rot || '0');
+          const scale = parseFloat(el.dataset.scale || '1');
+
+          if (LAYOUT_KINDS.has(kind)) {
+            if (kind === 'book') layout.books[id] = { ...(layout.books[id] || {}), x, y, rot, scale };
+            else layout[kind] = { ...(layout[kind] || {}), x, y, rot, scale };
+            return;
+          }
+          const cfg = MATRIX_ITEM_TABLE[kind];
+          if (!cfg) return;
+          const arr = cfg.column === 'matrix_images' ? images : cfg.column === 'matrix_stickers' ? stickers : texts;
+          const idx = arr.findIndex(i => i && i[cfg.key] === id);
+          if (idx !== -1) arr[idx] = { ...arr[idx], x, y, rot, scale };
+        });
+
+        const { error } = await sb.from(table).update({
+          matrix_images: images, matrix_stickers: stickers, matrix_texts: texts, matrix_layout: layout,
+        }).eq('id', entryId);
+        if (error) throw error;
+        status('scrapbook saved ✓', '#6ab86a');
+      } catch(err){
+        console.error('[matrix-render] save failed:', err);
+        status('save failed — try again', '#E8478B');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'save'; }
+      }
+    }
+
+    // ── DRAG / ROTATE / RESIZE / PINCH — scoped to whichever rootEl the host
+    // calls attachInteractions() on (the live element containing the matrix,
+    // rebuilt on every render — so state below is per-attach, not module-
+    // global, and stale listeners never pile up across re-renders). ──
+    function attachInteractions(rootEl){
+      let dragState = null, rotateState = null, resizeState = null, pinchState = null;
+
+      rootEl.addEventListener('pointerdown', e => {
+        const item = e.target.closest('.adv-draggable');
+        rootEl.querySelectorAll('.adv-draggable.selected').forEach(el => {
+          if (el !== item) el.classList.remove('selected');
+        });
+        if (item) item.classList.add('selected');
+      });
+
+      // DRAG-TO-REPOSITION
+      rootEl.addEventListener('pointerdown', e => {
+        if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove, .adv-rotate-handle, .adv-resize-handle')) return;
+        const el = e.target.closest('.adv-draggable');
+        if (!el) return;
+        const frame = el.closest('.matrix-frame');
+        if (!frame) return;
+        el.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+        dragState = { el, frame, pointerId: e.pointerId, kind: el.dataset.kind, id: el.dataset.id, lastX: null, lastY: null };
+        e.preventDefault();
+      });
+      rootEl.addEventListener('pointermove', e => {
+        if (!dragState || dragState.pointerId !== e.pointerId) return;
+        const rect = dragState.frame.getBoundingClientRect();
+        let x = ((e.clientX - rect.left) / rect.width) * 100;
+        let y = ((e.clientY - rect.top) / rect.height) * 100;
+        x = Math.max(2, Math.min(98, x));
+        y = Math.max(2, Math.min(98, y));
+        dragState.el.style.left = x + '%';
+        dragState.el.style.top  = y + '%';
+        dragState.lastX = x; dragState.lastY = y;
+      });
+      rootEl.addEventListener('pointerup', e => {
+        if (!dragState || dragState.pointerId !== e.pointerId) return;
+        const { el, kind, id, lastX, lastY } = dragState;
+        el.classList.remove('dragging');
+        dragState = null;
+        if (lastX == null) return; // tapped without moving — nothing changed
+        updateMatrixItem(kind, id, { x: lastX, y: lastY });
+      });
+
+      // ROTATE handle
+      rootEl.addEventListener('pointerdown', e => {
+        const handle = e.target.closest('.adv-rotate-handle');
+        if (!handle) return;
+        e.stopPropagation(); e.preventDefault();
+        const el = handle.closest('.adv-draggable');
+        if (!el) return;
+        handle.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+        const rect = el.getBoundingClientRect();
+        rotateState = {
+          el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+          cx: rect.left + rect.width/2, cy: rect.top + rect.height/2,
+          startAngle: Math.atan2(e.clientY - (rect.top+rect.height/2), e.clientX - (rect.left+rect.width/2)) * 180/Math.PI,
+          startRot: parseFloat(el.dataset.rot || '0'),
+          scale: parseFloat(el.dataset.scale || '1'),
+          lastRot: null,
+        };
+      });
+      rootEl.addEventListener('pointermove', e => {
+        if (!rotateState || rotateState.pointerId !== e.pointerId) return;
+        const s = rotateState;
+        const angle = Math.atan2(e.clientY - s.cy, e.clientX - s.cx) * 180/Math.PI;
+        let rot = s.startRot + (angle - s.startAngle);
+        rot = ((rot + 180) % 360 + 360) % 360 - 180;
+        rot = +rot.toFixed(1);
+        s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${s.scale})`;
+        s.lastRot = rot;
+      });
+      rootEl.addEventListener('pointerup', e => {
+        if (!rotateState || rotateState.pointerId !== e.pointerId) return;
+        const { el, kind, id, lastRot } = rotateState;
+        el.classList.remove('dragging');
+        rotateState = null;
+        if (lastRot == null) return;
+        el.dataset.rot = lastRot;
+        updateMatrixItem(kind, id, { rot: lastRot });
+      });
+
+      // RESIZE handle
+      rootEl.addEventListener('pointerdown', e => {
+        const handle = e.target.closest('.adv-resize-handle');
+        if (!handle) return;
+        e.stopPropagation(); e.preventDefault();
+        const el = handle.closest('.adv-draggable');
+        if (!el) return;
+        handle.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+        resizeState = {
+          el, pointerId: e.pointerId, kind: handle.dataset.kind, id: handle.dataset.id,
+          cx, cy, startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)),
+          startScale: parseFloat(el.dataset.scale || '1'),
+          rot: parseFloat(el.dataset.rot || '0'),
+          lastScale: null,
+        };
+      });
+      rootEl.addEventListener('pointermove', e => {
+        if (!resizeState || resizeState.pointerId !== e.pointerId) return;
+        const s = resizeState;
+        const dist = Math.hypot(e.clientX - s.cx, e.clientY - s.cy);
+        let scale = s.startScale * (dist / s.startDist);
+        scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+        s.el.style.transform = `translate(-50%,-50%) rotate(${s.rot}deg) scale(${scale})`;
+        s.lastScale = scale;
+      });
+      rootEl.addEventListener('pointerup', e => {
+        if (!resizeState || resizeState.pointerId !== e.pointerId) return;
+        const { el, kind, id, lastScale } = resizeState;
+        el.classList.remove('dragging');
+        resizeState = null;
+        if (lastScale == null) return;
+        el.dataset.scale = lastScale;
+        updateMatrixItem(kind, id, { scale: lastScale });
+      });
+
+      // PINCH-TO-SCALE + TWIST-TO-ROTATE (touch only) — a second finger
+      // landing on an already-selected item replaces the small corner
+      // handles (fiddly to grab precisely on a touchscreen). One finger
+      // still just drags.
+      rootEl.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'touch') return;
+        if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
+        const el = e.target.closest('.adv-draggable.selected');
+        if (!el) return;
+        if (!pinchState || pinchState.el !== el) pinchState = { el, pts: new Map() };
+        pinchState.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pinchState.pts.size !== 2) return;
+        if (dragState && dragState.el === el) dragState = null;
+        el.classList.add('dragging');
+        const [p1, p2] = pinchState.pts.values();
+        Object.assign(pinchState, {
+          kind: el.dataset.kind, id: el.dataset.id,
+          startDist:  Math.max(10, Math.hypot(p2.x-p1.x, p2.y-p1.y)),
+          startAngle: Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI,
+          startScale: parseFloat(el.dataset.scale || '1'),
+          startRot:   parseFloat(el.dataset.rot || '0'),
+          lastScale: null, lastRot: null,
+        });
+      });
+      rootEl.addEventListener('pointermove', e => {
+        if (!pinchState || !pinchState.pts.has(e.pointerId)) return;
+        pinchState.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pinchState.pts.size !== 2) return;
+        const s = pinchState;
+        const [p1, p2] = s.pts.values();
+        const dist  = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+        const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
+        let scale = s.startScale * (dist / s.startDist);
+        scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
+        let rot = s.startRot + (angle - s.startAngle);
+        rot = ((rot + 180) % 360 + 360) % 360 - 180;
+        rot = +rot.toFixed(1);
+        s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`;
+        s.lastScale = scale; s.lastRot = rot;
+      });
+      function endPinchPointer(e){
+        if (!pinchState || !pinchState.pts.has(e.pointerId)) return;
+        pinchState.pts.delete(e.pointerId);
+        if (pinchState.pts.size > 0) return;
+        const { el, kind, id, lastScale, lastRot } = pinchState;
+        el.classList.remove('dragging');
+        pinchState = null;
+        if (lastScale == null) return;
+        el.dataset.scale = lastScale; el.dataset.rot = lastRot;
+        updateMatrixItem(kind, id, { scale: lastScale, rot: lastRot });
+      }
+      rootEl.addEventListener('pointerup', endPinchPointer);
+      rootEl.addEventListener('pointercancel', endPinchPointer);
+
+      // ── click delegation for this rootEl: save button, toolbar, remove
+      // buttons for stickers/text (photo remove is handled by the host's own
+      // attachMatrix, same as it always has been). ──
+      rootEl.addEventListener('click', e => {
+        const saveBtn = e.target.closest('.matrix-save-btn');
+        if (saveBtn) { saveAllPositions(rootEl); return; }
+        const tool = e.target.closest('.matrix-tool-btn');
+        if (tool) {
+          const kind = tool.dataset.tool;
+          if (kind === 'photo') openPhotoUpload();
+          else if (kind === 'sticker') openStickerPicker();
+          else if (kind === 'text') openTextAdd();
+          return;
+        }
+        const stickerBtn = e.target.closest('.adv-sticker-remove');
+        if (stickerBtn) { e.stopPropagation(); removeMatrixSticker(stickerBtn.dataset.id); return; }
+        const textBtn = e.target.closest('.mx-note-remove');
+        if (textBtn) { e.stopPropagation(); removeMatrixText(textBtn.dataset.id); return; }
+      });
+    }
+
+    // ── ADD PHOTO (frame picker + crop/pan/zoom/rotate) ──────
+    let photoDraft = { file: null, dataUrl: null, frame: 'polaroid', imgScale: 1, imgPosX: 50, imgPosY: 50, imgRot: 0 };
+    const photoOverlay = document.createElement('div');
+    photoOverlay.className = 'mr-photo-overlay mr-matrix-modal';
+    photoOverlay.innerHTML = `
+      <div class="mr-matrix-card">
+        <div class="mr-matrix-head">
+          <span class="mr-matrix-title">add a photo</span>
+          <button class="mr-matrix-close" type="button">×</button>
+        </div>
+        <div class="mr-matrix-sub">pick an image and a frame, then drag it into place.</div>
+        <input type="file" class="mrm-photo-file" accept="image/*" hidden>
+        <div class="mrm-photo-drop">
+          <div class="mrm-photo-preview"><span class="mrm-photo-hint">tap to choose an image</span></div>
+        </div>
+        <div class="mr-matrix-label">which frame?</div>
+        <div class="mrm-photo-frame-grid"></div>
+        <div class="mr-matrix-status"></div>
+        <button class="mr-matrix-add" type="button" disabled>add to matrix</button>
+      </div>`;
+    document.body.appendChild(photoOverlay);
+    const photoFileEl = photoOverlay.querySelector('.mrm-photo-file');
+    const photoDropEl = photoOverlay.querySelector('.mrm-photo-drop');
+    const photoPreviewEl = photoOverlay.querySelector('.mrm-photo-preview');
+    const photoFrameGridEl = photoOverlay.querySelector('.mrm-photo-frame-grid');
+    const photoStatusEl = photoOverlay.querySelector('.mr-matrix-status');
+    const photoAddBtn = photoOverlay.querySelector('.mr-matrix-add');
+
+    function renderPhotoFrameGrid(){
+      const noneSelected = photoDraft.frame === NO_FRAME_KEY ? ' selected' : '';
+      photoFrameGridEl.innerHTML = PHOTO_FRAMES.map(f => {
+        const selected = f.key === photoDraft.frame ? ' selected' : '';
+        return `<button class="mrm-frame-thumb${selected}" type="button" data-frame="${f.key}">
+            <img src="${PHOTO_FRAME_BASE}${f.file}" alt="${esc(f.label)}"><span>${esc(f.label)}</span></button>`;
+      }).join('') + `<button class="mrm-frame-thumb mrm-frame-none${noneSelected}" type="button" data-frame="${NO_FRAME_KEY}">no frame</button>`;
+    }
+    function updatePhotoPreviewFit(){
+      const img = photoPreviewEl.querySelector('.mrm-photo-preview-img');
+      if (!img) return;
+      img.style.objectPosition = `${photoDraft.imgPosX}% ${photoDraft.imgPosY}%`;
+      img.style.transform = `rotate(${photoDraft.imgRot}deg) scale(${photoDraft.imgScale})`;
+    }
+    function renderPhotoPreviewContents(){
+      photoPreviewEl.style.cssText = '';
+      if (!photoDraft.dataUrl) return;
+      if (photoDraft.frame === NO_FRAME_KEY) {
+        photoPreviewEl.classList.add('no-frame');
+        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img plain" src="${photoDraft.dataUrl}" alt="">
+            <button class="mrm-photo-clear" type="button" title="remove image" aria-label="remove image">✕</button>`;
+      } else {
+        photoPreviewEl.classList.remove('no-frame');
+        photoPreviewEl.style.cssText = photoFrameMaskStyle(photoDraft.frame);
+        const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
+        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img" src="${photoDraft.dataUrl}" alt="">
+           <img class="mrm-photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
+           <button class="mrm-photo-rotate" type="button" title="rotate" aria-label="rotate photo">↻</button>
+           <button class="mrm-photo-stretch" type="button" title="stretch" aria-label="stretch photo">⤢</button>
+           <button class="mrm-photo-clear" type="button" title="remove image" aria-label="remove image">✕</button>`;
+        updatePhotoPreviewFit();
+      }
+    }
+    function refreshPhotoAdd(){ photoAddBtn.disabled = !photoDraft.file; }
+    function clearPhotoDraft(){
+      photoDraft.file = null; photoDraft.dataUrl = null;
+      photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
+      photoFileEl.value = '';
+      photoPreviewEl.classList.remove('no-frame');
+      photoPreviewEl.style.cssText = '';
+      photoPreviewEl.innerHTML = '<span class="mrm-photo-hint">tap to choose an image</span>';
+      refreshPhotoAdd();
+    }
+    function openPhotoUpload(){
+      photoDraft = { file: null, dataUrl: null, frame: 'polaroid', imgScale: 1, imgPosX: 50, imgPosY: 50, imgRot: 0 };
+      photoFileEl.value = '';
+      photoPreviewEl.classList.remove('no-frame');
+      photoPreviewEl.style.cssText = '';
+      photoPreviewEl.innerHTML = '<span class="mrm-photo-hint">tap to choose an image</span>';
+      renderPhotoFrameGrid();
+      photoStatusEl.textContent = ''; photoStatusEl.style.color = '';
+      photoAddBtn.textContent = 'add to matrix';
+      refreshPhotoAdd();
+      photoOverlay.classList.add('open');
+    }
+    function closePhotoUpload(){ photoOverlay.classList.remove('open'); }
+
+    photoOverlay.querySelector('.mr-matrix-close').addEventListener('click', closePhotoUpload);
+    photoOverlay.addEventListener('click', e => { if (e.target === photoOverlay) closePhotoUpload(); });
+    photoDropEl.addEventListener('click', () => { if (!photoDraft.dataUrl) photoFileEl.click(); });
+    photoFileEl.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        photoStatusEl.style.color = '#E8478B'; photoStatusEl.textContent = 'that file isn’t an image';
+        photoDraft.file = null; refreshPhotoAdd(); return;
+      }
+      photoDraft.file = file;
+      photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
+      const reader = new FileReader();
+      reader.onload = ev => { photoDraft.dataUrl = ev.target.result; renderPhotoPreviewContents(); };
+      reader.readAsDataURL(file);
+      photoStatusEl.textContent = '';
+      refreshPhotoAdd();
+    });
+    photoFrameGridEl.addEventListener('click', e => {
+      const btn = e.target.closest('.mrm-frame-thumb');
+      if (!btn) return;
+      photoDraft.frame = btn.dataset.frame;
+      photoFrameGridEl.querySelectorAll('.mrm-frame-thumb').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      renderPhotoPreviewContents();
+    });
+    photoPreviewEl.addEventListener('click', e => {
+      if (e.target.closest('.mrm-photo-clear')) clearPhotoDraft();
+    });
+    // Drag-to-reposition the photo within its frame window.
+    let photoPanState = null;
+    photoPreviewEl.addEventListener('pointerdown', e => {
+      const img = e.target.closest('.mrm-photo-preview-img');
+      if (!img || img.classList.contains('plain')) return;
+      img.setPointerCapture(e.pointerId);
+      const box = photoPreviewEl.getBoundingClientRect();
+      photoPanState = { pointerId: e.pointerId, box, startX: e.clientX, startY: e.clientY, startPosX: photoDraft.imgPosX, startPosY: photoDraft.imgPosY };
+      e.preventDefault();
+    });
+    photoPreviewEl.addEventListener('pointermove', e => {
+      if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+      const dx = e.clientX - photoPanState.startX, dy = e.clientY - photoPanState.startY;
+      const posX = Math.max(0, Math.min(100, photoPanState.startPosX - (dx / photoPanState.box.width) * 100));
+      const posY = Math.max(0, Math.min(100, photoPanState.startPosY - (dy / photoPanState.box.height) * 100));
+      photoDraft.imgPosX = +posX.toFixed(1); photoDraft.imgPosY = +posY.toFixed(1);
+      updatePhotoPreviewFit();
+    });
+    photoPreviewEl.addEventListener('pointerup', e => {
+      if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
+      photoPanState = null;
+    });
+    // Stretch handle (zoom the crop).
+    let photoStretchState = null;
+    photoPreviewEl.addEventListener('pointerdown', e => {
+      const handle = e.target.closest('.mrm-photo-stretch');
+      if (!handle) return;
+      e.stopPropagation(); e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      const rect = photoPreviewEl.getBoundingClientRect();
+      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      photoStretchState = { pointerId: e.pointerId, cx, cy, startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)), startScale: photoDraft.imgScale };
+    });
+    photoPreviewEl.addEventListener('pointermove', e => {
+      if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
+      const dist = Math.hypot(e.clientX - photoStretchState.cx, e.clientY - photoStretchState.cy);
+      let scale = photoStretchState.startScale * (dist / photoStretchState.startDist);
+      photoDraft.imgScale = +Math.max(1, Math.min(2.5, scale)).toFixed(2);
+      updatePhotoPreviewFit();
+    });
+    photoPreviewEl.addEventListener('pointerup', e => {
+      if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
+      photoStretchState = null;
+    });
+    // Rotate handle (spin the photo within its frame).
+    let photoRotateState = null;
+    photoPreviewEl.addEventListener('pointerdown', e => {
+      const handle = e.target.closest('.mrm-photo-rotate');
+      if (!handle) return;
+      e.stopPropagation(); e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      const rect = photoPreviewEl.getBoundingClientRect();
+      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      photoRotateState = { pointerId: e.pointerId, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI, startRot: photoDraft.imgRot };
+    });
+    photoPreviewEl.addEventListener('pointermove', e => {
+      if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
+      const angle = Math.atan2(e.clientY - photoRotateState.cy, e.clientX - photoRotateState.cx) * 180/Math.PI;
+      let rot = photoRotateState.startRot + (angle - photoRotateState.startAngle);
+      rot = ((rot + 180) % 360 + 360) % 360 - 180;
+      photoDraft.imgRot = +rot.toFixed(1);
+      updatePhotoPreviewFit();
+    });
+    photoPreviewEl.addEventListener('pointerup', e => {
+      if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
+      photoRotateState = null;
+    });
+
+    async function uploadMatrixPhoto(){
+      if (!photoDraft.file) return;
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
+      if (!userId) { photoStatusEl.style.color = '#E8478B'; photoStatusEl.textContent = 'sign in to save photos'; return; }
+      photoAddBtn.disabled = true; photoAddBtn.textContent = 'uploading…';
+      photoStatusEl.style.color = '#7a86bb'; photoStatusEl.textContent = 'uploading…';
+      try {
+        const file = photoDraft.file;
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+        const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
+        const publicUrl = pub && pub.publicUrl;
+        if (!publicUrl) throw new Error('could not resolve image url');
+        const { data: row, error: readErr } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
+        if (readErr) throw readErr;
+        const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
+        const next = [...current, {
+          url: publicUrl, frame: photoDraft.frame,
+          imgScale: photoDraft.imgScale, imgPosX: photoDraft.imgPosX, imgPosY: photoDraft.imgPosY, imgRot: photoDraft.imgRot,
+          x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1),
+        }];
+        const { error: updErr } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
+        if (updErr) throw updErr;
+        closePhotoUpload();
+        status('photo added ✓', '#6ab86a');
+        onChange();
+      } catch(err) {
+        console.error('[matrix-render] photo upload failed:', err);
+        photoStatusEl.style.color = '#E8478B';
+        photoStatusEl.textContent = (err && err.message) ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
+        photoAddBtn.disabled = false; photoAddBtn.textContent = 'add to matrix';
+      }
+    }
+    photoAddBtn.addEventListener('click', uploadMatrixPhoto);
+
+    async function removeMatrixPhoto(url){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!url || !sb || !entryId) return;
+      try {
+        const { data: row } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
+        const imgs = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
+        const next = imgs.filter(i => !(i && i.url === url));
+        if (next.length === imgs.length) { onChange(); return; }
+        const { error } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
+        if (error) throw error;
+      } catch(err) {
+        console.error('[matrix-render] photo remove failed:', err);
+        status('couldn’t remove photo — try again', '#E8478B');
+        return;
+      }
+      await deletePhotoFiles(sb, [url]);
+      status('photo removed', '#7a86bb');
+      onChange();
+    }
+
+    // ── ADD STICKER ────────────────────────────────────────────
+    let activeStickerTab = Object.keys(STICKER_CATEGORIES)[0];
+    const stickerOverlay = document.createElement('div');
+    stickerOverlay.className = 'mr-photo-overlay mr-matrix-modal';
+    stickerOverlay.innerHTML = `
+      <div class="mr-matrix-card mrm-sticker-card">
+        <div class="mr-matrix-head">
+          <span class="mr-matrix-title">add a sticker</span>
+          <button class="mr-matrix-close" type="button">×</button>
+        </div>
+        <div class="mr-matrix-sub">tap a sticker to drop it on your matrix, then drag it into place.</div>
+        <div class="mrm-sticker-tabs"></div>
+        <div class="mrm-sticker-grid"></div>
+      </div>`;
+    document.body.appendChild(stickerOverlay);
+    const stickerTabsEl = stickerOverlay.querySelector('.mrm-sticker-tabs');
+    const stickerGridEl = stickerOverlay.querySelector('.mrm-sticker-grid');
+
+    function renderStickerTabs(){
+      stickerTabsEl.innerHTML = Object.entries(STICKER_CATEGORIES).map(([key, cat]) =>
+        `<button class="mrm-sticker-tab${key === activeStickerTab ? ' active' : ''}" type="button" data-tab="${key}">${esc(cat.label)}</button>`
+      ).join('');
+    }
+    function renderStickerGrid(){
+      const cat = STICKER_CATEGORIES[activeStickerTab];
+      stickerGridEl.innerHTML = cat.files.map(f => {
+        const url = STICKER_BASE + activeStickerTab + '/' + f;
+        const label = f.replace(/\.png$/,'').replace(/-/g,' ');
+        return `<button class="mrm-sticker-thumb" type="button" data-url="${url}" title="${esc(label)}"><img src="${url}" alt="${esc(label)}"></button>`;
+      }).join('');
+    }
+    function openStickerPicker(){
+      renderStickerTabs(); renderStickerGrid();
+      stickerOverlay.classList.add('open');
+    }
+    function closeStickerPicker(){ stickerOverlay.classList.remove('open'); }
+    stickerOverlay.querySelector('.mr-matrix-close').addEventListener('click', closeStickerPicker);
+    stickerOverlay.addEventListener('click', e => { if (e.target === stickerOverlay) closeStickerPicker(); });
+    stickerTabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.mrm-sticker-tab');
+      if (!btn) return;
+      activeStickerTab = btn.dataset.tab;
+      renderStickerTabs(); renderStickerGrid();
+    });
+
+    async function addMatrixSticker(url){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!sb || !entryId) { status('sign in to save stickers', '#E8478B'); return; }
+      const entry = { id: crypto.randomUUID(), url, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*15).toFixed(1) };
+      try {
+        const { data: row, error: readErr } = await sb.from(table).select('matrix_stickers').eq('id', entryId).maybeSingle();
+        if (readErr) throw readErr;
+        const current = Array.isArray(row && row.matrix_stickers) ? row.matrix_stickers : [];
+        const { error: updErr } = await sb.from(table).update({ matrix_stickers: [...current, entry] }).eq('id', entryId);
+        if (updErr) throw updErr;
+        closeStickerPicker();
+        status('sticker added ✓', '#6ab86a');
+        onChange();
+      } catch(err) {
+        console.error('[matrix-render] sticker add failed:', err);
+        status('couldn’t add sticker — try again', '#E8478B');
+      }
+    }
+    stickerGridEl.addEventListener('click', e => {
+      const btn = e.target.closest('.mrm-sticker-thumb');
+      if (btn) addMatrixSticker(btn.dataset.url);
+    });
+
+    async function removeMatrixSticker(id){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!id || !sb || !entryId) return;
+      try {
+        const { data: row } = await sb.from(table).select('matrix_stickers').eq('id', entryId).maybeSingle();
+        const items = Array.isArray(row && row.matrix_stickers) ? row.matrix_stickers : [];
+        const next = items.filter(s => s && s.id !== id);
+        const { error } = await sb.from(table).update({ matrix_stickers: next }).eq('id', entryId);
+        if (error) throw error;
+      } catch(err) {
+        console.error('[matrix-render] sticker remove failed:', err);
+        status('couldn’t remove sticker — try again', '#E8478B');
+        return;
+      }
+      status('sticker removed', '#7a86bb');
+      onChange();
+    }
+
+    // ── ADD TEXT (optionally on a stationery card) ────────────
+    let textDraft = { stationery: null };
+    const textOverlay = document.createElement('div');
+    textOverlay.className = 'mr-photo-overlay mr-matrix-modal';
+    textOverlay.innerHTML = `
+      <div class="mr-matrix-card mrm-text-card">
+        <div class="mr-matrix-head">
+          <span class="mr-matrix-title">add text</span>
+          <button class="mr-matrix-close" type="button">×</button>
+        </div>
+        <div class="mr-matrix-sub">write a few words in your matrix's own handwriting.</div>
+        <div class="mrm-text-preview" style="display:none;"></div>
+        <textarea class="mrm-text-input" maxlength="80" placeholder="write something..."></textarea>
+        <div class="mr-matrix-label">which stationery?</div>
+        <div class="mrm-photo-frame-grid mrm-stationery-grid"></div>
+        <div class="mr-matrix-status"></div>
+        <button class="mr-matrix-add" type="button">add to matrix</button>
+      </div>`;
+    document.body.appendChild(textOverlay);
+    const textPreviewEl = textOverlay.querySelector('.mrm-text-preview');
+    const textInputEl = textOverlay.querySelector('.mrm-text-input');
+    const stationeryGridEl = textOverlay.querySelector('.mrm-stationery-grid');
+    const textStatusEl = textOverlay.querySelector('.mr-matrix-status');
+    const textAddBtn = textOverlay.querySelector('.mr-matrix-add');
+
+    function renderStationeryGrid(){
+      const plainSelected = !textDraft.stationery ? ' selected' : '';
+      const plainThumb = `<button class="mrm-frame-thumb${plainSelected}" type="button" data-stationery="">
+          <div class="mrm-stationery-plain-glyph">Aa</div><span>plain</span></button>`;
+      const cardThumbs = STATIONERY_ITEMS.map(s => {
+        const selected = s.key === textDraft.stationery ? ' selected' : '';
+        return `<button class="mrm-frame-thumb${selected}" type="button" data-stationery="${s.key}">
+            <img src="${STATIONERY_BASE}${s.file}" alt="${esc(s.label)}"><span>${esc(s.label)}</span></button>`;
+      }).join('');
+      stationeryGridEl.innerHTML = plainThumb + cardThumbs;
+    }
+    function updateTextAddPreview(){
+      if (!textDraft.stationery) { textPreviewEl.style.display = 'none'; return; }
+      textPreviewEl.style.display = 'block';
+      const file = STATIONERY_FILE[textDraft.stationery];
+      const box = STATIONERY_BOX[textDraft.stationery];
+      textPreviewEl.innerHTML = `<img class="mrm-text-preview-img" src="${STATIONERY_BASE}${file}" alt="">
+          <div class="mrm-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(textInputEl.value)}</div>`;
+    }
+    function openTextAdd(){
+      textInputEl.value = ''; textInputEl.maxLength = 80;
+      textDraft = { stationery: null };
+      renderStationeryGrid(); updateTextAddPreview();
+      textStatusEl.textContent = ''; textStatusEl.style.color = '';
+      textAddBtn.disabled = false; textAddBtn.textContent = 'add to matrix';
+      textOverlay.classList.add('open');
+    }
+    function closeTextAdd(){ textOverlay.classList.remove('open'); }
+    textOverlay.querySelector('.mr-matrix-close').addEventListener('click', closeTextAdd);
+    textOverlay.addEventListener('click', e => { if (e.target === textOverlay) closeTextAdd(); });
+    textInputEl.addEventListener('input', updateTextAddPreview);
+    stationeryGridEl.addEventListener('click', e => {
+      const btn = e.target.closest('.mrm-frame-thumb');
+      if (!btn) return;
+      textDraft.stationery = btn.dataset.stationery || null;
+      stationeryGridEl.querySelectorAll('.mrm-frame-thumb').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      textInputEl.maxLength = textDraft.stationery ? 300 : 80;
+      updateTextAddPreview();
+    });
+
+    async function addMatrixText(){
+      const text = textInputEl.value.trim();
+      if (!text) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'write something first'; return; }
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!sb || !entryId) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'sign in to save text'; return; }
+      textAddBtn.disabled = true; textAddBtn.textContent = 'adding…';
+      const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1) };
+      if (textDraft.stationery) entry.stationery = textDraft.stationery;
+      try {
+        const { data: row, error: readErr } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
+        if (readErr) throw readErr;
+        const current = Array.isArray(row && row.matrix_texts) ? row.matrix_texts : [];
+        const { error: updErr } = await sb.from(table).update({ matrix_texts: [...current, entry] }).eq('id', entryId);
+        if (updErr) throw updErr;
+        closeTextAdd();
+        status('text added ✓', '#6ab86a');
+        onChange();
+      } catch(err) {
+        console.error('[matrix-render] text add failed:', err);
+        textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'couldn’t add text — try again';
+        textAddBtn.disabled = false; textAddBtn.textContent = 'add to matrix';
+      }
+    }
+    textAddBtn.addEventListener('click', addMatrixText);
+
+    async function removeMatrixText(id){
+      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
+      if (!id || !sb || !entryId) return;
+      try {
+        const { data: row } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
+        const items = Array.isArray(row && row.matrix_texts) ? row.matrix_texts : [];
+        const next = items.filter(t => t && t.id !== id);
+        const { error } = await sb.from(table).update({ matrix_texts: next }).eq('id', entryId);
+        if (error) throw error;
+      } catch(err) {
+        console.error('[matrix-render] text remove failed:', err);
+        status('couldn’t remove text — try again', '#E8478B');
+        return;
+      }
+      status('text removed', '#7a86bb');
+      onChange();
+    }
+
+    function destroy(){
+      photoOverlay.remove(); stickerOverlay.remove(); textOverlay.remove();
+    }
+
+    return {
+      attachInteractions, saveAllPositions,
+      openPhotoUpload, openStickerPicker, openTextAdd,
+      removeMatrixPhoto, removeMatrixSticker, removeMatrixText,
+      destroy,
+    };
+  }
+
   // ── STYLES (injected once; var() fallbacks make it self-sufficient) ──
   function injectStyles(){
     if (document.getElementById('matrix-render-styles')) return;
@@ -767,10 +1672,24 @@
 .adv-book-cover { object-fit:cover; }
 .adv-book-noimg { background:#ccc; display:flex; align-items:center; justify-content:center; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:11px; color:#666; padding:4px; text-align:center; }
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
-.adv-photo img {
+/* Fixed-ratio box (matches the standard polaroid frame's own proportions) —
+   the photo fills it edge-to-edge via object-fit:cover, so it always fills
+   the frame properly: a white base shows through if the image doesn't fully
+   cover, and anything outside the box is clipped rather than overflowing. */
+.adv-photo-inner {
+  position:relative; display:block; width:100%; aspect-ratio:602/691;
+  background:#fff; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
+}
+.adv-photo-img { width:100%; height:100%; display:block; pointer-events:none; object-fit:cover; }
+/* Frame overlay — stretched to exactly match the photo box, so its border
+   sits on top and crops whatever falls outside its window. */
+.adv-photo-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+/* "no frame" — no box, no white backing, no cropping: shows a clean cutout
+   PNG exactly as uploaded, same sizing convention the photo tool used
+   pre-frames. */
+.adv-photo-img-plain {
   width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
-  border:4px solid #fff; border-bottom-width:18px;
-  box-shadow:2px 3px 7px rgba(0,0,0,.18); object-fit:contain; background:#fff;
+  pointer-events:none; object-fit:contain; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
 .adv-photo-remove {
   position:absolute; top:-8px; right:-8px; z-index:4;
@@ -780,7 +1699,7 @@
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-photo:hover .adv-photo-remove { opacity:1; }
+.adv-photo:hover .adv-photo-remove, .adv-photo.selected .adv-photo-remove { opacity:1; }
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
 @media (hover: none) { .adv-photo-remove { opacity:1; } }
 .adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); }
@@ -797,6 +1716,75 @@
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.2vw,15px);
 }
+
+/* ── EDITABLE MODE — drag/rotate/resize handles, toolbar, save button, and
+   sticker/text remove controls. Only ever rendered when opts.editable, and
+   only functional once createMatrixEditor's attachInteractions() is wired
+   up (see matrix-render.js's MATRIX EDITOR section). ── */
+.adv-rotate-handle, .adv-resize-handle {
+  position:absolute; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:12px; touch-action:none;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-rotate-handle { top:-8px; left:-8px; cursor:grab; }
+.adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
+/* .adv-draggable marks every item that can be dragged/rotated/resized —
+   scrapbook items (photo/sticker/text) AND game items (map/bingo/char/book) —
+   so this reveal rule and the JS selectors don't need one line per kind. */
+.adv-draggable:hover .adv-rotate-handle, .adv-draggable:hover .adv-resize-handle,
+.adv-draggable.selected .adv-rotate-handle, .adv-draggable.selected .adv-resize-handle { opacity:1; }
+.adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
+.adv-draggable { cursor:grab; touch-action:none; }
+.adv-item.adv-draggable.dragging { cursor:grabbing; z-index:60; }
+/* On touchscreens the tiny corner handles are fiddly to grab precisely —
+   two-finger pinch (scale) + twist (rotate) on the item itself replaces them
+   (see the pinch-gesture JS), so hide the handles there entirely. Mouse/
+   trackpad users keep the drag-handle interaction. */
+@media (pointer: coarse) {
+  .adv-rotate-handle, .adv-resize-handle { display:none; }
+}
+.adv-sticker-remove, .mx-note-remove {
+  position:absolute; top:-8px; right:-8px; z-index:4;
+  width:20px; height:20px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:11px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.adv-sticker:hover .adv-sticker-remove, .adv-sticker.selected .adv-sticker-remove,
+.mx-note:hover .mx-note-remove, .mx-note.selected .mx-note-remove { opacity:1; }
+.adv-sticker-remove:hover, .mx-note-remove:hover { color:#E8478B; border-color:#E8478B; }
+@media (hover: none) { .adv-sticker-remove, .mx-note-remove { opacity:1; } }
+
+/* Matrix toolbar — add photo / sticker / text, centered below the matrix */
+.matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
+.matrix-tool-btn {
+  width:40px; height:40px; border-radius:50%;
+  font-size:22px; line-height:1; color:var(--blue,#6e83d3);
+  background:#fff; border:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  cursor:pointer; transition:all .1s;
+  display:flex; align-items:center; justify-content:center;
+}
+.matrix-tool-btn:hover  { background:var(--blue,#6e83d3); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
+.matrix-tool-btn:active { transform:scale(0.93); }
+
+/* Explicit save — top-right of the matrix header, next to the date.
+   Drag/rotate/resize already autosave per-gesture, but this batches every
+   item's current on-screen position into one write, so rearranging a lot at
+   once can't lose anything to overlapping autosaves. */
+.matrix-save-btn {
+  position:absolute; top:6px; right:8px; z-index:7;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#fff;
+  background:var(--blue,#6e83d3); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  padding:5px 14px; cursor:pointer; transition:all .05s;
+}
+.matrix-save-btn:hover  { background:#4a5bc4; }
+.matrix-save-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.matrix-save-btn:disabled { opacity:.6; cursor:default; transform:none; box-shadow:2px 2px 0 #3a4aaa; }
 
 /* ── shared photo-upload modal ── */
 .mr-photo-overlay, .mr-jr-overlay {
@@ -870,6 +1858,132 @@
 .mr-jr-save:hover  { background:#4a5bc4; }
 .mr-jr-save:active { box-shadow:none; transform:translate(2px,2px); }
 .mr-jr-save:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+/* ── MATRIX EDITOR MODALS (add photo w/ frame+crop, add sticker, add text
+   w/ stationery) — namespaced mr-matrix-*/mrm-* so they never collide with
+   a host page's own .photo-overlay-family CSS during the transition before
+   dream.html/daily.html are migrated to call createMatrixEditor directly. ── */
+.mr-matrix-modal .mr-matrix-card {
+  width:min(440px,94vw); max-height:92vh; overflow-y:auto;
+  background:var(--back-wall,#f1ebe4);
+  border:2px solid var(--blue,#6e83d3);
+  box-shadow:0 0 0 4px var(--blue,#6e83d3), 6px 10px 40px rgba(0,0,0,.4);
+  padding:18px 20px; font-family:var(--font-hand,"ZoesHandwriting",cursive);
+}
+.mr-matrix-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.mr-matrix-title { font-size:clamp(28px,3vw,30px); color:var(--blue,#6e83d3); }
+.mr-matrix-close { font-size:25px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.mr-matrix-close:hover { color:#E8478B; }
+.mr-matrix-sub { font-size:15px; color:#7a86bb; margin:2px 0 14px; }
+.mr-matrix-label { font-size:14px; color:#7a86bb; letter-spacing:.4px; margin-bottom:6px; }
+.mr-matrix-status { font-size:15px; min-height:18px; margin-bottom:8px; color:#7a86bb; }
+.mr-matrix-add {
+  width:100%; padding:12px 18px; background:var(--blue,#6e83d3);
+  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#fff; cursor:pointer; transition:all .05s;
+}
+.mr-matrix-add:hover  { background:#4a5bc4; }
+.mr-matrix-add:active { box-shadow:none; transform:translate(2px,2px); }
+.mr-matrix-add:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+/* add-photo: drop zone + crop/pan/zoom/rotate preview */
+.mrm-photo-drop { display:block; cursor:pointer; }
+.mrm-photo-preview {
+  position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
+  aspect-ratio:602/691; background:#fff;
+  border:2px dashed var(--blue,#6e83d3); display:flex; align-items:center; justify-content:center;
+  overflow:hidden; margin-bottom:14px; transition:border-color .12s;
+}
+.mrm-photo-drop:hover .mrm-photo-preview { border-color:var(--blue,#6e83d3); }
+.mrm-photo-preview-img {
+  width:100%; height:100%; object-fit:cover; object-position:50% 50%; display:block;
+  cursor:grab; touch-action:none;
+}
+.mrm-photo-preview-img:active { cursor:grabbing; }
+.mrm-photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.mrm-photo-rotate, .mrm-photo-stretch, .mrm-photo-clear {
+  position:absolute; z-index:5;
+  width:26px; height:26px; padding:0; line-height:1;
+  background:#fff; border:1.5px solid #ccc; border-radius:50%;
+  color:#888; font-size:14px; touch-action:none;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:color .12s, border-color .12s;
+}
+.mrm-photo-rotate:hover, .mrm-photo-stretch:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
+.mrm-photo-clear:hover { color:#E8478B; border-color:#E8478B; }
+.mrm-photo-rotate  { top:8px; left:8px; cursor:grab; }
+.mrm-photo-stretch { bottom:8px; right:8px; cursor:nwse-resize; }
+.mrm-photo-clear   { top:8px; right:8px; }
+.mrm-photo-preview.no-frame {
+  aspect-ratio:auto; min-height:120px; padding:12px;
+  background-image:
+    linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+    linear-gradient(45deg, #ddd 25%, #fff 25%, #fff 75%, #ddd 75%, #ddd);
+  background-size:16px 16px; background-position:0 0, 8px 8px;
+}
+.mrm-photo-preview-img.plain {
+  width:auto; height:auto; max-width:100%; max-height:280px; object-fit:contain; cursor:default;
+}
+.mrm-photo-hint { color:rgba(122,134,187,.7); font-style:italic; font-size:16px; }
+
+/* frame / stationery picker grid — shared by add-photo and add-text */
+.mrm-photo-frame-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.mrm-frame-thumb {
+  position:relative; aspect-ratio:1; background:#cdd3ec; border:1.5px solid #ccc;
+  padding:6px; cursor:pointer; transition:all .1s;
+  display:flex; align-items:center; justify-content:center;
+}
+.mrm-frame-thumb img { max-width:100%; max-height:100%; }
+.mrm-frame-thumb:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; }
+.mrm-frame-thumb.selected { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); box-shadow:2px 2px 0 #3a4aaa; }
+.mrm-frame-thumb span {
+  position:absolute; bottom:2px; left:0; right:0; text-align:center;
+  font-size:10px; color:#7a86bb; background:rgba(253,246,227,.85);
+}
+.mrm-frame-thumb.selected span { color:#fff; background:rgba(74,91,196,.85); }
+.mrm-frame-none {
+  grid-column:3; aspect-ratio:auto; padding:10px 6px;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:13px; color:#555;
+}
+
+/* add-sticker: fixed-size card so it doesn't reflow when switching tabs */
+.mrm-sticker-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+.mrm-sticker-card .mr-matrix-head, .mrm-sticker-card .mr-matrix-sub { flex-shrink:0; }
+.mrm-sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; flex-shrink:0; }
+.mrm-sticker-tab {
+  padding:8px 16px; background:#cdd3ec; border:1.5px solid #ccc;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:22px; color:#7a86bb; cursor:pointer; transition:all .1s;
+}
+.mrm-sticker-tab:hover { border-color:var(--blue,#6e83d3); color:var(--blue,#6e83d3); }
+.mrm-sticker-tab.active { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); color:#fff; }
+.mrm-sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; overflow-y:auto; flex:1 1 auto; align-content:start; }
+.mrm-sticker-thumb {
+  background:#cdd3ec; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
+}
+.mrm-sticker-thumb:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; transform:scale(1.04); }
+.mrm-sticker-thumb img { width:100%; display:block; }
+
+/* add-text: fixed-size card with its own scroll region for the stationery
+   grid, same fix as the sticker modal */
+.mrm-text-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
+.mrm-text-card .mr-matrix-head, .mrm-text-card .mr-matrix-sub,
+.mrm-text-card .mrm-text-preview, .mrm-text-card .mrm-text-input,
+.mrm-text-card .mr-matrix-label, .mrm-text-card .mr-matrix-status,
+.mrm-text-card .mr-matrix-add { flex-shrink:0; }
+.mrm-text-card .mrm-stationery-grid { overflow-y:auto; flex:1 1 auto; align-content:start; margin-bottom:0; padding-bottom:4px; }
+.mrm-text-input {
+  width:100%; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#222;
+  background:#fff; border:1.5px solid var(--blue,#6e83d3); padding:10px 12px;
+  outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
+}
+.mrm-text-input:focus { border-color:var(--blue,#6e83d3); }
+.mrm-text-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
+.mrm-text-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
+.mrm-text-preview-body {
+  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
+}
+.mrm-stationery-plain-glyph { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:28px; color:#3a2e1e; }
 `;
     const style = document.createElement('style');
     style.id = 'matrix-render-styles';
@@ -886,11 +2000,19 @@
     attachMatrix,
     createPhotoEditor,
     createJournalEditor,
+    createMatrixEditor,
     buildMapSVG,
     buildCharStack,
     // exposed for reuse/testing
     CHAR_FULL_ASSETS,
     TERRAIN_IMGS,
     buildSingleLocationSVG,
+    PHOTO_FRAME_BASE,
+    PHOTO_FRAME_MASK_BASE,
+    PHOTO_FRAMES,
+    PHOTO_FRAME_FILE,
+    PHOTO_FRAME_MASK_FILE,
+    photoFrameMaskStyle,
+    NO_FRAME_KEY,
   };
 })();
