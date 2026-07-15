@@ -699,7 +699,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   font-size:clamp(16px,1.9vw,26px);
 }
 
-.adv-item { position:absolute; z-index:3; text-align:center; }
+/* z-index above .adv-photo(3)/.adv-sticker(4)/.mx-note(4) so the game items
+   (map, bingo meter, character, books) always sit on top of scrapbook items. */
+.adv-item { position:absolute; z-index:10; text-align:center; }
 .adv-cap  { font-family:var(--font-hand); font-size:clamp(12px,1.1vw,15px); color:#7a86bb; margin-top:3px; }
 
 .adv-map { width:clamp(150px,20vw,240px); }
@@ -833,13 +835,14 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 }
 .adv-rotate-handle { top:-8px; left:-8px; cursor:grab; }
 .adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
-.adv-photo:hover .adv-rotate-handle, .adv-photo:hover .adv-resize-handle,
-.adv-sticker:hover .adv-rotate-handle, .adv-sticker:hover .adv-resize-handle,
-.mx-note:hover .adv-rotate-handle, .mx-note:hover .adv-resize-handle,
-.adv-photo.selected .adv-rotate-handle, .adv-photo.selected .adv-resize-handle,
-.adv-sticker.selected .adv-rotate-handle, .adv-sticker.selected .adv-resize-handle,
-.mx-note.selected .adv-rotate-handle, .mx-note.selected .adv-resize-handle { opacity:1; }
+/* .adv-draggable marks every item that can be dragged/rotated/resized —
+   scrapbook items (photo/sticker/text) AND game items (map/bingo/char/book) —
+   so this reveal rule and the JS selectors below don't need one line per kind. */
+.adv-draggable:hover .adv-rotate-handle, .adv-draggable:hover .adv-resize-handle,
+.adv-draggable.selected .adv-rotate-handle, .adv-draggable.selected .adv-resize-handle { opacity:1; }
 .adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue); border-color:var(--blue); }
+.adv-draggable { cursor:grab; touch-action:none; }
+.adv-item.adv-draggable.dragging { cursor:grabbing; z-index:60; }
 /* On touchscreens the tiny corner handles are fiddly to grab precisely —
    two-finger pinch (scale) + twist (rotate) on the item itself replaces them
    (see the pinch-gesture JS below), so hide the handles there entirely.
@@ -2837,12 +2840,27 @@ function buildDreamMatrix(data, seedStr){
   const rot = r => ((rnd()*2-1)*r).toFixed(1);
   const pct = (a,b) => (a + rnd()*(b-a)).toFixed(1);
 
+  // Saved drag/rotate/resize overrides for the map/bingo/char/book items —
+  // these aren't scrapbook items in their own array column, so their x/y/rot/
+  // scale live together in one matrix_layout jsonb column instead (see
+  // updateMatrixLayoutItem below). Falls back to the seeded jitter position
+  // the very first time an entry is viewed, same as photos do.
+  const layout = data.matrixLayout || {};
+  const itemHandles = (kind, id) => `<button class="adv-rotate-handle" data-kind="${kind}" data-id="${_escapeHtml(id)}" title="rotate" aria-label="rotate">↻</button>
+      <button class="adv-resize-handle" data-kind="${kind}" data-id="${_escapeHtml(id)}" title="resize" aria-label="resize">⤢</button>`;
+
   // MAP → top-left quadrant (external + action)
   // Show ONLY the day's chosen destination (sidequest_data → location_data),
   // not the entire map.
   const dayLoc = data.sidequestData || data.locationData || {};
-  const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-      <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div></div>`;
+  const mapLayout = layout.map || {};
+  const mapLeft  = mapLayout.x != null ? mapLayout.x : (27+jit(2)).toFixed(1);
+  const mapTop   = mapLayout.y != null ? mapLayout.y : (30+jit(2)).toFixed(1);
+  const mapRot   = mapLayout.rot != null ? mapLayout.rot : rot(3);
+  const mapScale = mapLayout.scale || 1;
+  const mapItem = `<div class="adv-item adv-map adv-draggable" data-kind="map" data-id="map" data-rot="${mapRot}" data-scale="${mapScale}" style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
+      <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
+      ${itemHandles('map','map')}</div>`;
 
   // BINGO (heart meter) → bottom-left quadrant (internal + action)
   const hmScore = data.bingoScore || 0;
@@ -2850,26 +2868,44 @@ function buildDreamMatrix(data, seedStr){
   const hmFull = hmScore >= 24;
   const hmHeartImg = hmFull ? '../assets/elements/heart-gold.png' : '../assets/elements/heart-pink.png';
   const hmHeartPos = Math.max(6, Math.min(94, hmPct)); // keep the heart from clipping past the track edges
-  const bingoItem = `<div class="adv-item adv-bingo" style="left:${(27+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
+  const bingoLayout = layout.bingo || {};
+  const bingoLeft  = bingoLayout.x != null ? bingoLayout.x : (27+jit(2)).toFixed(1);
+  const bingoTop   = bingoLayout.y != null ? bingoLayout.y : (71+jit(2)).toFixed(1);
+  const bingoRot   = bingoLayout.rot != null ? bingoLayout.rot : rot(3);
+  const bingoScale = bingoLayout.scale || 1;
+  const bingoItem = `<div class="adv-item adv-bingo adv-draggable" data-kind="bingo" data-id="bingo" data-rot="${bingoRot}" data-scale="${bingoScale}" style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
       <div class="hm-box${hmFull ? ' hm-full' : ''}">
         <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
         <img class="hm-heart" src="${hmHeartImg}" alt="heart meter" style="bottom:${hmHeartPos}%">
-      </div></div>`;
+      </div>
+      ${itemHandles('bingo','bingo')}</div>`;
 
   // CHARACTER / infinity mirror → bottom-right quadrant (internal + feeling)
   const charStack = _buildCharStack(data.charState);
   const charName = data.charState?.name || '';
-  const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}${charName ? `<div class="adv-cap">${_escapeHtml(charName)}</div>` : ''}</div>` : '';
+  const charLayout = layout.char || {};
+  const charLeft  = charLayout.x != null ? charLayout.x : (73+jit(2)).toFixed(1);
+  const charTop   = charLayout.y != null ? charLayout.y : (71+jit(2)).toFixed(1);
+  const charRot   = charLayout.rot != null ? charLayout.rot : rot(3);
+  const charScale = charLayout.scale || 1;
+  const charItem = charStack ? `<div class="adv-item adv-char adv-draggable" data-kind="char" data-id="char" data-rot="${charRot}" data-scale="${charScale}" style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${_escapeHtml(charName)}</div>` : ''}
+      ${itemHandles('char','char')}</div>` : '';
 
   // LIBRARY BOOKS tagged to this entry → top-right quadrant (external + feeling)
+  const bookLayout = layout.books || {};
   const libraryItems = (data.libraryEntries||[]).map((entry, i) => {
+    const saved = bookLayout[entry.id] || {};
     const slot = photoSlot('external-feeling', i);
-    const left = (slot.left+jit(1.5)).toFixed(1), top = (slot.top+jit(1.5)).toFixed(1);
+    const left  = saved.x != null ? saved.x : (slot.left+jit(1.5)).toFixed(1);
+    const top   = saved.y != null ? saved.y : (slot.top+jit(1.5)).toFixed(1);
+    const bRot  = saved.rot != null ? saved.rot : rot(4);
+    const bScale = saved.scale || 1;
     const cover = entry.cover_url_override || entry.media?.cover_url;
     const title = entry.media?.title || 'untitled';
-    return `<div class="adv-item adv-book" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${rot(4)}deg);">
+    return `<div class="adv-item adv-book adv-draggable" data-kind="book" data-id="${_escapeHtml(entry.id)}" data-rot="${bRot}" data-scale="${bScale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
         ${cover ? `<img class="adv-book-cover" src="${_escapeHtml(cover)}" alt="">` : '<div class="adv-book-noimg"></div>'}
         <div class="adv-cap">${_escapeHtml(title)}</div>
+        ${itemHandles('book', entry.id)}
       </div>`;
   }).join('');
 
@@ -2895,7 +2931,7 @@ function buildDreamMatrix(data, seedStr){
         <button class="adv-photo-remove" data-url="${_escapeHtml(img.url)}" title="remove photo" aria-label="remove photo">✕</button>`;
     if (img.frame === NO_FRAME_KEY){
       // Clean cutout PNG — no box, no white backing, no cropping.
-      photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
+      photos += `<div class="adv-photo adv-draggable" data-kind="photo" data-url="${_escapeHtml(img.url)}" data-id="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
           <img class="adv-photo-img-plain" src="${img.url}" alt="" onerror="this.parentElement.style.display='none'">
           ${handles}</div>`;
     } else {
@@ -2904,7 +2940,7 @@ function buildDreamMatrix(data, seedStr){
       const imgPosX = img.imgPosX != null ? img.imgPosX : 50;
       const imgPosY = img.imgPosY != null ? img.imgPosY : 50;
       const imgRot = img.imgRot || 0;
-      photos += `<div class="adv-photo" data-url="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
+      photos += `<div class="adv-photo adv-draggable" data-kind="photo" data-url="${_escapeHtml(img.url)}" data-id="${_escapeHtml(img.url)}" data-rot="${deg}" data-scale="${scale}" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${deg}deg) scale(${scale});">
           <div class="adv-photo-inner" style="${photoFrameMaskStyle(img.frame)}">
             <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
             <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
@@ -2918,7 +2954,7 @@ function buildDreamMatrix(data, seedStr){
   (data.matrixStickers||[]).forEach(s => {
     if (!s || !s.url || !s.id) return;
     const sRot = s.rot || 0, sScale = s.scale || 1;
-    stickers += `<div class="adv-sticker" data-id="${_escapeHtml(s.id)}" data-rot="${sRot}" data-scale="${sScale}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});">
+    stickers += `<div class="adv-sticker adv-draggable" data-kind="sticker" data-id="${_escapeHtml(s.id)}" data-rot="${sRot}" data-scale="${sScale}" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${sRot}deg) scale(${sScale});">
         <img src="${s.url}" alt="" onerror="this.parentElement.style.display='none'">
         <button class="adv-rotate-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="rotate sticker" aria-label="rotate sticker">↻</button>
         <button class="adv-resize-handle" data-kind="sticker" data-id="${_escapeHtml(s.id)}" title="resize sticker" aria-label="resize sticker">⤢</button>
@@ -2937,12 +2973,12 @@ function buildDreamMatrix(data, seedStr){
         <button class="mx-note-remove" data-id="${_escapeHtml(t.id)}" title="remove text" aria-label="remove text">✕</button>`;
     if (t.stationery && STATIONERY_FILE[t.stationery]) {
       const box = STATIONERY_BOX[t.stationery];
-      texts += `<div class="mx-note stationery" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+      texts += `<div class="mx-note stationery adv-draggable" data-kind="text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
           <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
           <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${_escapeHtml(t.text)}</div>
           ${handles}</div>`;
     } else {
-      texts += `<div class="mx-note" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
+      texts += `<div class="mx-note adv-draggable" data-kind="text" data-id="${_escapeHtml(t.id)}" data-rot="${tRot}" data-scale="${tScale}" style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${_escapeHtml(t.text)}
           ${handles}</div>`;
     }
   });
@@ -2988,6 +3024,7 @@ async function assembleTodayMatrixData(entryId){
     bingoScore: 0, charState: null, matrixImages: [],
     matrixStickers: [], matrixTexts: [],
     libraryEntries: [],                          // media_submissions tagged during the library step
+    matrixLayout: {},                             // drag/rotate/resize overrides for map/bingo/char/book
     archiveHref: `archive.html?game_id=${activeGameId}`,
   };
   try {
@@ -3004,6 +3041,7 @@ async function assembleTodayMatrixData(entryId){
       d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];
       d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
       d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
+      d.matrixLayout   = row.matrix_layout || {};
       const libIds = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
       if (libIds.length){
         const { data: libRows } = await sb.from('media_submissions')
@@ -3609,7 +3647,31 @@ const MATRIX_ITEM_TABLE = {
   sticker: { column: 'matrix_stickers', key: 'id'  },
   text:    { column: 'matrix_texts',    key: 'id'  },
 };
+// map/bingo/char are singleton layout slots and book entries are keyed by
+// their media_submissions id — none of them live in their own array column
+// like photos/stickers/text do, so their x/y/rot/scale overrides are stored
+// together in one small matrix_layout jsonb column instead.
+const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book']);
+async function updateMatrixLayoutItem(kind, id, patch){
+  if (!id || !currentUser || !activeEntryId) return;
+  try {
+    const { data: row } = await sb.from('dream_matrix')
+      .select('matrix_layout').eq('id', activeEntryId).maybeSingle();
+    const layout = (row && row.matrix_layout) || {};
+    if (kind === 'book') {
+      const books = { ...(layout.books || {}) };
+      books[id] = { ...(books[id] || {}), ...patch };
+      layout.books = books;
+    } else {
+      layout[kind] = { ...(layout[kind] || {}), ...patch };
+    }
+    await sb.from('dream_matrix').update({ matrix_layout: layout }).eq('id', activeEntryId);
+  } catch(err){
+    console.error(`[matrix layout ${kind}] update failed:`, err);
+  }
+}
 async function updateMatrixItem(kind, id, patch){
+  if (LAYOUT_KINDS.has(kind)) return updateMatrixLayoutItem(kind, id, patch);
   const cfg = MATRIX_ITEM_TABLE[kind];
   if (!cfg || !id || !currentUser || !activeEntryId) return;
   try {
@@ -3623,33 +3685,33 @@ async function updateMatrixItem(kind, id, patch){
   }
 }
 
-// ── TAP-TO-SELECT reveals a photo/sticker/text's controls (remove/rotate/
-// resize) — mirrors :hover on desktop. Tapping the item selects it; tapping
-// anywhere else (including blank matrix space) deselects everything, so
-// controls don't stay glued onto the matrix when the user wants a clean shot.
+// ── TAP-TO-SELECT reveals an item's controls (remove/rotate/resize) —
+// mirrors :hover on desktop. .adv-draggable covers scrapbook items (photo/
+// sticker/text) AND game items (map/bingo/char/book) — see the CSS comment
+// above. Tapping the item selects it; tapping anywhere else (including blank
+// matrix space) deselects everything, so controls don't stay glued onto the
+// matrix when the user wants a clean shot.
 document.getElementById('content-panel').addEventListener('pointerdown', e => {
-  const item = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
-  document.querySelectorAll('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected').forEach(el => {
+  const item = e.target.closest('.adv-draggable');
+  document.querySelectorAll('.adv-draggable.selected').forEach(el => {
     if (el !== item) el.classList.remove('selected');
   });
   if (item) item.classList.add('selected');
 });
 
-// ── DRAG-TO-REPOSITION for photos, stickers & text ────────
+// ── DRAG-TO-REPOSITION for scrapbook items & game items ───
 let matrixDragState = null;
 document.getElementById('content-panel').addEventListener('pointerdown', e => {
   if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove, .adv-rotate-handle, .adv-resize-handle')) return;
-  const el = e.target.closest('.adv-photo, .adv-sticker, .mx-note');
+  const el = e.target.closest('.adv-draggable');
   if (!el) return;
   const frame = el.closest('.matrix-frame');
   if (!frame) return;
   el.setPointerCapture(e.pointerId);
   el.classList.add('dragging');
-  const kind = el.classList.contains('adv-photo') ? 'photo'
-    : el.classList.contains('adv-sticker') ? 'sticker' : 'text';
   matrixDragState = {
-    el, frame, pointerId: e.pointerId, kind,
-    id: kind === 'photo' ? el.dataset.url : el.dataset.id,
+    el, frame, pointerId: e.pointerId, kind: el.dataset.kind,
+    id: el.dataset.id,
     lastX: null, lastY: null,
   };
   e.preventDefault();
@@ -3680,7 +3742,7 @@ document.getElementById('content-panel').addEventListener('pointerdown', e => {
   const handle = e.target.closest('.adv-rotate-handle');
   if (!handle) return;
   e.stopPropagation(); e.preventDefault();
-  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
+  const el = handle.closest('.adv-draggable');
   if (!el) return;
   handle.setPointerCapture(e.pointerId);
   el.classList.add('dragging');
@@ -3720,7 +3782,7 @@ document.getElementById('content-panel').addEventListener('pointerdown', e => {
   const handle = e.target.closest('.adv-resize-handle');
   if (!handle) return;
   e.stopPropagation(); e.preventDefault();
-  const el = handle.closest('.adv-photo, .adv-sticker, .mx-note');
+  const el = handle.closest('.adv-draggable');
   if (!el) return;
   handle.setPointerCapture(e.pointerId);
   el.classList.add('dragging');
@@ -3754,15 +3816,15 @@ document.getElementById('content-panel').addEventListener('pointerup', e => {
 });
 
 // ── PINCH-TO-SCALE + TWIST-TO-ROTATE (touch only) — a second finger landing
-// on an already-*selected* photo/sticker/text hands off from the single-
-// finger drag to a combined scale+rotate gesture, replacing the small corner
-// handles (fiddly to grab precisely on a touchscreen — see the "pointer:
-// coarse" rule above that hides them there). One finger still just drags.
+// on an already-*selected* item (scrapbook or game item) hands off from the
+// single-finger drag to a combined scale+rotate gesture, replacing the small
+// corner handles (fiddly to grab precisely on a touchscreen — see the
+// "pointer: coarse" rule above that hides them there). One finger still just drags.
 let matrixPinchState = null;
 document.getElementById('content-panel').addEventListener('pointerdown', e => {
   if (e.pointerType !== 'touch') return;
   if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
-  const el = e.target.closest('.adv-photo.selected, .adv-sticker.selected, .mx-note.selected');
+  const el = e.target.closest('.adv-draggable.selected');
   if (!el) return;
   if (!matrixPinchState || matrixPinchState.el !== el) matrixPinchState = { el, pts:new Map() };
   matrixPinchState.pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
@@ -3773,8 +3835,7 @@ document.getElementById('content-panel').addEventListener('pointerdown', e => {
   el.classList.add('dragging');
   const [p1, p2] = matrixPinchState.pts.values();
   Object.assign(matrixPinchState, {
-    kind: el.classList.contains('adv-photo') ? 'photo' : el.classList.contains('adv-sticker') ? 'sticker' : 'text',
-    id: el.classList.contains('adv-photo') ? el.dataset.url : el.dataset.id,
+    kind: el.dataset.kind, id: el.dataset.id,
     startDist:  Math.max(10, Math.hypot(p2.x-p1.x, p2.y-p1.y)),
     startAngle: Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI,
     startScale: parseFloat(el.dataset.scale || '1'),
