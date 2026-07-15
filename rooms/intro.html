@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
-<title>The Garden — Heartability</title>
-<meta name="description" content="Visit the Garden, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
+<title>The Castle — Heartability</title>
+<meta name="description" content="Choose where to visit in the castle.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
 <style>
 
@@ -101,6 +101,8 @@ html, body {
   height: auto;
 }
 
+.el-grass      { bottom: 0;   left: 0;      width: 100cqw; z-index: 2; }
+.el-sky        { top: 0;      left: 0;      width: 100cqw; height: 100cqh; z-index: 1; }
 .el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
 .el-fountain   { left: 50%;  bottom: 18cqh; width: 30cqw;  z-index: 3; transform: translateX(-50%); }
 .el-phonebooth { left: 8cqw;   bottom: 22cqh; width: 11cqw;  z-index: 3; }
@@ -112,7 +114,7 @@ html, body {
 .el-phonebooth, .el-leaderboard { pointer-events: auto; }
 
 /* ── CLOUD GUIDE  z:4 ── */
-.char-heart {
+.char-cloud {
   position: absolute;
   left: 20cqw;
   top: 35cqh;
@@ -122,7 +124,7 @@ html, body {
   cursor: pointer;
   z-index: 4;
 }
-.char-heart .char-img {
+.char-cloud .char-img {
   display: block;
   width: 100%;
   height: auto;
@@ -138,7 +140,7 @@ html, body {
   0%,100% { transform: translateY(0)     rotate(-1deg); }
   50%      { transform: translateY(-10px) rotate(1deg);  }
 }
-.char-heart.active .char-img {
+.char-cloud.active .char-img {
   animation: cloud-bounce 0.6s ease-in-out infinite;
 }
 @keyframes cloud-bounce {
@@ -167,13 +169,19 @@ html, body {
   transition: opacity 0.22s ease;
   z-index: 5;
 }
-.char-heart.active .thought-bubble { opacity: 1; }
+.char-cloud.active .thought-bubble { opacity: 1; }
 
 /* ── Narrow landscape (small landscape phones) ──
    Portrait/vertical viewports are handled by the room slider
    (assets/css/room-slider.css) instead of squeezing this layout. */
 @media (max-width: 768px) and (orientation: landscape) {
-  .char-heart    { left: 50%;  bottom: 15cqh;   width: clamp(60px, 18cqw, 100px); transform: translateX(-50%); }
+  .el-fountain   { left: 25cqw;  bottom: 14cqh; width: 50cqw; }
+  .el-phonebooth { left: 2cqw;   bottom: 11cqh; width: 16cqw; }
+  .el-leaderboard{ right: 2cqw;  bottom: 11cqh; width: 14cqw; }
+  .el-mailbox    { right: 2cqw;  bottom: 11cqh; width: 14cqw; }
+  .el-cloud-l    { left: 2cqw;   top: 18cqh;   width: 22cqw; }
+  .el-cloud-r    { right: 8cqw;  top: 14cqh;   width: 18cqw; }
+  .char-cloud    { left: 12cqw;  top: 28cqh;   width: clamp(60px, 18cqw, 100px); }
   .thought-bubble { max-width: clamp(140px, 52cqw, 260px); font-size: clamp(12px, 2.8cqw, 17px); }
   .room-nav { font-size: clamp(18px, 3.5vw, 21px); }
 }
@@ -185,14 +193,14 @@ html, body {
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
   <div id="gear-slot"></div>
-  <h1 class="nav-title">garden</h1>
+  <h1 class="nav-title">Reception</h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../rooms/bed.html">bedroom</a>
       <a class="map-item" href="../rooms/courtroom.html">courtroom</a>
-      <a class="map-item" href="../rooms/reception.html">reception</a>
-      <span class="map-item current">garden</span>
+      <span class="map-item current">reception</span>
+      <a class="map-item" href="../rooms/garden.html">garden</a>
       <a class="map-item" href="../rooms/library.html">library</a>
     </div>
   </div>
@@ -201,14 +209,17 @@ html, body {
 <div class="room-scroll">
 <div class="scene room-stage">
 
-
   <!-- Grass ground -->
   <div class="garden-el el-sky">
-    <img src="../assets/elements/garden-sky.png" alt="">
+    <img src="../assets/elements/reception-sky.png" alt="">
   </div>
 
-  <!-- Heart guide -->
-  <div class="char-heart" id="char-heart">
+ 
+
+  
+
+  <!-- Purple cloud guide -->
+  <div class="char-cloud" id="char-cloud">
     <div class="thought-bubble" id="cloud-bubble"></div>
     <img class="char-img" src="../assets/elements/guides/cloud.png" alt="Cloud guide">
   </div>
@@ -216,43 +227,6 @@ html, body {
 </div>
 </div>
 
-
-
-<!-- FOUNTAIN MODAL: donate or wish choice -->
-<div class="hg-modal-overlay" id="fountain-overlay">
-  <div class="hg-modal" style="width:min(92vw,420px);">
-    <div class="hg-modal-titlebar">
-      <span>wish fountain</span>
-      <span class="hg-modal-close" id="fountain-close">&#x2715;</span>
-    </div>
-    <div class="hg-modal-body">
-      <div class="hg-modal-message" style="text-align:center;">may everything you give return tenfold</div>
-      <div class="hg-modal-actions" style="justify-content:center; gap:14px; flex-wrap:wrap;">
-        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-wish">make a wish</button>
-        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-donation">make a donation</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- WISH MODAL -->
-<div class="hg-modal-overlay" id="wish-overlay">
-  <div class="hg-modal" style="width:min(92vw,440px);">
-    <div class="hg-modal-titlebar">
-      <span>make a wish</span>
-      <span class="hg-modal-close" id="wish-close">&#x2715;</span>
-    </div>
-    <div class="hg-modal-body">
-      <div class="hg-modal-message" style="font-size:15px;">write your wish in as much detail as possible <br> <span style="font-size:12px; color:#888;">entries are anonymous</span></div>
-      <textarea id="wish-text" rows="5" placeholder="my wish is..." style="width:100%; font-family:var(--font-hand); font-size:16px; padding:10px; border:2px solid #ccc; resize:vertical; box-sizing:border-box;"></textarea>
-      <div id="wish-msg" style="font-family:var(--font-hand); font-size:13px; min-height:16px;"></div>
-      <div class="hg-modal-actions">
-        <button class="hg-modal-btn" id="wish-cancel">cancel</button>
-        <button class="hg-modal-btn hg-modal-btn-primary" id="wish-submit">send wish</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
@@ -264,110 +238,15 @@ html, body {
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ── Cloud guide bubble ── */
-  const cloud  = document.getElementById('char-heart');
+  const cloud  = document.getElementById('char-cloud');
   const bubble = document.getElementById('cloud-bubble');
 
   cloud.addEventListener('mouseenter', () => {
-    bubble.textContent = 'welcome to the garden';
+    bubble.textContent = 'welcome to the castle';
     cloud.classList.add('active');
   });
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
 
-  /* ── Phone booth: "coming soon!" ── */
-  const phonebooth = document.querySelector('.el-phonebooth');
-  phonebooth.addEventListener('mouseenter', () => {
-    bubble.textContent = 'coming soon!';
-    cloud.classList.add('active');
-  });
-  phonebooth.addEventListener('mouseleave', () => cloud.classList.remove('active'));
-
-  /* ── Fountain: wish text + donation link ── */
-  const fountain = document.querySelector('.el-fountain');
-  fountain.addEventListener('mouseenter', () => {
-    bubble.textContent = 'throw a coin, make a wish';
-    cloud.classList.add('active');
-  });
-  fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
-  fountain.addEventListener('click', () => openFountainModal());
-
-  /* ── Leaderboard: "coming soon!" ── */
-  const leaderboardSign = document.getElementById('el-leaderboard');
-  leaderboardSign.addEventListener('mouseenter', () => {
-    bubble.textContent = 'coming soon!';
-    cloud.classList.add('active');
-  });
-  leaderboardSign.addEventListener('mouseleave', () => cloud.classList.remove('active'));
-
-  /* ── Fountain popup: donate or wish ── */
-  const fountainOverlay = document.getElementById('fountain-overlay');
-
-  function openFountainModal()  { fountainOverlay.classList.add('open'); }
-  function closeFountainModal() { fountainOverlay.classList.remove('open'); }
-
-  document.getElementById('fountain-close').addEventListener('click', closeFountainModal);
-  fountainOverlay.addEventListener('click', (e) => { if (e.target === fountainOverlay) closeFountainModal(); });
-
-  document.getElementById('btn-make-donation').addEventListener('click', () => {
-    window.open('https://buy.stripe.com/7sYbJ05MOaHzc5V2eV1Jm00', '_blank', 'noopener');
-    closeFountainModal();
-  });
-
-  document.getElementById('btn-make-wish').addEventListener('click', () => {
-    closeFountainModal();
-    openWishModal();
-  });
-
-  /* ── Wish popup ── */
-  const wishOverlay = document.getElementById('wish-overlay');
-  const wishText     = document.getElementById('wish-text');
-  const wishMsg       = document.getElementById('wish-msg');
-  const wishSubmitBtn = document.getElementById('wish-submit');
-
-  function openWishModal() {
-    wishText.value = '';
-    wishMsg.textContent = '';
-    wishOverlay.classList.add('open');
-  }
-  function closeWishModal() { wishOverlay.classList.remove('open'); }
-
-  document.getElementById('wish-close').addEventListener('click', closeWishModal);
-  document.getElementById('wish-cancel').addEventListener('click', closeWishModal);
-  wishOverlay.addEventListener('click', (e) => { if (e.target === wishOverlay) closeWishModal(); });
-
-  wishSubmitBtn.addEventListener('click', async () => {
-    const text = wishText.value.trim();
-    if (!text) {
-      wishMsg.style.color = '#c0392b';
-      wishMsg.textContent = 'please write a wish first';
-      return;
-    }
-    wishSubmitBtn.disabled = true;
-    wishMsg.style.color = '#888';
-    wishMsg.textContent = 'sending...';
-    try {
-      const { error } = await sb.from('wishes').insert({ wish_text: text });
-      if (error) {
-        wishMsg.style.color = '#c0392b';
-        wishMsg.textContent = "couldn't send your wish, please try again";
-        return;
-      }
-      closeWishModal();
-      bubble.textContent = 'thank you for your wish';
-      cloud.classList.add('active');
-      setTimeout(() => cloud.classList.remove('active'), 2500);
-    } catch (err) {
-      wishMsg.style.color = '#c0392b';
-      wishMsg.textContent = "couldn't send your wish, please try again";
-    } finally {
-      wishSubmitBtn.disabled = false;
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    closeFountainModal();
-    closeWishModal();
-  });
 
   /* ── Map ── */
   document.getElementById('map-btn').addEventListener('click', () => {
