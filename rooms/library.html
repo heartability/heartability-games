@@ -121,14 +121,53 @@ html, body {
 
 /* ── THOUGHT BUBBLE ── */
 .thought-bubble {
-  position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) scale(0.92);
-  min-width: clamp(140px, 20cqw, 220px); max-width: clamp(160px, 24cqw, 260px);
-  background: #fff; border: 2px solid #000; border-radius: 50%;
-  padding: 12px 18px; font-family: var(--font-hand); font-size: clamp(13px, 1.2cqw, 16px);
-  color: #000; text-align: center; line-height: 1.4; z-index: 21;
-  opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none;
+  position: absolute;
+  left: calc(100% - 8px);
+  bottom: 62%;
+  min-width: clamp(140px, 16cqw, 220px);
+  max-width: clamp(160px, 20cqw, 260px);
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 12px 18px;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.2cqw, 16px);
+  color: #000;
+  text-align: center;
+  line-height: 1.5;
+  z-index: 21;
+  opacity: 0;
+  transform: scale(0.92) translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
 }
-.room-icon:hover .thought-bubble { opacity: 1; transform: translateX(-50%) scale(1); }
+.thought-bubble.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* ── HEART CHARACTER ── */
+@keyframes idle-pulse {
+  0%,100% { transform: translateY(0) rotate(-2deg) scale(1); }
+  50%      { transform: translateY(-8px) rotate(2deg) scale(1.03); }
+}
+.char-heart {
+  position: absolute;
+  left: 18cqw;
+  bottom: 18cqh;
+  width: clamp(120px, 16cqw, 260px);
+  z-index: 20;
+  pointer-events: none;
+  transition: left 0.7s cubic-bezier(0.4,0,0.2,1), bottom 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+@media (orientation: portrait) {
+  .char-heart { width: clamp(70px, 10cqw, 180px); }
+}
+.char-heart img {
+  display: block;
+  width: 100%; height: auto;
+  animation: idle-pulse 3.6s ease-in-out 1s infinite;
+}
 
 /* ── LIBRARY MODAL ── */
 .hg-modal-body.lib-body { overflow-y: auto; flex: 1; }
@@ -211,12 +250,16 @@ html, body {
 
   <!-- ROOM ICONS -->
   <div class="room-icon" id="icon-bookshelf" onclick="openLibrary('book')">
-    <div class="thought-bubble">browse the texts people've read</div>
     <img src="../assets/elements/shelf.png" alt="bookshelf (texts)">
   </div>
   <div class="room-icon" id="icon-projector" onclick="openLibrary('visual')">
-    <div class="thought-bubble">browse the films &amp; shows people've watched</div>
     <img src="../assets/elements/tv.png" alt="projector (visuals)">
+  </div>
+
+  <!-- HEART CHARACTER -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="thought-bubble">hello!</div>
+    <img src="../assets/elements/guides/heart.png" alt="" />
   </div>
 
 </div></div>
@@ -517,6 +560,22 @@ async function handleDeepLink() {
   await openLibrary(category);
   openDetail(mediaId);
 }
+
+// ── Thought bubble ──
+const bubble = document.getElementById('thought-bubble');
+const bubbleMessages = {
+  'icon-bookshelf': "browse the texts people've read",
+  'icon-projector': "browse the films & shows people've watched",
+};
+document.querySelectorAll('.room-icon').forEach(icon => {
+  icon.addEventListener('mouseenter', () => {
+    bubble.textContent = bubbleMessages[icon.id] || '';
+    bubble.classList.add('visible');
+  });
+  icon.addEventListener('mouseleave', () => {
+    bubble.classList.remove('visible');
+  });
+});
 
 // ── Map dropdown ──
 document.getElementById('map-btn').addEventListener('click', () => {
