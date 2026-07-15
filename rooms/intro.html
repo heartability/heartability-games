@@ -101,22 +101,12 @@ html, body {
   height: auto;
 }
 
-.el-grass      { bottom: 0;   left: 0;      width: 100cqw; z-index: 2; }
-.el-sky        { top: 0;      left: 0;      width: 100cqw; height: 100cqh; z-index: 1; }
-.el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
-.el-fountain   { left: 50%;  bottom: 18cqh; width: 30cqw;  z-index: 3; transform: translateX(-50%); }
-.el-phonebooth { left: 8cqw;   bottom: 22cqh; width: 11cqw;  z-index: 3; }
-.el-leaderboard{ right: 8cqw;  bottom: 25cqh; width: 11cqw;   z-index: 3; }
-.el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; }
-.el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; }
 
-.el-fountain    { pointer-events: auto; cursor: pointer; }
-.el-phonebooth, .el-leaderboard { pointer-events: auto; }
-
-/* ── CLOUD GUIDE  z:4 ── */
-.char-cloud {
+/* ── HEART GUIDE  z:4 ── */
+.char-heart {
   position: absolute;
-  left: 20cqw;
+  left: 50%;
+  translateX(-50%);
   top: 35cqh;
   width: clamp(80px, 14cqw, 130px);
   display: flex;
@@ -124,26 +114,26 @@ html, body {
   cursor: pointer;
   z-index: 4;
 }
-.char-cloud .char-img {
+.char-heart .char-img {
   display: block;
   width: 100%;
   height: auto;
   animation:
-    cloud-intro 0.85s ease-out 0.35s 1 backwards,
-    cloud-idle  4s ease-in-out 1.5s infinite;
+    heart-intro 0.85s ease-out 0.35s 1 backwards,
+    heart-idle  4s ease-in-out 1.5s infinite;
 }
-@keyframes cloud-intro {
+@keyframes heart-intro {
   0%   { transform: scale(0.7) translateY(-20px); opacity: 0; }
   100% { transform: scale(1) translateY(0);       opacity: 1; }
 }
-@keyframes cloud-idle {
+@keyframes heart-idle {
   0%,100% { transform: translateY(0)     rotate(-1deg); }
   50%      { transform: translateY(-10px) rotate(1deg);  }
 }
-.char-cloud.active .char-img {
-  animation: cloud-bounce 0.6s ease-in-out infinite;
+.char-heart.active .char-img {
+  animation: heart-bounce 0.6s ease-in-out infinite;
 }
-@keyframes cloud-bounce {
+@keyframes heart-bounce {
   0%,100% { transform: translateY(0)     rotate(-2deg) scale(1.04); }
   50%      { transform: translateY(-12px) rotate(2deg)  scale(1.08); }
 }
@@ -169,7 +159,7 @@ html, body {
   transition: opacity 0.22s ease;
   z-index: 5;
 }
-.char-cloud.active .thought-bubble { opacity: 1; }
+.char-heart.active .thought-bubble { opacity: 1; }
 
 /* ── Narrow landscape (small landscape phones) ──
    Portrait/vertical viewports are handled by the room slider
@@ -179,9 +169,7 @@ html, body {
   .el-phonebooth { left: 2cqw;   bottom: 11cqh; width: 16cqw; }
   .el-leaderboard{ right: 2cqw;  bottom: 11cqh; width: 14cqw; }
   .el-mailbox    { right: 2cqw;  bottom: 11cqh; width: 14cqw; }
-  .el-cloud-l    { left: 2cqw;   top: 18cqh;   width: 22cqw; }
-  .el-cloud-r    { right: 8cqw;  top: 14cqh;   width: 18cqw; }
-  .char-cloud    { left: 12cqw;  top: 28cqh;   width: clamp(60px, 18cqw, 100px); }
+  .char-heart    { left: 12cqw;  top: 28cqh;   width: clamp(60px, 18cqw, 100px); }
   .thought-bubble { max-width: clamp(140px, 52cqw, 260px); font-size: clamp(12px, 2.8cqw, 17px); }
   .room-nav { font-size: clamp(18px, 3.5vw, 21px); }
 }
@@ -218,10 +206,10 @@ html, body {
 
   
 
-  <!-- Purple cloud guide -->
-  <div class="char-cloud" id="char-cloud">
-    <div class="thought-bubble" id="cloud-bubble"></div>
-    <img class="char-img" src="../assets/elements/guides/cloud.png" alt="Cloud guide">
+  <!-- Heart guide -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="heart-bubble"></div>
+    <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
   </div>
 
 </div>
@@ -237,15 +225,15 @@ html, body {
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* ── Cloud guide bubble ── */
-  const cloud  = document.getElementById('char-cloud');
-  const bubble = document.getElementById('cloud-bubble');
+  /* ── Heart guide bubble ── */
+  const heart  = document.getElementById('char-heart');
+  const bubble = document.getElementById('heart-bubble');
 
-  cloud.addEventListener('mouseenter', () => {
+  heart.addEventListener('mouseenter', () => {
     bubble.textContent = 'welcome to the castle';
-    cloud.classList.add('active');
+    heart.classList.add('active');
   });
-  cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+  heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
 
 
   /* ── Map ── */
