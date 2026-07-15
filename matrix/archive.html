@@ -1613,11 +1613,8 @@ async function enterDailyView(){
   document.getElementById('daily-preview-window').style.display = 'block';
   await loadDailyEntries();
   renderCalendar();
-  // Default preview: last three locations tracked (a teaser, distinct from the
-  // fuller list "recent history" shows once explicitly clicked — see below).
-  dpView = 'recent';
-  document.querySelectorAll('.dp-menu-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'recent'));
-  renderDpRecentPreview();
+  // Default preview: last three locations tracked.
+  setDailyPreviewView('recent');
 }
 async function loadDailyEntries(){
   const { data, error } = await sb.from('daily_matrix')
@@ -1656,40 +1653,24 @@ function setDailyPreviewView(view){
   if (view === 'energy')         renderDpEnergyView();
   else if (view === 'weather')   renderDpWeatherView();
   else if (view === 'locations') renderDpLocationsView();
-  else                            renderDpRecentHistoryView();
+  else                            renderDpRecentView();
 }
 
-// Shared renderer for both "recent" sub-views — allSaves is always sourced
-// from loadDailyEntries() (the daily_matrix table only, never dream/cosmic),
-// so both the on-load teaser and the full history list stay daily-only.
-function renderDpRecentSection({ limit, title, sectionLabel, emptyMsg }){
+// Same view on load and on explicit "recent history" clicks: last 3 entries,
+// always sourced from allSaves (loadDailyEntries() — daily_matrix only, never
+// dream/cosmic).
+function renderDpRecentView(){
   showDpSubview('recent');
-  document.getElementById('dp-window-title').textContent = title;
+  document.getElementById('dp-window-title').textContent = 'recent history';
   const wrap = document.getElementById('dp-view-recent');
-  const list = (limit ? allSaves.slice(-limit) : allSaves.slice()).reverse(); // most recent first
-  if (!list.length){
-    wrap.innerHTML = `<div class="day-list-empty">${emptyMsg}</div>`;
+  const recent = allSaves.slice(-3).reverse(); // most recent first
+  if (!recent.length){
+    wrap.innerHTML = '<div class="day-list-empty">no daily entries yet — start today\'s quest to begin your archive</div>';
     return;
   }
-  wrap.innerHTML = `<div class="dp-section-label">${sectionLabel}</div>
-    <div class="loc-list">${list.map(dpLocRowHTML).join('')}</div>`;
-  list.forEach(s => { document.getElementById('dp-loc-row-' + s.id).onclick = () => openDailyDayInPreview(s.entry_date); });
-}
-// On-load teaser: last 3 daily entries.
-function renderDpRecentPreview(){
-  renderDpRecentSection({
-    limit: 3, title: 'recent activity',
-    sectionLabel: `your last ${Math.min(allSaves.length, 3) === 1 ? 'location' : 'three locations'} tracked`,
-    emptyMsg: 'no daily entries yet — start today\'s quest to begin your archive',
-  });
-}
-// Explicit "recent history" menu click: the full daily entry history, not capped at 3.
-function renderDpRecentHistoryView(){
-  renderDpRecentSection({
-    limit: null, title: 'recent history',
-    sectionLabel: `${allSaves.length} daily ${allSaves.length === 1 ? 'entry' : 'entries'}`,
-    emptyMsg: 'no daily entries yet — start today\'s quest to begin your archive',
-  });
+  wrap.innerHTML = `<div class="dp-section-label">your last ${recent.length === 1 ? 'location' : 'three locations'} tracked</div>
+    <div class="loc-list">${recent.map(dpLocRowHTML).join('')}</div>`;
+  recent.forEach(s => { document.getElementById('dp-loc-row-' + s.id).onclick = () => openDailyDayInPreview(s.entry_date); });
 }
 function dpLocRowHTML(s){
   const cat = s.location_data && s.location_data.cat;
