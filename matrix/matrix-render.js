@@ -237,45 +237,89 @@
     const jit = r => (rnd()*2-1)*r;
     const rot = r => ((rnd()*2-1)*r).toFixed(1);
 
+    // Saved drag/rotate/resize overrides for the map/bingo/char/book items —
+    // same matrix_layout jsonb column the live dream/daily matrix pages write
+    // to (see their own updateMatrixLayoutItem). Falls back to the seeded
+    // jitter position when nothing's been dragged yet, same as photos do.
+    // This is a read-only render (no drag handles), so it only ever consumes
+    // layout, never writes it.
+    const layout = data.matrixLayout || {};
+
     // MAP → top-left (external + action): only the day's chosen destination.
     const dayLoc = data.sidequestData || data.locationData || {};
     const mapCap = (data.sidequestData && data.sidequestData.name) || data.mapName || 'my map';
-    const mapItem = `<div class="adv-item adv-map" style="left:${(27+jit(2)).toFixed(1)}%;top:${(30+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
+    const mapLayout = layout.map || {};
+    const mapLeft  = mapLayout.x != null ? mapLayout.x : (27+jit(2)).toFixed(1);
+    const mapTop   = mapLayout.y != null ? mapLayout.y : (30+jit(2)).toFixed(1);
+    const mapRot   = mapLayout.rot != null ? mapLayout.rot : rot(3);
+    const mapScale = mapLayout.scale || 1;
+    const mapItem = `<div class="adv-item adv-map" style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
         <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
         <div class="adv-cap">${esc(mapCap)}</div></div>`;
 
-    // BINGO (heart meter) → bottom-left (internal + action).
-    const score = data.bingoScore || 0;
-    const meterPct = Math.round((score/24)*100);
-    const mode = score<=9 ? 'hard mode' : score<=19 ? 'medium mode' : 'easy mode';
-    const bingoItem = `<div class="adv-item adv-bingo" style="left:${(27+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">
-        <div class="adv-cap">heart meter</div>
-        <div class="adv-meter"><div class="adv-meter-fill" style="width:${meterPct}%"></div></div>
-        <div class="adv-mode">${mode}</div></div>`;
+    // BINGO (heart meter) → bottom-left (internal + action). Vertical striped
+    // track with a pixel heart marker riding the fill line — matches the
+    // live dream/daily matrix pages' .hm-box widget (see injectStyles below).
+    const hmScore = data.bingoScore || 0;
+    const hmPct = Math.max(0, Math.min(100, Math.round((hmScore/24)*100)));
+    const hmFull = hmScore >= 24;
+    const hmHeartImg = hmFull ? '../assets/elements/heart-gold.png' : '../assets/elements/heart-pink.png';
+    const hmHeartPos = Math.max(6, Math.min(94, hmPct));
+    const bingoLayout = layout.bingo || {};
+    const bingoLeft  = bingoLayout.x != null ? bingoLayout.x : (27+jit(2)).toFixed(1);
+    const bingoTop   = bingoLayout.y != null ? bingoLayout.y : (71+jit(2)).toFixed(1);
+    const bingoRot   = bingoLayout.rot != null ? bingoLayout.rot : rot(3);
+    const bingoScale = bingoLayout.scale || 1;
+    const bingoItem = `<div class="adv-item adv-bingo" style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
+        <div class="hm-box${hmFull ? ' hm-full' : ''}">
+          <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
+          <img class="hm-heart" src="${hmHeartImg}" alt="heart meter" style="bottom:${hmHeartPos}%">
+        </div></div>`;
 
     // CHARACTER (infinity mirror archetype) → bottom-right (internal + feeling).
     const charStack = buildCharStack(data.charState);
-    const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
+    const charName = (data.charState && data.charState.name) || '';
+    const charLayout = layout.char || {};
+    const charLeft  = charLayout.x != null ? charLayout.x : (73+jit(2)).toFixed(1);
+    const charTop   = charLayout.y != null ? charLayout.y : (71+jit(2)).toFixed(1);
+    const charRot   = charLayout.rot != null ? charLayout.rot : rot(3);
+    const charScale = charLayout.scale || 1;
+    const charItem = charStack ? `<div class="adv-item adv-char" style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${esc(charName)}</div>` : ''}</div>` : '';
 
     // LIBRARY BOOKS tagged to this entry → top-right (external + feeling).
+    const bookLayout = layout.books || {};
     const libraryItems = (data.libraryEntries||[]).map((entry, i) => {
+      const saved = bookLayout[entry.id] || {};
       const slot = photoSlot('external-feeling', i);
+      const left  = saved.x != null ? saved.x : (slot.left+jit(1.5)).toFixed(1);
+      const top   = saved.y != null ? saved.y : (slot.top+jit(1.5)).toFixed(1);
+      const bRot  = saved.rot != null ? saved.rot : rot(4);
+      const bScale = saved.scale || 1;
       const cover = entry.cover_url_override || (entry.media && entry.media.cover_url);
       const title = (entry.media && entry.media.title) || 'untitled';
-      return `<div class="adv-item adv-book" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(4)}deg);">
+      return `<div class="adv-item adv-book" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
           ${cover ? `<img class="adv-book-cover" src="${esc(cover)}" alt="">` : '<div class="adv-book-noimg"></div>'}
           <div class="adv-cap">${esc(title)}</div></div>`;
     }).join('');
 
-    // Photos — placed inside their assigned quadrant.
+    // Photos — start out placed inside their assigned quadrant (2-col grid so
+    // each photo stays visible), but once a photo has been dragged in the
+    // live editor its saved x/y takes over so it stays where it was put.
     const quadCount = {};
     let photos = '';
     (data.matrixImages||[]).forEach(img => {
       if (!img || !img.url) return;
-      const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
-      const n = quadCount[q] || 0; quadCount[q] = n + 1;
-      const slot = photoSlot(q, n);
-      photos += `<div class="adv-photo" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(8)}deg);"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" type="button" data-url="${esc(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
+      let left, top, pRot;
+      const scale = img.scale || 1;
+      if (img.x != null && img.y != null) {
+        left = img.x; top = img.y; pRot = img.rot || 0;
+      } else {
+        const q = QUADRANTS[img.quadrant] ? img.quadrant : 'internal-feeling';
+        const n = quadCount[q] || 0; quadCount[q] = n + 1;
+        const slot = photoSlot(q, n);
+        left = (slot.left+jit(1.5)).toFixed(1); top = (slot.top+jit(1.5)).toFixed(1); pRot = rot(8);
+      }
+      photos += `<div class="adv-photo" style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${pRot}deg) scale(${scale});"><img src="${img.url}" alt="" onerror="this.parentElement.style.display='none'"><button class="adv-photo-remove" type="button" data-url="${esc(img.url)}" title="remove photo" aria-label="remove photo">✕</button></div>`;
     });
 
     // Stickers — freeform decorations, placed wherever they were last dragged to.
@@ -346,6 +390,7 @@
       mapPhase: null, locationData: null, sidequestData: null,
       bingoScore: 0, charState: null, journalText: '', matrixImages: [],
       matrixStickers: [], matrixTexts: [], libraryEntries: [],
+      matrixLayout: {}, // drag/rotate/resize overrides for map/bingo/char/book — see buildHTML
     };
     if (!sb || !entryId) return d;
     try {
@@ -362,6 +407,7 @@
         d.matrixImages   = Array.isArray(row.matrix_images) ? row.matrix_images : [];
         d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
         d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
+        d.matrixLayout   = row.matrix_layout || {};
         // dateLabel reflects the SAVE's local day, not "today". Daily rows are
         // dated by entry_date (a plain YYYY-MM-DD), so prefer it when present.
         if (row.entry_date) {
@@ -687,10 +733,32 @@
 .adv-map { width:clamp(150px,20vw,240px); }
 .adv-map-svg { width:100%; aspect-ratio:5/4; }
 .adv-map-svg svg { width:100%; height:100%; }
-.adv-bingo { width:clamp(130px,16vw,200px); }
-.adv-meter { width:100%; height:14px; border:1.5px solid var(--blue,#6e83d3); background:#e7e1d6; margin-top:2px; }
-.adv-meter-fill { height:100%; background:linear-gradient(90deg,#E8478B,#f3a0c4); }
-.adv-mode { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(10px,1.1vw,13px); color:#7a86bb; margin-top:3px; }
+.adv-bingo { width:clamp(46px,5.5vw,64px); }
+/* Vertical heart meter — matches the live dream/daily matrix pages' .hm-box
+   widget: a striped meter-track (fills bottom-to-top) inside a bezel frame,
+   with the pixel heart riding on top of the fill line as a marker. Flips to
+   the gold palette + heart-gold.png only once fully filled. */
+.hm-box {
+  position:relative; width:100%; padding:4px; box-sizing:border-box;
+  border:3px solid var(--blue,#6e83d3);
+  background:#e5e8f5; border-radius:2px;
+}
+.hm-track {
+  position:relative; width:100%; height:clamp(90px,11vw,140px);
+  box-sizing:border-box; overflow:hidden;
+  border:3px solid var(--blue,#6e83d3);
+  background:#cdd3ec;
+}
+.hm-fill {
+  position:absolute; left:0; right:0; bottom:0; width:100%;
+  background:repeating-linear-gradient(0deg, #6f84d3 0px, #6f84d3 16px, #9aa9e0 16px, #9aa9e0 18px);
+}
+.hm-box.hm-full .hm-fill { background:repeating-linear-gradient(0deg, #f4d900 0px, #f4d900 16px, #ecd67a 16px, #ecd67a 18px); }
+.hm-heart {
+  position:absolute; left:50%; width:68%; z-index:2;
+  transform:translate(-50%,50%); image-rendering:pixelated;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));
+}
 .adv-char { width:clamp(90px,11vw,140px); }
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
 .adv-char-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
