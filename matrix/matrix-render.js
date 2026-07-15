@@ -257,6 +257,16 @@
     const charStack = buildCharStack(data.charState);
     const charItem = charStack ? `<div class="adv-item adv-char" style="left:${(73+jit(2)).toFixed(1)}%;top:${(71+jit(2)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(3)}deg);">${charStack}</div>` : '';
 
+    // LIBRARY BOOKS tagged to this entry → top-right (external + feeling).
+    const libraryItems = (data.libraryEntries||[]).map((entry, i) => {
+      const slot = photoSlot('external-feeling', i);
+      const cover = entry.cover_url_override || (entry.media && entry.media.cover_url);
+      const title = (entry.media && entry.media.title) || 'untitled';
+      return `<div class="adv-item adv-book" style="left:${(slot.left+jit(1.5)).toFixed(1)}%;top:${(slot.top+jit(1.5)).toFixed(1)}%;transform:translate(-50%,-50%) rotate(${rot(4)}deg);">
+          ${cover ? `<img class="adv-book-cover" src="${esc(cover)}" alt="">` : '<div class="adv-book-noimg"></div>'}
+          <div class="adv-cap">${esc(title)}</div></div>`;
+    }).join('');
+
     // Photos — placed inside their assigned quadrant.
     const quadCount = {};
     let photos = '';
@@ -313,7 +323,7 @@
           <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
           <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
           <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
-          ${mapItem}${bingoItem}${charItem}
+          ${mapItem}${bingoItem}${charItem}${libraryItems}
           ${photos}
           ${stickers}
           ${texts}
@@ -335,7 +345,7 @@
       zones: (g.map_data || {}).zones || [],
       mapPhase: null, locationData: null, sidequestData: null,
       bingoScore: 0, charState: null, journalText: '', matrixImages: [],
-      matrixStickers: [], matrixTexts: [],
+      matrixStickers: [], matrixTexts: [], libraryEntries: [],
     };
     if (!sb || !entryId) return d;
     try {
@@ -361,6 +371,12 @@
         } else if (row.created_at) {
           d.dateLabel = new Date(row.created_at)
             .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        }
+        const libIds = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
+        if (libIds.length) {
+          const { data: libRows } = await sb.from('media_submissions')
+            .select('id, cover_url_override, media(title, cover_url)').in('id', libIds);
+          d.libraryEntries = libRows || [];
         }
       }
     } catch(e){ /* leave defaults */ }
@@ -678,6 +694,10 @@
 .adv-char { width:clamp(90px,11vw,140px); }
 .adv-char-stack { position:relative; width:100%; aspect-ratio:1; }
 .adv-char-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.adv-book { width:clamp(56px,7vw,86px); }
+.adv-book-cover, .adv-book-noimg { width:100%; aspect-ratio:2/3; display:block; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); }
+.adv-book-cover { object-fit:cover; }
+.adv-book-noimg { background:#ccc; display:flex; align-items:center; justify-content:center; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:11px; color:#666; padding:4px; text-align:center; }
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
 .adv-photo img {
   width:100%; height:auto; max-height:clamp(96px,11.5vw,150px); display:block;
