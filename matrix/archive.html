@@ -483,6 +483,18 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .arch-card-new:hover .arch-card-plus { color:var(--purple); }
 .arch-history-header { display:flex; flex-direction:column; align-items:center; width:140px; margin:0 auto 18px; }
 
+/* ── INVENTORY GRID (library books/movies as cover icons) ── */
+.inv-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:14px; padding:4px; }
+.inv-card {
+  border:2px solid #ccc; background:#fdf6e3; cursor:pointer; display:flex; flex-direction:column;
+  align-items:stretch; padding:6px 6px 8px; gap:6px; font-family:var(--font-hand); text-align:center;
+  transition:border-color .15s, box-shadow .12s, transform .1s;
+}
+.inv-card:hover { border-color:var(--purple); box-shadow:2px 2px 0 var(--purple); transform:translateY(-2px); }
+.inv-card img, .inv-card-noimg { width:100%; aspect-ratio:2/3; object-fit:cover; background:#ddd; border:1.5px solid #ccc; }
+.inv-card-noimg { display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; padding:4px; }
+.inv-card-name { font-size:15px; color:#3a2e1e; line-height:1.25; }
+
 /* ── MEMBER GATE ── */
 .member-gate-overlay {
   position:fixed; inset:0; z-index:600; background:rgba(40,32,24,.55);
@@ -805,12 +817,26 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   <div class="page-wrap uniform-tab-wrap">
     <div class="page-body uniform-tab-body">
       <div class="window" id="inventory-window">
-        <div class="window-titlebar"><span>your library entries</span></div>
+        <div class="window-titlebar"><span>your library</span></div>
         <div class="window-body">
-          <div class="loc-list" id="inv-list"></div>
+          <div class="inv-grid" id="inv-grid"></div>
           <div class="day-list-empty" id="inv-empty" style="display:none;">you haven't added anything to the library yet — visit <a href="../rooms/library.html" style="color:var(--purple);">the library</a> to add one</div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY ENTRY POPUP: every matrix entry where a saved book/movie was tagged -->
+<div class="day-overlay" id="inv-entry-overlay" onclick="handleInvEntryOverlayClick(event)">
+  <div class="day-window">
+    <div class="day-titlebar">
+      <span id="inv-entry-title">entries</span>
+      <span class="day-close" onclick="closeInvEntryPopup()">✕</span>
+    </div>
+    <div class="day-body" style="padding:18px 20px 22px;">
+      <div class="loc-list" id="inv-entry-list"></div>
+      <div class="day-list-empty" id="inv-entry-empty" style="display:none;">you haven't tagged this in any of your matrix entries yet</div>
     </div>
   </div>
 </div>
@@ -1366,7 +1392,7 @@ function closeDayPopup() {
   activeSaveId = null;
 }
 function handleDayOverlayClick(e) { if (e.target === document.getElementById('day-overlay')) closeDayPopup(); }
-document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopup(); closeCosmicPhasePopup(); } });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopup(); closeCosmicPhasePopup(); closeInvEntryPopup(); } });
 
 async function openMatrixView(saveId) {
   activeSaveId = saveId;
@@ -1923,32 +1949,111 @@ async function jumpToArchetypeRow(row){
 }
 
 // ── INVENTORY TAB (the library entries this person has submitted) ────────
+let inventorySubmissions = [];
 async function loadInventoryTab(){
-  const list = document.getElementById('inv-list');
+  const grid = document.getElementById('inv-grid');
   const emptyEl = document.getElementById('inv-empty');
   emptyEl.style.display = 'none';
-  list.innerHTML = '<div class="day-list-empty">gathering your library entries…</div>';
+  grid.innerHTML = '<div class="arch-picker-loading">gathering your library…</div>';
 
   const { data, error } = await sb.from('media_submissions')
-    .select('*, media(*)').eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
+    .select('id, media_id, cover_url_override, media(title, cover_url)')
+    .eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
   if (error) console.error('[inventory] fetch failed:', error);
-  const rows = data || [];
+  inventorySubmissions = data || [];
+
+  grid.innerHTML = '';
+  if (!inventorySubmissions.length){ emptyEl.style.display = 'block'; return; }
+  inventorySubmissions.forEach(r => {
+    const title = r.media?.title || 'untitled';
+    const cover = r.cover_url_override || r.media?.cover_url;
+    const card = document.createElement('div');
+    card.className = 'inv-card';
+    card.innerHTML = `${cover ? `<img src="${escapeHtml(cover)}" alt="">` : '<div class="inv-card-noimg"></div>'}
+      <div class="inv-card-name">${escapeHtml(title)}</div>`;
+    card.onclick = () => openInventoryEntryPopup(r);
+    grid.appendChild(card);
+  });
+}
+
+// Popup: every dream/daily/cosmic matrix entry this book/movie was tagged to
+// (via that row's library_entry_ids — see the library step in dream.html /
+// daily.html / cosmic.html). Clicking a row jumps to that entry's own tab and
+// opens its detail view — the day popup for dream, the persistent preview for
+// daily (it has no popup), or the phase popup for cosmic.
+async function openInventoryEntryPopup(sub){
+  document.getElementById('inv-entry-title').textContent = sub.media?.title || 'untitled';
+  const list = document.getElementById('inv-entry-list');
+  const emptyEl = document.getElementById('inv-entry-empty');
+  emptyEl.style.display = 'none';
+  list.innerHTML = '<div class="day-list-empty">gathering entries…</div>';
+  document.getElementById('inv-entry-overlay').classList.add('open');
+
+  const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
+    sb.from('dream_matrix')
+      .select('id, map_id, location_data, sidequest_data, map_phase, map_completed, created_at')
+      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+    sb.from('daily_matrix')
+      .select('id, entry_date, location_data, created_at')
+      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+    sb.from('cosmic_matrix')
+      .select('map_id, map_phase, location_data, updated_at')
+      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+  ]);
+
+  const rows = [];
+  (dreamRes.data || []).forEach(r => rows.push({ source:'dream', dateVal:new Date(r.created_at), label:locationLabel(r), raw:r }));
+  (dailyRes.data || []).forEach(r => rows.push({ source:'daily', dateVal:new Date(r.entry_date + 'T00:00:00'), label:locationLabel(r), raw:r }));
+  (cosmicRes.data || []).forEach(r => rows.push({
+    source:'cosmic', dateVal:new Date(r.updated_at),
+    label: [r.location_data && r.location_data.sign, r.location_data && r.location_data.location].filter(Boolean).join(' · ') || 'a season',
+    raw:r,
+  }));
+  rows.sort((a,b) => b.dateVal - a.dateVal);
 
   list.innerHTML = '';
   if (!rows.length){ emptyEl.style.display = 'block'; return; }
-  rows.forEach(r => {
-    const title = r.title || r.media?.title || 'untitled';
-    const mediaType = r.media_type || r.media?.media_type || '';
+  rows.forEach(row => {
+    const badge = row.source==='dream' ? 'dream matrix' : row.source==='daily' ? 'daily tracker' : 'cosmic matrix';
     const el = document.createElement('div');
     el.className = 'loc-row';
-    el.innerHTML = `<span class="loc-name">${escapeHtml(title)} <span style="color:#bbb;font-size:11px;">· ${escapeHtml(mediaType)}</span></span>
+    el.innerHTML = `<span class="loc-name">${escapeHtml(row.label)} <span style="color:#bbb;font-size:11px;">· ${badge}</span></span>
       <span style="display:flex;align-items:center;gap:10px;">
-        <span class="loc-time">${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+        <span class="loc-time">${row.dateVal.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
         <span class="loc-arrow">→</span>
       </span>`;
-    el.onclick = () => window.location.href = `../rooms/library.html?media=${r.media_id}`;
+    el.onclick = () => jumpToInventoryRow(row);
     list.appendChild(el);
   });
+}
+function closeInvEntryPopup(){ document.getElementById('inv-entry-overlay').classList.remove('open'); }
+function handleInvEntryOverlayClick(e){ if (e.target === document.getElementById('inv-entry-overlay')) closeInvEntryPopup(); }
+
+async function jumpToInventoryRow(row){
+  closeInvEntryPopup();
+  if (row.source === 'dream') {
+    const mode = row.raw.map_completed ? 'completed' : 'dream';
+    switchTab(mode);
+    await loadGamesForMode(mode);
+    if (!allGames.find(g => g.id === row.raw.map_id)) return;
+    await selectMapForArchive(row.raw.map_id);
+    document.getElementById('day-overlay').classList.add('open');
+    openMatrixView(row.raw.id);
+  } else if (row.source === 'daily') {
+    switchTab('daily');
+    await enterDailyView();
+    renderDailyMatrixWindow(row.raw.id);
+  } else if (row.source === 'cosmic') {
+    switchTab('cosmic');
+    await loadCosmicTab();
+    const seasonRow = allCosmicSeasons.find(s => s.map_id === row.raw.map_id);
+    if (!seasonRow) return;
+    setCosmicBrowseMode('planet');
+    await enterCosmicResults(seasonPlanetId(seasonRow.map_data));
+    await openCosmicSeasonDetail(seasonRow);
+    const ph = activeCosmicPhases.find(p => p.map_phase === row.raw.map_phase);
+    if (ph && ph.done) openCosmicPhasePopup(ph);
+  }
 }
 
 // ── JOURNAL TAB (chat-style feed combining daily/dream/cosmic entries) ────
