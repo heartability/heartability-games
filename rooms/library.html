@@ -198,6 +198,9 @@ html, body {
 .lib-detail-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 4px; }
 .lib-detail-header .lib-detail-title { margin-top: 0; }
 .lib-detail-cover { width: 110px; aspect-ratio: 2/3; object-fit: cover; background: #ddd; border: 2px solid #ccc; flex-shrink: 0; }
+.lib-detail-cover.lib-card-noimg { display: flex; align-items: center; justify-content: center; padding: 6px; text-align: center; }
+.lib-cover-upload-btn { font-family: var(--font-hand); font-size: 12px; color: var(--blue); text-decoration: underline; cursor: pointer; line-height: 1.3; }
+.lib-cover-upload-status { display: block; font-family: var(--font-hand); font-size: 10px; color: #888; margin-top: 4px; }
 .lib-detail-meta { flex: 1; min-width: 0; }
 .lib-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 2px; }
 .lib-author-link { color: var(--blue); text-decoration: underline; cursor: pointer; }
@@ -209,7 +212,7 @@ html, body {
 .lib-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
 .lib-comment-zones { font-family: var(--font-hand); font-size: 13px; color: #4a5bc4; margin-bottom: 4px; }
 .lib-comment-ratings { font-family: var(--font-hand); font-size: 13px; color: #8a7a00; }
-.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; }
+.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; text-align: left; align-self: flex-start; }
 
 @media (max-width: 480px) {
   .lib-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
@@ -424,14 +427,18 @@ function buildPrivateGridHtml() {
 // `info` is either a media_submissions_public row (public tab) or a joined `media` row
 // (private tab, via media_submissions.select('*, media(*)')) — both carry title/cover_url/
 // author/media_type, and release_year once that column exists on `media`.
-function detailHeaderHtml(info, fallbackTitle) {
+function detailHeaderHtml(info, fallbackTitle, mediaId) {
   const title = info?.title || fallbackTitle || 'untitled';
   const cover = info?.cover_url;
   const mediaType = info?.media_type;
   const isVisual = CATEGORY_META.visual.types.includes(mediaType);
   const authorLabel = isVisual ? 'director' : 'author';
+  const uploadPrompt = (!cover && currentUser && mediaId)
+    ? `<label class="lib-cover-upload-btn">+ add a cover photo<input type="file" accept="image/*" hidden onchange="uploadDetailCover(event, '${mediaId}')"></label>
+       <span class="lib-cover-upload-status" id="lib-cover-upload-status"></span>`
+    : '';
   return `<div class="lib-detail-header">
-    ${cover ? `<img class="lib-detail-cover" src="${_escapeHtml(cover)}" alt="">` : '<div class="lib-detail-cover lib-card-noimg"></div>'}
+    ${cover ? `<img class="lib-detail-cover" src="${_escapeHtml(cover)}" alt="">` : `<div class="lib-detail-cover lib-card-noimg">${uploadPrompt}</div>`}
     <div class="lib-detail-meta">
       <div class="lib-detail-title">${_escapeHtml(title)}</div>
       ${info?.release_year ? `<div class="lib-detail-fact">released ${_escapeHtml(String(info.release_year))}</div>` : ''}
@@ -457,7 +464,7 @@ function buildDetailHtml() {
       ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
     </div>`).join('');
-    return backBtn + detailHeaderHtml(rows[0], title) + addCta + `<div class="lib-comments">${comments}</div>`;
+    return backBtn + detailHeaderHtml(rows[0], title, id) + addCta + `<div class="lib-comments">${comments}</div>`;
   } else {
     const rows = (privateAllCache || []).filter(r => r.media_id === id);
     if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
@@ -469,7 +476,7 @@ function buildDetailHtml() {
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
       <div class="lib-comment-ratings">${r.is_public ? (r.is_author_public ? 'shared publicly, with your name' : 'shared publicly, anonymously') : 'private — only visible to you'}</div>
     </div>`).join('');
-    return backBtn + detailHeaderHtml(rows[0].media, title) + `<div class="lib-own-entries">${entries}</div>`;
+    return backBtn + detailHeaderHtml(rows[0].media, title, id) + `<div class="lib-own-entries">${entries}</div>`;
   }
 }
 
@@ -513,6 +520,34 @@ function openDetail(mediaId) {
   render();
 }
 function backToGrid() { libState.detailMediaId = null; libState.authorFilter = null; render(); }
+
+// Lets a logged-in visitor add a missing cover photo straight from the detail
+// view, for either a public library entry or one of their own. Uses its own
+// media-covers storage bucket (kept separate from matrix-photos so the two
+// don't grow into one another as both collections scale up) — see the SQL
+// in the media-covers bucket setup for the required bucket + RLS policies.
+async function uploadDetailCover(event, mediaId) {
+  const file = event.target.files?.[0];
+  if (!file || !currentUser) return;
+  const statusEl = document.getElementById('lib-cover-upload-status');
+  if (statusEl) statusEl.textContent = 'uploading…';
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${currentUser.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('media-covers').upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    const { data: pub } = sb.storage.from('media-covers').getPublicUrl(path);
+    const coverUrl = pub?.publicUrl;
+    const { error: updErr } = await sb.from('media').update({ cover_url: coverUrl }).eq('id', mediaId);
+    if (updErr) throw updErr;
+    (publicCache[libState.category] || []).forEach(r => { if (r.media_id === mediaId) r.cover_url = coverUrl; });
+    (privateAllCache || []).forEach(r => { if (r.media_id === mediaId && r.media) r.media.cover_url = coverUrl; });
+    render();
+  } catch (e) {
+    console.error('[library] cover upload failed:', e);
+    if (statusEl) statusEl.textContent = "couldn't upload — try again";
+  }
+}
 
 // "other entries by this creator" — queried straight from media_submissions_public (same
 // anonymous-readable view the grids use), since the raw `media` table is RLS-locked and
