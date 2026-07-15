@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/room-slider.css">
+<script src="../assets/js/room-slider.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
+<title>The Garden — Heartability</title>
+<meta name="description" content="Visit the Garden, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview.png">
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "PFPixelscript";
+  src: url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand: "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --room-stage-width: 1300px;
+}
+
+html, body {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  background: #6e83d3;
+}
+
+/* ── TOP NAV BAR  z:200 ── */
+.room-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: #6e83d3;
+  border-bottom: 2px solid #111;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 2vw, 28px);
+  font-family: var(--font-hand);
+  font-size: clamp(21px, 1.6vw, 25px);
+  color: #fff;
+}
+.nav-btn {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.08); }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
+
+/* ── Map dropdown ── */
+.map-wrap { position: relative; }
+.map-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
+}
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6e83d3; border: 2px solid #111;
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+  text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,0.07); }
+.map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
+.map-item.current:hover { background: none; }
+
+/* ── GARDEN ELEMENTS ── */
+.garden-el {
+  position: absolute;
+  pointer-events: none;
+}
+.garden-el img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.el-grass      { bottom: 0;   left: 0;      width: 100cqw; z-index: 2; }
+.el-sky        { top: 0;      left: 0;      width: 100cqw; height: 100cqh; z-index: 1; }
+.el-sky img    { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+.el-fountain   { left: 50%;  bottom: 18cqh; width: 30cqw;  z-index: 3; transform: translateX(-50%); }
+.el-phonebooth { left: 8cqw;   bottom: 22cqh; width: 11cqw;  z-index: 3; }
+.el-leaderboard{ right: 8cqw;  bottom: 25cqh; width: 11cqw;   z-index: 3; }
+.el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; }
+.el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; }
+
+.el-fountain    { pointer-events: auto; cursor: pointer; }
+.el-phonebooth, .el-leaderboard { pointer-events: auto; }
+
+/* ── CLOUD GUIDE  z:4 ── */
+.char-heart {
+  position: absolute;
+  left: 20cqw;
+  top: 35cqh;
+  width: clamp(80px, 14cqw, 130px);
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  z-index: 4;
+}
+.char-heart .char-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation:
+    cloud-intro 0.85s ease-out 0.35s 1 backwards,
+    cloud-idle  4s ease-in-out 1.5s infinite;
+}
+@keyframes cloud-intro {
+  0%   { transform: scale(0.7) translateY(-20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0);       opacity: 1; }
+}
+@keyframes cloud-idle {
+  0%,100% { transform: translateY(0)     rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1deg);  }
+}
+.char-heart.active .char-img {
+  animation: cloud-bounce 0.6s ease-in-out infinite;
+}
+@keyframes cloud-bounce {
+  0%,100% { transform: translateY(0)     rotate(-2deg) scale(1.04); }
+  50%      { transform: translateY(-12px) rotate(2deg)  scale(1.08); }
+}
+
+/* ── THOUGHT BUBBLE ── */
+.thought-bubble {
+  position: absolute;
+  left: calc(100% - 10px);
+  top: 10px;
+  min-width: clamp(160px, 18cqw, 280px);
+  max-width: clamp(200px, 21cqw, 300px);
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 14px 24px;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1.4cqw, 18px);
+  color: #000000;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 5;
+}
+.char-heart.active .thought-bubble { opacity: 1; }
+
+/* ── Narrow landscape (small landscape phones) ──
+   Portrait/vertical viewports are handled by the room slider
+   (assets/css/room-slider.css) instead of squeezing this layout. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .char-heart    { left: 50%;  bottom: 15cqh;   width: clamp(60px, 18cqw, 100px); transform: translateX(-50%); }
+  .thought-bubble { max-width: clamp(140px, 52cqw, 260px); font-size: clamp(12px, 2.8cqw, 17px); }
+  .room-nav { font-size: clamp(18px, 3.5vw, 21px); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- TOP NAV BAR -->
+<nav class="room-nav">
+  <div id="gear-slot"></div>
+  <h1 class="nav-title">garden</h1>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../rooms/bed.html">bedroom</a>
+      <a class="map-item" href="../rooms/courtroom.html">courtroom</a>
+      <a class="map-item" href="../rooms/reception.html">reception</a>
+      <span class="map-item current">garden</span>
+      <a class="map-item" href="../rooms/library.html">library</a>
+    </div>
+  </div>
+</nav>
+
+<div class="room-scroll">
+<div class="scene room-stage">
+
+
+  <!-- Heart guide -->
+  <div class="char-heart" id="char-heart">
+    <div class="thought-bubble" id="cloud-bubble"></div>
+    <img class="char-img" src="../assets/elements/guides/cloud.png" alt="Cloud guide">
+  </div>
+
+</div>
+</div>
+
+<!-- FOUNTAIN MODAL: donate or wish choice -->
+<div class="hg-modal-overlay" id="fountain-overlay">
+  <div class="hg-modal" style="width:min(92vw,420px);">
+    <div class="hg-modal-titlebar">
+      <span>wish fountain</span>
+      <span class="hg-modal-close" id="fountain-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body">
+      <div class="hg-modal-message" style="text-align:center;">may everything you give return tenfold</div>
+      <div class="hg-modal-actions" style="justify-content:center; gap:14px; flex-wrap:wrap;">
+        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-wish">make a wish</button>
+        <button class="hg-modal-btn hg-modal-btn-primary" id="btn-make-donation">make a donation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WISH MODAL -->
+<div class="hg-modal-overlay" id="wish-overlay">
+  <div class="hg-modal" style="width:min(92vw,440px);">
+    <div class="hg-modal-titlebar">
+      <span>make a wish</span>
+      <span class="hg-modal-close" id="wish-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body">
+      <div class="hg-modal-message" style="font-size:15px;">write your wish in as much detail as possible <br> <span style="font-size:12px; color:#888;">entries are anonymous</span></div>
+      <textarea id="wish-text" rows="5" placeholder="my wish is..." style="width:100%; font-family:var(--font-hand); font-size:16px; padding:10px; border:2px solid #ccc; resize:vertical; box-sizing:border-box;"></textarea>
+      <div id="wish-msg" style="font-family:var(--font-hand); font-size:13px; min-height:16px;"></div>
+      <div class="hg-modal-actions">
+        <button class="hg-modal-btn" id="wish-cancel">cancel</button>
+        <button class="hg-modal-btn hg-modal-btn-primary" id="wish-submit">send wish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
+<script>
+(function () {
+
+  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  /* ── Cloud guide bubble ── */
+  const cloud  = document.getElementById('char-heart');
+  const bubble = document.getElementById('cloud-bubble');
+
+  cloud.addEventListener('mouseenter', () => {
+    bubble.textContent = 'welcome to the garden';
+    cloud.classList.add('active');
+  });
+  cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
+  /* ── Phone booth: "coming soon!" ── */
+  const phonebooth = document.querySelector('.el-phonebooth');
+  phonebooth.addEventListener('mouseenter', () => {
+    bubble.textContent = 'coming soon!';
+    cloud.classList.add('active');
+  });
+  phonebooth.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
+  /* ── Fountain: wish text + donation link ── */
+  const fountain = document.querySelector('.el-fountain');
+  fountain.addEventListener('mouseenter', () => {
+    bubble.textContent = 'throw a coin, make a wish';
+    cloud.classList.add('active');
+  });
+  fountain.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+  fountain.addEventListener('click', () => openFountainModal());
+
+  /* ── Leaderboard: "coming soon!" ── */
+  const leaderboardSign = document.getElementById('el-leaderboard');
+  leaderboardSign.addEventListener('mouseenter', () => {
+    bubble.textContent = 'coming soon!';
+    cloud.classList.add('active');
+  });
+  leaderboardSign.addEventListener('mouseleave', () => cloud.classList.remove('active'));
+
+  /* ── Fountain popup: donate or wish ── */
+  const fountainOverlay = document.getElementById('fountain-overlay');
+
+  function openFountainModal()  { fountainOverlay.classList.add('open'); }
+  function closeFountainModal() { fountainOverlay.classList.remove('open'); }
+
+  document.getElementById('fountain-close').addEventListener('click', closeFountainModal);
+  fountainOverlay.addEventListener('click', (e) => { if (e.target === fountainOverlay) closeFountainModal(); });
+
+  document.getElementById('btn-make-donation').addEventListener('click', () => {
+    window.open('https://buy.stripe.com/7sYbJ05MOaHzc5V2eV1Jm00', '_blank', 'noopener');
+    closeFountainModal();
+  });
+
+  document.getElementById('btn-make-wish').addEventListener('click', () => {
+    closeFountainModal();
+    openWishModal();
+  });
+
+  /* ── Wish popup ── */
+  const wishOverlay = document.getElementById('wish-overlay');
+  const wishText     = document.getElementById('wish-text');
+  const wishMsg       = document.getElementById('wish-msg');
+  const wishSubmitBtn = document.getElementById('wish-submit');
+
+  function openWishModal() {
+    wishText.value = '';
+    wishMsg.textContent = '';
+    wishOverlay.classList.add('open');
+  }
+  function closeWishModal() { wishOverlay.classList.remove('open'); }
+
+  document.getElementById('wish-close').addEventListener('click', closeWishModal);
+  document.getElementById('wish-cancel').addEventListener('click', closeWishModal);
+  wishOverlay.addEventListener('click', (e) => { if (e.target === wishOverlay) closeWishModal(); });
+
+  wishSubmitBtn.addEventListener('click', async () => {
+    const text = wishText.value.trim();
+    if (!text) {
+      wishMsg.style.color = '#c0392b';
+      wishMsg.textContent = 'please write a wish first';
+      return;
+    }
+    wishSubmitBtn.disabled = true;
+    wishMsg.style.color = '#888';
+    wishMsg.textContent = 'sending...';
+    try {
+      const { error } = await sb.from('wishes').insert({ wish_text: text });
+      if (error) {
+        wishMsg.style.color = '#c0392b';
+        wishMsg.textContent = "couldn't send your wish, please try again";
+        return;
+      }
+      closeWishModal();
+      bubble.textContent = 'thank you for your wish';
+      cloud.classList.add('active');
+      setTimeout(() => cloud.classList.remove('active'), 2500);
+    } catch (err) {
+      wishMsg.style.color = '#c0392b';
+      wishMsg.textContent = "couldn't send your wish, please try again";
+    } finally {
+      wishSubmitBtn.disabled = false;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeFountainModal();
+    closeWishModal();
+  });
+
+  /* ── Map ── */
+  document.getElementById('map-btn').addEventListener('click', () => {
+    document.getElementById('map-dropdown').classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    const mw = document.getElementById('map-wrap');
+    if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+  });
+
+  /* ── Gear / login / music (assets/js/nav.js, loaded deferred) ── */
+  async function resolveUsername(user) {
+    try {
+      const { data: profile } = await sb.from('user-profiles').select('username').eq('id', user.id).single();
+      return profile?.username || user.email.split('@')[0];
+    } catch (e) { return user.email.split('@')[0]; }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    HeartabilityNav.init({
+      mount: '#gear-slot',
+      assetsBase: '../assets',
+      authMode: 'dynamic',
+      sb: sb,
+      profileHref: '../users/account-settings.html',
+      music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
+    });
+
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        resolveUsername(session.user).then(username => {
+          HeartabilityNav.setAuthState({ loggedIn: true, username });
+        });
+      } else if (event === 'SIGNED_OUT') {
+        HeartabilityNav.setAuthState({ loggedIn: false });
+      }
+    });
+
+    sb.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const username = await resolveUsername(session.user);
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      }
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
