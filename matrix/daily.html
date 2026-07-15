@@ -417,6 +417,11 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
   width:76%; height:76%; margin:auto; align-self:center;
   position:relative; overflow:hidden;
 }
+/* On mobile, stretch to the full phone width instead of the desktop-tuned
+   76% so matrix items have more room to spread out. */
+@media (max-width:768px) {
+  .matrix-frame { width:98%; }
+}
 
 .adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
 .adv-grid {
@@ -637,6 +642,20 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 }
 .matrix-tool-btn:hover  { background:var(--blue); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
 .matrix-tool-btn:active { transform:scale(0.93); }
+
+/* Explicit save — top-right of the matrix header, next to the date.
+   Drag/rotate/resize already autosave per-gesture, but this batches every
+   item's current on-screen position into one write, so rearranging a lot at
+   once can't lose anything to overlapping autosaves. */
+.matrix-save-btn {
+  position:absolute; top:6px; right:8px; z-index:7;
+  font-family:var(--font-hand); font-size:15px; color:#fff;
+  background:var(--blue,#6e83d3); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  padding:5px 14px; cursor:pointer; transition:all .05s;
+}
+.matrix-save-btn:hover  { background:#4a5bc4; }
+.matrix-save-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.matrix-save-btn:disabled { opacity:.6; cursor:default; transform:none; box-shadow:2px 2px 0 #3a4aaa; }
 
 /* ── PHOTO UPLOAD MODAL — framed to match the matrix ── */
 .photo-overlay {
@@ -2379,6 +2398,7 @@ function buildDailyMatrix(data, seedStr){
   return `<div class="step-panel matrix-panel">
     <div class="matrix-header">
       <div class="matrix-date">${_escapeHtml(data.dateLabel||'')}</div>
+      <button class="matrix-save-btn" id="matrix-save-btn" type="button" onclick="saveAllMatrixPositions()">save</button>
     </div>
     <div class="matrix-frame">
       <div class="adv-matrix">
@@ -3054,6 +3074,58 @@ async function updateMatrixItem(kind, id, patch){
     await sb.from('daily_matrix').update({ [cfg.column]: next }).eq('id', activeEntryId);
   } catch(err){
     console.error(`[matrix ${kind}] update failed:`, err);
+  }
+}
+
+// Explicit "save" button — reads every .adv-draggable's current on-screen
+// position/rotation/scale straight from the DOM and writes it all in one
+// update. The per-gesture autosaves above each do their own read-modify-write,
+// so two quick drags on different items can race each other; this collects
+// everything that's actually on screen right now and persists it atomically.
+async function saveAllMatrixPositions(){
+  if (!currentUser || !activeEntryId) return;
+  const btn = document.getElementById('matrix-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'saving…'; }
+  try {
+    const { data: row, error: readErr } = await sb.from('daily_matrix')
+      .select('matrix_images, matrix_stickers, matrix_texts, matrix_layout')
+      .eq('id', activeEntryId).maybeSingle();
+    if (readErr) throw readErr;
+    const images   = Array.isArray(row?.matrix_images)   ? row.matrix_images.map(i => ({ ...i }))   : [];
+    const stickers = Array.isArray(row?.matrix_stickers) ? row.matrix_stickers.map(i => ({ ...i })) : [];
+    const texts    = Array.isArray(row?.matrix_texts)    ? row.matrix_texts.map(i => ({ ...i }))    : [];
+    const layout   = { ...(row?.matrix_layout || {}) };
+    if (layout.books) layout.books = { ...layout.books };
+
+    document.querySelectorAll('#content-panel .adv-draggable').forEach(el => {
+      const kind = el.dataset.kind, id = el.dataset.id;
+      const x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+      if (!kind || !id || Number.isNaN(x) || Number.isNaN(y)) return;
+      const rot = parseFloat(el.dataset.rot || '0');
+      const scale = parseFloat(el.dataset.scale || '1');
+
+      if (LAYOUT_KINDS.has(kind)) {
+        if (kind === 'book') layout.books[id] = { ...(layout.books[id] || {}), x, y, rot, scale };
+        else layout[kind] = { ...(layout[kind] || {}), x, y, rot, scale };
+        return;
+      }
+      const cfg = MATRIX_ITEM_TABLE[kind];
+      if (!cfg) return;
+      const arr = cfg.column === 'matrix_images' ? images : cfg.column === 'matrix_stickers' ? stickers : texts;
+      const idx = arr.findIndex(i => i && i[cfg.key] === id);
+      if (idx !== -1) arr[idx] = { ...arr[idx], x, y, rot, scale };
+    });
+
+    const { error } = await sb.from('daily_matrix').update({
+      matrix_images: images, matrix_stickers: stickers, matrix_texts: texts, matrix_layout: layout,
+    }).eq('id', activeEntryId);
+    if (error) throw error;
+    showRoomStatus('scrapbook saved ✓', '#6ab86a');
+  } catch(err){
+    console.error('[matrix save] failed:', err);
+    HGModal.alert('oops', 'save failed — try again');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'save'; }
   }
 }
 
