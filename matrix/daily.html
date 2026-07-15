@@ -926,19 +926,32 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }
 
 /* ── DAYQUEST BUILDER MODAL ──
-   The card sits in normal document flow (padding-top:var(--bw-top) keeps it
-   below the fixed nav) instead of being position:absolute, so .dq-foot below
-   it in the DOM naturally trails underneath — even if the card's content
-   stretches the page taller than the viewport — rather than floating fixed
-   over whatever's currently in view. ── */
+   .dq-overlay spans the full viewport (including the nav strip above the
+   back wall) but stays pointer-events:none so nav clicks pass through it —
+   see project memory on the daily-matrix nav-blocked bug. .dq-scroll is the
+   actual interactive/scrollable region: it's inset below the nav (top:var(
+   --bw-top)) so it never overlaps that pass-through strip, which lets it
+   safely be pointer-events:auto — real touch-scroll gestures need the
+   scrolling element itself to be hit-testable, not just a pointer-events:
+   auto descendant, so splitting these into two elements (rather than one
+   div doing both jobs) is what makes the dayquest builder scrollable on
+   mobile. The card sits in normal flow inside .dq-scroll (not position:
+   absolute), so .dq-foot below it trails underneath even if the card's
+   content stretches taller than the viewport. ── */
 .dq-overlay {
   position:fixed; inset:0; z-index:300;
   background:none;
-  display:none; flex-direction:column; align-items:center;
-  padding:var(--bw-top) 0 40px;
+  display:none;
   pointer-events:none;
 }
-.dq-overlay.open { display:flex; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.dq-overlay.open { display:block; }
+.dq-scroll {
+  position:absolute; top:var(--bw-top); left:0; right:0; bottom:0;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  display:flex; flex-direction:column; align-items:center;
+  padding:0 0 40px;
+  pointer-events:auto;
+}
 .dq-card {
   width:var(--bw-width); height:auto; min-height:var(--bw-height);
   max-height:none;
@@ -1223,26 +1236,28 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 
 <!-- DAYQUEST BUILDER — secret one-location phase -->
 <div class="dq-overlay" id="dq-overlay">
-  <div class="dq-card">
-    <div class="dq-head">
+  <div class="dq-scroll">
+    <div class="dq-card">
+      <div class="dq-head">
+      </div>
+      <div class="dq-body">
+        <div class="dq-preview-col">
+          <div class="dq-section-label">today's adventure:</div>
+          <div class="dq-map-frame" id="dq-map-frame"></div>
+        </div>
+        <div class="dq-terrain-col">
+          <div class="dq-section-label">terrain</div>
+          <div class="dq-palette" id="dq-palette"></div>
+        </div>
+        <div class="dq-climate-col">
+          <div class="dq-section-label">emotional climate</div>
+          <div class="dq-climates" id="dq-climates"></div>
+        </div>
+      </div>
     </div>
-    <div class="dq-body">
-      <div class="dq-preview-col">
-        <div class="dq-section-label">today's adventure:</div>
-        <div class="dq-map-frame" id="dq-map-frame"></div>
-      </div>
-      <div class="dq-terrain-col">
-        <div class="dq-section-label">terrain</div>
-        <div class="dq-palette" id="dq-palette"></div>
-      </div>
-      <div class="dq-climate-col">
-        <div class="dq-section-label">emotional climate</div>
-        <div class="dq-climates" id="dq-climates"></div>
-      </div>
+    <div class="dq-foot">
+      <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">begin today →</button>
     </div>
-  </div>
-  <div class="dq-foot">
-    <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">begin today →</button>
   </div>
 </div>
 
