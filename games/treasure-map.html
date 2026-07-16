@@ -930,7 +930,7 @@ function buildWeather() {
     section.className = `weather-category ${cat.cls}`;
     const header = document.createElement("div");
     header.className = "weather-cat-header";
-    header.innerHTML = `${cat.label} <span class="weather-cat-desc">(${cat.desc})</span>`;
+    header.innerHTML = `${cat.label} <span class="weather-cat-desc">${cat.desc}</span>`;
     const chips = document.createElement("div"); chips.className = "feeling-chips";
     cat.feelings.forEach(feeling => {
       const chip = document.createElement("div");
