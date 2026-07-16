@@ -14,10 +14,6 @@ const USER_ID_TABLES = [
   'cosmic_bingo',
   'dreams',
   'character_archetypes',
-  // legacy tables from earlier iterations — harmless if empty
-  'daily_entries',
-  'diary_entries',
-  'games',
 ]
 
 // Recursively collect every file path under a storage folder.
@@ -39,8 +35,7 @@ async function listAllFiles(sb: SupabaseClient, bucket: string, prefix: string):
 export async function wipeUserData(sb: SupabaseClient, userId: string): Promise<void> {
   for (const table of USER_ID_TABLES) {
     const { error } = await sb.from(table).delete().eq('user_id', userId)
-    // Missing legacy tables shouldn't abort the wipe.
-    if (error && !/does not exist|relation .* not/i.test(error.message)) throw error
+    if (error) throw error
   }
 
   const { error: subError } = await sb.from('media_submissions').delete().eq('submitted_by', userId)
