@@ -29,6 +29,7 @@
   --font-hand: "ZoesHandwriting", cursive;
   --font-pixel: "PFPixelscript", cursive;
   --room-stage-width: 1300px;
+  --blue: #6e83d3;
 }
 
 html, body {
@@ -91,11 +92,18 @@ html, body {
 .map-item.current:hover { background: none; }
 
 /* ── GARDEN ELEMENTS ── */
+.garden-el {
+  position: absolute;
+  pointer-events: none;
+}
 .garden-el img {
   display: block;
   width: 100%;
   height: 100%
 }
+
+.el-sky     { top: 0; left: 0; width: 100cqw; height: 100cqh; z-index: 1; }
+.el-sky img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
 
 
 /* ── HEART GUIDE  z:4 ── */
@@ -156,6 +164,73 @@ html, body {
 }
 .char-heart.active .thought-bubble { opacity: 1; }
 
+/* ── DOOR POPUP (3-choice popup, positioned inside the doorway) ── */
+@keyframes doorPopIn {
+  from { opacity: 0; transform: translateX(-50%) scale(0.94); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+.door-popup-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 50;
+  display: none;
+}
+.door-popup-overlay.open { display: block; }
+.door-popup {
+  position: absolute;
+  left: 50cqw;
+  bottom: 16cqh;
+  transform: translateX(-50%);
+  width: min(80cqw, 340px);
+  background: #dfe2ef;
+  box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35);
+  overflow: hidden;
+  animation: doorPopIn 0.2s ease both;
+}
+.door-popup-titlebar {
+  height: 38px;
+  background: #cdd3ec;
+  border-bottom: 2px solid var(--blue);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px;
+  font-family: var(--font-hand);
+  font-size: clamp(17px, 1.8vw, 21px);
+  color: #555;
+}
+.door-popup-close {
+  cursor: pointer; color: #aaa; font-family: var(--font-hand);
+  font-size: 18px; padding: 4px; line-height: 1;
+}
+.door-popup-close:hover { color: var(--blue); }
+.door-popup-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
+.door-pick-btn {
+  display: block; text-decoration: none;
+  font-family: var(--font-hand); font-size: clamp(17px, 1.9vw, 21px);
+  color: #fff; background: var(--blue);
+  border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa;
+  padding: 12px 20px; cursor: pointer; text-align: center;
+  transition: background 0.1s;
+}
+.door-pick-btn:hover { background: #4a5bc4; }
+.door-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
+
+/* Reused matrix sub-picker popup (matches courtroom.html) */
+.matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
+.matrix-picker-overlay.open { display: flex; }
+.matrix-picker-popup { background: #dfe2ef; box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
+.matrix-picker-titlebar { height: 38px; background: #cdd3ec; border-bottom: 2px solid var(--blue); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: clamp(17px, 1.8vw, 21px); color: #555; }
+.matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
+.matrix-pick-btn { display: block; text-decoration: none; font-family: var(--font-hand); font-size: clamp(18px,2vw,23px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: center; transition: background .1s; }
+.matrix-pick-btn:hover { background: #4a5bc4; }
+.matrix-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
+.matrix-pick-btn small { display: block; font-size: clamp(16px,1.2vw,17px); opacity: .75; margin-top: 2px; }
+.popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 18px; padding: 4px; line-height: 1; }
+.popup-close:hover { color: var(--blue); }
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Narrow landscape (small landscape phones) ──
    Portrait/vertical viewports are handled by the room slider
    (assets/css/room-slider.css) instead of squeezing this layout. */
@@ -189,6 +264,30 @@ html, body {
   </div>
 </nav>
 
+<!-- MATRIX PICKER POPUP -->
+<div class="matrix-picker-overlay" id="matrix-picker-overlay">
+  <div class="matrix-picker-popup">
+    <div class="matrix-picker-titlebar">
+      <span>choose a matrix</span>
+      <span class="popup-close" onclick="closeMatrixPicker()">&#x2715;</span>
+    </div>
+    <div class="matrix-picker-body">
+      <a class="matrix-pick-btn" href="../matrix/daily.html">
+        daily matrix
+        <small>track your archetype and adventure of the day</small>
+      </a>
+      <a class="matrix-pick-btn" href="../matrix/dream.html">
+        dream matrix
+        <small>track the cycles of pursuing your dreams</small>
+      </a>
+      <a class="matrix-pick-btn" href="../matrix/cosmic.html">
+        cosmic matrix
+        <small>track the cosmic influences guiding your life</small>
+      </a>
+    </div>
+  </div>
+</div>
+
 <div class="room-scroll">
 <div class="scene room-stage">
 
@@ -197,6 +296,20 @@ html, body {
     <img src="../assets/elements/reception-sky.png" alt="">
   </div>
 
+  <!-- DOOR POPUP (centered in the doorway) -->
+  <div class="door-popup-overlay open" id="door-popup-overlay">
+    <div class="door-popup">
+      <div class="door-popup-titlebar">
+        <span>where to?</span>
+        <span class="door-popup-close" onclick="closeDoorPopup()">&#x2715;</span>
+      </div>
+      <div class="door-popup-body">
+        <a class="door-pick-btn" href="../rooms/courtroom.html">explore the castle</a>
+        <a class="door-pick-btn" href="#" onclick="openMatrixPicker(); return false;">enter the matrix</a>
+        <a class="door-pick-btn" href="../about.html">about heartability</a>
+      </div>
+    </div>
+  </div>
 
   <!-- Heart guide -->
   <div class="char-heart" id="char-heart">
@@ -207,6 +320,19 @@ html, body {
 </div>
 </div>
 
+
+<script>
+function openDoorPopup()    { document.getElementById('door-popup-overlay').classList.add('open'); }
+function closeDoorPopup()   { document.getElementById('door-popup-overlay').classList.remove('open'); }
+function openMatrixPicker() { closeDoorPopup(); document.getElementById('matrix-picker-overlay').classList.add('open'); }
+function closeMatrixPicker(){ document.getElementById('matrix-picker-overlay').classList.remove('open'); }
+document.addEventListener('click', e => {
+  const doorOverlay = document.getElementById('door-popup-overlay');
+  if (doorOverlay.classList.contains('open') && e.target === doorOverlay) closeDoorPopup();
+  const matrixOverlay = document.getElementById('matrix-picker-overlay');
+  if (matrixOverlay.classList.contains('open') && e.target === matrixOverlay) closeMatrixPicker();
+});
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
@@ -226,6 +352,7 @@ html, body {
     heart.classList.add('active');
   });
   heart.addEventListener('mouseleave', () => heart.classList.remove('active'));
+  heart.addEventListener('click', () => openDoorPopup());
 
 
   /* ── Map ── */
