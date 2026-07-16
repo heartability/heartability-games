@@ -164,6 +164,18 @@ html, body {
 }
 .char-heart.active .thought-bubble { opacity: 1; }
 
+/* ── DOOR HIT-AREA (click the doorway itself to open the popup) ── */
+.door-hitarea {
+  position: absolute;
+  left: 50cqw;
+  bottom: 8cqh;
+  width: 50cqw;
+  height: 68cqh;
+  transform: translateX(-50%);
+  z-index: 3;
+  cursor: pointer;
+}
+
 /* ── DOOR POPUP (3-choice popup, positioned inside the doorway) ── */
 @keyframes doorPopIn {
   from { opacity: 0; transform: translateX(-50%) scale(0.94); }
@@ -296,8 +308,11 @@ html, body {
     <img src="../assets/elements/reception-sky.png" alt="">
   </div>
 
+  <!-- Doorway click target -->
+  <div class="door-hitarea" onclick="openDoorPopup()"></div>
+
   <!-- DOOR POPUP (centered in the doorway) -->
-  <div class="door-popup-overlay open" id="door-popup-overlay">
+  <div class="door-popup-overlay" id="door-popup-overlay">
     <div class="door-popup">
       <div class="door-popup-titlebar">
         <span>where to?</span>

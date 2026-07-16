@@ -957,6 +957,51 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .member-gate-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .member-gate-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
 .member-gate-btn.ghost:hover { border-color:var(--blue); color:var(--blue); }
+
+/* ── HOW-TO-PLAY popup — same pattern as rooms/courtroom.html ── */
+.howto-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 950;
+  display: none; align-items: center; justify-content: center;
+}
+.howto-overlay.open { display: flex; }
+.howto-popup {
+  background: #dfe2ef;
+  box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35);
+  width: clamp(280px, 88vw, 420px); overflow: hidden; animation: popIn 0.2s ease both;
+}
+.howto-titlebar {
+  height: 38px; background: #cdd3ec; border-bottom: 2px solid #6e83d3;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-family: var(--font-hand); font-size: 25px; color: #555;
+}
+.howto-body { padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 16px; }
+.howto-steps {
+  font-family: var(--font-hand); font-size: clamp(21px, 1.4vw, 22px);
+  color: #333; line-height: 1.8; white-space: pre-line;
+}
+.howto-sublist { margin: 2px 0 2px 26px; padding: 0; list-style: disc; font-size: 0.78em; line-height: 1.5; color: #555; }
+.howto-sublist li { margin-bottom: 2px; }
+.howto-play-btn {
+  padding: 10px; background: var(--blue); border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand);
+  font-size: 21px; color: white; cursor: pointer; transition: all 0.05s; letter-spacing: 0.5px;
+}
+.howto-play-btn:hover { background: #4a5bc4; }
+.howto-play-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 18px; padding: 4px; line-height: 1; }
+.popup-close:hover { color: var(--blue); }
+@keyframes popIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* small text-link trigger for opening the how-to popup from a builder header.
+   Default color matches .step-back (white) since the character-builder header
+   sits directly on the room's blue background; inside the cream map-builder
+   card it switches to blue like .sq-title. */
+.howto-trigger {
+  font-size: 15px; color: #fff; cursor: pointer;
+  background: none; border: none; font-family: var(--font-hand); padding: 2px 4px; justify-self: end;
+}
+.howto-trigger:hover { text-decoration: underline; }
+.sq-head .howto-trigger { color: var(--blue); }
 </style>
 </head>
 <body>
@@ -1127,6 +1172,20 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     </div>
     <div style="text-align:center;margin-top:8px;">
       <span style="font-family:var(--font-hand);font-size:13px;color:#aaa;cursor:pointer;text-decoration:underline;" onclick="showLoginModal()">login here</span>
+    </div>
+  </div>
+</div>
+
+<!-- HOW-TO POPUP — map builder / archetype builder -->
+<div class="howto-overlay" id="howto-overlay" onclick="handleHowtoOverlayClick(event)">
+  <div class="howto-popup">
+    <div class="howto-titlebar">
+      <span id="howto-title">how to play</span>
+      <span class="popup-close" onclick="closeHowto()">&#x2715;</span>
+    </div>
+    <div class="howto-body">
+      <div class="howto-steps" id="howto-steps"></div>
+      <button class="howto-play-btn" onclick="closeHowto()">let's play →</button>
     </div>
   </div>
 </div>
@@ -1458,10 +1517,13 @@ function autoSizeIframe(iframe) {
   });
 }
 
-function showIframe(src, backFn) {
+function showIframe(src, backFn, howtoSlug) {
   const panel = document.getElementById('content-panel');
+  const spacer = howtoSlug
+    ? `<span class="howto-trigger" onclick="openHowto('${howtoSlug}')">how to play</span>`
+    : '<span></span>';
   const header = backFn
-    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span><span></span></div>`
+    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span>${spacer}</div>`
     : '';
   panel.innerHTML = `${header}<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
@@ -1473,13 +1535,43 @@ function showMapBuilder(src) {
   panel.innerHTML = `
     <div class="step-header"><span class="step-back" onclick="stepLoadGame()">← back</span><span></span><span></span></div>
     <div class="map-builder-card">
-      <div class="sq-head"><span class="sq-title">map a new dream</span></div>
+      <div class="sq-head"><span class="sq-title">map a new dream</span><span class="howto-trigger" onclick="openHowto('treasure-map')">how to play</span></div>
       <input class="sq-name" id="dream-map-name" type="text" placeholder="name this dream" maxlength="60">
       <iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>
     </div>`;
   panel.classList.add('active', 'iframe-mode');
   autoSizeIframe(document.getElementById('game-iframe'));
   document.getElementById('wall-btns').classList.remove('active');
+}
+
+// ── HOW-TO-PLAY popup (ported from rooms/courtroom.html) ──
+const HOWTO_CONTENT = {
+  'treasure-map': {
+    title: 'treasure map',
+    steps: `how to play:
+1. think of a dream that you want to pursue
+2. identify the shape of your dream:<ul class="howto-sublist"><li>intuitive spiral — this dream requires me to trust the universe</li><li>foundational square — this dream requires me to develop new skills</li></ul>3. complete each phase with a terrain and emotional climate`
+  },
+  'infinity-mirror': {
+    title: 'infinity mirror',
+    steps: `how to play:
+1. close your eyes and imagine a mirror
+2. if you could be anyone, what would you see?
+3. recreate that essence as a character`
+  },
+};
+function openHowto(slug) {
+  const content = HOWTO_CONTENT[slug];
+  if (!content) return;
+  document.getElementById('howto-title').textContent = content.title;
+  document.getElementById('howto-steps').innerHTML = content.steps;
+  document.getElementById('howto-overlay').classList.add('open');
+}
+function closeHowto() {
+  document.getElementById('howto-overlay').classList.remove('open');
+}
+function handleHowtoOverlayClick(e) {
+  if (e.target === document.getElementById('howto-overlay')) closeHowto();
 }
 
 // ── ADD NEW BUTTON visibility ─────────────────────────────
@@ -1921,7 +2013,7 @@ function backToCharacterStep() {
 
 function openCharacterBuilder() {
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src, 'showArchetypePicker()');
+  showIframe(src, 'showArchetypePicker()', 'infinity-mirror');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
