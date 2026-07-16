@@ -601,7 +601,7 @@ function createThreeActMap(ids) {
         terrainEl.setAttribute('text-anchor', 'middle'); terrainEl.setAttribute('fill', '#000000');
         terrainEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainEl.setAttribute('font-size', '52');
         terrainEl.setAttribute('font-weight', 'bold');
-        terrainEl.style.pointerEvents = 'none'; terrainEl.textContent = TERRAIN_LABELS[zone.terrain];
+        terrainEl.style.pointerEvents = 'none'; terrainEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
         zoneGroup.appendChild(terrainEl);
       }
       if (zone.feeling) {
@@ -750,10 +750,6 @@ async function _fetchJSONWithRetry(url) {
 }
 
 // ── TITLE SEARCH ────────────────────────────────────────────────────────
-// Google's Books API caps unauthenticated (keyless) requests at a quota of 0 —
-// an API key is required even for client-side use. Restrict the key by HTTP
-// referrer in the Google Cloud Console so it's safe to ship in page source.
-const GOOGLE_BOOKS_API_KEY = 'AIzaSyCFFZdyPydpK98muPN0mOzaF5kSpIxKxJc';
 let searchMode = 'book';
 let selectedMedia = null; // { title, media_type, external_id, external_source, cover_url, canonical_link }
 const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1/media-search`;
@@ -807,14 +803,10 @@ async function runSearch(q) {
   try {
     let items = [];
     if (searchMode === 'book') {
-      if (!GOOGLE_BOOKS_API_KEY) {
-        if (seq === searchSeq) showSearchMessage("book search isn't set up yet — enter it manually below.");
-        return;
-      }
-      // intitle: biases matches toward the title field (cuts down on random full-text/description
-      // hits), and maxResults=40 (the API's max) widens the pool re-ranked by ratingsCount below —
-      // Google Books' own relevance order otherwise buries popular titles under old public-domain scans.
-      const data = await _fetchJSONWithRetry(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${GOOGLE_BOOKS_API_KEY}`);
+      // Proxied through the media-search edge function (same as movie/TV below) rather than
+      // called directly with a client-side key — the key was restricted by HTTP referrer, and
+      // mobile Safari intermittently strips that header, causing fast, unpredictable 403s.
+      const data = await _fetchJSONWithRetry(`${SUPABASE_FUNCTIONS_URL}?type=book&q=${encodeURIComponent(q)}`);
       if (seq !== searchSeq) return; // a newer search superseded this one — drop it
       if (data.error) {
         console.error('[media search] google books error:', data.error);

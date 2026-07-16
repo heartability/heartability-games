@@ -314,8 +314,7 @@
               matrixLayout{} }
      journalText isn't drawn on the matrix (no preview item) — it's only read
      by callers to prefill the "✎ notes" editor (see showEditNotes below).
-     opts = { showAddPhoto=true, showEditNotes=false, archiveHref=null,
-              editable=false }
+     opts = { showAddPhoto=true, showEditNotes=false, editable=false }
      editable=true additionally makes every item draggable/rotatable/
      resizable (adv-draggable + handles), adds the +/★/Aa toolbar and the
      explicit "save" button, and adds remove controls to stickers/text notes
@@ -327,7 +326,6 @@
     opts = opts || {};
     const showAddPhoto  = opts.showAddPhoto !== false;
     const showEditNotes = !!opts.showEditNotes;
-    const archiveHref   = opts.archiveHref || null;
     const editable      = !!opts.editable;
     // Class + data-* attrs for a draggable item's wrapper div — '' in
     // non-editable mode, so the div just gets its plain kind class.
@@ -484,7 +482,6 @@
     // Header buttons (no inline onclick — host wires via attachMatrix).
     const addBtn  = showAddPhoto  ? `<button class="matrix-photo-btn" type="button">+ photo</button>` : '';
     const noteBtn = showEditNotes ? `<button class="matrix-edit-notes" type="button">✎ notes</button>` : '';
-    const archBtn = archiveHref   ? `<button class="matrix-archive-btn" type="button" data-href="${esc(archiveHref)}">archive →</button>` : '';
     // Explicit "save" button — drag/rotate/resize already autosave per-gesture
     // (see createMatrixEditor), but this batches every item's current
     // on-screen position into one write, so rearranging a lot at once can't
@@ -502,7 +499,7 @@
     return `<div class="step-panel matrix-panel">
       <div class="matrix-header">
         <div class="matrix-date">${esc(data.dateLabel||'')}</div>
-        ${addBtn}${noteBtn}${archBtn}${saveBtn}
+        ${addBtn}${noteBtn}${saveBtn}
       </div>
       <div class="matrix-frame${frameClass}">
         <div class="adv-matrix"${bgStyle}>
@@ -606,8 +603,6 @@
       if (add && rootEl.contains(add)) { handlers.onAddPhoto && handlers.onAddPhoto(); return; }
       const note = e.target.closest('.matrix-edit-notes');
       if (note && rootEl.contains(note)) { handlers.onEditNotes && handlers.onEditNotes(); return; }
-      const arch = e.target.closest('.matrix-archive-btn');
-      if (arch && rootEl.contains(arch) && arch.dataset.href) { window.location.href = arch.dataset.href; return; }
     }
     rootEl.addEventListener('click', onClick);
     return () => rootEl.removeEventListener('click', onClick);
@@ -1600,22 +1595,18 @@
 }
 .matrix-photo-btn:hover  { background:var(--blue,#6e83d3); color:#fff; }
 .matrix-photo-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.matrix-edit-notes, .matrix-archive-btn {
+.matrix-edit-notes {
   position:absolute; top:8px; right:12px; z-index:6;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
   color:#fff; background:var(--blue,#6e83d3); border:2px solid #4a5bc4;
   box-shadow:2px 2px 0 #3a4aaa; padding:5px 14px; cursor:pointer; transition:all .05s;
 }
-.matrix-edit-notes:hover, .matrix-archive-btn:hover { background:#4a5bc4; }
-.matrix-edit-notes:active, .matrix-archive-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.matrix-edit-notes:hover { background:#4a5bc4; }
+.matrix-edit-notes:active { box-shadow:none; transform:translate(2px,2px); }
 .matrix-header { position:relative; height:34px; flex-shrink:0; }
 .matrix-frame {
   width:76%; height:76%; margin:auto; align-self:center;
   position:relative; overflow:hidden;
-}
-.matrix-frame.framed {
-  border:2px solid var(--blue,#6e83d3);
-  box-shadow: 0 0 0 3px var(--blue,#6e83d3), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,0.35);
 }
 .adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
 .adv-grid {
@@ -1860,7 +1851,7 @@
 .mr-jr-save:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
 
 /* ── MATRIX EDITOR MODALS (add photo w/ frame+crop, add sticker, add text
-   w/ stationery) — namespaced mr-matrix-*/mrm-* so they never collide with
+   w/ stationery) — namespaced mr-matrix- and mrm- so they never collide with
    a host page's own .photo-overlay-family CSS during the transition before
    dream.html/daily.html are migrated to call createMatrixEditor directly. ── */
 .mr-matrix-modal .mr-matrix-card {
