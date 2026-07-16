@@ -333,7 +333,7 @@ body.game-mode .char-heart {
    canvas these cqw/cqh values were tuned for, so the heart guide (anchored
    to the same bottom-left corner as the map poster above it) needs to run
    smaller here to clear the poster instead of overlapping it. */
-@media (orientation: portrait) {
+@media (max-width: 1000px) {
   .char-heart { width: clamp(80px, 12cqw, 200px); }
 }
 
