@@ -4,14 +4,15 @@
   <url><loc>https://heartability-games.vercel.app/about</loc></url>
   <url><loc>https://heartability-games.vercel.app/rooms/courtroom</loc></url>
   <url><loc>https://heartability-games.vercel.app/rooms/garden</loc></url>
+  <url><loc>https://heartability-games.vercel.app/rooms/library</loc></url>
   <url><loc>https://heartability-games.vercel.app/matrix/archive</loc></url>
-  <url><loc>https://heartability-games.vercel.app/matrix/daily-matrix</loc></url>
-  <url><loc>https://heartability-games.vercel.app/matrix/dream-matrix</loc></url>
-  <url><loc>https://heartability-games.vercel.app/matrix/cosmic-matrix</loc></url>
+  <url><loc>https://heartability-games.vercel.app/matrix/daily</loc></url>
+  <url><loc>https://heartability-games.vercel.app/matrix/dream</loc></url>
+  <url><loc>https://heartability-games.vercel.app/matrix/cosmic</loc></url>
   <url><loc>https://heartability-games.vercel.app/users/membership</loc></url>
-  <url><loc>https://heartability-games.vercel.app/legal</loc></url>
   <url><loc>https://heartability-games.vercel.app/legal/privacy-policy</loc></url>
   <url><loc>https://heartability-games.vercel.app/legal/refund-policy</loc></url>
   <url><loc>https://heartability-games.vercel.app/legal/terms-of-service</loc></url>
   <url><loc>https://heartability-games.vercel.app/legal/support</loc></url>
+  <url><loc>https://heartability-games.vercel.app/legal/bug-report</loc></url>
 </urlset>
