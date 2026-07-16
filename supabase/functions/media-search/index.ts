@@ -47,16 +47,21 @@ async function searchMovies(q: string) {
 }
 
 async function searchBooks(q: string) {
-  const apiKey = Deno.env.get('GOGGLE_BOOKS')
+  const apiKey = Deno.env.get('GOGGLE_BOOKS') // secret name as saved in Supabase (typo, not "GOOGLE_")
   if (!apiKey) return jsonResponse({ error: 'GOGGLE_BOOKS not configured' }, 500)
 
   // Proxied server-side because the client-side key is restricted by HTTP referrer, and
   // mobile Safari (Private Relay / cross-site tracking prevention) intermittently strips the
   // Referer header on requests to googleapis.com — Google then blocks the request outright in
   // well under a second. Calling from here removes the dependency on that header entirely.
-  const data = await fetchWithTimeout(
-    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${apiKey}`
-  )
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${apiKey}`
+
+  let data = await fetchWithTimeout(url)
+  // Google Books' backend regularly throws transient 503 "backendFailed" errors that clear up
+  // within a second or two — retry once server-side instead of pushing that flakiness to the user.
+  if (data.error?.code === 503) {
+    data = await fetchWithTimeout(url)
+  }
   if (data.error) {
     console.error('[media-search] google books error:', data.error)
     return jsonResponse({ error: 'google books search failed' }, 502)

@@ -704,6 +704,40 @@ html, body { width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .member-gate-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .member-gate-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
 .member-gate-btn.ghost:hover { border-color:var(--blue); color:var(--blue); }
+
+/* ── ARCHETYPE PICKER (reuses the in-game card style) ── */
+.arch-picker-loading { padding: 20px; font-family: var(--font-hand); color: #7a86bb; }
+.arch-picker {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px;
+}
+.arch-picker-title { font-family: var(--font-hand); font-size: clamp(25px,2.4vw,35px); color: #3a2e1e; text-align: center; }
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 180px));
+  gap: 12px;
+  padding: 4px;
+  justify-content: center;
+}
+@media (max-width:600px) { .arch-grid { grid-template-columns: repeat(2, 1fr); } }
+.arch-card {
+  border: 2px solid var(--blue); background: #cdd3ec;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: stretch;
+  padding: 8px 8px 6px; gap: 5px;
+  font-family: var(--font-hand); text-align: center;
+  transition: border-color .15s, box-shadow .12s, transform .1s;
+  position: relative;
+  aspect-ratio: 4/5;
+}
+.arch-card:hover { border-color: var(--blue); box-shadow: 2px 2px 0 var(--blue); transform: translateY(-2px); }
+.arch-card-name { font-size: 17px; color: #3a2e1e; }
+.arch-card-new { border-style: dashed; border-color: var(--blue); justify-content: center; align-items: center; }
+.arch-card-new:hover { border-color: var(--blue); }
+.arch-card-plus { font-size: 46px; line-height: 1; color: var(--blue); font-family: var(--font-game); }
+.arch-card-new:hover .arch-card-plus { color: var(--blue); }
 </style>
 </head>
 <body>
@@ -842,6 +876,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { autoRefreshToken: true, persistSession: true }
 });
 let currentUser = null;
+
+function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ── MATRIX PHOTO UPLOADS ──────────────────────────────────
 // Same bucket + path convention as the dream matrix (userId/entryId/uuid.ext),

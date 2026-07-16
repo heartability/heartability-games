@@ -477,7 +477,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .map-grid { display:grid; grid-template-columns:repeat(4, minmax(140px,1fr)); gap:16px; padding:20px; }
 @media (max-width:700px) { .map-grid { grid-template-columns:repeat(2,1fr); } }
 .map-slot {
-  border:2px solid #ccc; background:#cdd3ec;
+  border:2px solid var(--purple); background:#cdd3ec;
   cursor:pointer; display:flex; flex-direction:column;
   align-items:stretch; padding:8px 8px 6px; gap:5px;
   font-family:var(--font-hand); text-align:center;
@@ -503,7 +503,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .arch-grid { display:grid; grid-template-columns:repeat(4, minmax(120px,180px)); gap:12px; padding:4px; justify-content:center; }
 @media (max-width:600px) { .arch-grid { grid-template-columns:repeat(2,1fr); } }
 .arch-card {
-  border:2px solid #ccc; background:#cdd3ec; cursor:pointer; display:flex; flex-direction:column;
+  border:2px solid var(--purple); background:#cdd3ec; cursor:pointer; display:flex; flex-direction:column;
   align-items:stretch; padding:8px 8px 6px; gap:5px; font-family:var(--font-hand); text-align:center;
   transition:border-color .15s, box-shadow .12s, transform .1s; position:relative; aspect-ratio:4/5;
 }
@@ -518,7 +518,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 /* ── INVENTORY GRID (library books/movies as cover icons) ── */
 .inv-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:14px; padding:4px; }
 .inv-card {
-  border:2px solid #ccc; background:#cdd3ec; cursor:pointer; display:flex; flex-direction:column;
+  border:2px solid var(--purple); background:#cdd3ec; cursor:pointer; display:flex; flex-direction:column;
   align-items:stretch; padding:6px 6px 8px; gap:6px; font-family:var(--font-hand); text-align:center;
   transition:border-color .15s, box-shadow .12s, transform .1s;
 }
