@@ -58,7 +58,7 @@ body {
 .welcome-banner {
   position: fixed;
   top: 10vh;
-  left: 0;
+  left: 2;
   width: 25%;
   height: auto;
   z-index: 2;
@@ -69,19 +69,8 @@ body {
 .heartability-banner {
   position: fixed;
   bottom: 10vh;
-  right: 0;
+  right: 2;
   width: 25%;
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* ── DREAMS BANNER — full-width, anchored R-L ── */
-.dreams-banner {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
   height: auto;
   z-index: 2;
   pointer-events: none;
@@ -101,7 +90,7 @@ body {
 }
 .castle-img {
   display: block;
-  width: clamp(320px, 44vw, 760px);
+  width: clamp(320px, 44vw, 800px);
   height: auto;
 }
 
@@ -185,18 +174,13 @@ body {
 
   .heartability-banner { display: none; }
 
-  .dreams-banner {
-    top: 2%;
-    width: 100%;
-  }
-
   .welcome-banner {
     width: 100%;
     top: 20%;
   }
 
   .castle-img {
-    width: clamp(220px, 80vw, 420px);
+    width: clamp(220px, 80vw, 480px);
   }
 
   .heart-guide-wrap {
