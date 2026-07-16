@@ -56,10 +56,12 @@ async function searchBooks(q: string) {
   // well under a second. Calling from here removes the dependency on that header entirely.
   const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent('intitle:' + q)}&maxResults=40&key=${apiKey}`
 
+  // Google Books' backend regularly throws transient 5xx "backendFailed" errors that clear up
+  // within a couple seconds — retry server-side (bounded, with a short backoff) instead of
+  // pushing that flakiness onto the user as a dead-end "search isn't working" message.
   let data = await fetchWithTimeout(url)
-  // Google Books' backend regularly throws transient 503 "backendFailed" errors that clear up
-  // within a second or two — retry once server-side instead of pushing that flakiness to the user.
-  if (data.error?.code === 503) {
+  for (let attempt = 0; data.error?.code >= 500 && attempt < 3; attempt++) {
+    await new Promise(r => setTimeout(r, 400))
     data = await fetchWithTimeout(url)
   }
   if (data.error) {
