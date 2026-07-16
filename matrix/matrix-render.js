@@ -936,7 +936,7 @@
     // rebuilt on every render — so state below is per-attach, not module-
     // global, and stale listeners never pile up across re-renders). ──
     function attachInteractions(rootEl){
-      let dragState = null, rotateState = null, resizeState = null, pinchState = null;
+      let dragState = null, rotateState = null, resizeState = null;
 
       rootEl.addEventListener('pointerdown', e => {
         const item = e.target.closest('.adv-draggable');
@@ -1054,60 +1054,6 @@
         el.dataset.scale = lastScale;
         updateMatrixItem(kind, id, { scale: lastScale });
       });
-
-      // PINCH-TO-SCALE + TWIST-TO-ROTATE (touch only) — a second finger
-      // landing on an already-selected item replaces the small corner
-      // handles (fiddly to grab precisely on a touchscreen). One finger
-      // still just drags.
-      rootEl.addEventListener('pointerdown', e => {
-        if (e.pointerType !== 'touch') return;
-        if (e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
-        const el = e.target.closest('.adv-draggable.selected');
-        if (!el) return;
-        if (!pinchState || pinchState.el !== el) pinchState = { el, pts: new Map() };
-        pinchState.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (pinchState.pts.size !== 2) return;
-        if (dragState && dragState.el === el) dragState = null;
-        el.classList.add('dragging');
-        const [p1, p2] = pinchState.pts.values();
-        Object.assign(pinchState, {
-          kind: el.dataset.kind, id: el.dataset.id,
-          startDist:  Math.max(10, Math.hypot(p2.x-p1.x, p2.y-p1.y)),
-          startAngle: Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI,
-          startScale: parseFloat(el.dataset.scale || '1'),
-          startRot:   parseFloat(el.dataset.rot || '0'),
-          lastScale: null, lastRot: null,
-        });
-      });
-      rootEl.addEventListener('pointermove', e => {
-        if (!pinchState || !pinchState.pts.has(e.pointerId)) return;
-        pinchState.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (pinchState.pts.size !== 2) return;
-        const s = pinchState;
-        const [p1, p2] = s.pts.values();
-        const dist  = Math.hypot(p2.x-p1.x, p2.y-p1.y);
-        const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
-        let scale = s.startScale * (dist / s.startDist);
-        scale = +Math.max(0.4, Math.min(2.5, scale)).toFixed(2);
-        let rot = s.startRot + (angle - s.startAngle);
-        rot = ((rot + 180) % 360 + 360) % 360 - 180;
-        rot = +rot.toFixed(1);
-        s.el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${scale})`;
-        s.lastScale = scale; s.lastRot = rot;
-      });
-      function endPinchPointer(e){
-        if (!pinchState || !pinchState.pts.has(e.pointerId)) return;
-        pinchState.pts.delete(e.pointerId);
-        if (pinchState.pts.size > 0) return;
-        const { el, kind, id, lastScale, lastRot } = pinchState;
-        el.classList.remove('dragging');
-        pinchState = null;
-        if (lastScale == null) return;
-        el.dataset.scale = lastScale; el.dataset.rot = lastRot;
-        updateMatrixItem(kind, id, { scale: lastScale, rot: lastRot });
-      }
-      rootEl.addEventListener('pointerup', endPinchPointer);
-      rootEl.addEventListener('pointercancel', endPinchPointer);
 
       // ── click delegation for this rootEl: save button, toolbar, remove
       // buttons for stickers/text (photo remove is handled by the host's own
@@ -1714,14 +1660,14 @@
    up (see matrix-render.js's MATRIX EDITOR section). ── */
 .adv-rotate-handle, .adv-resize-handle {
   position:absolute; z-index:4;
-  width:20px; height:20px; padding:0; line-height:1;
+  width:24px; height:24px; padding:0; line-height:1;
   background:#fff; border:1.5px solid #ccc; border-radius:50%;
-  color:#888; font-size:12px; touch-action:none;
+  color:#888; font-size:13px; touch-action:none;
   display:flex; align-items:center; justify-content:center;
   opacity:0; transition:opacity .12s, color .12s, border-color .12s;
 }
-.adv-rotate-handle { top:-8px; left:-8px; cursor:grab; }
-.adv-resize-handle { bottom:-8px; right:-8px; cursor:nwse-resize; }
+.adv-rotate-handle { top:-10px; left:-10px; cursor:grab; }
+.adv-resize-handle { bottom:-10px; right:-10px; cursor:nwse-resize; }
 /* .adv-draggable marks every item that can be dragged/rotated/resized —
    scrapbook items (photo/sticker/text) AND game items (map/bingo/char/book) —
    so this reveal rule and the JS selectors don't need one line per kind. */
@@ -1730,12 +1676,14 @@
 .adv-rotate-handle:hover, .adv-resize-handle:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
 .adv-draggable { cursor:grab; touch-action:none; }
 .adv-item.adv-draggable.dragging { cursor:grabbing; z-index:60; }
-/* On touchscreens the tiny corner handles are fiddly to grab precisely —
-   two-finger pinch (scale) + twist (rotate) on the item itself replaces them
-   (see the pinch-gesture JS), so hide the handles there entirely. Mouse/
-   trackpad users keep the drag-handle interaction. */
+/* Touch has no hover state to reveal the handles with, so show them
+   unconditionally there (same pattern as the remove buttons below) — and
+   size them up, since a 20px target is hard to land a fingertip on. */
+@media (hover: none) { .adv-rotate-handle, .adv-resize-handle { opacity:1; } }
 @media (pointer: coarse) {
-  .adv-rotate-handle, .adv-resize-handle { display:none; }
+  .adv-rotate-handle, .adv-resize-handle { width:32px; height:32px; font-size:17px; }
+  .adv-rotate-handle { top:-15px; left:-15px; }
+  .adv-resize-handle { bottom:-15px; right:-15px; }
 }
 .adv-sticker-remove, .mx-note-remove {
   position:absolute; top:-8px; right:-8px; z-index:4;
