@@ -363,21 +363,25 @@
     // BINGO (heart meter) → bottom-left (internal + action). Vertical striped
     // track with a pixel heart marker riding the fill line — matches the
     // live dream/daily matrix pages' .hm-box widget (see injectStyles below).
+    // Once full, swap the whole coded meter out for the custom heart-gold.png
+    // artwork (a complete meter graphic, not just a marker) instead.
     const hmScore = data.bingoScore || 0;
     const hmPct = Math.max(0, Math.min(100, Math.round((hmScore/24)*100)));
     const hmFull = hmScore >= 24;
-    const hmHeartImg = hmFull ? '../assets/elements/heart-gold.png' : '../assets/elements/heart-pink.png';
     const hmHeartPos = Math.max(6, Math.min(94, hmPct));
     const bingoLayout = layout.bingo || {};
     const bingoLeft  = bingoLayout.x != null ? bingoLayout.x : (27+jit(2)).toFixed(1);
     const bingoTop   = bingoLayout.y != null ? bingoLayout.y : (71+jit(2)).toFixed(1);
     const bingoRot   = bingoLayout.rot != null ? bingoLayout.rot : rot(3);
     const bingoScale = bingoLayout.scale || 1;
-    const bingoItem = `<div class="adv-item adv-bingo${dragClass}"${dragAttrs('bingo','bingo',bingoRot,bingoScale)} style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
-        <div class="hm-box${hmFull ? ' hm-full' : ''}">
+    const bingoInner = hmFull
+      ? `<img class="hm-full-img" src="../assets/elements/heart-gold.png" alt="bingo complete">`
+      : `<div class="hm-box">
           <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
-          <img class="hm-heart" src="${hmHeartImg}" alt="heart meter" style="bottom:${hmHeartPos}%">
-        </div>
+          <img class="hm-heart" src="../assets/elements/heart-pink.png" alt="heart meter" style="bottom:${hmHeartPos}%">
+        </div>`;
+    const bingoItem = `<div class="adv-item adv-bingo${dragClass}"${dragAttrs('bingo','bingo',bingoRot,bingoScale)} style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
+        ${bingoInner}
         ${dragHandles('bingo','bingo')}</div>`;
 
     // CHARACTER (infinity mirror archetype) → bottom-right (internal + feeling).
@@ -1530,7 +1534,7 @@
 .matrix-panel.step-panel { width:100%; height:100%; display:flex; flex-direction:column; font-family:var(--font-hand,"ZoesHandwriting",cursive); }
 .matrix-date {
   position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.5vw,17px); color:#7a86bb; z-index:6;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.5vw,17px); color:#3a4aaa; z-index:6;
 }
 .matrix-photo-btn {
   position:absolute; top:8px; left:12px; z-index:6;
@@ -1578,8 +1582,9 @@
 .adv-bingo { width:clamp(46px,5.5vw,64px); }
 /* Vertical heart meter — matches the live dream/daily matrix pages' .hm-box
    widget: a striped meter-track (fills bottom-to-top) inside a bezel frame,
-   with the pixel heart riding on top of the fill line as a marker. Flips to
-   the gold palette + heart-gold.png only once fully filled. */
+   with the pixel heart riding on top of the fill line as a marker. Once full,
+   the whole coded meter is swapped for the custom heart-gold.png artwork
+   (.hm-full-img below), which is itself a complete meter graphic. */
 .hm-box {
   position:relative; width:100%; padding:4px; box-sizing:border-box;
   border:3px solid var(--blue,#6e83d3);
@@ -1595,7 +1600,7 @@
   position:absolute; left:0; right:0; bottom:0; width:100%;
   background:repeating-linear-gradient(0deg, #6f84d3 0px, #6f84d3 16px, #9aa9e0 16px, #9aa9e0 18px);
 }
-.hm-box.hm-full .hm-fill { background:repeating-linear-gradient(0deg, #f4d900 0px, #f4d900 16px, #ecd67a 16px, #ecd67a 18px); }
+.hm-full-img { display:block; width:100%; height:auto; }
 .hm-heart {
   position:absolute; left:50%; width:68%; z-index:2;
   transform:translate(-50%,50%); image-rendering:pixelated;

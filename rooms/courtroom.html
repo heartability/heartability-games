@@ -312,20 +312,6 @@ body.game-mode .char-heart {
 .game-popup-howto:hover { text-decoration: underline; }
 .game-popup iframe { flex: 1; width: 100%; border: none; display: block; }
 
-/* ── Bingo mode toggle in titlebar ── */
-.bingo-mode-toggle {
-  display: none; gap: 0; align-items: center;
-}
-.bingo-mode-toggle.visible { display: flex; }
-.bingo-mode-btn {
-  font-family: var(--font-hand); font-size: 15px;
-  padding: 3px 11px; border: 1.5px solid #888; color: #888;
-  background: transparent; cursor: pointer; transition: background 0.12s, color 0.12s;
-  text-transform: lowercase;
-}
-.bingo-mode-btn + .bingo-mode-btn { border-left: none; }
-.bingo-mode-btn.active { background: #888; color: #f5f0ea; cursor: default; pointer-events: none; }
-.bingo-mode-btn:not(.active):hover { background: rgba(0,0,0,0.07); }
 
 /* Portrait/vertical viewports are handled by the room slider
    (assets/css/room-slider.css) instead of squeezing this layout. The
@@ -474,10 +460,6 @@ body.game-mode .char-heart {
         <span id="game-popup-title"></span>
       </div>
       <div class="game-popup-titlebar-right">
-        <div class="bingo-mode-toggle" id="bingo-mode-toggle">
-          <button class="bingo-mode-btn active" id="bingo-tab-sensory" onclick="switchBingoMode('sensory')">sensory</button>
-          <button class="bingo-mode-btn" id="bingo-tab-cosmic" onclick="switchBingoMode('cosmic')">cosmic</button>
-        </div>
         <span class="popup-close" onclick="closeGame()">&#x2715;</span>
       </div>
     </div>
@@ -627,13 +609,6 @@ function launchGame(slug) {
   iframe.src = '../games/' + slug + '.html';
   popup.appendChild(iframe);
   overlay.classList.add('open');
-  const toggle = document.getElementById('bingo-mode-toggle');
-  if (slug === 'bingo') {
-    toggle.classList.add('visible');
-    setBingoTabActive('sensory');
-  } else {
-    toggle.classList.remove('visible');
-  }
 }
 function closeGame() {
   const overlay = document.getElementById('game-popup-overlay');
@@ -641,19 +616,7 @@ function closeGame() {
   const iframe = document.getElementById('game-popup').querySelector('iframe');
   if (iframe) iframe.remove();
   document.getElementById('howto-overlay').classList.remove('open');
-  document.getElementById('bingo-mode-toggle').classList.remove('visible');
   pendingGameSlug = null;
-}
-function setBingoTabActive(mode) {
-  document.getElementById('bingo-tab-sensory').classList.toggle('active', mode === 'sensory');
-  document.getElementById('bingo-tab-cosmic').classList.toggle('active', mode === 'cosmic');
-}
-function switchBingoMode(mode) {
-  const popup = document.getElementById('game-popup');
-  const iframe = popup.querySelector('iframe');
-  if (!iframe) return;
-  iframe.src = mode === 'cosmic' ? '../matrix/cosmic-bingo.html' : '../games/bingo.html';
-  setBingoTabActive(mode);
 }
 function handleGamePopupOverlayClick(e) {
   if (e.target === document.getElementById('game-popup-overlay')) closeGame();

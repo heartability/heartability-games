@@ -29,7 +29,7 @@
   --wall-mid: #6e83d3;
   --panel-bg: #dfe2ef;
   --panel-border: #6e83d3;
-  --panel-border-light: #83d2e6;
+  --panel-border-light: #dfe2ef;
   --text-dark: #000000;
   --text-mid: #000000;
   --aqua: #83d2e6;
@@ -101,7 +101,7 @@ body.embedded .wall { padding-top: 16px; }
 }
 .map-textarea { resize: vertical; min-height: 160px; font-size: 17px; }
 .map-input::placeholder, .map-textarea::placeholder { color: rgba(90,90,140,0.35); }
-.map-input:focus, .map-textarea:focus, .map-select:focus { border-color: var(--aqua); outline: 1px solid var(--aqua); }
+.map-input:focus, .map-textarea:focus, .map-select:focus { border-color: var(--panel-bg); outline: 1px solid var(--panel-bg); }
 
 .status-bar {
   background: #cdd3ec;
@@ -127,7 +127,7 @@ body.embedded .wall { padding-top: 16px; }
   cursor: pointer; user-select: none; transition: filter 0.1s;
 }
 .palette-item:hover { filter: brightness(1.06); }
-.palette-item.active { border-color: var(--aqua); outline: 2px solid var(--aqua); outline-offset: 1px; background: #e0f0f0; }
+.palette-item.active { border-color: var(--panel-bg); outline: 2px solid var(--panel-bg); outline-offset: 1px; background: #e5e8f5; }
 .palette-item img { width: 60px; height: 50px; object-fit: contain; pointer-events: none; }
 .palette-item-name { font-family: var(--font-game); font-size: 12px; color: var(--text-mid); pointer-events: none; letter-spacing: 0.5px; }
 
@@ -140,7 +140,7 @@ body.embedded .wall { padding-top: 16px; }
   color: var(--text-mid); cursor: pointer; user-select: none; transition: filter 0.1s;
 }
 .terrain-cat-btn:hover { filter: brightness(1.06); }
-.terrain-cat-btn.active { border-color: var(--aqua); outline: 2px solid var(--aqua); outline-offset: 1px; background: #e0f0f0; }
+.terrain-cat-btn.active { border-color: var(--panel-bg); outline: 2px solid var(--panel-bg); outline-offset: 1px; background: #e5e8f5; }
 
 .weather-categories { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; grid-auto-flow: column; gap: 8px; }
 @media (max-width: 680px) { .weather-categories { grid-template-columns: 1fr; grid-auto-flow: row; } }
@@ -173,7 +173,7 @@ body.embedded .wall { padding-top: 16px; }
 }
 .rpg-btn:hover { filter: brightness(1.15); }
 .rpg-btn:active { transform: translate(1px,1px); }
-.rpg-btn.primary { background: var(--aqua); color: #0a1a2e; }
+.rpg-btn.primary { background: var(--panel-bg); color: #0a1a2e; }
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 .link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; }
 
