@@ -1,3 +1,7 @@
+// Deletes all of a user's data (matrix entries, games, journals, photos,
+// media submissions) while keeping their profile and login intact.
+// Called from users/account-settings.html "delete my data".
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, handleOptions } from '../_shared/cors.ts'
@@ -29,24 +33,7 @@ serve(async (req) => {
       Deno.env.get('SB_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Anonymize chatroom messages first
-    const { data: profileData } = await sb
-      .from('user-profiles')
-      .select('username')
-      .eq('id', user.id)
-      .single()
-
-    if (profileData?.username) {
-      await sb.from('chatroom').update({ name: 'deleted account' }).eq('name', profileData.username)
-    }
-
-    // Delete all user data (matrix entries, games, journals, photos, submissions)
     await wipeUserData(sb, user.id)
-    await sb.from('user-profiles').delete().eq('id', user.id)
-
-    // Delete the auth user last
-    const { error: deleteError } = await sb.auth.admin.deleteUser(user.id)
-    if (deleteError) throw deleteError
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

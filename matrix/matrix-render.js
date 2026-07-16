@@ -1534,7 +1534,7 @@
 .matrix-panel.step-panel { width:100%; height:100%; display:flex; flex-direction:column; font-family:var(--font-hand,"ZoesHandwriting",cursive); }
 .matrix-date {
   position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.5vw,17px); color:#3a4aaa; z-index:6;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(28px,3.8vw,46px); color:#3a4aaa; z-index:6;
 }
 .matrix-photo-btn {
   position:absolute; top:8px; left:12px; z-index:6;
