@@ -101,6 +101,11 @@ html, body {
   padding: 24px;
 }
 
+/* ── EMBED MODE (?embed=1) — hides this page's own nav bar when it's
+   iframed inside another page's modal, which supplies its own chrome ── */
+body.embed-mode .room-nav { display: none; }
+body.embed-mode .page-body { top: 0; }
+
 /* ─────────────────────────────────────────────────
    CHAT WINDOW  (modal-window aesthetic)
 ───────────────────────────────────────────────── */
@@ -536,6 +541,9 @@ html, body {
   });
 
   /* ─── Init ─── */
+  if (new URLSearchParams(location.search).get('embed') === '1') {
+    document.body.classList.add('embed-mode');
+  }
   initNameField();
   loadMessages();
 

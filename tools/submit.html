@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+<title>Add a Tool — Heartability</title>
+<meta name="robots" content="noindex,follow">
+<style>
+
+@font-face {
+  font-family: "ZoesHandwriting";
+  src: url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype");
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --font-hand: "ZoesHandwriting", cursive;
+  --wall: #6e83d3;
+  --panel-bg: #dfe2ef;
+  --blue: #6e83d3;
+}
+
+body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand); display: flex; flex-direction: column; }
+
+.room-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: #6e83d3; border-bottom: 2px solid rgba(255,255,255,0.25);
+  z-index: 200; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 clamp(12px,2vw,28px);
+  font-family: var(--font-hand); font-size: clamp(18px,1.6vw,22px); color: #fff;
+}
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; color: inherit; text-decoration: none; }
+.nav-btn:hover { background: rgba(0,0,0,.08); }
+
+.wall { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 64px 16px 60px; }
+
+.rpg-panel {
+  position: relative; background: #dfe2ef;
+  width: 100%; max-width: 720px;
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+  margin-bottom: 16px;
+  border: 3px solid #6e83d3;
+  border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  box-shadow: 6px 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.section-header { font-family: var(--font-hand); font-size: 20px; color: #000; margin-bottom: 2px; letter-spacing: 0.5px; }
+.section-sub { font-family: var(--font-hand); font-size: 15px; color: #555; margin: -8px 0 4px; }
+
+.map-input, .map-textarea, .map-select {
+  width: 100%; background: #cdd3ec;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  padding: 8px 10px; font-family: var(--font-hand); font-size: 18px; color: #000; outline: none;
+}
+.map-textarea { resize: vertical; min-height: 90px; }
+.map-input::placeholder, .map-textarea::placeholder { color: rgba(90,90,140,0.4); }
+
+.rpg-btn {
+  padding: 8px 18px; background: #cdd3ec; color: #1a1a2e;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  font-family: var(--font-hand); font-size: 17px; cursor: pointer; transition: filter 0.1s;
+}
+.rpg-btn:hover { filter: brightness(1.08); }
+.rpg-btn:active { transform: translate(1px,1px); }
+.rpg-btn.primary { background: var(--blue); color: #fff; }
+.rpg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* purchase links */
+.link-row { display: flex; gap: 8px; }
+.link-row .map-input { flex: 1; }
+.link-row button { flex-shrink: 0; }
+.link-rows { display: flex; flex-direction: column; gap: 8px; }
+
+/* landscape builder */
+.terrain-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px;
+}
+.terrain-thumb {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; padding: 6px 4px; border-radius: 4px; border: 2px solid transparent;
+  font-size: 12px; color: #333; text-align: center;
+}
+.terrain-thumb img { width: 36px; height: 36px; object-fit: contain; }
+.terrain-thumb:hover { background: rgba(110,131,211,0.12); }
+.terrain-thumb.active { border-color: var(--blue); background: rgba(110,131,211,0.18); }
+
+.weather-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 500px) { .weather-categories { grid-template-columns: 1fr; } }
+.weather-category { padding: 8px 10px; border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa; border-left-color: #5465c5; border-top-color: #5465c5; }
+.weather-category.sunny { background: #f2e6a8; }
+.weather-category.rainy { background: #ae87e2; }
+.weather-category.windy { background: #a3eac9; }
+.weather-category.snowy { background: rgb(108, 209, 234); }
+.weather-cat-header { font-family: var(--font-hand); font-size: 16px; margin-bottom: 6px; }
+.weather-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.weather-chip { padding: 3px 9px; border-radius: 10px; background: rgba(255,255,255,0.6); font-size: 13px; cursor: pointer; border: 1.5px solid transparent; }
+.weather-chip:hover { background: rgba(255,255,255,0.9); }
+.weather-chip.active { border-color: #1a1a2e; background: #fff; font-weight: 700; }
+
+.landscape-preview { font-family: var(--font-hand); font-size: 17px; color: #333; min-height: 24px; margin: 4px 0; }
+.landscape-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.landscape-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e8ecf9; border: 1.5px solid var(--blue); color: #333;
+  font-family: var(--font-hand); font-size: 14px; padding: 4px 6px 4px 10px; border-radius: 12px;
+}
+.landscape-chip .remove-x { cursor: pointer; color: #a33; font-weight: 700; padding: 0 3px; }
+.landscape-actions { display: flex; gap: 8px; }
+
+.status-line { font-family: var(--font-hand); font-size: 16px; color: #333; min-height: 20px; }
+.status-line.error { color: #a33; }
+
+.submit-bar { display: flex; justify-content: center; padding-top: 6px; }
+
+#done-panel { display: none; text-align: center; }
+#done-panel .section-header { font-size: 22px; margin-bottom: 8px; }
+
+</style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <a class="nav-btn" href="../rooms/living-room.html">← back</a>
+  <h1 class="nav-title">add a tool</h1>
+  <span></span>
+</nav>
+
+<div class="wall">
+
+  <div class="rpg-panel" id="form-panel">
+    <div class="section-header">what's the tool?</div>
+    <input class="map-input" id="f-title" type="text" maxlength="120" placeholder="title (e.g. cold plunge, calling a friend, a weighted blanket)">
+
+    <div class="section-header">what kind of tool is it?</div>
+    <select class="map-select" id="f-type">
+      <option value="">choose one</option>
+      <option value="nutrition">nutrition</option>
+      <option value="connection">connection</option>
+      <option value="cleanliness">cleanliness</option>
+      <option value="rest">rest</option>
+      <option value="relaxation">relaxation</option>
+    </select>
+
+    <div class="section-header">summary</div>
+    <textarea class="map-textarea" id="f-summary" maxlength="1000" placeholder="what is it, and why does it help?"></textarea>
+
+    <div class="section-header">favorite brands</div>
+    <div class="section-sub">optional</div>
+    <input class="map-input" id="f-brands" type="text" maxlength="300" placeholder="e.g. Marpac, Yeti, Hydro Flask">
+  </div>
+
+  <div class="rpg-panel">
+    <div class="section-header">where to get it</div>
+    <div class="section-sub">optional — add as many links as you like</div>
+    <div class="link-rows" id="link-rows"></div>
+    <button type="button" class="rpg-btn" onclick="addLinkRow()">+ add another link</button>
+  </div>
+
+  <div class="rpg-panel">
+    <div class="section-header">where do you use this tool?</div>
+    <div class="section-sub">pick a terrain and an emotional climate to build a landscape (e.g. "mountain of joy"), then add as many as you like — these aren't placed on a map, just listed as recommended environments.</div>
+
+    <div class="terrain-grid" id="terrain-grid"></div>
+    <div class="weather-categories" id="weather-categories"></div>
+    <div class="landscape-preview" id="landscape-preview">pick a terrain and a feeling</div>
+
+    <div class="landscape-actions">
+      <button type="button" class="rpg-btn" id="btn-add-landscape" disabled onclick="addLandscape()">+ add another</button>
+      <button type="button" class="rpg-btn primary" id="btn-save-landscapes" disabled onclick="saveLandscapes()">save</button>
+    </div>
+
+    <div class="landscape-chips" id="landscape-chips"></div>
+  </div>
+
+  <div class="rpg-panel">
+    <div class="status-line" id="submit-status"></div>
+    <div class="submit-bar">
+      <button type="button" class="rpg-btn primary" id="submit-btn" onclick="submitTool()">submit for review</button>
+    </div>
+  </div>
+
+  <div class="rpg-panel" id="done-panel">
+    <div class="section-header">thanks — this will appear once it's approved.</div>
+    <div class="section-sub" style="margin:0;">redirecting you back to the living room…</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── terrain / climate constants (mirrors matrix/daily.html's dayquest builder) ──
+const TERRAIN_ORDER = ['pond','waterfall','spring','river','ocean','glacier','marsh','dunes','mountains','cave','cliff','maze','plateau','valley','meadow','jungle','island','forest'];
+const TERRAIN_IMGS = {
+  pond:"../assets/elements/maps/pond.png", waterfall:"../assets/elements/maps/waterfall.png",
+  spring:"../assets/elements/maps/spring.png", river:"../assets/elements/maps/river.png",
+  ocean:"../assets/elements/maps/ocean.png", glacier:"../assets/elements/maps/glacier.png",
+  marsh:"../assets/elements/maps/marsh.png", dunes:"../assets/elements/maps/dunes.png",
+  mountains:"../assets/elements/maps/mountains.png", cave:"../assets/elements/maps/cave.png",
+  cliff:"../assets/elements/maps/cliff.png", maze:"../assets/elements/maps/maze.png",
+  plateau:"../assets/elements/maps/plateau.png", valley:"../assets/elements/maps/valley.png",
+  meadow:"../assets/elements/maps/meadow.png", jungle:"../assets/elements/maps/jungle.png",
+  island:"../assets/elements/maps/island.png", forest:"../assets/elements/maps/forest.png",
+};
+const WEATHER_CATS = [
+  { id:"sunny", label:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"] },
+  { id:"rainy", label:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret"] },
+  { id:"windy", label:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
+  { id:"snowy", label:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock"] },
+];
+
+// ── purchase links ──
+function addLinkRow(label, url) {
+  const wrap = document.getElementById('link-rows');
+  const row = document.createElement('div');
+  row.className = 'link-row';
+  row.innerHTML = `
+    <input class="map-input" type="text" maxlength="80" placeholder="label (e.g. amazon)" value="${_escapeHtml(label||'')}">
+    <input class="map-input" type="url" maxlength="500" placeholder="https://..." value="${_escapeHtml(url||'')}">
+    <button type="button" class="rpg-btn" onclick="this.parentElement.remove()">✕</button>
+  `;
+  wrap.appendChild(row);
+}
+addLinkRow();
+
+function collectLinks() {
+  return [...document.querySelectorAll('#link-rows .link-row')].map(row => {
+    const [labelEl, urlEl] = row.querySelectorAll('input');
+    return { label: labelEl.value.trim(), url: urlEl.value.trim() };
+  }).filter(l => l.url);
+}
+
+// ── landscape builder ──
+let landscapeDraft = { terrain: null, feeling: null, tint: null, cat: null };
+let landscapes = [];
+
+function buildTerrainGrid() {
+  document.getElementById('terrain-grid').innerHTML = TERRAIN_ORDER.map(id => `
+    <div class="terrain-thumb" id="terrain-${id}" onclick="pickTerrain('${id}')">
+      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
+      <span>${id}</span>
+    </div>`).join('');
+}
+function buildWeatherCats() {
+  document.getElementById('weather-categories').innerHTML = WEATHER_CATS.map(cat => `
+    <div class="weather-category ${cat.id}">
+      <div class="weather-cat-header">${cat.label}</div>
+      <div class="weather-chips">
+        ${cat.feelings.map(f => `<span class="weather-chip" id="chip-${f}" onclick="pickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function pickTerrain(id) {
+  landscapeDraft.terrain = id;
+  document.querySelectorAll('.terrain-thumb').forEach(el => el.classList.remove('active'));
+  document.getElementById(`terrain-${id}`)?.classList.add('active');
+  refreshLandscapePreview();
+}
+function pickFeeling(feeling, cat, tint) {
+  landscapeDraft.feeling = feeling; landscapeDraft.cat = cat; landscapeDraft.tint = tint;
+  document.querySelectorAll('.weather-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById(`chip-${feeling}`)?.classList.add('active');
+  refreshLandscapePreview();
+}
+function refreshLandscapePreview() {
+  const ready = landscapeDraft.terrain && landscapeDraft.feeling;
+  document.getElementById('landscape-preview').textContent = ready
+    ? `${landscapeDraft.terrain} of ${landscapeDraft.feeling}`
+    : 'pick a terrain and a feeling';
+  document.getElementById('btn-add-landscape').disabled = !ready;
+  document.getElementById('btn-save-landscapes').disabled = !ready && !landscapes.length;
+}
+
+function resetLandscapeDraft() {
+  landscapeDraft = { terrain: null, feeling: null, tint: null, cat: null };
+  document.querySelectorAll('.terrain-thumb, .weather-chip').forEach(el => el.classList.remove('active'));
+  refreshLandscapePreview();
+}
+
+function renderLandscapeChips() {
+  document.getElementById('landscape-chips').innerHTML = landscapes.map((z, i) => `
+    <span class="landscape-chip">${_escapeHtml(z.terrain)} of ${_escapeHtml(z.feeling)}<span class="remove-x" onclick="removeLandscape(${i})">✕</span></span>
+  `).join('');
+}
+
+function addLandscape() {
+  if (!(landscapeDraft.terrain && landscapeDraft.feeling)) return;
+  landscapes.push({ ...landscapeDraft });
+  renderLandscapeChips();
+  resetLandscapeDraft();
+  document.getElementById('btn-save-landscapes').disabled = !landscapes.length;
+}
+function removeLandscape(i) {
+  landscapes.splice(i, 1);
+  renderLandscapeChips();
+  document.getElementById('btn-save-landscapes').disabled = !landscapes.length && !(landscapeDraft.terrain && landscapeDraft.feeling);
+}
+function saveLandscapes() {
+  if (landscapeDraft.terrain && landscapeDraft.feeling) addLandscape();
+  document.getElementById('terrain-grid').style.opacity = '0.5';
+  document.getElementById('terrain-grid').style.pointerEvents = 'none';
+  document.getElementById('weather-categories').style.opacity = '0.5';
+  document.getElementById('weather-categories').style.pointerEvents = 'none';
+  document.getElementById('btn-add-landscape').disabled = true;
+  document.getElementById('btn-save-landscapes').disabled = true;
+  document.getElementById('landscape-preview').textContent = `${landscapes.length} landscape${landscapes.length === 1 ? '' : 's'} saved`;
+}
+
+buildTerrainGrid();
+buildWeatherCats();
+
+// ── submit ──
+async function submitTool() {
+  const statusEl = document.getElementById('submit-status');
+  const btn = document.getElementById('submit-btn');
+  statusEl.className = 'status-line'; statusEl.textContent = '';
+
+  if (!currentUser) { window.location.href = '../users/login.html'; return; }
+
+  const title = document.getElementById('f-title').value.trim();
+  const tool_type = document.getElementById('f-type').value;
+  const summary = document.getElementById('f-summary').value.trim();
+  const favorite_brands = document.getElementById('f-brands').value.trim() || null;
+
+  if (!title || !tool_type || !summary) {
+    statusEl.className = 'status-line error';
+    statusEl.textContent = 'title, type, and summary are required.';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'submitting…';
+
+  const purchase_links = collectLinks();
+
+  const { error } = await sb.from('tools').insert({
+    title, tool_type, summary, favorite_brands,
+    purchase_links, landscapes,
+    submitted_by: currentUser.id,
+    status: 'pending',
+  });
+
+  if (error) {
+    console.error('[tools/submit] insert failed:', error);
+    statusEl.className = 'status-line error';
+    statusEl.textContent = 'something went wrong — try again.';
+    btn.disabled = false; btn.textContent = 'submit for review';
+    return;
+  }
+
+  document.getElementById('form-panel').closest('.wall').querySelectorAll('.rpg-panel').forEach(p => { if (p.id !== 'done-panel') p.style.display = 'none'; });
+  document.getElementById('done-panel').style.display = 'block';
+  setTimeout(() => { window.location.href = '../rooms/living-room.html'; }, 1800);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (!session) { window.location.href = '../users/login.html'; return; }
+    currentUser = session.user;
+  });
+});
+</script>
+
+</body>
+</html>

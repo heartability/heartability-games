@@ -24,7 +24,7 @@
   --line:#111;
   --bw-top:9%; --bw-left:15%; --bw-width:70%; --bw-height:70%;
 }
-html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
+html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
   background:url("../assets/elements/cosmic-sky.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
@@ -37,18 +37,31 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .nav-btn:hover{ background:rgba(0,0,0,.08); }
 .nav-title{ position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; margin:0; font:inherit; }
 
+/* ── PANEL SCROLL REGION — no-op by default (just a plain wrapper); becomes
+   the scroll container for iframe-mode steps on mobile, see the max-width:
+   768px block. ── */
+.panel-scroll-region{ display:contents; }
+
 /* CONTENT PANEL — sits where the back wall would be (outside: no wall, soft frame) */
 .content-panel{ position:fixed; top:var(--bw-top); left:var(--bw-left);
   width:var(--bw-width); height:var(--bw-height); z-index:10; display:none;
   flex-direction:column; overflow:hidden; }
 .content-panel.active{ display:flex; }
 .content-panel.active:not(.iframe-mode){ background:transparent; border:none; box-shadow:none; }
-/* ── IFRAME PANEL — floats free, sized to fit its content (see autoSizeIframe) ── */
+/* ── IFRAME PANEL — anchored near the top like every other step, just wider
+   than the back-wall proportions so builder UIs have room to breathe. Unlike
+   other steps it isn't fixed to the viewport: it sits in normal document
+   flow, so if its content runs taller than the screen, the whole page grows
+   and scrolls with it (via html/body's overflow-y) instead of clipping into
+   its own internal scrollbar — and #save-bar and #char-heart, which follow
+   right after it in the DOM, trail along below instead of floating fixed
+   on top of it. ── */
 .game-iframe{ width:100%; height:70vh; border:none; display:block; flex-shrink:0; }
 .content-panel.iframe-mode{
   border:none; box-shadow:none; background:transparent;
-  top:50%; left:50%; transform:translate(-50%,-50%);
-  width:min(1050px, 94vw); height:auto; max-height:none;
+  position:relative; top:auto; left:auto;
+  width:min(1050px, 94vw); height:auto;
+  margin:var(--bw-top) auto 0;
   overflow:visible;
 }
 .panel-scroll{ width:100%; height:100%; overflow-y:auto; padding:22px; display:flex; flex-direction:column; align-items:center; }
@@ -133,6 +146,27 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
 .save-continue-btn:hover{ background:#4a5bc4; }
 .save-continue-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 .save-continue-btn:disabled{ opacity:.38; cursor:not-allowed; transform:none!important; box-shadow:3px 3px 0 #3a4aaa; }
+
+/* Iframe-mode steps (character builder, bingo) now grow taller than the
+   viewport in normal flow (see .content-panel.iframe-mode) — keep the
+   continue bar and heart character in flow right after it instead of
+   pinned to the viewport bottom/corner, so they trail the frame instead of
+   floating on top of it. Mobile keeps its own fixed footer (see the
+   max-width:768px block) since that panel scrolls internally instead of
+   growing the page. */
+@media (min-width:769px) {
+  body:has(.content-panel.iframe-mode) .save-continue-bar {
+    position: static;
+    height: auto;
+    padding: 24px 0 12px;
+  }
+  body:has(.content-panel.iframe-mode) .char-heart {
+    position: relative;
+    left: auto; bottom: auto;
+    margin: 0 auto 40px;
+  }
+}
+
 .save-status-bar{ position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
   font-family:var(--font-hand); font-size:16px; color:#6ab86a; z-index:16; pointer-events:none; }
 
@@ -443,15 +477,27 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   #map-season-title{ top:54px; left:0; right:0; text-align:center; font-size:clamp(30px,7vw,42px); }
   #map-progress{ top:104px; left:50%; right:auto; transform:translateX(-50%); min-width:0; width:min(320px,84vw); }
 
-  /* iframe panels (character step, cosmic bingo) were vertically centered with
-     height:auto — tall content (like the bingo board) pushed the top half up
-     under the fixed nav bar. Anchor below the nav and scroll within the panel
-     instead of centering/overflowing past the viewport. */
-  .content-panel.iframe-mode{
-    top:44px; left:50%; transform:translateX(-50%);
-    width:94vw;
-    height:calc(100dvh - 44px); max-height:calc(100dvh - 44px);
-    overflow-y:auto; overflow-x:hidden;
+  /* iframe panels (character step, cosmic bingo) used to scroll away with the
+     whole page — tall content would scroll its top rows up under the fixed
+     nav bar, AND the continue bar (a separate fixed sibling) would float on
+     top of whatever content was currently in view instead of trailing it.
+     Fix: .panel-scroll-region becomes the single pinned-below-nav scroll
+     container for both the panel and the continue bar, so the continue
+     button flows in normal document order after the panel's content instead
+     of floating fixed over it, while the whole region still stays below the
+     nav rather than scrolling under it. Only kicks in for iframe steps;
+     non-iframe steps keep their own self-contained fixed box below. */
+  body:has(.content-panel.iframe-mode) .panel-scroll-region {
+    display:flex; flex-direction:column; align-items:center;
+    position:fixed; top:44px; left:0; right:0; bottom:0;
+    overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
+  }
+  body:has(.content-panel.iframe-mode) .content-panel.iframe-mode {
+    position:static; width:94vw; height:auto; max-height:none; overflow:visible;
+    margin:0 auto;
+  }
+  body:has(.content-panel.iframe-mode) .save-continue-bar {
+    position:static; height:auto; padding:0; margin:20px 0 30px; z-index:auto;
   }
 
   /* planet/zodiac picker grids: fixed 126px columns overflowed narrow screens
@@ -477,7 +523,18 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
   <a class="nav-btn" href="archive.html">archive →</a>
 </nav>
 
-<div class="content-panel" id="content-panel"></div>
+<!-- PANEL SCROLL REGION — on mobile, when an iframe step is active, this
+     becomes the single scroll container for both the panel and the continue
+     bar (see .panel-scroll-region CSS), so the continue button trails the
+     content instead of floating fixed on top of it. Otherwise it's just a
+     plain, non-positioned wrapper and everything behaves as before. -->
+<div class="panel-scroll-region" id="panel-scroll-region">
+  <div class="content-panel" id="content-panel"></div>
+
+  <div class="save-continue-bar" id="save-bar">
+    <button class="save-continue-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
+  </div>
+</div>
 
 <div id="map-season-title"></div>
 <div id="map-progress">
@@ -497,10 +554,6 @@ html,body{ width:100vw; height:100dvh; overflow:hidden; user-select:none;
     </div>
   </div>
   <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
-</div>
-
-<div class="save-continue-bar" id="save-bar">
-  <button class="save-continue-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
 </div>
 <div class="save-status-bar" id="status"></div>
 

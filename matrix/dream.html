@@ -409,16 +409,21 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 }
 
 /* Iframe-mode steps (bingo, builders) now grow taller than the viewport in
-   normal flow (see .content-panel.iframe-mode) — keep the continue bar in
-   flow right after it instead of pinned to the viewport bottom, so it
-   trails the frame instead of floating on top of it. Mobile keeps its own
-   fixed footer (see the max-width:768px block) since that panel scrolls
-   internally instead of growing the page. */
+   normal flow (see .content-panel.iframe-mode) — keep the continue bar and
+   heart character in flow right after it instead of pinned to the viewport
+   bottom/corner, so they trail the frame instead of floating on top of it.
+   Mobile keeps its own fixed footer (see the max-width:768px block) since
+   that panel scrolls internally instead of growing the page. */
 @media (min-width:769px) {
   body:has(.content-panel.iframe-mode) .save-continue-bar {
     position: static;
     height: auto;
-    padding: 24px 0 60px;
+    padding: 24px 0 12px;
+  }
+  body:has(.content-panel.iframe-mode) .char-heart {
+    position: relative;
+    left: auto; bottom: auto;
+    margin: 0 auto 40px;
   }
 }
 

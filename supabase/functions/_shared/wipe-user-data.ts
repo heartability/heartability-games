@@ -41,6 +41,12 @@ export async function wipeUserData(sb: SupabaseClient, userId: string): Promise<
   const { error: subError } = await sb.from('media_submissions').delete().eq('submitted_by', userId)
   if (subError) throw subError
 
+  const { error: toolsError } = await sb.from('tools').delete().eq('submitted_by', userId)
+  if (toolsError) throw toolsError
+
+  const { error: toolCommentsError } = await sb.from('tool_comments').delete().eq('user_id', userId)
+  if (toolCommentsError) throw toolCommentsError
+
   // Uploaded matrix photos live under `${userId}/...` in the photo bucket.
   const photoPaths = await listAllFiles(sb, PHOTO_BUCKET, userId)
   if (photoPaths.length > 0) {
