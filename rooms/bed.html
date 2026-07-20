@@ -175,6 +175,7 @@ html, body {
   inset: 0;
   z-index: 10;
   display: none;
+  pointer-events: none;
 }
 .room-icons.active { display: block; }
 
@@ -189,6 +190,7 @@ html, body {
   border-radius: 4px;
   transition: transform 0.15s;
   transform-origin: bottom center;
+  pointer-events: auto;
 }
 .room-icon:hover { transform: translateY(-5px); }
 .room-icon:active { transform: translateY(-2px); }
@@ -314,6 +316,8 @@ html, body {
 .wall-picker-popup { width: min(92vw, 560px); max-height: 80vh; display: flex; flex-direction: column; }
 .wall-picker-body { padding: 16px 18px; overflow-y: auto; }
 .wall-picker-empty { font-family: var(--font-hand); font-size: 18px; color: #888; text-align: center; padding: 30px 10px; }
+.wall-picker-gate-link { display: inline-block; margin-top: 10px; font-family: var(--font-hand); font-size: 15px; color: var(--purple); text-decoration: none; }
+.wall-picker-gate-link:hover { color: var(--purple-dark); text-decoration: underline; }
 .wall-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px; }
 .wall-picker-item { cursor: pointer; border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .wall-picker-thumb { position: relative; width: 100%; aspect-ratio: 1; }
@@ -507,6 +511,7 @@ html, body {
 
   // ── Wall board — bulletin board of matrix photos ──────────
   let currentUserId = null;
+  let isPaid = false;
   let wallPhotos = [];
 
   function escAttr(s) { return String(s).replace(/"/g, '&quot;'); }
@@ -687,6 +692,13 @@ html, body {
   window.openWallPicker = async function () {
     document.getElementById('wall-picker-overlay').classList.add('open');
     const body = document.getElementById('wall-picker-body');
+
+    if (!isPaid) {
+      body.innerHTML = `<div class="wall-picker-empty">become a member to decorate your room<br>
+        <a class="wall-picker-gate-link" href="../users/membership.html">see membership options →</a></div>`;
+      return;
+    }
+
     body.innerHTML = '<div class="wall-picker-empty">loading your photos…</div>';
 
     const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
@@ -707,7 +719,7 @@ html, body {
     }));
 
     if (!items.length) {
-      body.innerHTML = '<div class="wall-picker-empty">no photos in your matrix entries yet — add some in the dream, daily, or cosmic matrix first.</div>';
+      body.innerHTML = '<div class="wall-picker-empty">save some photos in the matrix to decorate your room</div>';
       return;
     }
 
@@ -737,6 +749,7 @@ html, body {
       .eq('id', user.id)
       .single();
 
+    isPaid = !!(profile && profile.membership_status && profile.membership_status !== 'free');
     const username = profile?.username || 'explorer';
     document.getElementById('display-username').textContent = username;
 
