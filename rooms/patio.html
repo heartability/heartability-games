@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
-<title>The Garden — Heartability</title>
-<meta name="description" content="Visit the Garden, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
+<title>The Patio — Heartability</title>
+<meta name="description" content="Visit the Patio, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
 <style>
 
@@ -90,7 +90,7 @@ html, body {
 .map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
 .map-item.current:hover { background: none; }
 
-/* ── GARDEN ELEMENTS ── */
+/* ── PATIO ELEMENTS ── */
 .garden-el {
   position: absolute;
   pointer-events: none;
@@ -193,13 +193,13 @@ html, body {
 <!-- TOP NAV BAR -->
 <nav class="room-nav">
   <div id="gear-slot"></div>
-  <h1 class="nav-title">garden</h1>
+  <h1 class="nav-title">patio</h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
       <a class="map-item" href="../rooms/bed.html">bedroom</a>
       <a class="map-item" href="../rooms/game-room.html">game room</a>
-      <span class="map-item current">garden</span>
+      <span class="map-item current">patio</span>
       <a class="map-item" href="../rooms/library.html">library</a>
       <a class="map-item" href="../rooms/living-room.html">living room</a>
     </div>
@@ -211,7 +211,7 @@ html, body {
 
   <!-- Grass ground -->
   <div class="garden-el el-sky">
-    <img src="../assets/elements/garden-sky.png" alt="">
+    <img src="../assets/elements/patio-sky.png" alt="">
   </div>
 
  
@@ -298,7 +298,7 @@ html, body {
   const bubble = document.getElementById('cloud-bubble');
 
   cloud.addEventListener('mouseenter', () => {
-    bubble.textContent = 'welcome to the garden';
+    bubble.textContent = 'welcome to the patio';
     cloud.classList.add('active');
   });
   cloud.addEventListener('mouseleave', () => cloud.classList.remove('active'));
