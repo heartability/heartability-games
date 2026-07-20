@@ -54,21 +54,16 @@ html, body {
 }
 .room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
 .room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
-/* Skew the texture (not the clip-path shape) so its bottom edge runs along
-   the wall/floor diagonal instead of just touching it at the outer corner. */
+/* Pin the texture to the top of the room (not the wall's own clipped box) and
+   scale it so its wainscoting line lands at the same height as the back
+   wall's — 9% + 0.525*70% of the stage — instead of stretching to the wall's
+   own diagonal bottom edge. Verticals stay vertical; the trapezoid comes from
+   the clip-path alone, so the pattern reads as continuous around the corner. */
 .room-side-wall-left::before,
 .room-side-wall-right::before {
-  content: ""; position: absolute; inset: 0;
-  background: url("../assets/elements/wall-wainscoting.jpg") repeat-x;
-  background-size: auto 100%;
-}
-.room-side-wall-left::before {
-  transform-origin: 0% 100%;
-  transform: skewY(atan2(-70cqh, 50cqw));
-}
-.room-side-wall-right::before {
-  transform-origin: 100% 100%;
-  transform: skewY(atan2(70cqh, 50cqw));
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  background: rgb(96, 127, 252) url("../assets/elements/wall-wainscoting.jpg") repeat-x top;
+  background-size: auto 87.14cqh;
 }
 
 .room-carpet {
