@@ -45,32 +45,29 @@ html, body {
 }
 
 /* ── ROOM BACKGROUND (bed.html pattern) ── */
-.room-side-wall-left,
-.room-side-wall-right {
-  position: absolute; inset: 0;
-  background: var(--side-col);
-  overflow: hidden;
+/* Pre-warped trapezoid art (already shaped/transparent to match the wall's
+   floor line and drawn to meet the back wall's trim at the seam) spanning
+   from the outer room corner to the back wall's edge — same 15% offset as
+   .room-back-wall's `left`, so the two pieces butt up exactly. */
+.room-side-wall-left {
+  position: absolute; top: 0; left: 0; width: 15%; height: 100%;
+  background: url("../assets/elements/wall-wainscoting-l.png") no-repeat;
+  background-size: 100% 100%;
   z-index: 0; pointer-events: none;
 }
-.room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
-.room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
-/* Pin the texture to the top of the room (not the wall's own clipped box) and
-   scale it so its wainscoting line lands at the same height as the back
-   wall's — 9% + 0.525*70% of the stage — instead of stretching to the wall's
-   own diagonal bottom edge. Verticals stay vertical; the trapezoid comes from
-   the clip-path alone, so the pattern reads as continuous around the corner. */
-.room-side-wall-left::before,
-.room-side-wall-right::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 100%;
-  background: rgb(96, 127, 252) url("../assets/elements/wall-wainscoting.jpg") repeat-x top;
-  background-size: auto 87.14cqh;
+.room-side-wall-right {
+  position: absolute; top: 0; right: 0; width: 15%; height: 100%;
+  background: url("../assets/elements/wall-wainscoting-r.png") no-repeat;
+  background-size: 100% 100%;
+  z-index: 0; pointer-events: none;
 }
 
 .room-carpet {
   position: absolute; inset: 0;
   background: var(--side-col) url("../assets/elements/tile-square.jpg") repeat;
   background-size: 200px 200px;
-  clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
+  /* Top edge matches the wainscoting art's floor line: (0%,100%) to (15%,74%). */
+  clip-path: polygon(0% 100%, 100% 100%, 85% 74%, 15% 74%);
   z-index: 1; pointer-events: none;
 }
 
