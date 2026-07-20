@@ -50,19 +50,31 @@ html, body {
    other edge). At the seam edge the art's own trim/floor lines sit at 28.5%/
    74.2% of image height, not the 45.75%/79% the back wall shows at its own
    left edge — so the image is scaled+shifted (not just stretched 1:1) to pull
-   those two points onto the back wall's actual trim/bottom. That leaves a
-   sliver uncovered above the art at the outer corner, filled by the
-   background-color, which matches the art's own flat upper-wall colour. */
+   those two points onto the back wall's actual trim/bottom. That leaves slivers
+   uncovered above and below the art (outer corner only); a two-tone backing
+   fill (light upper-wall blue / dark baseboard blue) covers both. The
+   clip-path removes the wedge above the roofline (the same (0,0)→(15%,9%)
+   line the .room-bg diagonals already draw), so the wallpaper doesn't poke
+   up past the ceiling — matching how the back wall's own gap is just bare
+   background there. */
 .room-side-wall-left {
   position: absolute; top: 0; left: 0; width: 15%; height: 100%;
-  background: rgb(186, 201, 255) url("../assets/elements/wall-wainscoting-l.png") no-repeat 0 25.01cqh;
-  background-size: 100% 72.76%;
+  background-image: url("../assets/elements/wall-wainscoting-l.png"),
+    linear-gradient(to bottom, rgb(186, 201, 255) 0% 50%, rgb(94, 128, 254) 50% 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 25.01cqh, 0 0;
+  background-size: 100% 72.76%, 100% 100%;
+  clip-path: polygon(0% 0%, 100% 9%, 100% 100%, 0% 100%);
   z-index: 0; pointer-events: none;
 }
 .room-side-wall-right {
   position: absolute; top: 0; right: 0; width: 15%; height: 100%;
-  background: rgb(186, 201, 255) url("../assets/elements/wall-wainscoting-r.png") no-repeat 0 25.01cqh;
-  background-size: 100% 72.76%;
+  background-image: url("../assets/elements/wall-wainscoting-r.png"),
+    linear-gradient(to bottom, rgb(186, 201, 255) 0% 50%, rgb(94, 128, 254) 50% 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 25.01cqh, 0 0;
+  background-size: 100% 72.76%, 100% 100%;
+  clip-path: polygon(0% 9%, 100% 0%, 100% 100%, 0% 100%);
   z-index: 0; pointer-events: none;
 }
 
