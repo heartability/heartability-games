@@ -96,7 +96,14 @@ html, body {
   z-index: 4;
   overflow: hidden;
 }
-.wall-add-photo-btn { top: 10px; right: 12px; left: auto; }
+.wall-add-photo-btn {
+  position: absolute; top: 10px; right: 12px; z-index: 6;
+  background: none; border: none; padding: 0; cursor: pointer;
+  transition: transform 0.1s;
+}
+.wall-add-photo-btn img { display: block; width: clamp(30px, 3.4vw, 46px); height: auto; }
+.wall-add-photo-btn:hover  { transform: scale(1.08); }
+.wall-add-photo-btn:active { transform: scale(0.96); }
 .wall-board .adv-photo { cursor: grab; touch-action: none; }
 .wall-board .adv-photo.dragging { cursor: grabbing; z-index: 60; }
 .wall-board .adv-photo:hover .adv-resize-handle,
@@ -391,7 +398,9 @@ html, body {
 
   <!-- WALL BOARD — bulletin board of matrix photos -->
   <div class="wall-board" id="wall-board">
-    <button class="matrix-photo-btn wall-add-photo-btn" type="button" onclick="openWallPicker()">+ photo</button>
+    <button class="wall-add-photo-btn" type="button" onclick="openWallPicker()" title="add photo" aria-label="add photo">
+      <img src="../assets/elements/add.png" alt="">
+    </button>
     <div id="wall-photos"></div>
   </div>
 
