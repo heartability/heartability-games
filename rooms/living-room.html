@@ -45,21 +45,46 @@ html, body {
 }
 
 /* ── ROOM BACKGROUND (bed.html pattern) ── */
-.room-side-wall-left,
-.room-side-wall-right {
-  position: absolute; inset: 0;
-  background: var(--side-col) url("../assets/elements/wall-texture.jpg") repeat;
-  background-size: 360px 360px;
+/* Pre-warped trapezoid art: tall/full-height at the outer room corner (image's
+   own left/right edge), short at the inner seam with the back wall (image's
+   other edge). At the seam edge the art's own trim/floor lines sit at 28.5%/
+   74.2% of image height, not the 45.75%/79% the back wall shows at its own
+   left edge — so the image is scaled+shifted (not just stretched 1:1) to pull
+   those two points onto the back wall's actual trim/bottom. That leaves slivers
+   uncovered above and below the art (outer corner only); a two-tone backing
+   fill (light upper-wall blue / dark baseboard blue) covers both. The
+   clip-path removes the wedge above the roofline (the same (0,0)→(15%,9%)
+   line the .room-bg diagonals already draw), so the wallpaper doesn't poke
+   up past the ceiling — matching how the back wall's own gap is just bare
+   background there. */
+.room-side-wall-left {
+  position: absolute; top: 0; left: 0; width: 15%; height: 100%;
+  background-image: url("../assets/elements/wall-wainscoting-l.png"),
+    linear-gradient(to bottom, rgb(186, 201, 255) 0% 50%, rgb(94, 128, 254) 50% 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 25.01cqh, 0 0;
+  background-size: 100% 72.76%, 100% 100%;
+  clip-path: polygon(0% 0%, 100% 9%, 100% 100%, 0% 100%);
   z-index: 0; pointer-events: none;
 }
-.room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
-.room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
+.room-side-wall-right {
+  position: absolute; top: 0; right: 0; width: 15%; height: 100%;
+  background-image: url("../assets/elements/wall-wainscoting-r.png"),
+    linear-gradient(to bottom, rgb(186, 201, 255) 0% 50%, rgb(94, 128, 254) 50% 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 25.01cqh, 0 0;
+  background-size: 100% 72.76%, 100% 100%;
+  clip-path: polygon(0% 9%, 100% 0%, 100% 100%, 0% 100%);
+  z-index: 0; pointer-events: none;
+}
 
 .room-carpet {
   position: absolute; inset: 0;
   background: var(--side-col) url("../assets/elements/tile-circle.jpg") repeat;
   background-size: 200px 200px;
-  clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
+  /* Top edge matches the wainscoting art's floor line, which lands exactly
+     on the back wall's own bottom edge: 9% + 70% = 79%. */
+  clip-path: polygon(0% 100%, 100% 100%, 85% 79%, 15% 79%);
   z-index: 1; pointer-events: none;
 }
 
@@ -67,8 +92,8 @@ html, body {
 .room-bg svg { width: 100%; height: 100%; display: block; }
 .room-back-wall {
   position: absolute; top: 9%; left: 15%; width: 70%; height: 70%;
-  background: #f0ece4 url("../assets/elements/wall-texture.jpg") repeat;
-  background-size: 360px 360px;
+  background: #f0ece4 url("../assets/elements/wall-wainscoting.jpg") repeat-x;
+  background-size: auto 100%;
   border: 2px solid var(--line-col);
   z-index: 3; pointer-events: none;
 }
