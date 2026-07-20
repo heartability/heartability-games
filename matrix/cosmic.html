@@ -291,6 +291,16 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .jrc-avatar{ flex-shrink:0; width:52px; height:52px; border-radius:50%; overflow:hidden; position:relative; border:1.5px solid #ccc; background:#e5e8f5; }
 .jrc-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 
+/* Step header bar — back link atop steps reached via "continue" */
+.step-panel { width:100%; }
+.step-header {
+  width: 100%; display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px; flex-shrink:0;
+}
+.step-header-title { font-size:25px; color:#fff; }
+.step-back { font-size:16px; color:#fff; cursor:pointer; }
+.step-back:hover { text-decoration:underline; }
+
 /* Archetype picker — reuse a saved cast member or build a new one */
 .arch-picker-loading { padding: 20px; font-family: var(--font-hand); color: #7a86bb; }
 .arch-picker {
@@ -690,8 +700,11 @@ function autoSizeIframe(iframe){
   });
 }
 
-function showIframe(src){ showMapOverlays(false); const p=$('content-panel'); p.className='content-panel active iframe-mode';
-  p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`;
+function showIframe(src, backFn){ showMapOverlays(false); const p=$('content-panel'); p.className='content-panel active iframe-mode';
+  const backHtml = backFn
+    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span><span></span></div>`
+    : '';
+  p.innerHTML=backHtml+`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`;
   autoSizeIframe($('game-iframe')); }
 
 function phases(){ return (activeMapData?.phases || []).slice().sort((a,b)=>Date.parse(a.opens_utc)-Date.parse(b.opens_utc)); }
@@ -1299,6 +1312,16 @@ function selectPhase(key){
   stepWelcome();
 }
 
+// Re-shows the season map, re-selecting whichever decan was open when
+// "continue" was pressed — used as the "back" target from the welcome step.
+function backToSeasonMap(){
+  stopFlowTimer();
+  currentStep = null;
+  activePhase = null;
+  if (_selectedPhaseKey) selectPreview(_selectedPhaseKey, completedSet.has(_selectedPhaseKey));
+  else renderSeasonMap();
+}
+
 // ── WELCOME — choose timed or untimed mode before the timed portion ─
 function stepWelcome(){
   currentStep = 'welcome';
@@ -1310,6 +1333,7 @@ function stepWelcome(){
 
 function buildWelcomePanel() {
   return `<div class="welcome-panel">
+    <div class="step-header"><span class="step-back" onclick="backToSeasonMap()">← back</span><span></span><span></span></div>
     <div class="welcome-title">welcome to the cosmic matrix!</div>
     <div class="welcome-sub">ready to begin? choose a mode:</div>
     <div class="welcome-modes">
@@ -1437,7 +1461,7 @@ function stepCharacter(){
 }
 
 function openCharacterBuilder(){
-  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&phase=${activePhase}&loop=true&mode=cloud`);
+  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&phase=${activePhase}&loop=true&mode=cloud`, 'showArchetypePicker()');
   setSave(true,'loading…'); $('save-btn').disabled = true;
 }
 
@@ -1469,14 +1493,20 @@ function renderArchetypePicker(archetypes){
       <div class="arch-card-name">${(a.name || 'unnamed')}</div>
     </button>`).join('');
   showPanel(`
-    <div class="arch-picker">
-      <div class="arch-picker-title">choose an archetype for today</div>
-      <div class="arch-grid">
-        ${cards}
-        <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
-          <div class="arch-card-plus">+</div>
-          <div class="arch-card-name">create new</div>
-        </button>
+    <div class="step-panel">
+      <div class="step-header">
+        <span class="step-back" onclick="stepWelcome()">← back</span>
+        <span></span><span></span>
+      </div>
+      <div class="arch-picker">
+        <div class="arch-picker-title">choose an archetype for today</div>
+        <div class="arch-grid">
+          ${cards}
+          <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
+            <div class="arch-card-plus">+</div>
+            <div class="arch-card-name">create new</div>
+          </button>
+        </div>
       </div>
     </div>`);
   document.querySelectorAll('.arch-card[data-id]').forEach(btn => {
@@ -1534,7 +1564,7 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
 function stepBingo(){
   currentStep = 'bingo';
   setBubble("pay attention for cosmic doorways");
-  showIframe(`cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`);
+  showIframe(`cosmic-bingo.html?season=${encodeURIComponent(activeMapData?.season||'')}`, 'stepCharacter()');
   setSave(true,'continue →');
 }
 
@@ -1546,6 +1576,7 @@ let librarySelectedIds = new Set(); // media_submissions.id values picked this s
 
 function buildLibraryPanel(){
   return `<div class="lib-panel">
+    <div class="step-header"><span class="step-back" onclick="stepBingo()">← back</span><span></span><span></span></div>
     <div class="lib-window">
       <div class="lib-titlebar">your library</div>
       <div class="lib-body">
@@ -1654,6 +1685,7 @@ function stepJournal(){
 
 function buildJournalPanel(){
   return `<div class="jrc-panel">
+    <div class="step-header"><span class="step-back" onclick="stepLibrary()">← back</span><span></span><span></span></div>
     <div class="jrc-window">
       <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
       <div class="jrc-messages" id="jrc-messages">

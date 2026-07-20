@@ -69,7 +69,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   font-family:var(--font-hand);
 }
 .iframe-prompt-title { font-size: 35px; color:#000; }
-.iframe-prompt-sub   { font-size: 44px); color:#000; margin-top:2px; }
+.iframe-prompt-sub   { font-size: 17px; color:#000; margin-top:2px; }
 
 /* ── STEP PANELS (map grid, phase select) ── */
 .step-panel {
@@ -1207,12 +1207,15 @@ function autoSizeIframe(iframe) {
   });
 }
 
-function showIframe(src, prompt) {
+function showIframe(src, backFn, prompt) {
   const panel = document.getElementById('content-panel');
-  const header = prompt
+  const backHtml = backFn
+    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span><span></span></div>`
+    : '';
+  const promptHtml = prompt
     ? `<div class="iframe-prompt"><div class="iframe-prompt-sub">${prompt}</div></div>`
     : '';
-  panel.innerHTML = header + `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
+  panel.innerHTML = backHtml + promptHtml + `<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
   document.getElementById('wall-btns').classList.remove('active');
   autoSizeIframe(document.getElementById('game-iframe'));
@@ -1340,8 +1343,40 @@ function buildSingleLocationSVG(loc){
 // ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
 function stepBegin() {
   if (!activePhase) return;
-  activeEntryId   = crypto.randomUUID();   // fresh daily_matrix row for today
+  // Only mint a fresh row the first time through — if the player came back
+  // from a later step (see backToLocationStep) and re-confirms, reusing the
+  // id keeps this the same in-progress row instead of orphaning it.
+  if (!activeEntryId) activeEntryId = crypto.randomUUID();
   activeEntryDate = activeEntryDate || localTodayStr();
+  currentStep = 'character';
+  setBubble('who do you feel like today?', []);
+  showArchetypePicker();
+}
+
+// Re-opens the dayquest builder, restoring whatever terrain/feeling was
+// already confirmed instead of wiping the draft — used as the "back" target
+// from the character step, so going back doesn't undo the day's location.
+function backToLocationStep() {
+  currentStep = 'location';
+  setBubble('how did today feel?');
+  setSaveBtnVisible(false);
+  dqDraft = activeDayquest
+    ? { name: activeDayquest.name || '', terrain: activeDayquest.terrain || null,
+        feeling: activeDayquest.feeling || null, tint: activeDayquest.tint || null,
+        cat: activeDayquest.cat || null }
+    : { name:'', terrain:null, feeling:null, tint:null, cat:null };
+  document.querySelectorAll('.dq-terrain.active, .dq-chip.active').forEach(el => el.classList.remove('active'));
+  if (dqDraft.terrain) document.getElementById(`dq-terrain-${dqDraft.terrain}`)?.classList.add('active');
+  if (dqDraft.feeling) document.getElementById(`dq-chip-${dqDraft.feeling}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
+  document.getElementById('dq-overlay').classList.add('open');
+}
+
+// Re-opens the archetype picker without minting a new activeEntryId — used
+// as the "back" target from steps reached after stepBegin already ran, so
+// the in-progress daily_matrix row isn't orphaned by a fresh id.
+function backToCharacterStep() {
   currentStep = 'character';
   setBubble('who do you feel like today?', []);
   showArchetypePicker();
@@ -1349,7 +1384,7 @@ function stepBegin() {
 
 function openCharacterBuilder() {
   const src  = `../games/infinity-mirror.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src, 'create a character that represents your vibe today');
+  showIframe(src, 'showArchetypePicker()', 'create a character that represents your vibe today');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
@@ -1377,14 +1412,20 @@ function renderArchetypePicker(archetypes) {
       <div class="arch-card-name">${_escapeHtml(a.name || 'unnamed')}</div>
     </button>`).join('');
   panel.innerHTML = `
-    <div class="arch-picker">
-      <div class="arch-picker-title">choose an archetype</div>
-      <div class="arch-grid">
-        ${cards}
-        <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
-          <div class="arch-card-plus">+</div>
-          <div class="arch-card-name">create new</div>
-        </button>
+    <div class="step-panel">
+      <div class="step-header">
+        <span class="step-back" onclick="backToLocationStep()">← back</span>
+        <span></span><span></span>
+      </div>
+      <div class="arch-picker">
+        <div class="arch-picker-title">choose an archetype</div>
+        <div class="arch-grid">
+          ${cards}
+          <button class="arch-card arch-card-new" id="arch-new-btn" type="button">
+            <div class="arch-card-plus">+</div>
+            <div class="arch-card-name">create new</div>
+          </button>
+        </div>
       </div>
     </div>`;
   panel.querySelectorAll('.arch-card[data-id]').forEach(btn => {
@@ -1462,7 +1503,7 @@ function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeEntryId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src);
+  showIframe(src, 'backToCharacterStep()');
   setSaveBtnVisible(true, 'continue →');
 }
 
@@ -1623,6 +1664,7 @@ const journal = { entries: [] };
 
 function buildJournalPanel(){
   return `<div class="step-panel jrc-panel">
+    <div class="step-header"><span class="step-back" onclick="stepLibrary()">← back</span><span></span><span></span></div>
     <div class="jrc-window">
       <div class="jrc-titlebar">daily matrix journal<span class="jrc-date" id="jrc-date"></span></div>
       <div style="padding:6px 16px 8px;font-family:var(--font-hand);font-size:clamp(11px,1.1vw,13px);color:#7a86bb;border-bottom:1px solid #ddd;">journal history</div>
