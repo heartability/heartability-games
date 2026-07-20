@@ -34,7 +34,6 @@
   --purple-shadow: #3a4aaa;
   --blue-glow:     #83d2e6;
   --mint:          #c9fff5;
-  --pink:          #f1dfff;
   --cream:         #dfe2ef;
   --cream-dark:    #cdd3ec;
   --line-col:      #111;
@@ -55,7 +54,8 @@ html, body {
 .room-side-wall-right {
   position: absolute;
   inset: 0;
-  background: var(--pink);
+  background: var(--back-wall) url("../assets/elements/wall-dots.jpg") repeat;
+  background-size: 360px 360px;
   z-index: 0;
   pointer-events: none;
 }
@@ -65,7 +65,7 @@ html, body {
 .room-carpet {
   position: absolute;
   inset: 0;
-  background: var(--side-col) url("../assets/elements/tile-square.jpg") repeat;
+  background: var(--side-col) url("../assets/elements/tile-speckle.jpg") repeat;
   background-size: 200px 200px;
   clip-path: polygon(0% 100%, 100% 100%, 50% 30%);
   z-index: 1;
@@ -83,7 +83,8 @@ html, body {
   position: absolute;
   top: 9%; left: 15%;
   width: 70%; height: 70%;
-  background: var(--pink);
+  background: var(--back-wall) url("../assets/elements/wall-dots.jpg") repeat;
+  background-size: 360px 360px;
   border-left: 2px solid var(--line-col);
   border-right: 2px solid var(--line-col);
   border-top: 7px solid var(--line-col);
