@@ -175,6 +175,17 @@ input:focus { border-color: var(--purple); }
 .btn-submit:active { box-shadow: none; transform: translate(2px,2px); }
 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+.forgot-link {
+  align-self: flex-end;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1vw, 14px);
+  color: #999;
+  text-decoration: none;
+  cursor: pointer;
+  margin-top: -6px;
+}
+.forgot-link:hover { color: var(--purple); text-decoration: underline; }
+
 /* ── MESSAGES ── */
 .msg {
   font-size: clamp(13px, 1.1vw, 15px);
@@ -223,6 +234,7 @@ input:focus { border-color: var(--purple); }
         <div class="field">
           <label>password</label>
           <input type="password" id="login-password" placeholder="••••••••" required />
+          <a class="forgot-link" onclick="handleForgotPassword()">forgot password?</a>
         </div>
         <div class="msg" id="login-msg"></div>
         <button type="submit" class="btn-submit" id="login-btn">enter</button>
@@ -323,6 +335,22 @@ input:focus { border-color: var(--purple); }
     } else {
       showMsg('login-msg', 'welcome back! loading your profile...', 'success');
       setTimeout(() => window.location.href = '../rooms/bed.html', 800);
+    }
+  }
+
+  async function handleForgotPassword() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) {
+      showMsg('login-msg', 'enter your email above first, then click "forgot password?"', 'error');
+      return;
+    }
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/users/reset-password.html'
+    });
+    if (error) {
+      showMsg('login-msg', error.message, 'error');
+    } else {
+      showMsg('login-msg', 'check your email for a link to reset your password.', 'success');
     }
   }
 

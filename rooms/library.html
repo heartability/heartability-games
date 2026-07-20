@@ -48,12 +48,28 @@ html, body {
 .room-side-wall-left,
 .room-side-wall-right {
   position: absolute; inset: 0;
-  background: var(--side-col) url("../assets/elements/wall-wainscoting.jpg") repeat-x;
-  background-size: auto 100%;
+  background: var(--side-col);
+  overflow: hidden;
   z-index: 0; pointer-events: none;
 }
 .room-side-wall-left  { clip-path: polygon(0% 0%, 0% 100%, 50% 30%); }
 .room-side-wall-right { clip-path: polygon(100% 0%, 100% 100%, 50% 30%); }
+/* Skew the texture (not the clip-path shape) so its bottom edge runs along
+   the wall/floor diagonal instead of just touching it at the outer corner. */
+.room-side-wall-left::before,
+.room-side-wall-right::before {
+  content: ""; position: absolute; inset: 0;
+  background: url("../assets/elements/wall-wainscoting.jpg") repeat-x;
+  background-size: auto 100%;
+}
+.room-side-wall-left::before {
+  transform-origin: 0% 100%;
+  transform: skewY(atan2(-70cqh, 50cqw));
+}
+.room-side-wall-right::before {
+  transform-origin: 100% 100%;
+  transform: skewY(atan2(70cqh, 50cqw));
+}
 
 .room-carpet {
   position: absolute; inset: 0;
