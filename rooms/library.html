@@ -45,20 +45,24 @@ html, body {
 }
 
 /* ── ROOM BACKGROUND (bed.html pattern) ── */
-/* Pre-warped trapezoid art (already shaped/transparent to match the wall's
-   floor line and drawn to meet the back wall's trim at the seam) spanning
-   from the outer room corner to the back wall's edge — same 15% offset as
-   .room-back-wall's `left`, so the two pieces butt up exactly. */
+/* Pre-warped trapezoid art: tall/full-height at the outer room corner (image's
+   own left/right edge), short at the inner seam with the back wall (image's
+   other edge). At the seam edge the art's own trim/floor lines sit at 28.5%/
+   74.2% of image height, not the 45.75%/79% the back wall shows at its own
+   left edge — so the image is scaled+shifted (not just stretched 1:1) to pull
+   those two points onto the back wall's actual trim/bottom. That leaves a
+   sliver uncovered above the art at the outer corner, filled by the
+   background-color, which matches the art's own flat upper-wall colour. */
 .room-side-wall-left {
   position: absolute; top: 0; left: 0; width: 15%; height: 100%;
-  background: url("../assets/elements/wall-wainscoting-l.png") no-repeat;
-  background-size: 100% 100%;
+  background: rgb(186, 201, 255) url("../assets/elements/wall-wainscoting-l.png") no-repeat 0 25.01cqh;
+  background-size: 100% 72.76%;
   z-index: 0; pointer-events: none;
 }
 .room-side-wall-right {
   position: absolute; top: 0; right: 0; width: 15%; height: 100%;
-  background: url("../assets/elements/wall-wainscoting-r.png") no-repeat;
-  background-size: 100% 100%;
+  background: rgb(186, 201, 255) url("../assets/elements/wall-wainscoting-r.png") no-repeat 0 25.01cqh;
+  background-size: 100% 72.76%;
   z-index: 0; pointer-events: none;
 }
 
@@ -66,8 +70,9 @@ html, body {
   position: absolute; inset: 0;
   background: var(--side-col) url("../assets/elements/tile-square.jpg") repeat;
   background-size: 200px 200px;
-  /* Top edge matches the wainscoting art's floor line: (0%,100%) to (15%,74%). */
-  clip-path: polygon(0% 100%, 100% 100%, 85% 74%, 15% 74%);
+  /* Top edge matches the wainscoting art's (now-corrected) floor line, which
+     lands exactly on the back wall's own bottom edge: 9% + 70% = 79%. */
+  clip-path: polygon(0% 100%, 100% 100%, 85% 79%, 15% 79%);
   z-index: 1; pointer-events: none;
 }
 
@@ -302,12 +307,13 @@ let currentUser = null;
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 const CATEGORY_META = {
-  book:   { label: 'textual media',   types: ['book', 'other'] },
+  book:   { label: 'textual media',   types: ['book', 'essay', 'other'] },
   visual: { label: 'visual media', types: ['movie', 'tv'] },
 };
 
 let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all' };
 const publicCache = {};       // category -> rows from media_submissions_public
+const catalogCache = {};      // category -> rows from media_catalog_public (every title, reviewed or not)
 let privateAllCache = null;   // all of the current user's own submissions (any category)
 let privateSavesCache = null; // all of the current user's own media_saves (any category) — titles saved without a full review
 let authorBrowseCache = [];   // media_submissions_public rows for the currently browsed author
@@ -318,6 +324,11 @@ async function fetchPublic(category) {
     .order('created_at', { ascending: false });
   if (error) { console.error('[library] public fetch failed:', error); publicCache[category] = []; return; }
   publicCache[category] = data || [];
+
+  const { data: catalogData, error: catalogError } = await sb.from('media_catalog_public').select('*')
+    .in('media_type', CATEGORY_META[category].types);
+  if (catalogError) { console.error('[library] catalog fetch failed:', catalogError); catalogCache[category] = []; return; }
+  catalogCache[category] = catalogData || [];
 }
 
 async function fetchPrivateAll() {
@@ -350,6 +361,18 @@ function groupByMedia(rows) {
     map.get(id).submissions.push(r);
   });
   return [...map.values()];
+}
+
+// Adds catalog entries (titles with zero reviews) as cards alongside the reviewed
+// ones from groupByMedia, so unreviewed titles are still visible/openable.
+function mergeCatalog(cards, catalogRows) {
+  const seen = new Set(cards.map(c => c.media_id));
+  catalogRows.forEach(r => {
+    if (seen.has(r.media_id)) return;
+    seen.add(r.media_id);
+    cards.push({ media_id: r.media_id, title: r.title || 'untitled', cover_url: r.cover_url, media_type: r.media_type, submissions: [] });
+  });
+  return cards;
 }
 
 function zonesOf(sub) {
@@ -402,13 +425,13 @@ function cardHtml(c) {
   return `<div class="lib-card" onclick="openDetail('${c.media_id}')">
     ${c.cover_url ? `<img src="${_escapeHtml(c.cover_url)}" alt="">` : '<div class="lib-card-noimg"></div>'}
     <div class="lib-card-title">${_escapeHtml(c.title)}</div>
-    <div class="lib-card-meta">${c.submissions.length} ${c.submissions.length === 1 ? 'entry' : 'entries'}${avg ? ` · ★${avg.toFixed(1)}` : ''}</div>
+    <div class="lib-card-meta">${c.submissions.length ? `${c.submissions.length} ${c.submissions.length === 1 ? 'entry' : 'entries'}${avg ? ` · ★${avg.toFixed(1)}` : ''}` : 'no reviews yet'}</div>
   </div>`;
 }
 
 function buildPublicGridHtml() {
   const rows = publicCache[libState.category] || [];
-  const cards = groupByMedia(rows);
+  const cards = mergeCatalog(groupByMedia(rows), catalogCache[libState.category] || []);
   const facets = computeFacets(cards);
   const shown = filteredCards(cards);
   const filterHtml = `<div class="lib-filters">
@@ -501,7 +524,14 @@ function buildDetailHtml() {
   const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
   if (libState.tab === 'public') {
     const rows = (publicCache[libState.category] || []).filter(r => r.media_id === id);
-    if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
+    if (!rows.length) {
+      const catalogRow = (catalogCache[libState.category] || []).find(r => r.media_id === id);
+      if (!catalogRow) return backBtn + '<div class="lib-empty">not found.</div>';
+      const addCta = currentUser
+        ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(catalogRow.title)}&type=${encodeURIComponent(catalogRow.media_type)}">+ add your own take on this</a></div>`
+        : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
+      return backBtn + detailHeaderHtml(catalogRow, catalogRow.title, id) + `<div class="lib-empty">nobody has reviewed this yet</div>` + addCta;
+    }
     const title = rows[0].title;
     const addCta = currentUser
       ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(title)}&type=${encodeURIComponent(rows[0].media_type)}">+ add your own take on this</a></div>`
@@ -686,8 +716,12 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLibra
 async function handleDeepLink() {
   const mediaId = new URLSearchParams(location.search).get('media');
   if (!mediaId) return;
-  const { data } = await sb.from('media_submissions_public').select('media_id, media_type').eq('media_id', mediaId).limit(1);
-  const row = data && data[0];
+  let { data } = await sb.from('media_submissions_public').select('media_id, media_type').eq('media_id', mediaId).limit(1);
+  let row = data && data[0];
+  if (!row) {
+    const catalogResult = await sb.from('media_catalog_public').select('media_id, media_type').eq('media_id', mediaId).limit(1);
+    row = catalogResult.data && catalogResult.data[0];
+  }
   if (!row) return;
   const category = CATEGORY_META.visual.types.includes(row.media_type) ? 'visual' : 'book';
   await openLibrary(category);
