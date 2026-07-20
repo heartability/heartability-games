@@ -280,6 +280,13 @@ body.embedded .wall { padding-top: 16px; }
           </div>
           <img id="coverPreview" style="display:none;width:80px;height:auto;object-fit:cover;border:2px solid #6e83d3;">
         </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--panel-border);">
+          <div class="section-sub" style="margin-bottom:6px;">or just save it to your list — no review needed</div>
+          <div class="action-row">
+            <button type="button" class="rpg-btn save-list-btn" onclick="saveToList('to_read')">+ to be read</button>
+            <button type="button" class="rpg-btn save-list-btn" onclick="saveToList('done')">+ already read/watched</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -977,6 +984,63 @@ function currentTitleValue() {
   return manualOpen ? manualTitle : (selectedMedia?.title || document.getElementById('titleSearch').value.trim());
 }
 
+function buildMediaRow(title) {
+  const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
+  if (manualOpen) {
+    return {
+      title,
+      author: document.getElementById('manualAuthor').value.trim() || null,
+      media_type: document.getElementById('manualType').value,
+      external_id: null, external_source: null,
+      cover_url: manualCoverUrl,
+      canonical_link: document.getElementById('manualLink').value.trim() || null,
+      release_year: parseYear(document.getElementById('manualYear').value),
+    };
+  }
+  return {
+    title,
+    author: selectedMedia?.author || null,
+    media_type: selectedMedia?.media_type || 'other',
+    external_id: selectedMedia?.external_id || null,
+    external_source: selectedMedia?.external_source || null,
+    cover_url: selectedMedia?.cover_url || selectedMedia?.poster || null,
+    canonical_link: selectedMedia?.canonical_link || null,
+    release_year: parseYear(selectedMedia?.year),
+  };
+}
+
+// ── SAVE WITHOUT RATING ─────────────────────────────────────────────────
+// Lets a player add a title to their list without writing the full review
+// (about sentence, reading map, ratings) — just enough to pick it back up
+// later from the daily/cosmic matrix's library step.
+async function saveToList(status) {
+  const title = currentTitleValue();
+  if (!title) { HGModal.alert('hold on', 'add a title first.'); return; }
+
+  const btns = document.querySelectorAll('.save-list-btn');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const mediaRow = buildMediaRow(title);
+    const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
+    if (mErr) throw mErr;
+
+    const { error: sErr } = await sb.from('media_saves').insert({
+      user_id: currentUser.id, media_id: media.id, status,
+    });
+    if (sErr) throw sErr;
+
+    if (isEmbedded && window.parent !== window) {
+      window.parent.postMessage({ type: 'media_entry_saved', mediaId: media.id }, '*');
+    } else {
+      window.location.href = '../rooms/library.html';
+    }
+  } catch (e) {
+    console.error('[media save to list] failed:', e);
+    HGModal.alert('oops', "couldn't save that — try again");
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
 function validateStep(i) {
   const step = STEPS[i];
   if (step === 'title') {
@@ -1067,30 +1131,7 @@ async function submitEntry() {
   submitBtn.disabled = true; submitBtn.textContent = 'saving…';
 
   try {
-    let mediaRow;
-    if (manualOpen) {
-      mediaRow = {
-        title,
-        author: document.getElementById('manualAuthor').value.trim() || null,
-        media_type: document.getElementById('manualType').value,
-        external_id: null, external_source: null,
-        cover_url: manualCoverUrl,
-        canonical_link: document.getElementById('manualLink').value.trim() || null,
-        release_year: parseYear(document.getElementById('manualYear').value),
-      };
-    } else {
-      mediaRow = {
-        title,
-        author: selectedMedia?.author || null,
-        media_type: selectedMedia?.media_type || 'other',
-        external_id: selectedMedia?.external_id || null,
-        external_source: selectedMedia?.external_source || null,
-        cover_url: selectedMedia?.cover_url || selectedMedia?.poster || null,
-        canonical_link: selectedMedia?.canonical_link || null,
-        release_year: parseYear(selectedMedia?.year),
-      };
-    }
-
+    const mediaRow = buildMediaRow(title);
     const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
     if (mErr) throw mErr;
 

@@ -572,6 +572,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .lib-card.selected img, .lib-card.selected .lib-card-noimg { border-color:#2a6a3a; box-shadow:0 0 0 3px rgba(42,106,58,.35); }
 .lib-check { position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:#2a6a3a; color:#fff; font-size:12px; align-items:center; justify-content:center; display:none; }
 .lib-card.selected .lib-check { display:flex; }
+.lib-card-badge { font-family:var(--font-hand); font-size:10px; color:#7a86bb; text-align:center; text-transform:uppercase; letter-spacing:.3px; }
 .lib-footer { flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; justify-content:center; background:#cdd3ec; }
 .lib-add-btn {
   background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
@@ -1516,8 +1517,9 @@ function stepBingo() {
 // ── STEP 6: BINGO DONE → LIBRARY (native, no iframe) ─────
 // Lets the player tag any of their own library entries (matrix/media.html
 // submissions) to today's entry before writing their journal.
-let librarySubmissions  = [];        // this user's media_submissions, newest first
-let librarySelectedIds  = new Set(); // media_submissions.id values picked this session
+let librarySubmissions  = [];        // this user's media_submissions (full reviews), newest first
+let librarySaves        = [];        // this user's media_saves (saved w/o a review), newest first
+let librarySelectedIds  = new Set(); // media_submissions.id / media_saves.id values picked this session
 
 function buildLibraryPanel(){
   return `<div class="step-panel lib-panel">
@@ -1542,11 +1544,18 @@ function buildLibraryPanel(){
 }
 
 async function loadLibraryEntries(){
-  const { data, error } = await sb.from('media_submissions')
-    .select('id, media_id, cover_url_override, media(title, cover_url)')
-    .eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
-  if (error) console.error('[library panel] fetch failed:', error);
-  librarySubmissions = data || [];
+  const [subRes, saveRes] = await Promise.all([
+    sb.from('media_submissions')
+      .select('id, media_id, cover_url_override, media(title, cover_url)')
+      .eq('submitted_by', currentUser.id).order('created_at', { ascending:false }),
+    sb.from('media_saves')
+      .select('id, media_id, status, media(title, cover_url)')
+      .eq('user_id', currentUser.id).order('created_at', { ascending:false }),
+  ]);
+  if (subRes.error) console.error('[library panel] submissions fetch failed:', subRes.error);
+  if (saveRes.error) console.error('[library panel] saves fetch failed:', saveRes.error);
+  librarySubmissions = subRes.data || [];
+  librarySaves = saveRes.data || [];
   renderLibraryGrid();
 }
 
@@ -1554,15 +1563,18 @@ function renderLibraryGrid(){
   const grid = document.getElementById('lib-grid');
   const emptyEl = document.getElementById('lib-empty');
   if (!grid) return;
-  emptyEl.style.display = librarySubmissions.length ? 'none' : 'block';
-  grid.innerHTML = librarySubmissions.map(r => {
-    const title = r.media?.title || 'untitled';
-    const cover = r.cover_url_override || r.media?.cover_url;
-    const selected = librarySelectedIds.has(r.id);
-    return `<div class="lib-card${selected ? ' selected' : ''}" data-id="${r.id}">
+  const items = [
+    ...librarySubmissions.map(r => ({ id:r.id, title:r.media?.title || 'untitled', cover:r.cover_url_override || r.media?.cover_url, badge:'reviewed' })),
+    ...librarySaves.map(r => ({ id:r.id, title:r.media?.title || 'untitled', cover:r.media?.cover_url, badge:r.status === 'done' ? 'done reading' : 'to be read' })),
+  ];
+  emptyEl.style.display = items.length ? 'none' : 'block';
+  grid.innerHTML = items.map(item => {
+    const selected = librarySelectedIds.has(item.id);
+    return `<div class="lib-card${selected ? ' selected' : ''}" data-id="${item.id}">
       <span class="lib-check">✓</span>
-      ${cover ? `<img src="${_escapeHtml(cover)}" alt="">` : '<div class="lib-card-noimg"></div>'}
-      <div class="lib-card-title">${_escapeHtml(title)}</div>
+      ${item.cover ? `<img src="${_escapeHtml(item.cover)}" alt="">` : '<div class="lib-card-noimg"></div>'}
+      <div class="lib-card-title">${_escapeHtml(item.title)}</div>
+      <div class="lib-card-badge">${item.badge}</div>
     </div>`;
   }).join('');
   grid.querySelectorAll('.lib-card').forEach(card => {
@@ -1595,9 +1607,12 @@ function stepLibrary() {
 
 async function saveLibrarySelection(){
   const btn = document.getElementById('save-continue-btn');
+  const reviewIds = librarySubmissions.filter(r => librarySelectedIds.has(r.id)).map(r => r.id);
+  const saveIds   = librarySaves.filter(r => librarySelectedIds.has(r.id)).map(r => r.id);
   const { error } = await sb.from('daily_matrix').upsert({
     id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate,
-    library_entry_ids: [...librarySelectedIds],
+    library_entry_ids: reviewIds,
+    library_save_ids: saveIds,
   }, { onConflict: 'id' });
   if (error) {
     console.error('[library panel] save failed:', error);

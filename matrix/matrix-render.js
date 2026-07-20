@@ -566,12 +566,17 @@
           d.dateLabel = new Date(row.created_at)
             .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
         }
-        const libIds = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
-        if (libIds.length) {
-          const { data: libRows } = await sb.from('media_submissions')
-            .select('id, cover_url_override, media(title, cover_url)').in('id', libIds);
-          d.libraryEntries = libRows || [];
-        }
+        const libIds  = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
+        const saveIds = Array.isArray(row.library_save_ids) ? row.library_save_ids : [];
+        const [libRes, saveRes] = await Promise.all([
+          libIds.length
+            ? sb.from('media_submissions').select('id, cover_url_override, media(title, cover_url)').in('id', libIds)
+            : Promise.resolve({ data: [] }),
+          saveIds.length
+            ? sb.from('media_saves').select('id, media(title, cover_url)').in('id', saveIds)
+            : Promise.resolve({ data: [] }),
+        ]);
+        d.libraryEntries = [...(libRes.data || []), ...(saveRes.data || [])];
       }
     } catch(e){ /* leave defaults */ }
     return d;

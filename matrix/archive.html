@@ -526,6 +526,18 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .inv-card img, .inv-card-noimg { width:100%; aspect-ratio:2/3; object-fit:cover; background:#ddd; border:1.5px solid #ccc; }
 .inv-card-noimg { display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; padding:4px; }
 .inv-card-name { font-size:15px; color:#3a2e1e; line-height:1.25; }
+.inv-card-badge { font-size:11px; color:#8a94c4; text-transform:uppercase; letter-spacing:.3px; }
+.inv-status-row { display:flex; gap:8px; align-items:center; margin-bottom:14px; }
+.inv-status-btn {
+  background:var(--cream); border:1.5px solid #ccc; color:#777;
+  font-family:var(--font-hand); font-size:clamp(13px,1.2vw,15px);
+  padding:5px 14px; cursor:pointer; transition:background .12s, color .12s, border-color .12s;
+}
+.inv-status-btn:hover { border-color:var(--purple); color:#333; }
+.inv-status-btn.active { background:var(--purple); color:#fff; border-color:var(--purple-dk); }
+.inv-entry-status-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px; padding-bottom:14px; border-bottom:1.5px solid #ddd; }
+.inv-entry-status-label { font-family:var(--font-hand); font-size:14px; color:#999; }
+.inv-entry-link { font-family:var(--font-hand); font-size:14px; color:var(--purple); text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; }
 
 /* ── MEMBER GATE ── */
 .member-gate-overlay {
@@ -875,6 +887,11 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
       <div class="window" id="inventory-window">
         <div class="window-titlebar"><span>your library</span></div>
         <div class="window-body">
+          <div class="inv-status-row" id="inv-status-row">
+            <button class="inv-status-btn active" data-status="all" onclick="setInventoryStatusFilter('all')">view all</button>
+            <button class="inv-status-btn" data-status="to_read" onclick="setInventoryStatusFilter('to_read')">to be read</button>
+            <button class="inv-status-btn" data-status="done" onclick="setInventoryStatusFilter('done')">done reading</button>
+          </div>
           <div class="inv-grid" id="inv-grid"></div>
           <div class="day-list-empty" id="inv-empty" style="display:none;">you haven't added anything to the library yet — visit <a href="../rooms/library.html" style="color:var(--purple);">the library</a> to add one</div>
         </div>
@@ -891,6 +908,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
       <span class="day-close" onclick="closeInvEntryPopup()">✕</span>
     </div>
     <div class="day-body" style="padding:18px 20px 22px;">
+      <div class="inv-entry-status-row" id="inv-entry-status-row" style="display:none;"></div>
       <div class="loc-list" id="inv-entry-list"></div>
       <div class="day-list-empty" id="inv-entry-empty" style="display:none;">you haven't tagged this in any of your matrix entries yet</div>
     </div>
@@ -2172,55 +2190,98 @@ async function jumpToArchetypeRow(row){
 
 // ── INVENTORY TAB (the library entries this person has submitted) ────────
 let inventorySubmissions = [];
+let inventorySaves = [];       // media_saves — titles saved without a full review
+let inventoryStatusFilter = 'all'; // 'all' | 'to_read' | 'done'
+
+function setInventoryStatusFilter(status){
+  inventoryStatusFilter = status;
+  document.querySelectorAll('#inv-status-row .inv-status-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  renderInventoryGrid();
+}
+
+// A written review implies the title was finished, so it always counts as "done".
+function inventoryItems(){
+  const reviewed = inventorySubmissions.map(r => ({
+    id:r.id, type:'review', title:r.media?.title || 'untitled',
+    cover:r.cover_url_override || r.media?.cover_url, status:'done', badge:'reviewed',
+  }));
+  const saved = inventorySaves.map(r => ({
+    id:r.id, type:'save', title:r.media?.title || 'untitled', mediaId:r.media_id,
+    cover:r.media?.cover_url, status:r.status, badge:r.status === 'done' ? 'done reading' : 'to be read',
+  }));
+  return [...reviewed, ...saved];
+}
+
 async function loadInventoryTab(){
   const grid = document.getElementById('inv-grid');
   const emptyEl = document.getElementById('inv-empty');
   emptyEl.style.display = 'none';
   grid.innerHTML = '<div class="arch-picker-loading">gathering your library…</div>';
 
-  const { data, error } = await sb.from('media_submissions')
-    .select('id, media_id, cover_url_override, media(title, cover_url)')
-    .eq('submitted_by', currentUser.id).order('created_at', { ascending:false });
-  if (error) console.error('[inventory] fetch failed:', error);
-  inventorySubmissions = data || [];
+  const [subRes, saveRes] = await Promise.all([
+    sb.from('media_submissions')
+      .select('id, media_id, cover_url_override, media(title, cover_url)')
+      .eq('submitted_by', currentUser.id).order('created_at', { ascending:false }),
+    sb.from('media_saves')
+      .select('id, media_id, status, media(title, cover_url)')
+      .eq('user_id', currentUser.id).order('created_at', { ascending:false }),
+  ]);
+  if (subRes.error) console.error('[inventory] submissions fetch failed:', subRes.error);
+  if (saveRes.error) console.error('[inventory] saves fetch failed:', saveRes.error);
+  inventorySubmissions = subRes.data || [];
+  inventorySaves = saveRes.data || [];
+
+  renderInventoryGrid();
+}
+
+function renderInventoryGrid(){
+  const grid = document.getElementById('inv-grid');
+  const emptyEl = document.getElementById('inv-empty');
+  const all = inventoryItems();
+  const shown = inventoryStatusFilter === 'all' ? all : all.filter(i => i.status === inventoryStatusFilter);
 
   grid.innerHTML = '';
-  if (!inventorySubmissions.length){ emptyEl.style.display = 'block'; return; }
-  inventorySubmissions.forEach(r => {
-    const title = r.media?.title || 'untitled';
-    const cover = r.cover_url_override || r.media?.cover_url;
+  if (!all.length){ emptyEl.style.display = 'block'; return; }
+  emptyEl.style.display = 'none';
+  if (!shown.length){ grid.innerHTML = '<div class="day-list-empty">nothing here yet.</div>'; return; }
+  shown.forEach(item => {
     const card = document.createElement('div');
     card.className = 'inv-card';
-    card.innerHTML = `${cover ? `<img src="${escapeHtml(cover)}" alt="">` : '<div class="inv-card-noimg"></div>'}
-      <div class="inv-card-name">${escapeHtml(title)}</div>`;
-    card.onclick = () => openInventoryEntryPopup(r);
+    card.innerHTML = `${item.cover ? `<img src="${escapeHtml(item.cover)}" alt="">` : '<div class="inv-card-noimg"></div>'}
+      <div class="inv-card-name">${escapeHtml(item.title)}</div>
+      <div class="inv-card-badge">${item.badge}</div>`;
+    card.onclick = () => openInventoryEntryPopup(item);
     grid.appendChild(card);
   });
 }
 
 // Popup: every dream/daily/cosmic matrix entry this book/movie was tagged to
-// (via that row's library_entry_ids — see the library step in dream.html /
-// daily.html / cosmic.html). Clicking a row jumps to that entry's own tab and
-// opens its detail view — the day popup for dream, the persistent preview for
-// daily (it has no popup), or the phase popup for cosmic.
-async function openInventoryEntryPopup(sub){
-  document.getElementById('inv-entry-title').textContent = sub.media?.title || 'untitled';
+// (via that row's library_entry_ids for a full review, library_save_ids for a
+// plain save — see the library step in dream.html / daily.html / cosmic.html).
+// Clicking a row jumps to that entry's own tab and opens its detail view — the
+// day popup for dream, the persistent preview for daily, or the phase popup
+// for cosmic. Save-only items also get status controls above the entry list.
+async function openInventoryEntryPopup(item){
+  document.getElementById('inv-entry-title').textContent = item.title;
   const list = document.getElementById('inv-entry-list');
   const emptyEl = document.getElementById('inv-entry-empty');
+  const statusRow = document.getElementById('inv-entry-status-row');
   emptyEl.style.display = 'none';
   list.innerHTML = '<div class="day-list-empty">gathering entries…</div>';
+  renderInvEntryStatusRow(item, statusRow);
   document.getElementById('inv-entry-overlay').classList.add('open');
 
+  const idCol = item.type === 'save' ? 'library_save_ids' : 'library_entry_ids';
   const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
     sb.from('dream_matrix')
       .select('id, map_id, location_data, sidequest_data, map_phase, map_completed, created_at')
-      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+      .eq('user_id', currentUser.id).contains(idCol, [item.id]),
     sb.from('daily_matrix')
       .select('id, entry_date, location_data, created_at')
-      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+      .eq('user_id', currentUser.id).contains(idCol, [item.id]),
     sb.from('cosmic_matrix')
       .select('map_id, map_phase, location_data, updated_at')
-      .eq('user_id', currentUser.id).contains('library_entry_ids', [sub.id]),
+      .eq('user_id', currentUser.id).contains(idCol, [item.id]),
   ]);
 
   const rows = [];
@@ -2248,6 +2309,38 @@ async function openInventoryEntryPopup(sub){
     list.appendChild(el);
   });
 }
+
+function renderInvEntryStatusRow(item, statusRow){
+  if (item.type !== 'save'){ statusRow.style.display = 'none'; statusRow.innerHTML = ''; return; }
+  statusRow.style.display = 'flex';
+  const otherStatus = item.status === 'done' ? 'to_read' : 'done';
+  const otherLabel = otherStatus === 'done' ? 'mark as done reading' : 'mark as to be read';
+  statusRow.innerHTML = `
+    <span class="inv-entry-status-label">currently: ${item.status === 'done' ? 'done reading' : 'to be read'}</span>
+    <button type="button" class="inv-entry-link" onclick="setInvSaveStatus('${item.id}','${otherStatus}')">${otherLabel}</button>
+    <a class="inv-entry-link" href="../matrix/media.html?title=${encodeURIComponent(item.title)}">+ write a full review</a>
+    <button type="button" class="inv-entry-link" onclick="removeInvSave('${item.id}')">remove from list</button>
+  `;
+}
+
+async function setInvSaveStatus(saveId, status){
+  const { error } = await sb.from('media_saves').update({ status }).eq('id', saveId);
+  if (error) { console.error('[inventory] status update failed:', error); return; }
+  const row = inventorySaves.find(r => r.id === saveId);
+  if (row) row.status = status;
+  const item = inventoryItems().find(i => i.id === saveId);
+  if (item) renderInvEntryStatusRow(item, document.getElementById('inv-entry-status-row'));
+  renderInventoryGrid();
+}
+
+async function removeInvSave(saveId){
+  const { error } = await sb.from('media_saves').delete().eq('id', saveId);
+  if (error) { console.error('[inventory] remove failed:', error); return; }
+  inventorySaves = inventorySaves.filter(r => r.id !== saveId);
+  closeInvEntryPopup();
+  renderInventoryGrid();
+}
+
 function closeInvEntryPopup(){ document.getElementById('inv-entry-overlay').classList.remove('open'); }
 function handleInvEntryOverlayClick(e){ if (e.target === document.getElementById('inv-entry-overlay')) closeInvEntryPopup(); }
 

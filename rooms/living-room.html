@@ -114,8 +114,8 @@ html, body {
 .room-icon:hover { transform: translateY(-5px); }
 .room-icon:active { transform: translateY(-2px); }
 
-#icon-basket { bottom: 10cqh; left: 22cqw; width: clamp(90px, 40cqw, 500px) }
-#icon-couch { bottom: 10cqh; right: 22cqw; width: clamp(90px, 26cqw, 375px)}
+#icon-organizer  { left: 50%; top: 24cqh; width: clamp(80px, 16cqw, 280px); transform: translateX(-50%); }
+#icon-couch  { left: 50%; bottom: 24cqh; width: clamp(80px, 16cqw, 280px); transform: translateX(-50%); }
 .room-icon img { width: 100%; height: auto; display: block; }
 
 .room-icon-label { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); color: #444; text-align: center; }
@@ -163,7 +163,7 @@ html, body {
 }
 @media (orientation: portrait) {
   .char-heart { width: clamp(70px, 10cqw, 180px); }
-  #icon-basket { width: clamp(140px, 30cqw, 315px); }
+  #icon-organizer { width: clamp(140px, 30cqw, 315px); }
   #icon-couch { width: clamp(120px, 24cqw, 290px); }
 }
 .char-heart img {
@@ -256,8 +256,8 @@ html, body {
   <div class="room-back-wall" aria-hidden="true"></div>
 
   <!-- ROOM ICONS -->
-  <div class="room-icon" id="icon-basket" onclick="openTools()">
-    <img src="../assets/elements/basket.png" alt="basket (tools)">
+  <div class="room-icon" id="icon-organizer" onclick="openTools()">
+    <img src="../assets/elements/organizer.png" alt="organizer (tools)">
   </div>
   <div class="room-icon" id="icon-couch" onclick="openChat()">
     <img src="../assets/elements/couch.png" alt="couch (chat)">
@@ -508,8 +508,8 @@ document.addEventListener('click', e => {
 // ── Thought bubble ──
 const bubble = document.getElementById('thought-bubble');
 const bubbleMessages = {
-  'icon-basket': "see what tools people use",
-  'icon-couch': "hang out on the couch",
+  'icon-organizer': "explore our collection of self care tools",
+  'icon-couch': "looking to hang out and chat with a stranger?",
 };
 document.querySelectorAll('.room-icon').forEach(icon => {
   icon.addEventListener('mouseenter', () => {

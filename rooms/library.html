@@ -189,6 +189,9 @@ html, body {
   border: 2px solid var(--blue); padding: 7px 16px; cursor: pointer;
 }
 .lib-tab-btn.active { background: var(--blue); color: #fff; border-color: #3a4aaa; }
+.lib-status-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.lib-status-btn { font-family: var(--font-hand); font-size: 14px; color: #555; background: #cdd3ec; border: 2px solid var(--blue); padding: 5px 12px; cursor: pointer; }
+.lib-status-btn.active { background: var(--blue); color: #fff; border-color: #3a4aaa; }
 .lib-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .lib-filters select {
   font-family: var(--font-hand); font-size: 15px; padding: 5px 8px;
@@ -303,9 +306,10 @@ const CATEGORY_META = {
   visual: { label: 'visual media', types: ['movie', 'tv'] },
 };
 
-let libState = { category: null, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null };
+let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all' };
 const publicCache = {};       // category -> rows from media_submissions_public
 let privateAllCache = null;   // all of the current user's own submissions (any category)
+let privateSavesCache = null; // all of the current user's own media_saves (any category) — titles saved without a full review
 let authorBrowseCache = [];   // media_submissions_public rows for the currently browsed author
 
 async function fetchPublic(category) {
@@ -321,6 +325,13 @@ async function fetchPrivateAll() {
     .eq('submitted_by', currentUser.id).order('created_at', { ascending: false });
   if (error) { console.error('[library] private fetch failed:', error); privateAllCache = []; return; }
   privateAllCache = data || [];
+}
+
+async function fetchPrivateSaves() {
+  const { data, error } = await sb.from('media_saves').select('*, media(*)')
+    .eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (error) { console.error('[library] private saves fetch failed:', error); privateSavesCache = []; return; }
+  privateSavesCache = data || [];
 }
 
 function groupByMedia(rows) {
@@ -421,14 +432,45 @@ function buildPublicGridHtml() {
   return filterHtml + `<div class="lib-grid">${shown.map(cardHtml).join('')}</div>`;
 }
 
+function saveCardHtml(s) {
+  const badge = s.status === 'done' ? 'done reading' : 'to be read';
+  return `<div class="lib-card" onclick="openSaveDetail('${s.id}')">
+    ${s.media?.cover_url ? `<img src="${_escapeHtml(s.media.cover_url)}" alt="">` : '<div class="lib-card-noimg"></div>'}
+    <div class="lib-card-title">${_escapeHtml(s.media?.title || 'untitled')}</div>
+    <div class="lib-card-meta">${badge}</div>
+  </div>`;
+}
+
+function setSavesFilter(v) { libState.savesFilter = v; render(); }
+
+// Combines full reviews (media_submissions, which imply the title is finished)
+// with plain saves (media_saves, tagged to_read/done) into one shelf, filterable
+// by reading status. Reviews only ever show up under "done" or "view all".
 function buildPrivateGridHtml() {
   if (!currentUser) {
     return `<div class="lib-empty">log in to view your private shelf.<br><br><a href="../users/login.html">log in</a></div>`;
   }
-  const rows = (privateAllCache || []).filter(r => CATEGORY_META[libState.category].types.includes(r.media?.media_type));
-  const cards = groupByMedia(rows);
-  if (!cards.length) return `<div class="lib-empty">you haven't added anything here yet — <a href="../matrix/media.html">fill out the form</a>.</div>`;
-  return `<div class="lib-grid">${cards.map(cardHtml).join('')}</div>`;
+  const types = CATEGORY_META[libState.category].types;
+  const reviewRows = (privateAllCache || []).filter(r => types.includes(r.media?.media_type));
+  const reviewCards = groupByMedia(reviewRows);
+  const saveRows = (privateSavesCache || []).filter(r => types.includes(r.media?.media_type));
+
+  if (!reviewCards.length && !saveRows.length) {
+    return `<div class="lib-empty">you haven't added anything here yet — <a href="../matrix/media.html">fill out the form</a>.</div>`;
+  }
+
+  const statusHtml = `<div class="lib-status-row">
+    <button class="lib-status-btn ${libState.savesFilter === 'all' ? 'active' : ''}" onclick="setSavesFilter('all')">view all</button>
+    <button class="lib-status-btn ${libState.savesFilter === 'to_read' ? 'active' : ''}" onclick="setSavesFilter('to_read')">to be read</button>
+    <button class="lib-status-btn ${libState.savesFilter === 'done' ? 'active' : ''}" onclick="setSavesFilter('done')">done reading</button>
+  </div>`;
+
+  const shownReviews = libState.savesFilter === 'to_read' ? [] : reviewCards;
+  const shownSaves = libState.savesFilter === 'all' ? saveRows : saveRows.filter(r => r.status === libState.savesFilter);
+  const combined = shownReviews.map(cardHtml).join('') + shownSaves.map(saveCardHtml).join('');
+
+  if (!combined) return statusHtml + `<div class="lib-empty">nothing matches that filter.</div>`;
+  return statusHtml + `<div class="lib-grid">${combined}</div>`;
 }
 
 // `info` is either a media_submissions_public row (public tab) or a joined `media` row
@@ -487,6 +529,46 @@ function buildDetailHtml() {
   }
 }
 
+function buildSaveDetailHtml() {
+  const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
+  const row = (privateSavesCache || []).find(r => r.id === libState.detailSaveId);
+  if (!row) return backBtn + '<div class="lib-empty">not found.</div>';
+  const title = row.media?.title || 'untitled';
+  const otherStatus = row.status === 'done' ? 'to_read' : 'done';
+  const otherLabel = otherStatus === 'done' ? 'mark as done reading' : 'mark as to be read';
+  return backBtn + detailHeaderHtml(row.media, title, row.media_id) + `
+    <div class="lib-add-cta">
+      currently: ${row.status === 'done' ? 'done reading' : 'to be read'}<br><br>
+      <a href="#" onclick="event.preventDefault(); setSaveStatus('${row.id}','${otherStatus}')">${otherLabel}</a>
+      &nbsp;·&nbsp;
+      <a href="../matrix/media.html?title=${encodeURIComponent(title)}">+ write a full review</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="event.preventDefault(); removeSave('${row.id}')">remove from your list</a>
+    </div>`;
+}
+
+async function setSaveStatus(id, status) {
+  const { error } = await sb.from('media_saves').update({ status }).eq('id', id);
+  if (error) { console.error('[library] status update failed:', error); return; }
+  const row = (privateSavesCache || []).find(r => r.id === id);
+  if (row) row.status = status;
+  render();
+}
+
+async function removeSave(id) {
+  const { error } = await sb.from('media_saves').delete().eq('id', id);
+  if (error) { console.error('[library] remove failed:', error); return; }
+  privateSavesCache = (privateSavesCache || []).filter(r => r.id !== id);
+  backToGrid();
+}
+
+function openSaveDetail(saveId) {
+  libState.detailSaveId = saveId;
+  libState.detailMediaId = null;
+  libState.authorFilter = null;
+  render();
+}
+
 function buildAuthorBrowseHtml() {
   const backBtn = `<button type="button" class="link-btn" onclick="clearAuthorFilter()">← back</button>`;
   const header = `<div class="lib-detail-title">entries by ${_escapeHtml(libState.authorFilter.author)}</div>`;
@@ -505,6 +587,7 @@ function buildBodyHtml() {
     ${addLink}
   </div>`;
   if (libState.authorFilter) return tabsHtml + buildAuthorBrowseHtml();
+  if (libState.detailSaveId) return tabsHtml + buildSaveDetailHtml();
   if (libState.detailMediaId) return tabsHtml + buildDetailHtml();
   return tabsHtml + (libState.tab === 'public' ? buildPublicGridHtml() : buildPrivateGridHtml());
 }
@@ -523,10 +606,11 @@ function setMinRating(v) { libState.minRating = Number(v) || 0; render(); }
 
 function openDetail(mediaId) {
   libState.detailMediaId = mediaId;
+  libState.detailSaveId = null;
   libState.authorFilter = null;
   render();
 }
-function backToGrid() { libState.detailMediaId = null; libState.authorFilter = null; render(); }
+function backToGrid() { libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; render(); }
 
 // Lets a logged-in visitor add a missing cover photo straight from the detail
 // view, for either a public library entry or one of their own. Uses its own
@@ -549,6 +633,7 @@ async function uploadDetailCover(event, mediaId) {
     if (updErr) throw updErr;
     (publicCache[libState.category] || []).forEach(r => { if (r.media_id === mediaId) r.cover_url = coverUrl; });
     (privateAllCache || []).forEach(r => { if (r.media_id === mediaId && r.media) r.media.cover_url = coverUrl; });
+    (privateSavesCache || []).forEach(r => { if (r.media_id === mediaId && r.media) r.media.cover_url = coverUrl; });
     render();
   } catch (e) {
     console.error('[library] cover upload failed:', e);
@@ -571,15 +656,18 @@ async function openAuthorBrowse(author, mediaType) {
 function clearAuthorFilter() { libState.authorFilter = null; render(); }
 
 async function switchTab(tab) {
-  libState.tab = tab; libState.detailMediaId = null; libState.authorFilter = null;
+  libState.tab = tab; libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null;
   renderModalBody('<div class="lib-loading">loading…</div>');
   if (tab === 'public' && !publicCache[libState.category]) await fetchPublic(libState.category);
-  if (tab === 'private' && currentUser && !privateAllCache) await fetchPrivateAll();
+  if (tab === 'private' && currentUser) {
+    if (!privateAllCache) await fetchPrivateAll();
+    if (!privateSavesCache) await fetchPrivateSaves();
+  }
   render();
 }
 
 async function openLibrary(category) {
-  libState = { category, tab: 'public', detailMediaId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null };
+  libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all' };
   document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
   document.getElementById('library-overlay').classList.add('open');
   renderModalBody('<div class="lib-loading">loading…</div>');
@@ -649,10 +737,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       privateAllCache = null;
+      privateSavesCache = null;
       resolveUsername(session.user).then(username => HeartabilityNav.setAuthState({ loggedIn: true, username }));
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       privateAllCache = null;
+      privateSavesCache = null;
       HeartabilityNav.setAuthState({ loggedIn: false });
       if (libState.tab === 'private') render();
     }
