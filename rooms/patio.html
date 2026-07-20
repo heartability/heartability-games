@@ -107,8 +107,19 @@ html, body {
 .el-fountain   { left: 50%;  bottom: 18cqh; width: 30cqw;  z-index: 3; transform: translateX(-50%); }
 .el-phonebooth { left: 8cqw;   bottom: 22cqh; width: 11cqw;  z-index: 3; }
 .el-leaderboard{ right: 8cqw;  bottom: 25cqh; width: 11cqw;   z-index: 3; }
-.el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; }
-.el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; }
+.el-cloud-l    { left: 8cqw;   top: 16cqh;   width: 14cqw;  z-index: 2; animation: cloud-drift-right 34s ease-in-out infinite alternate; }
+.el-cloud-r    { right: 20cqw; top: 12cqh;   width: 12cqw;  z-index: 2; animation: cloud-drift-left 38s ease-in-out infinite alternate; }
+
+@keyframes cloud-drift-right {
+  0%   { transform: translate(0, 0)        rotate(-1deg); }
+  50%  { transform: translate(10cqw, -1cqh) rotate(1.5deg); }
+  100% { transform: translate(22cqw, 0.5cqh) rotate(-0.5deg); }
+}
+@keyframes cloud-drift-left {
+  0%   { transform: translate(0, 0)         rotate(1deg); }
+  50%  { transform: translate(-9cqw, 0.8cqh) rotate(-1.5deg); }
+  100% { transform: translate(-20cqw, -0.5cqh) rotate(0.5deg); }
+}
 
 .el-fountain    { pointer-events: auto; cursor: pointer; }
 .el-phonebooth, .el-leaderboard { pointer-events: auto; }
