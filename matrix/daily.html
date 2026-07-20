@@ -270,7 +270,13 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   body:has(.content-panel.iframe-mode) .char-heart {
     position: relative;
     left: auto; bottom: auto;
-    margin: 0 auto 40px;
+    margin: 0 0 40px 4vw;
+  }
+  /* The flow timer badge floats 74px above the heart's own box (see
+     .timer-badge) — when it's showing, give the heart extra top margin so
+     the badge clears the continue button above instead of sitting on it. */
+  body:has(.content-panel.iframe-mode) .char-heart:has(.timer-badge.active) {
+    margin-top: 100px;
   }
 }
 
