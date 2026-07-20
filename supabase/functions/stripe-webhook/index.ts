@@ -29,11 +29,25 @@ serve(async (req) => {
   // ── Handle events ────────────────────────────────────────
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
-    const userId = session.metadata?.supabase_user_id
-    const tier   = session.metadata?.tier ?? 'basic'
+    const tier = session.metadata?.tier ?? 'dream'
+
+    let userId = session.metadata?.supabase_user_id
+
+    // Sessions started from the Stripe Pricing Table widget (rather than
+    // our create-checkout-session function) don't carry our metadata —
+    // fall back to matching on the Stripe customer, which the widget's
+    // Customer Session always ties to a known user.
+    if (!userId && session.customer) {
+      const { data: profile } = await sb
+        .from('user-profiles')
+        .select('id')
+        .eq('stripe_customer_id', session.customer as string)
+        .single()
+      userId = profile?.id
+    }
 
     if (!userId) {
-      console.error('No supabase_user_id in session metadata')
+      console.error('Could not resolve a user for checkout session', session.id)
       return new Response('Missing user ID', { status: 400 })
     }
 

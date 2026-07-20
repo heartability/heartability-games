@@ -2434,6 +2434,52 @@ sb.auth.onAuthStateChange((event, session) => {
 });
 
 // ── INIT ──────────────────────────────────────────────────
+// Opens one specific dream/daily/cosmic entry's detail view directly, driven
+// by a ?openEntry=<kind>:<...ids> param (see rooms/bed.html's wall board,
+// which links here so a pinned photo opens straight to its source entry).
+async function maybeOpenDeepLinkedEntry() {
+  const openEntry = new URLSearchParams(window.location.search).get('openEntry');
+  if (!openEntry) return false;
+  const [kind, ...rest] = openEntry.split(':');
+
+  if (kind === 'dream' && isPaid) {
+    const [rowId, mapId] = rest;
+    switchTab('dream');
+    await loadGamesForMode('dream');
+    if (mapId && allGames.find(g => g.id === mapId)) {
+      await selectMapForArchive(mapId);
+      if (rowId && allSaves.find(s => s.id === rowId)) {
+        document.getElementById('day-overlay').classList.add('open');
+        await openMatrixView(rowId);
+      }
+    }
+    return true;
+  }
+  if (kind === 'daily') {
+    const [rowId] = rest;
+    switchTab('daily');
+    await loadDailyEntries();
+    if (rowId && allSaves.find(s => s.id === rowId)) {
+      showDpSubview('day');
+      await renderDailyMatrixWindow(rowId);
+    }
+    return true;
+  }
+  if (kind === 'cosmic' && isPaid) {
+    const [mapId, mapPhase] = rest;
+    switchTab('cosmic');
+    await loadCosmicTab();
+    const season = allCosmicSeasons.find(s => s.map_id === mapId);
+    if (season) {
+      await openCosmicSeasonDetail(season);
+      const ph = activeCosmicPhases.find(p => p.map_phase === mapPhase && p.done);
+      if (ph) openCosmicPhasePopup(ph);
+    }
+    return true;
+  }
+  return false;
+}
+
 async function init() {
   try { const { data:{ session } } = await sb.auth.getSession(); currentUser = session?.user || null; } catch(e){}
   if (!currentUser) { document.getElementById('loading-state').style.display='none'; openLoginModal(); return; }
@@ -2467,6 +2513,8 @@ async function init() {
   });
 
   document.getElementById('loading-state').style.display='none';
+
+  if (await maybeOpenDeepLinkedEntry()) return;
 
   const params = new URLSearchParams(window.location.search);
   const urlGameId = params.get('game_id');

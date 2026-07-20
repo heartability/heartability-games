@@ -182,9 +182,12 @@ html, body {
   align-items: center;
   gap: 20px;
   min-width: 280px;
-  max-width: 360px;
+  max-width: 480px;
+  width: 90vw;
   animation: popIn 0.18s ease both;
 }
+
+#pricing-table-slot { width: 100%; font-family: var(--font-hand); text-align: center; color: #333; }
 @keyframes popIn {
   from { opacity: 0; transform: scale(0.92); }
   to   { opacity: 1; transform: scale(1); }
@@ -196,27 +199,6 @@ html, body {
   color: #333;
   text-align: center;
 }
-
-.billing-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-.billing-btn {
-  font-family: var(--font-hand);
-  font-size: clamp(16px, 1.6vw, 21px);
-  color: #fff;
-  background: var(--purple);
-  border: none;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
-  text-align: center;
-}
-.billing-btn:hover { background: var(--purple-dark); }
-.billing-btn small { display: block; font-size: 0.75em; opacity: 0.85; margin-top: 2px; }
 
 .billing-cancel {
   font-family: var(--font-hand);
@@ -302,16 +284,7 @@ html, body {
 <div class="billing-overlay" id="billing-overlay" onclick="if(event.target===this)closeBillingPicker()">
   <div class="billing-popup">
     <h2>how would you like to pay?</h2>
-    <div class="billing-btns">
-      <button class="billing-btn" onclick="launchCheckout('monthly')">
-        monthly
-        <small>$8 / month</small>
-      </button>
-      <button class="billing-btn" onclick="launchCheckout('yearly')">
-        yearly
-        <small>$88 / year — save $8!</small>
-      </button>
-    </div>
+    <div id="pricing-table-slot">loading...</div>
     <button class="billing-cancel" onclick="closeBillingPicker()">never mind</button>
   </div>
 </div>
@@ -327,6 +300,7 @@ html, body {
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 <script>
 (function () {
   const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -344,19 +318,9 @@ html, body {
     }
   });
 
-  function getReturnPath() {
-    try {
-      if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
-        return new URL(document.referrer).pathname;
-      }
-    } catch (e) {}
-    return null;
-  }
-
-  const PRICE_IDS = {
-    community_monthly: 'price_1TX47YA6JE5MLfPsIZAXk3QY',
-    community_yearly:  'price_1Tga4bA6JE5MLfPsJ5pzjRgo',
-  };
+  // TODO: fill in from Stripe Dashboard → Product catalog → Pricing tables
+  const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
+  const PRICING_TABLE_ID       = 'prctbl_REPLACE_ME';
 
   let currentSession = null;
 
@@ -378,48 +342,46 @@ html, body {
     document.getElementById('main-content').style.display  = 'flex';
   }
 
-  window.checkout = function () {
+  let pricingTableLoaded = false;
+
+  window.checkout = async function () {
     if (!currentSession) {
       window.location.href = 'login.html';
       return;
     }
     document.getElementById('billing-overlay').classList.add('open');
-  };
+    if (pricingTableLoaded) return;
 
-  window.closeBillingPicker = function () {
-    document.getElementById('billing-overlay').classList.remove('open');
-  };
-
-  window.launchCheckout = async function (cadence) {
-    closeBillingPicker();
-    const priceId = cadence === 'yearly' ? PRICE_IDS.community_yearly : PRICE_IDS.community_monthly;
-    const tier = document.getElementById('tier-community');
-    tier.style.opacity = '0.6';
-    tier.style.pointerEvents = 'none';
+    const slot = document.getElementById('pricing-table-slot');
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/functions/v1/create-checkout-session`,
+        `${SUPABASE_URL}/functions/v1/create-pricing-table-session`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${currentSession.access_token}`
-          },
-          body: JSON.stringify({ priceId, tier: 'dream', paymentMode: 'subscription', returnTo: getReturnPath() })
+          }
         }
       );
-      const { url, error } = await res.json();
+      const { clientSecret, error } = await res.json();
       if (error) throw new Error(error);
-      window.open(url, '_blank');
+
+      slot.innerHTML = '';
+      const table = document.createElement('stripe-pricing-table');
+      table.setAttribute('pricing-table-id', PRICING_TABLE_ID);
+      table.setAttribute('publishable-key', STRIPE_PUBLISHABLE_KEY);
+      table.setAttribute('customer-session-client-secret', clientSecret);
+      slot.appendChild(table);
+      pricingTableLoaded = true;
     } catch (err) {
       console.error(err);
-      alert('something went wrong — please try again');
-    } finally {
-      setTimeout(() => {
-        tier.style.opacity = '';
-        tier.style.pointerEvents = '';
-      }, 1500);
+      slot.textContent = 'something went wrong — please try again';
     }
+  };
+
+  window.closeBillingPicker = function () {
+    document.getElementById('billing-overlay').classList.remove('open');
   };
 
   init();

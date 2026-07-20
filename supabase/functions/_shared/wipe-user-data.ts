@@ -14,6 +14,7 @@ const USER_ID_TABLES = [
   'cosmic_bingo',
   'dreams',
   'character_archetypes',
+  'bed_wall_photos',
 ]
 
 // Recursively collect every file path under a storage folder.
