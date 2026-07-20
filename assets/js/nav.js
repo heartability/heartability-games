@@ -58,6 +58,7 @@ window.HeartabilityNav = (function () {
               <div class="popup-field">
                 <div class="popup-label">password</div>
                 <input class="popup-input" type="password" id="hn-login-password" placeholder="••••••••" required>
+                <a class="popup-forgot-link" onclick="HeartabilityNav._forgotPassword()">forgot password?</a>
               </div>
               <div class="popup-msg" id="hn-login-msg"></div>
               <button type="submit" class="popup-btn" id="hn-login-btn">enter</button>
@@ -195,6 +196,22 @@ window.HeartabilityNav = (function () {
     btn.disabled = false; btn.textContent = 'enter';
   }
 
+  async function forgotPassword() {
+    const email = $('hn-login-email').value.trim();
+    if (!email) {
+      showMsg('hn-login-msg', 'enter your email above first, then click "forgot password?"', 'error');
+      return;
+    }
+    const { error } = await cfg.sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/users/reset-password.html'
+    });
+    if (error) {
+      showMsg('hn-login-msg', error.message, 'error');
+    } else {
+      showMsg('hn-login-msg', 'check your email for a link to reset your password.', 'success');
+    }
+  }
+
   async function handleSignup(e) {
     e.preventDefault();
     const btn = $('hn-signup-btn');
@@ -296,6 +313,7 @@ window.HeartabilityNav = (function () {
     _loginClick: openLoginPopup,
     _closeLoginPopup: closeLoginPopup,
     _switchTab: switchTab,
+    _forgotPassword: forgotPassword,
     _profileClick: profileClick,
     _logoutClick: logoutClick,
     _toggleMusic: toggleMusic,

@@ -76,6 +76,11 @@
   border: 1.5px solid #6e83d3; padding: 7px 10px; outline: none; transition: border-color 0.2s; user-select: text;
 }
 .popup-input:focus { border-color: #4a5bc4; }
+.popup-forgot-link {
+  align-self: flex-end; font-family: var(--font-hand); font-size: var(--modal-font-label, 13px);
+  color: #999; text-decoration: none; cursor: pointer; margin-top: -4px;
+}
+.popup-forgot-link:hover { color: #6e83d3; text-decoration: underline; }
 .popup-btn {
   padding: 9px; background: #6e83d3; border: 2px solid #3a4aaa; box-shadow: 2px 2px 0 #3a4aaa;
   font-family: var(--font-hand); font-size: var(--modal-font-btn, 19px); color: white; cursor: pointer; transition: all 0.05s; margin-top: 2px;
