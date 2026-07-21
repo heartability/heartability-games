@@ -81,6 +81,7 @@ html, body {
   align-items: flex-start;
   justify-content: center;
   width: 100%;
+  z-index: 4;
 }
 
 /* center title image between blobs */
@@ -88,10 +89,11 @@ html, body {
   flex: 0 0 18%;
   width: 18%;
   min-width: 300px;
-  max-width: 1200px;
+  max-width: 8000px;
   height: auto;
   display: block;
   margin-top: 2px;
+  z-index: 3;
 }
 
 .tier {
@@ -318,9 +320,8 @@ html, body {
     }
   });
 
-  // TODO: fill in from Stripe Dashboard → Product catalog → Pricing tables
-  const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
-  const PRICING_TABLE_ID       = 'prctbl_REPLACE_ME';
+  const STRIPE_PUBLISHABLE_KEY = 'pk_live_51TTUhnA6JE5MLfPsiqvAnl4HCQcdMnl9jP8vR5PGfO8kFHFWkLmAo9PaOsHMuCiUfIQGDq3BmSQQxA6pJbp7GqLs00zZjnhFDK';
+  const PRICING_TABLE_ID       = 'prctbl_1TvKzDA6JE5MLfPsaTxkdoJp';
 
   let currentSession = null;
 
