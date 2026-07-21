@@ -422,7 +422,7 @@ body.embed-mode .page-body { top: 0; }
       <div class="chat-input-area">
         <div class="chat-msg-row">
           <textarea class="chat-msg-input" id="chat-msg"
-                    placeholder="type something..." maxlength="500"></textarea>
+                    placeholder="where do you go to feel hopeful again?" maxlength="500"></textarea>
           <button class="chat-send-btn" id="chat-send" onclick="sendMessage()">Send</button>
         </div>
         <div class="chat-status" id="chat-status"></div>
@@ -510,6 +510,7 @@ body.embed-mode .page-body { top: 0; }
     const room = ROOMS.find(r => r.slug === activeRoom);
     document.getElementById('ct-title').textContent  = room.title;
     document.getElementById('ct-prompt').textContent = room.prompt;
+    document.getElementById('chat-msg').placeholder  = room.prompt;
   }
 
   /* ─── Load existing messages for the active room ─── */

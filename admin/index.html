@@ -568,6 +568,7 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       listEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
     }
   }
+  window.loadInbox = loadInbox;
 
   function renderInboxList() {
     const listEl = document.getElementById('inbox-list');
@@ -933,6 +934,7 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       listEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
     }
   }
+  window.loadMedia = loadMedia;
 
   function renderMediaList() {
     const listEl = document.getElementById('media-list');
