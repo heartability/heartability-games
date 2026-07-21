@@ -111,10 +111,63 @@ body.embed-mode .page-body { top: 0; }
 ───────────────────────────────────────────────── */
 .chat-window {
   position: relative;
-  width: clamp(320px, 88vw, 820px);
+  width: clamp(320px, 92vw, 980px);
   height: clamp(400px, 84dvh, 700px);
   background: #dfe2ef;
   box-shadow: 0 0 0 4px #6e83d3, 6px 10px 40px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* ─── sidebar (buddy list of rooms) ─── */
+.chat-sidebar {
+  flex-shrink: 0;
+  width: 190px;
+  background: #cdd3ec;
+  border-right: 2px solid #bbb;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.chat-sidebar-header {
+  flex-shrink: 0;
+  padding: 10px 14px 6px;
+  font-family: var(--font-hand);
+  font-size: clamp(12px, 1vw, 14px);
+  color: #7a83a8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.chat-room-item {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: var(--font-hand);
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: #333;
+  border-left: 3px solid transparent;
+  transition: background 0.12s;
+}
+.chat-room-item:hover { background: rgba(0,0,0,0.05); }
+.chat-room-item.active {
+  background: #6e83d3;
+  color: #fff;
+  border-left-color: #4a5bc4;
+}
+.chat-room-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #5cb85c;
+  flex-shrink: 0;
+}
+
+.chat-main {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -123,17 +176,27 @@ body.embed-mode .page-body { top: 0; }
 /* ─── title bar ─── */
 .chat-titlebar {
   flex-shrink: 0;
-  height: 42px;
+  min-height: 42px;
   background: #cdd3ec;
   border-bottom: 2px solid #bbb;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 6px 40px;
   font-family: var(--font-hand);
-  font-size: clamp(22px, 1.6vw, 28px);
   color: #333;
   letter-spacing: 0.5px;
   position: relative;
+  text-align: center;
+}
+.ct-title {
+  font-size: clamp(20px, 1.5vw, 25px);
+}
+.ct-prompt {
+  font-size: clamp(12px, 1vw, 15px);
+  color: #777;
+  font-style: italic;
 }
 
 /* ─── online indicator ─── */
@@ -242,31 +305,11 @@ body.embed-mode .page-body { top: 0; }
   background: #ede8e0;
 }
 
-.chat-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.chat-name-label {
-  font-size: clamp(12px, 1vw, 14px);
-  color: #888;
-  white-space: nowrap;
+.chat-as-label {
+  font-size: clamp(11px, 0.9vw, 13px);
+  color: #999;
   font-family: var(--font-hand);
 }
-
-.chat-name-input {
-  width: calc(100% - 70px);
-  font-family: var(--font-hand);
-  font-size: clamp(13px, 1.2vw, 16px);
-  color: #222;
-  background: #dfe2ef;
-  border: 1.5px solid #bbb;
-  padding: 5px 10px;
-  outline: none;
-}
-.chat-name-input:focus { border-color: #6e83d3; }
-.chat-name-input[readonly] { color: #888; background: #cdd3ec; }
 
 .chat-msg-row {
   display: flex;
@@ -321,7 +364,18 @@ body.embed-mode .page-body { top: 0; }
 @media (max-width: 768px) {
   .room-nav { font-size: clamp(18px, 3.5vw, 21px); }
   .page-body { padding: 12px; }
-  .chat-window { width: 70vw; height: calc(80dvh - 44px - 24px); }
+  .chat-window { width: 94vw; height: calc(88dvh - 44px - 24px); flex-direction: column; }
+  .chat-sidebar {
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 2px solid #bbb;
+  }
+  .chat-sidebar-header { display: none; }
+  .chat-room-item { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .chat-room-item.active { border-left-color: transparent; border-bottom-color: #4a5bc4; }
 }
 
 </style>
@@ -349,26 +403,30 @@ body.embed-mode .page-body { top: 0; }
 <div class="page-body">
   <div class="chat-window">
 
-    <div class="chat-titlebar">
-      turret-chat
-      <span class="online-count" id="online-count"></span>
+    <div class="chat-sidebar" id="chat-sidebar">
+      <div class="chat-sidebar-header">chatrooms</div>
+      <!-- room items injected by JS -->
     </div>
 
-    <div class="chat-messages" id="chat-messages">
-      <div class="chat-empty" id="chat-empty">you could be the first</div>
-    </div>
+    <div class="chat-main">
+      <div class="chat-titlebar">
+        <span class="ct-title" id="ct-title"></span>
+        <span class="ct-prompt" id="ct-prompt"></span>
+        <span class="online-count" id="online-count"></span>
+      </div>
 
-    <div class="chat-input-area">
-      <div class="chat-name-row">
-        <input class="chat-name-input" id="chat-name" type="text"
-               placeholder="your name" maxlength="40" autocomplete="off">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-empty" id="chat-empty">you could be the first</div>
       </div>
-      <div class="chat-msg-row">
-        <textarea class="chat-msg-input" id="chat-msg"
-                  placeholder="type something..." maxlength="500"></textarea>
-        <button class="chat-send-btn" id="chat-send" onclick="sendMessage()">Send</button>
+
+      <div class="chat-input-area">
+        <div class="chat-msg-row">
+          <textarea class="chat-msg-input" id="chat-msg"
+                    placeholder="type something..." maxlength="500"></textarea>
+          <button class="chat-send-btn" id="chat-send" onclick="sendMessage()">Send</button>
+        </div>
+        <div class="chat-status" id="chat-status"></div>
       </div>
-      <div class="chat-status" id="chat-status"></div>
     </div>
 
   </div>
@@ -384,20 +442,16 @@ body.embed-mode .page-body { top: 0; }
 
   const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-  /* ─── LocalStorage name persistence ─── */
-  const NAME_KEY = 'hb_chat_name';
+  const ROOMS = [
+    { slug: 'hopeful',   title: 'feeling hopeful', prompt: 'where do you go to feel hopeful again?' },
+    { slug: 'outside',   title: 'going outside',   prompt: 'what is your favorite thing to do outside?' },
+    { slug: 'relax',     title: 'relaxation',      prompt: 'when do you like to relax?' },
+    { slug: 'gratitude', title: 'gratitude',       prompt: 'why did you smile this week?' },
+  ];
 
-  function initNameField() {
-    const nameEl   = document.getElementById('chat-name');
-    const statusEl = document.getElementById('chat-status');
-    const saved    = localStorage.getItem(NAME_KEY);
-    if (saved) {
-      nameEl.value    = saved;
-      nameEl.readOnly = true;
-      nameEl.style.color = '#888';
-      statusEl.textContent = 'chatting as ' + saved + ' · not you? clear your browser data';
-    }
-  }
+  let currentUserId   = null;
+  let currentUsername = 'explorer';
+  let activeRoom       = ROOMS[0].slug;
 
   /* ─── Helpers ─── */
   function escapeHtml(str) {
@@ -411,18 +465,11 @@ body.embed-mode .page-body { top: 0; }
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  function myName() {
-    return localStorage.getItem(NAME_KEY) ||
-           document.getElementById('chat-name').value.trim() ||
-           null;
-  }
-
   function renderMessage(msg) {
-    const savedName = localStorage.getItem(NAME_KEY);
-    const isMine    = savedName && msg.name === savedName;
-    const el        = document.createElement('div');
-    el.className    = 'chat-message ' + (isMine ? 'mine' : 'theirs');
-    el.dataset.id   = msg.id;
+    const isMine = msg.user_id && msg.user_id === currentUserId;
+    const el      = document.createElement('div');
+    el.className  = 'chat-message ' + (isMine ? 'mine' : 'theirs');
+    el.dataset.id = msg.id;
     el.innerHTML = `
       <div class="chat-bubble">${escapeHtml(msg.message)}</div>
       <div class="chat-meta">${escapeHtml(msg.name || 'anonymous')} · ${formatTime(msg.created_at)}</div>
@@ -435,23 +482,54 @@ body.embed-mode .page-body { top: 0; }
     container.scrollTop = container.scrollHeight;
   }
 
-  /* ─── Load existing messages ─── */
+  /* ─── Sidebar ─── */
+  function renderSidebar() {
+    const sidebar = document.getElementById('chat-sidebar');
+    ROOMS.forEach(room => {
+      const item = document.createElement('div');
+      item.className = 'chat-room-item' + (room.slug === activeRoom ? ' active' : '');
+      item.dataset.slug = room.slug;
+      item.innerHTML = `<span class="chat-room-dot"></span><span>${escapeHtml(room.title)}</span>`;
+      item.addEventListener('click', () => switchRoom(room.slug));
+      sidebar.appendChild(item);
+    });
+  }
+
+  function switchRoom(slug) {
+    if (slug === activeRoom) return;
+    activeRoom = slug;
+    document.querySelectorAll('.chat-room-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.slug === slug);
+    });
+    updateTitlebar();
+    loadMessages();
+    document.getElementById('chat-msg').focus();
+  }
+
+  function updateTitlebar() {
+    const room = ROOMS.find(r => r.slug === activeRoom);
+    document.getElementById('ct-title').textContent  = room.title;
+    document.getElementById('ct-prompt').textContent = room.prompt;
+  }
+
+  /* ─── Load existing messages for the active room ─── */
   async function loadMessages() {
+    const container = document.getElementById('chat-messages');
+    const empty     = document.getElementById('chat-empty');
+
+    container.querySelectorAll('.chat-message, .chat-date-divider').forEach(e => e.remove());
+    empty.style.display = 'none';
+
     const { data, error } = await supa
       .from(TABLE)
       .select('*')
+      .eq('room', activeRoom)
       .order('created_at', { ascending: true })
       .limit(200);
 
     if (error) { console.error('Chat load error:', error); return; }
 
-    const container = document.getElementById('chat-messages');
-    const empty     = document.getElementById('chat-empty');
-
     if (data && data.length > 0) {
-      empty.style.display = 'none';
-      container.querySelectorAll('.chat-message, .chat-date-divider').forEach(e => e.remove());
-
       let lastDate = null;
       data.forEach(msg => {
         const msgDate = new Date(msg.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -464,14 +542,14 @@ body.embed-mode .page-body { top: 0; }
         }
         container.appendChild(renderMessage(msg));
       });
-
       scrollToBottom();
+    } else {
+      empty.style.display = 'block';
     }
   }
 
   /* ─── Send message ─── */
   window.sendMessage = async function () {
-    const nameEl   = document.getElementById('chat-name');
     const msgEl    = document.getElementById('chat-msg');
     const statusEl = document.getElementById('chat-status');
     const sendBtn  = document.getElementById('chat-send');
@@ -479,24 +557,19 @@ body.embed-mode .page-body { top: 0; }
     const message = msgEl.value.trim();
     if (!message) return;
 
-    const name = nameEl.value.trim() || null;
-
     sendBtn.disabled = true;
 
-    const { error } = await supa.from(TABLE).insert({ name, message });
+    const { error } = await supa.from(TABLE).insert({
+      name:    currentUsername,
+      message: message,
+      user_id: currentUserId,
+      room:    activeRoom,
+    });
 
     if (error) {
       statusEl.textContent = 'something went wrong, try again';
       sendBtn.disabled = false;
       return;
-    }
-
-    // Lock name on first successful send
-    if (name && !localStorage.getItem(NAME_KEY)) {
-      localStorage.setItem(NAME_KEY, name);
-      nameEl.readOnly    = true;
-      nameEl.style.color = '#888';
-      statusEl.textContent = 'chatting as ' + name + ' · not you? clear your browser data';
     }
 
     msgEl.value      = '';
@@ -512,10 +585,11 @@ body.embed-mode .page-body { top: 0; }
     }
   });
 
-  /* ─── Realtime ─── */
+  /* ─── Realtime (single channel, filtered client-side to the active room) ─── */
   supa
     .channel('chat-room')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: TABLE }, payload => {
+      if (payload.new.room !== activeRoom) return;
       const container = document.getElementById('chat-messages');
       const empty     = document.getElementById('chat-empty');
       empty.style.display = 'none';
@@ -541,11 +615,32 @@ body.embed-mode .page-body { top: 0; }
   });
 
   /* ─── Init ─── */
-  if (new URLSearchParams(location.search).get('embed') === '1') {
-    document.body.classList.add('embed-mode');
+  async function init() {
+    if (new URLSearchParams(location.search).get('embed') === '1') {
+      document.body.classList.add('embed-mode');
+    }
+
+    const { data: { session } } = await supa.auth.getSession();
+    if (!session) {
+      window.location.href = '../users/login.html';
+      return;
+    }
+    currentUserId = session.user.id;
+
+    const { data: profile } = await supa
+      .from('user-profiles')
+      .select('username')
+      .eq('id', currentUserId)
+      .single();
+    currentUsername = (profile && profile.username) || 'explorer';
+    document.getElementById('chat-status').textContent = 'chatting as ' + currentUsername;
+
+    renderSidebar();
+    updateTitlebar();
+    loadMessages();
   }
-  initNameField();
-  loadMessages();
+
+  init();
 
 })();
 </script>
