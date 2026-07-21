@@ -903,6 +903,12 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     const links = (tool.purchase_links || []);
     const landscapes = (tool.landscapes || []);
     detailEl.innerHTML = `
+      <div class="detail-field">
+        <div class="detail-label">icon</div>
+        ${tool.icon_url ? `<img src="${escapeHtml(tool.icon_url)}" alt="" style="width:56px;height:56px;object-fit:contain;background:#eef0f9;border:1.5px solid var(--purple);display:block;margin-bottom:6px;">` : ''}
+        <input type="file" accept="image/*" id="tool-icon-input" onchange="uploadToolIcon(event, '${tool.id}')">
+        <span id="tool-icon-status" style="font-size:14px;color:#888;margin-left:8px;"></span>
+      </div>
       <div class="detail-field"><div class="detail-label">type</div><div class="detail-value">${escapeHtml(TOOL_TYPE_LABELS[tool.tool_type] || tool.tool_type)}</div></div>
       <div class="detail-field"><div class="detail-label">summary</div><div class="detail-value">${escapeHtml(tool.summary)}</div></div>
       <div class="detail-field"><div class="detail-label">favorite brands</div><div class="detail-value">${escapeHtml(tool.favorite_brands || '—')}</div></div>
@@ -928,6 +934,30 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       await HGModal.alert('saved', `status set to ${status}`);
     } catch (e) {
       await HGModal.alert('error', e.message);
+    }
+  };
+
+  window.uploadToolIcon = async function (event, toolId) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const statusEl = document.getElementById('tool-icon-status');
+    if (statusEl) statusEl.textContent = 'uploading…';
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+      const path = `${toolId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await sb.storage.from('tool-icons').upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from('tool-icons').getPublicUrl(path);
+      const icon_url = pub?.publicUrl;
+      await callFn('admin-set-tool-icon', { id: toolId, icon_url });
+      const item = toolsItems.find((t) => t.id === toolId);
+      if (item) item.icon_url = icon_url;
+      if (selectedTool && selectedTool.id === toolId) selectedTool.icon_url = icon_url;
+      renderToolDetail(item || selectedTool);
+      if (statusEl) statusEl.textContent = '';
+    } catch (e) {
+      console.error('[admin] tool icon upload failed:', e);
+      if (statusEl) statusEl.textContent = "couldn't upload — try again";
     }
   };
 
