@@ -324,7 +324,7 @@ body.embed-mode .page-body { top: 0; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #bbbbbb;
+  background: #dfe2ef;
 }
 
 .chat-as-label {
@@ -658,22 +658,18 @@ body.embed-mode .page-body { top: 0; }
     }
 
     const { data: { session } } = await supa.auth.getSession();
-    if (!session && new URLSearchParams(location.search).get('devpreview') !== '1') {
+    if (!session) {
       window.location.href = '../users/login.html';
       return;
     }
-    currentUserId = session ? session.user.id : 'dev-preview';
+    currentUserId = session.user.id;
 
-    if (session) {
-      const { data: profile } = await supa
-        .from('user-profiles')
-        .select('username')
-        .eq('id', currentUserId)
-        .single();
-      currentUsername = (profile && profile.username) || 'explorer';
-    } else {
-      currentUsername = 'preview-user';
-    }
+    const { data: profile } = await supa
+      .from('user-profiles')
+      .select('username')
+      .eq('id', currentUserId)
+      .single();
+    currentUsername = (profile && profile.username) || 'explorer';
     document.getElementById('chat-status').textContent = 'chatting as ' + currentUsername;
 
     renderSidebar();
