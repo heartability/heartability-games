@@ -333,6 +333,28 @@ const TOOL_TYPES = ['nutrition', 'connection', 'cleanliness', 'rest', 'relaxatio
 let toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
 let toolsCache = null;      // approved tools (array) or null before first fetch
 let toolCommentsCache = {}; // toolId -> comments array
+let savedToolIds = new Set(); // tool ids the current user has added to their personal inventory (tool_saves)
+
+async function fetchSavedToolIds() {
+  if (!currentUser) { savedToolIds = new Set(); return; }
+  const { data, error } = await sb.from('tool_saves').select('tool_id').eq('user_id', currentUser.id);
+  if (error) { console.error('[salon] tool_saves fetch failed:', error); savedToolIds = new Set(); return; }
+  savedToolIds = new Set((data || []).map(r => r.tool_id));
+}
+
+async function toggleInventorySave(toolId) {
+  if (!currentUser) return;
+  if (savedToolIds.has(toolId)) {
+    const { error } = await sb.from('tool_saves').delete().eq('user_id', currentUser.id).eq('tool_id', toolId);
+    if (error) { console.error('[salon] remove from inventory failed:', error); return; }
+    savedToolIds.delete(toolId);
+  } else {
+    const { error } = await sb.from('tool_saves').insert({ user_id: currentUser.id, tool_id: toolId });
+    if (error) { console.error('[salon] add to inventory failed:', error); return; }
+    savedToolIds.add(toolId);
+  }
+  render();
+}
 
 async function fetchTools() {
   const { data, error } = await sb.from('tools').select('*')
@@ -436,6 +458,10 @@ function buildDetailHtml() {
       </div>`
     : `<div class="tl-detail-fact">want to leave a comment? <a href="../users/login.html">log in</a></div>`;
 
+  const inventoryBtnHtml = currentUser
+    ? `<button type="button" class="tl-save-btn" onclick="toggleInventorySave('${id}')">${savedToolIds.has(id) ? '− remove from my inventory' : '+ add to my inventory'}</button>`
+    : `<div class="tl-detail-fact">want to add this to your inventory? <a href="../users/login.html">log in</a></div>`;
+
   return backBtn + `
     <div class="tl-detail-title">${_escapeHtml(tool.title)}</div>
     <div class="tl-detail-type">${_escapeHtml(tool.tool_type)}</div>
@@ -445,6 +471,7 @@ function buildDetailHtml() {
     ${avg ? `<div class="tl-detail-fact">average rating: ${'★'.repeat(Math.round(avg))} (${avg.toFixed(1)})</div>` : ''}
     ${landscapesHtml}
     ${linksHtml}
+    <div style="margin-bottom:14px;">${inventoryBtnHtml}</div>
     <div class="tl-comments">${commentsHtml}</div>
     ${addCommentHtml}
   `;
@@ -492,6 +519,7 @@ async function openTools() {
   document.getElementById('tools-overlay').classList.add('open');
   renderModalBody('<div class="tl-loading">loading…</div>');
   if (!toolsCache) await fetchTools();
+  await fetchSavedToolIds();
   render();
 }
 function closeTools() { document.getElementById('tools-overlay').classList.remove('open'); }
@@ -565,9 +593,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       resolveUsername(session.user).then(username => HeartabilityNav.setAuthState({ loggedIn: true, username }));
-      if (toolsState.detailToolId) render();
+      fetchSavedToolIds().then(render);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
+      savedToolIds = new Set();
       HeartabilityNav.setAuthState({ loggedIn: false });
       render();
     }

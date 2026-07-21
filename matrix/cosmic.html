@@ -392,43 +392,8 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .jrc-confirm-skip{ background:none; border:none; color:#7a86bb; text-decoration:underline; }
 .jrc-confirm-skip:hover{ color:var(--pink); }
 
-/* ── LIBRARY PANEL (media matrix tie-in, between bingo and journal) ── */
-.lib-panel{ width:100%; height:100%; padding:8px; display:flex; flex-direction:column; overflow:hidden; }
-.lib-window{ width:100%; height:100%; background:#dfe2ef;
-  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.35);
-  display:flex; flex-direction:column; overflow:hidden; }
-.lib-titlebar{ flex-shrink:0; height:38px; background:#cdd3ec; border-bottom:2px solid var(--blue);
-  display:flex; align-items:center; justify-content:center; position:relative;
-  font-family:var(--font-hand); font-size:clamp(16px,1.5vw,22px); color:#333; letter-spacing:.5px; }
-.lib-body{ flex:1; overflow-y:auto; padding:16px 18px; }
-.lib-empty{ margin:auto; text-align:center; color:#7a86bb; font-style:italic; font-size:clamp(15px,1.4vw,18px); line-height:1.6; padding:24px 0; }
-.lib-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:12px; }
-.lib-card{ cursor:pointer; position:relative; display:flex; flex-direction:column; gap:3px; }
-.lib-card img, .lib-card-noimg{ width:100%; aspect-ratio:2/3; object-fit:cover; background:#ccc; border:2px solid var(--blue); display:block; }
-.lib-card-noimg{ display:flex; align-items:center; justify-content:center; font-family:var(--font-hand); font-size:11px; color:#555; text-align:center; padding:4px; }
-.lib-card-title{ font-family:var(--font-hand); font-size:12px; color:#444; text-align:center; line-height:1.25; }
-.lib-card.selected img, .lib-card.selected .lib-card-noimg{ border-color:#2a6a3a; box-shadow:0 0 0 3px rgba(42,106,58,.35); }
-.lib-check{ position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:#2a6a3a; color:#fff; font-size:12px; align-items:center; justify-content:center; display:none; }
-.lib-card.selected .lib-check{ display:flex; }
-.lib-card-badge{ font-family:var(--font-hand); font-size:10px; color:#7a86bb; text-align:center; text-transform:uppercase; letter-spacing:.3px; }
-.lib-footer{ flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; justify-content:center; background:#cdd3ec; }
-.lib-add-btn{ background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#fff; cursor:pointer; padding:8px 18px; transition:all .05s; }
-.lib-add-btn:hover{ background:#4a5bc4; }
-.lib-add-btn:active{ box-shadow:none; transform:translate(2px,2px); }
-
-/* iframe overlay for adding a new library entry (media matrix) without leaving this page */
-.lib-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900; display:none; align-items:center; justify-content:center; padding:18px; }
-.lib-overlay.open{ display:flex; }
-.lib-overlay-window{ width:min(96vw,900px); height:min(90vh,820px); background:#dfe2ef;
-  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.4);
-  display:flex; flex-direction:column; overflow:hidden; }
-.lib-overlay-titlebar{ flex-shrink:0; height:40px; background:#cdd3ec; border-bottom:2px solid var(--blue);
-  display:flex; align-items:center; justify-content:space-between; padding:0 14px;
-  font-family:var(--font-hand); font-size:19px; color:#333; }
-.lib-overlay-close{ cursor:pointer; font-size:22px; color:#aaa; padding:2px 6px; }
-.lib-overlay-close:hover{ color:var(--pink); }
-.lib-overlay iframe{ flex:1; border:none; width:100%; background:#6e83d3; }
+/* ── INVENTORY PANEL (media/tools tie-in, between bingo and journal) ──
+   CSS moved to matrix-inventory.js (ensureStyles()), which injects it once. ── */
 
 /* LOGIN MODAL */
 .login-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; }
@@ -631,6 +596,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./matrix-inventory.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script>
 /* ============================================================
@@ -1575,115 +1541,39 @@ function stepBingo(){
   setSave(true,'continue →');
 }
 
-// ── LIBRARY (media matrix tie-in, between bingo and journal) ─────
-// Lets the player tag any of their own library entries (matrix/media.html
-// submissions) to this landscape before writing their journal.
-let librarySubmissions = [];        // this user's media_submissions (full reviews), newest first
-let librarySaves       = [];        // this user's media_saves (saved w/o a review), newest first
-let librarySelectedIds = new Set(); // media_submissions.id / media_saves.id values picked this session
-
-function buildLibraryPanel(){
-  return `<div class="lib-panel">
-    <div class="step-header"><span class="step-back" onclick="stepBingo()">← back</span><span></span><span></span></div>
-    <div class="lib-window">
-      <div class="lib-titlebar">your library</div>
-      <div class="lib-body">
-        <div class="lib-empty" id="lib-empty" style="display:none;">you haven't added anything to your library yet</div>
-        <div class="lib-grid" id="lib-grid"></div>
-      </div>
-      <div class="lib-footer">
-        <button type="button" class="lib-add-btn" onclick="openLibraryAddEntry()">+ add an entry</button>
-      </div>
-    </div>
-  </div>
-  <div class="lib-overlay" id="lib-overlay">
-    <div class="lib-overlay-window">
-      <div class="lib-overlay-titlebar"><span>add to your library</span><span class="lib-overlay-close" onclick="closeLibraryAddEntry()">✕</span></div>
-      <iframe id="lib-overlay-iframe" src="about:blank"></iframe>
-    </div>
-  </div>`;
-}
-
-async function loadLibraryEntries(){
-  const [subRes, saveRes] = await Promise.all([
-    sb.from('media_submissions')
-      .select('id, media_id, cover_url_override, media(title, cover_url)')
-      .eq('submitted_by', currentUser.id).order('created_at', { ascending:false }),
-    sb.from('media_saves')
-      .select('id, media_id, status, media(title, cover_url)')
-      .eq('user_id', currentUser.id).order('created_at', { ascending:false }),
-  ]);
-  if (subRes.error) console.error('[library panel] submissions fetch failed:', subRes.error);
-  if (saveRes.error) console.error('[library panel] saves fetch failed:', saveRes.error);
-  librarySubmissions = subRes.data || [];
-  librarySaves = saveRes.data || [];
-  renderLibraryGrid();
-}
-
-function renderLibraryGrid(){
-  const grid = $('lib-grid');
-  const emptyEl = $('lib-empty');
-  if (!grid) return;
-  const items = [
-    ...librarySubmissions.map(r => ({ id:r.id, title:r.media?.title || 'untitled', cover:r.cover_url_override || r.media?.cover_url, badge:'reviewed' })),
-    ...librarySaves.map(r => ({ id:r.id, title:r.media?.title || 'untitled', cover:r.media?.cover_url, badge:r.status === 'done' ? 'done reading' : 'to be read' })),
-  ];
-  emptyEl.style.display = items.length ? 'none' : 'block';
-  grid.innerHTML = items.map(item => {
-    const selected = librarySelectedIds.has(item.id);
-    return `<div class="lib-card${selected ? ' selected' : ''}" data-id="${item.id}">
-      <span class="lib-check">✓</span>
-      ${item.cover ? `<img src="${jrcEscape(item.cover)}" alt="">` : '<div class="lib-card-noimg"></div>'}
-      <div class="lib-card-title">${jrcEscape(item.title)}</div>
-      <div class="lib-card-badge">${item.badge}</div>
-    </div>`;
-  }).join('');
-  grid.querySelectorAll('.lib-card').forEach(card => {
-    card.addEventListener('click', () => toggleLibraryCard(card.dataset.id, card));
-  });
-}
-
-function toggleLibraryCard(id, card){
-  if (librarySelectedIds.has(id)) librarySelectedIds.delete(id); else librarySelectedIds.add(id);
-  card.classList.toggle('selected', librarySelectedIds.has(id));
-}
-
-function openLibraryAddEntry(){
-  $('lib-overlay-iframe').src = '../matrix/media.html?embed=1';
-  $('lib-overlay').classList.add('open');
-}
-function closeLibraryAddEntry(){
-  $('lib-overlay').classList.remove('open');
-  $('lib-overlay-iframe').src = 'about:blank';
-}
+// ── THE INVENTORY (media/tools tie-in, between bingo and journal) ─────
+// Lets the player tag books/movies/tools from their personal collection to
+// this landscape before writing their journal. Panel logic lives in the
+// shared matrix-inventory.js module (also used by dream.html/daily.html).
+const inventoryPanel = MatrixInventory.createPanel({
+  sb,
+  getCurrentUser: () => currentUser,
+  persist: async (fields) => {
+    const { error } = await sb.from('cosmic_matrix').upsert({
+      map_id: activeMapId, user_id: currentUser.id, map_phase: activePhase,
+      updated_at: new Date().toISOString(),
+      ...fields,
+    }, { onConflict:'map_id,map_phase' });
+    if (error) throw error;
+  },
+  onContinue: () => { setSave(false); stepJournal(); },
+  backStep: () => stepBingo(),
+});
 
 function stepLibrary(){
   currentStep = 'library';
-  setBubble('anything from your library echoing in this landscape?');
-  librarySelectedIds = new Set();
+  setBubble('anything from your inventory echoing in this landscape?');
   const p=$('content-panel');
   p.className='content-panel active';
-  p.innerHTML=buildLibraryPanel();
-  loadLibraryEntries();
+  p.innerHTML=inventoryPanel.panelHtml();
+  inventoryPanel.enter();
   setSave(true,'continue →');
 }
 
 async function saveLibrarySelection(){
   const btn = $('save-btn');
-  const reviewIds = librarySubmissions.filter(r => librarySelectedIds.has(r.id)).map(r => r.id);
-  const saveIds   = librarySaves.filter(r => librarySelectedIds.has(r.id)).map(r => r.id);
-  try {
-    const { error } = await sb.from('cosmic_matrix').upsert({
-      map_id: activeMapId, user_id: currentUser.id, map_phase: activePhase,
-      library_entry_ids: reviewIds,
-      library_save_ids: saveIds,
-      updated_at: new Date().toISOString(),
-    }, { onConflict:'map_id,map_phase' });
-    if (error) throw error;
-    setSave(false);
-    stepJournal();
-  } catch(err){
-    console.error('[library panel] save failed:', err);
+  const result = await inventoryPanel.save();
+  if (!result.ok) {
     HGModal.alert('oops','save failed');
     if (btn){ btn.disabled=false; btn.innerHTML='continue →'; }
   }
@@ -2005,10 +1895,9 @@ window.addEventListener('message', async e=>{
     return;
   }
 
-  // ── Library "add an entry" iframe finished submitting ─────
+  // ── Inventory "add an entry" iframe finished submitting ─────
   if (msg.type==='media_entry_saved'){
-    closeLibraryAddEntry();
-    loadLibraryEntries();
+    inventoryPanel.onMediaSaved();
     return;
   }
 });
