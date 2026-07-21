@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/detail-view.css">
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
@@ -607,6 +608,68 @@ function detailHeaderHtml(info, fallbackTitle, mediaId) {
   </div>`;
 }
 
+// Big-poster equivalent of detailHeaderHtml() above, used by the new
+// full-page buildDetailHtml() layout (detailHeaderHtml stays as-is for the
+// smaller save-a-title detail view).
+function detailPosterAndSubtitle(info, mediaId) {
+  const cover = info?.cover_url;
+  const mediaType = info?.media_type;
+  const isVisual = CATEGORY_META.visual.types.includes(mediaType);
+  const authorLabel = isVisual ? 'director' : 'author';
+  const uploadPrompt = (!cover && currentUser && mediaId)
+    ? `<label class="lib-cover-upload-btn">+ add a cover photo<input type="file" accept="image/*" hidden onchange="uploadDetailCover(event, '${mediaId}')"></label>
+       <span class="lib-cover-upload-status" id="lib-cover-upload-status"></span>`
+    : '';
+  const posterHtml = cover
+    ? `<img class="detail-poster aspect-cover" src="${_escapeHtml(cover)}" alt="">`
+    : `<div class="detail-poster-noimg aspect-cover">${uploadPrompt || '?'}</div>`;
+  const subtitleHtml = `<div class="detail-subtitle-row">
+    ${info?.release_year ? `<span class="detail-fact">released ${_escapeHtml(String(info.release_year))}</span>` : ''}
+    ${info?.author ? `<span class="detail-fact">${authorLabel}: <a href="#" class="lib-author-link" data-author="${_escapeHtml(info.author)}" data-type="${_escapeHtml(mediaType || '')}">${_escapeHtml(info.author)}</a></span>` : ''}
+  </div>`;
+  return { posterHtml, subtitleHtml };
+}
+
+function pooledZoneTags(rows) {
+  const terrains = new Set(), feelings = new Set();
+  rows.forEach(r => zonesOf(r).forEach(z => {
+    if (z.terrain) terrains.add(z.terrain);
+    if (z.feeling) feelings.add(z.feeling);
+  }));
+  return { terrains: [...terrains], feelings: [...feelings] };
+}
+function tagChipsOrEmpty(values) {
+  return values.length
+    ? `<div class="detail-tag-chips">${values.map(v => `<span class="detail-tag-chip">${_escapeHtml(v)}</span>`).join('')}</div>`
+    : `<div class="detail-tag-empty">none yet</div>`;
+}
+function detailTagsPanelHtml(rows) {
+  const { terrains, feelings } = pooledZoneTags(rows);
+  return `<div class="detail-tags-panel cols-2">
+    <div><div class="detail-tag-col-label">terrains</div>${tagChipsOrEmpty(terrains)}</div>
+    <div><div class="detail-tag-col-label">emotions</div>${tagChipsOrEmpty(feelings)}</div>
+  </div>`;
+}
+
+// Blended average across every row's quality_rating + experience_rating,
+// same math as cardAvgRating() above but operating on raw rows directly.
+function avgRatingFromRows(rows) {
+  const vals = [];
+  rows.forEach(r => { if (r.quality_rating) vals.push(r.quality_rating); if (r.experience_rating) vals.push(r.experience_rating); });
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+function detailRatingsPanelHtml(rows) {
+  const avg = avgRatingFromRows(rows);
+  const ratedCount = rows.filter(r => r.quality_rating || r.experience_rating).length;
+  return `<div class="detail-ratings-panel">
+    <div class="detail-ratings-label">ratings</div>
+    <div class="detail-rating-num">${avg ? avg.toFixed(1) : '—'}</div>
+    <div class="detail-rating-stars">${avg ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg)) : 'no ratings yet'}</div>
+    <div class="detail-rating-count">${ratedCount} ${ratedCount === 1 ? 'rating' : 'ratings'}</div>
+  </div>`;
+}
+
 function buildDetailHtml() {
   const id = libState.detailMediaId;
   const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
@@ -618,7 +681,17 @@ function buildDetailHtml() {
       const addCta = currentUser
         ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(catalogRow.title)}&type=${encodeURIComponent(catalogRow.media_type)}">+ add your own take on this</a></div>`
         : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
-      return backBtn + detailHeaderHtml(catalogRow, catalogRow.title, id) + `<div class="lib-empty">nobody has reviewed this yet</div>` + addCta;
+      const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(catalogRow, id);
+      return backBtn + `<div class="detail-layout">
+        <div>${posterHtml}</div>
+        <div class="detail-main">
+          <div class="detail-title">${_escapeHtml(catalogRow.title)}</div>
+          ${subtitleHtml}
+          <div class="lib-empty">nobody has reviewed this yet</div>
+          ${addCta}
+        </div>
+        <div class="detail-sidebar">${detailRatingsPanelHtml([])}</div>
+      </div>`;
     }
     const title = rows[0].title;
     const addCta = currentUser
@@ -631,19 +704,41 @@ function buildDetailHtml() {
       ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
     </div>`).join('');
-    return backBtn + detailHeaderHtml(rows[0], title, id) + addCta + `<div class="lib-comments">${comments}</div>`;
+    const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(rows[0], id);
+    return backBtn + `<div class="detail-layout">
+      <div>${posterHtml}</div>
+      <div class="detail-main">
+        <div class="detail-title">${_escapeHtml(title)}</div>
+        ${subtitleHtml}
+        ${detailTagsPanelHtml(rows)}
+        ${addCta}
+        <div class="lib-comments">${comments}</div>
+      </div>
+      <div class="detail-sidebar">${detailRatingsPanelHtml(rows)}</div>
+    </div>`;
   } else {
     const rows = (privateAllCache || []).filter(r => r.media_id === id);
     if (!rows.length) return backBtn + '<div class="lib-empty">not found.</div>';
     const title = rows[0].media?.title || 'untitled';
     const entries = rows.map(r => `<div class="lib-own-entry">
-      <div class="lib-comment-text">${_escapeHtml(r.about_sentence || '')}</div>
+      ${rows.length > 1 ? `<div class="lib-comment-text">${_escapeHtml(r.about_sentence || '')}</div>` : ''}
       <div class="lib-comment-zones">${summarizeZones(r.map_data)}</div>
       ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
       <div class="lib-comment-ratings">${r.is_public ? (r.is_author_public ? 'shared publicly, with your name' : 'shared publicly, anonymously') : 'private — only visible to you'}</div>
     </div>`).join('');
-    return backBtn + detailHeaderHtml(rows[0].media, title, id) + `<div class="lib-own-entries">${entries}</div>`;
+    const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(rows[0].media, id);
+    return backBtn + `<div class="detail-layout">
+      <div>${posterHtml}</div>
+      <div class="detail-main">
+        <div class="detail-title">${_escapeHtml(title)}</div>
+        ${subtitleHtml}
+        ${rows.length === 1 && rows[0].about_sentence ? `<div class="detail-summary">${_escapeHtml(rows[0].about_sentence)}</div>` : ''}
+        ${detailTagsPanelHtml(rows)}
+        <div class="lib-own-entries">${entries}</div>
+      </div>
+      <div class="detail-sidebar">${detailRatingsPanelHtml(rows)}</div>
+    </div>`;
   }
 }
 
@@ -931,9 +1026,14 @@ function openDetail(mediaId) {
   libState.detailMediaId = mediaId;
   libState.detailSaveId = null;
   libState.authorFilter = null;
+  document.querySelector('#library-overlay .hg-modal').classList.add('detail-mode');
   render();
 }
-function backToGrid() { libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; libState.showSavePanel = false; render(); }
+function backToGrid() {
+  libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; libState.showSavePanel = false;
+  document.querySelector('#library-overlay .hg-modal').classList.remove('detail-mode');
+  render();
+}
 
 // Lets a logged-in visitor add a missing cover photo straight from the detail
 // view, for either a public library entry or one of their own. Uses its own
@@ -992,6 +1092,7 @@ async function switchTab(tab) {
 async function openLibrary(category) {
   libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false };
   document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
+  document.querySelector('#library-overlay .hg-modal').classList.remove('detail-mode');
   document.getElementById('library-overlay').classList.add('open');
   renderModalBody('<div class="lib-loading">loading…</div>');
   if (!publicCache[category]) await fetchPublic(category);

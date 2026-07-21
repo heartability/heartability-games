@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/detail-view.css">
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
@@ -215,15 +216,8 @@ html, body {
 .tl-card-meta { font-family: var(--font-hand); font-size: 13px; color: #666; }
 .tl-card-icon, .tl-card-icon-noimg { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #eef0f9; border: 1.5px solid var(--blue); display: block; }
 .tl-card-icon-noimg { display: flex; align-items: center; justify-content: center; font-family: var(--font-hand); font-size: 20px; color: #aab; }
-.tl-detail-title { font-family: var(--font-hand); font-size: 22px; color: #222; margin: 0 0 6px; }
-.tl-detail-icon, .tl-detail-icon-noimg { width: 80px; height: 80px; object-fit: contain; background: #eef0f9; border: 1.5px solid var(--blue); display: block; margin-bottom: 10px; }
-.tl-detail-icon-noimg { display: flex; align-items: center; justify-content: center; font-family: var(--font-hand); font-size: 28px; color: #aab; }
-.tl-detail-type { display: inline-block; font-family: var(--font-hand); font-size: 13px; color: #fff; background: var(--blue); padding: 2px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
 .tl-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 6px; }
 .tl-detail-fact a { color: var(--blue); }
-.tl-landscape-chip { display: inline-block; background: #e8ecf9; border: 1.5px solid var(--blue); color: #333; font-family: var(--font-hand); font-size: 14px; padding: 3px 10px; border-radius: 12px; margin: 2px 4px 2px 0; }
-.tl-purchase-links { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 14px; }
-.tl-purchase-links a { font-family: var(--font-hand); font-size: 15px; color: var(--blue); }
 .tl-comments { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
 .tl-comment { background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 14px; }
 .tl-comment-author { font-family: var(--font-hand); font-size: 15px; color: var(--blue); margin-bottom: 4px; }
@@ -436,15 +430,20 @@ function buildDetailHtml() {
 
   const comments = toolCommentsCache[id] || [];
   const avg = cardAvgRating(comments);
-  const links = tool.purchase_links || [];
+  const ratedCount = comments.filter(c => c.rating).length;
   const landscapes = tool.landscapes || [];
+  const terrains = [...new Set(landscapes.map(z => z.terrain).filter(Boolean))];
+  const feelings = [...new Set(landscapes.map(z => z.feeling).filter(Boolean))];
 
-  const linksHtml = links.length
-    ? `<div class="tl-purchase-links">${links.map(l => `<a href="${_escapeHtml(l.url)}" target="_blank" rel="noopener">${_escapeHtml(l.label || l.url)}</a>`).join('')}</div>`
-    : '';
-  const landscapesHtml = landscapes.length
-    ? `<div style="margin-bottom:10px;">${landscapes.map(z => `<span class="tl-landscape-chip">${_escapeHtml(z.terrain)} of ${_escapeHtml(z.feeling)}</span>`).join('')}</div>`
-    : '';
+  const chipsOrEmpty = (values) => values.length
+    ? `<div class="detail-tag-chips">${values.map(v => `<span class="detail-tag-chip">${_escapeHtml(v)}</span>`).join('')}</div>`
+    : `<div class="detail-tag-empty">none yet</div>`;
+
+  const tagsPanelHtml = `<div class="detail-tags-panel">
+    <div><div class="detail-tag-col-label">terrains</div>${chipsOrEmpty(terrains)}</div>
+    <div><div class="detail-tag-col-label">emotions</div>${chipsOrEmpty(feelings)}</div>
+    <div><div class="detail-tag-col-label">category of care</div><div class="detail-tag-chips"><span class="detail-tag-chip">${_escapeHtml(tool.tool_type)}</span></div></div>
+  </div>`;
 
   const commentsHtml = comments.length
     ? comments.map(c => `<div class="tl-comment">
@@ -467,20 +466,36 @@ function buildDetailHtml() {
     ? `<button type="button" class="tl-save-btn" onclick="toggleInventorySave('${id}')">${savedToolIds.has(id) ? '− remove from my inventory' : '+ add to my inventory'}</button>`
     : `<div class="tl-detail-fact">want to add this to your inventory? <a href="../users/login.html">log in</a></div>`;
 
-  return backBtn + `
-    <div class="tl-detail-title">${_escapeHtml(tool.title)}</div>
-    ${tool.icon_url ? `<img class="tl-detail-icon" src="${_escapeHtml(tool.icon_url)}" alt="">` : '<div class="tl-detail-icon-noimg">?</div>'}
-    <div class="tl-detail-type">${_escapeHtml(tool.tool_type)}</div>
-    ${tool.author_name ? `<div class="tl-detail-fact">added by ${_escapeHtml(tool.author_name)}</div>` : ''}
-    <div class="tl-detail-fact">${_escapeHtml(tool.summary)}</div>
-    ${tool.favorite_brands ? `<div class="tl-detail-fact">favorite brands: ${_escapeHtml(tool.favorite_brands)}</div>` : ''}
-    ${avg ? `<div class="tl-detail-fact">average rating: ${'★'.repeat(Math.round(avg))} (${avg.toFixed(1)})</div>` : ''}
-    ${landscapesHtml}
-    ${linksHtml}
-    <div style="margin-bottom:14px;">${inventoryBtnHtml}</div>
-    <div class="tl-comments">${commentsHtml}</div>
-    ${addCommentHtml}
-  `;
+  const posterHtml = tool.icon_url
+    ? `<img class="detail-poster aspect-square" src="${_escapeHtml(tool.icon_url)}" alt="">`
+    : `<div class="detail-poster-noimg">?</div>`;
+
+  const ratingsPanelHtml = `<div class="detail-ratings-panel">
+    <div class="detail-ratings-label">ratings</div>
+    <div class="detail-rating-num">${avg ? avg.toFixed(1) : '—'}</div>
+    <div class="detail-rating-stars">${avg ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg)) : 'no ratings yet'}</div>
+    <div class="detail-rating-count">${ratedCount} ${ratedCount === 1 ? 'rating' : 'ratings'}</div>
+  </div>`;
+
+  return backBtn + `<div class="detail-layout">
+    <div>${posterHtml}</div>
+    <div class="detail-main">
+      <div class="detail-title">${_escapeHtml(tool.title)}</div>
+      <div class="detail-subtitle-row">
+        <span class="detail-badge">${_escapeHtml(tool.tool_type)}</span>
+        ${tool.author_name ? `<span class="detail-fact">added by ${_escapeHtml(tool.author_name)}</span>` : ''}
+      </div>
+      <div class="detail-summary">${_escapeHtml(tool.summary)}</div>
+      ${tool.favorite_brands ? `<div class="detail-fact">favorite brands: ${_escapeHtml(tool.favorite_brands)}</div>` : ''}
+      ${tagsPanelHtml}
+      <div class="tl-comments">${commentsHtml}</div>
+      ${addCommentHtml}
+    </div>
+    <div class="detail-sidebar">
+      ${ratingsPanelHtml}
+      ${inventoryBtnHtml}
+    </div>
+  </div>`;
 }
 
 function buildBodyHtml() {
@@ -500,11 +515,16 @@ function setTerrainFilter(v) { toolsState.filterTerrain = v || null; render(); }
 
 async function openToolDetail(toolId) {
   toolsState.detailToolId = toolId;
+  document.querySelector('#tools-overlay .hg-modal').classList.add('detail-mode');
   renderModalBody('<div class="tl-loading">loading…</div>');
   if (!toolCommentsCache[toolId]) await fetchComments(toolId);
   render();
 }
-function backToGrid() { toolsState.detailToolId = null; render(); }
+function backToGrid() {
+  toolsState.detailToolId = null;
+  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
+  render();
+}
 
 async function submitComment(toolId) {
   if (!currentUser) return;
@@ -522,6 +542,7 @@ async function submitComment(toolId) {
 
 async function openTools() {
   toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
+  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
   document.getElementById('tools-overlay').classList.add('open');
   renderModalBody('<div class="tl-loading">loading…</div>');
   if (!toolsCache) await fetchTools();

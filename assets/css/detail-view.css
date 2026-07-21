@@ -1,0 +1,98 @@
+/* ══════════════════════════════════════════════════════════════
+   Heartability shared "detail page" layout — used by the tool detail
+   view (rooms/salon.html) and the media/library detail view
+   (rooms/library.html). Near-fullscreen takeover inside the existing
+   .hg-modal shell: toggle `.detail-mode` on the .hg-modal element when
+   a detail view is open (removed again when back to a grid).
+   ══════════════════════════════════════════════════════════════ */
+
+.hg-modal.detail-mode {
+  width: 96vw !important;
+  height: 94vh !important;
+  max-height: 94vh !important;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr 280px;
+  gap: 32px;
+  padding: 8px 4px 24px;
+}
+@media (max-width: 900px) {
+  .detail-layout { grid-template-columns: 1fr; }
+}
+
+.detail-poster, .detail-poster-noimg {
+  width: 100%;
+  display: block;
+  border: 2px solid var(--blue, #6e83d3);
+  background: #eef0f9;
+}
+.detail-poster.aspect-square { aspect-ratio: 1/1; object-fit: contain; padding: 10px; }
+.detail-poster.aspect-cover  { aspect-ratio: 2/3; object-fit: cover; }
+.detail-poster-noimg {
+  aspect-ratio: 1/1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hand); font-size: 48px; color: #aab;
+}
+.detail-poster-noimg.aspect-cover { aspect-ratio: 2/3; }
+
+.detail-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.detail-title {
+  font-family: var(--font-hand);
+  font-size: clamp(28px, 3vw, 40px);
+  color: #222;
+  line-height: 1.15;
+  margin: 0;
+}
+.detail-subtitle-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.detail-badge {
+  display: inline-block; font-family: var(--font-hand); font-size: 13px; color: #fff;
+  background: var(--blue, #6e83d3); padding: 3px 12px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; }
+.detail-fact a { color: var(--blue, #6e83d3); }
+
+.detail-summary {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.detail-tags-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1.5px solid #ddd;
+  border-bottom: 1.5px solid #ddd;
+}
+.detail-tags-panel.cols-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 560px) {
+  .detail-tags-panel, .detail-tags-panel.cols-2 { grid-template-columns: 1fr; }
+}
+.detail-tag-col-label {
+  font-family: var(--font-hand); font-size: 12px; color: var(--blue, #6e83d3);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+.detail-tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail-tag-chip {
+  display: inline-block; background: #e8ecf9; border: 1.5px solid var(--blue, #6e83d3);
+  color: #333; font-family: var(--font-hand); font-size: 14px; padding: 3px 10px; border-radius: 12px;
+}
+.detail-tag-empty { font-family: var(--font-hand); font-size: 13px; color: #999; font-style: italic; }
+
+.detail-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.detail-ratings-panel {
+  border: 2px solid var(--blue, #6e83d3); padding: 16px 18px; background: #f4f6fc;
+}
+.detail-ratings-label {
+  font-family: var(--font-hand); font-size: 12px; color: var(--blue, #6e83d3);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.detail-rating-num { font-family: var(--font-hand); font-size: 32px; color: #222; line-height: 1; }
+.detail-rating-stars { font-family: var(--font-hand); font-size: 16px; color: #8a7a00; margin-top: 4px; }
+.detail-rating-count { font-family: var(--font-hand); font-size: 13px; color: #888; margin-top: 4px; }
