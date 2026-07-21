@@ -13,6 +13,7 @@ import { corsHeaders, handleOptions } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/resend.ts";
 import { welcomeEmailHtml } from "../_shared/email-templates.ts";
 import { requireAdmin, logAdminAction } from "../_shared/require-admin.ts";
+import { wipeUserData } from "../_shared/wipe-user-data.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -182,6 +183,33 @@ Deno.serve(async (req) => {
           details: {},
         });
         return ok({ revoked: true });
+      }
+
+      case "delete_account": {
+        const { data: authData } = await supabase.auth.admin.getUserById(userId);
+        const email = authData?.user?.email ?? null;
+        const username = profileBefore?.username ?? null;
+
+        // Anonymize chatroom messages rather than deleting them — matches
+        // the self-serve delete-account flow, since chat is a shared space
+        // other users are still looking at.
+        if (username) {
+          await supabase.from("chatroom").update({ name: "deleted account" }).eq("name", username);
+        }
+
+        await wipeUserData(supabase, userId);
+        await supabase.from("user-profiles").delete().eq("id", userId);
+
+        const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+        if (authDeleteError) throw authDeleteError;
+
+        await logAdminAction(supabase, {
+          admin_user_id: admin.user.id,
+          action: "delete_account",
+          target_user_id: null,
+          details: { deletedUserId: userId, email, username },
+        });
+        return ok({ deleted: true });
       }
 
       default:

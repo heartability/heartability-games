@@ -763,6 +763,7 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
               ? `<button class="btn-action" onclick="unflagAccount('${account.id}')">unflag</button>`
               : `<button class="btn-danger" onclick="flagAccount('${account.id}')">flag account</button>`}
             <button class="btn-action" onclick="revokeSessions('${account.id}')">sign out everywhere</button>
+            <button class="btn-danger" onclick="deleteAccount('${account.id}')">delete account</button>
           </div>
         </div>
 
@@ -824,6 +825,24 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     runUserAction(userId, 'resend_welcome_email', {}, 'resend welcome email', 'send the welcome email to this user again?');
   window.revokeSessions = (userId) =>
     runUserAction(userId, 'revoke_sessions', {}, 'sign out everywhere', "sign this user out of all active sessions?", true);
+  window.deleteAccount = async (userId) => {
+    const email = selectedUser?.account?.email ?? userId;
+    const ok = await HGModal.confirm(
+      'delete account',
+      `permanently delete ${email} and all associated data (matrix entries, saves, submissions, photos)? this cannot be undone.`,
+      { danger: true, confirmLabel: 'delete account' }
+    );
+    if (!ok) return;
+    try {
+      await callFn('admin-update-user', { userId, action: 'delete_account' });
+      selectedUser = null;
+      document.getElementById('user-list').innerHTML = '<div class="detail-empty">search for a user</div>';
+      document.getElementById('user-detail').innerHTML = '<div class="detail-empty">search for a user</div>';
+      await HGModal.alert('done', 'account deleted.');
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  };
   window.refundPayment = async (userId, chargeId) => {
     const ok = await HGModal.confirm('refund payment', 'issue a full refund for this charge? this cannot be undone.', { danger: true, confirmLabel: 'refund' });
     if (!ok) return;
