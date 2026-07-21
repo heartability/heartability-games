@@ -354,9 +354,34 @@ body.embed-mode .page-body { top: 0; }
 }
 .chat-msg-input:focus { border-color: #6e83d3; }
 
-.chat-send-btn {
+.chat-msg-actions {
   flex-shrink: 0;
-  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 60px;
+}
+
+.chat-photo-btn {
+  flex: 1;
+  padding: 0 14px;
+  background: #dfe2ef;
+  border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa;
+  font-family: var(--font-hand);
+  font-size: clamp(21px, 2vw, 26px);
+  color: #4a5bc4;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.05s;
+}
+.chat-photo-btn:hover { background: #cdd3ec; }
+.chat-photo-btn:active { box-shadow: none; transform: translate(2px,2px); }
+.chat-photo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.chat-send-btn {
+  flex: 1;
+  padding: 0 18px;
   background: #6e83d3;
   border: 2px solid #4a5bc4;
   box-shadow: 2px 2px 0 #3a4aaa;
@@ -367,11 +392,47 @@ body.embed-mode .page-body { top: 0; }
   letter-spacing: 0.5px;
   transition: all 0.05s;
   white-space: nowrap;
-  align-self: stretch;
 }
 .chat-send-btn:hover { background: #4a5bc4; }
 .chat-send-btn:active { box-shadow: none; transform: translate(2px,2px); }
 .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.chat-photo-preview {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #dfe2ef;
+  border: 1.5px solid #bbb;
+}
+.chat-photo-preview.showing { display: flex; }
+.chat-photo-preview img {
+  width: 44px; height: 44px; object-fit: cover; border: 1.5px solid #bbb;
+}
+.chat-photo-preview-name {
+  flex: 1;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.2vw, 16px);
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-photo-preview-remove {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-hand);
+  font-size: clamp(13px, 1.2vw, 16px);
+  color: #c0392b;
+}
+
+.chat-bubble img {
+  display: block;
+  max-width: 100%;
+  max-height: 260px;
+  border-radius: 2px;
+}
 
 .chat-status {
   font-size: clamp(15px, 1.35vw, 20px);
@@ -448,10 +509,19 @@ body.embed-mode .page-body { top: 0; }
       </div>
 
       <div class="chat-input-area">
+        <div class="chat-photo-preview" id="chat-photo-preview">
+          <img id="chat-photo-preview-img" src="" alt="">
+          <span class="chat-photo-preview-name" id="chat-photo-preview-name"></span>
+          <button class="chat-photo-preview-remove" id="chat-photo-remove" type="button">remove</button>
+        </div>
         <div class="chat-msg-row">
           <textarea class="chat-msg-input" id="chat-msg"
                     placeholder="where do you go to feel hopeful again?" maxlength="500"></textarea>
-          <button class="chat-send-btn" id="chat-send" onclick="sendMessage()">Send</button>
+          <div class="chat-msg-actions">
+            <button class="chat-photo-btn" id="chat-photo-btn" type="button" title="attach a photo">+</button>
+            <button class="chat-send-btn" id="chat-send" onclick="sendMessage()">Send</button>
+          </div>
+          <input type="file" id="chat-photo-input" accept="image/*" hidden>
         </div>
         <div class="chat-status" id="chat-status"></div>
       </div>
@@ -466,7 +536,9 @@ body.embed-mode .page-body { top: 0; }
 (function () {
   const SUPA_URL = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-  const TABLE    = 'chatroom';
+  const TABLE         = 'chatroom';
+  const PHOTO_BUCKET  = 'chat-pics';
+  const MAX_PHOTO_MB  = 8;
 
   const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -477,9 +549,10 @@ body.embed-mode .page-body { top: 0; }
     { slug: 'gratitude', title: 'gratitude',       prompt: 'why did you smile this week?' },
   ];
 
-  let currentUserId   = null;
-  let currentUsername = 'explorer';
-  let activeRoom       = ROOMS[0].slug;
+  let currentUserId    = null;
+  let currentUsername  = 'explorer';
+  let activeRoom        = ROOMS[0].slug;
+  let selectedPhotoFile = null;
 
   /* ─── Helpers ─── */
   function escapeHtml(str) {
@@ -498,8 +571,11 @@ body.embed-mode .page-body { top: 0; }
     const el      = document.createElement('div');
     el.className  = 'chat-message ' + (isMine ? 'mine' : 'theirs');
     el.dataset.id = msg.id;
+    const bubbleParts = [];
+    if (msg.image_url) bubbleParts.push(`<img src="${escapeHtml(msg.image_url)}" alt="shared photo" loading="lazy">`);
+    if (msg.message)   bubbleParts.push(`<div>${escapeHtml(msg.message)}</div>`);
     el.innerHTML = `
-      <div class="chat-bubble">${escapeHtml(msg.message)}</div>
+      <div class="chat-bubble">${bubbleParts.join('')}</div>
       <div class="chat-meta">${escapeHtml(msg.name || 'anonymous')} · ${formatTime(msg.created_at)}</div>
     `;
     return el;
@@ -577,32 +653,102 @@ body.embed-mode .page-body { top: 0; }
     }
   }
 
+  /* ─── Photo attach ─── */
+  function showPhotoPreview(file) {
+    const preview = document.getElementById('chat-photo-preview');
+    document.getElementById('chat-photo-preview-img').src  = URL.createObjectURL(file);
+    document.getElementById('chat-photo-preview-name').textContent = file.name;
+    preview.classList.add('showing');
+  }
+
+  function clearPhotoPreview() {
+    selectedPhotoFile = null;
+    document.getElementById('chat-photo-input').value = '';
+    document.getElementById('chat-photo-preview').classList.remove('showing');
+    document.getElementById('chat-photo-preview-img').src = '';
+  }
+
+  document.getElementById('chat-photo-btn').addEventListener('click', () => {
+    document.getElementById('chat-photo-input').click();
+  });
+
+  document.getElementById('chat-photo-input').addEventListener('change', (e) => {
+    const file   = e.target.files[0];
+    const statusEl = document.getElementById('chat-status');
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      statusEl.textContent = 'please choose an image file';
+      clearPhotoPreview();
+      return;
+    }
+    if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
+      statusEl.textContent = `photo must be under ${MAX_PHOTO_MB}MB`;
+      clearPhotoPreview();
+      return;
+    }
+    selectedPhotoFile = file;
+    showPhotoPreview(file);
+  });
+
+  document.getElementById('chat-photo-remove').addEventListener('click', clearPhotoPreview);
+
+  async function uploadChatPhoto(file) {
+    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${activeRoom}/${currentUserId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supa.storage.from(PHOTO_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw error;
+    const { data: pub } = supa.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+    if (!pub || !pub.publicUrl) throw new Error('could not resolve photo url');
+    return pub.publicUrl;
+  }
+
   /* ─── Send message ─── */
   window.sendMessage = async function () {
     const msgEl    = document.getElementById('chat-msg');
     const statusEl = document.getElementById('chat-status');
     const sendBtn  = document.getElementById('chat-send');
+    const photoBtn = document.getElementById('chat-photo-btn');
 
     const message = msgEl.value.trim();
-    if (!message) return;
+    if (!message && !selectedPhotoFile) return;
 
-    sendBtn.disabled = true;
+    sendBtn.disabled  = true;
+    photoBtn.disabled = true;
+
+    let imageUrl = null;
+    try {
+      if (selectedPhotoFile) {
+        statusEl.textContent = 'uploading photo…';
+        imageUrl = await uploadChatPhoto(selectedPhotoFile);
+      }
+    } catch (err) {
+      console.error('Chat photo upload error:', err);
+      statusEl.textContent = 'photo upload failed, try again';
+      sendBtn.disabled  = false;
+      photoBtn.disabled = false;
+      return;
+    }
 
     const { error } = await supa.from(TABLE).insert({
-      name:    currentUsername,
-      message: message,
-      user_id: currentUserId,
-      room:    activeRoom,
+      name:      currentUsername,
+      message:   message || null,
+      user_id:   currentUserId,
+      room:      activeRoom,
+      image_url: imageUrl,
     });
 
     if (error) {
       statusEl.textContent = 'something went wrong, try again';
-      sendBtn.disabled = false;
+      sendBtn.disabled  = false;
+      photoBtn.disabled = false;
       return;
     }
 
-    msgEl.value      = '';
-    sendBtn.disabled = false;
+    msgEl.value       = '';
+    statusEl.textContent = 'chatting as ' + currentUsername;
+    clearPhotoPreview();
+    sendBtn.disabled  = false;
+    photoBtn.disabled = false;
     msgEl.focus();
   };
 
