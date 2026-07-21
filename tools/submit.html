@@ -127,7 +127,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 <body>
 
 <nav class="room-nav">
-  <a class="nav-btn" href="../rooms/living-room.html">← back</a>
+  <a class="nav-btn" href="../rooms/salon.html">← back</a>
   <h1 class="nav-title">add a tool</h1>
   <span></span>
 </nav>
@@ -188,7 +188,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 
   <div class="rpg-panel" id="done-panel">
     <div class="section-header">thanks — this will appear once it's approved.</div>
-    <div class="section-sub" style="margin:0;">redirecting you back to the living room…</div>
+    <div class="section-sub" style="margin:0;">redirecting you back to the salon…</div>
   </div>
 
 </div>
@@ -363,7 +363,7 @@ async function submitTool() {
 
   document.getElementById('form-panel').closest('.wall').querySelectorAll('.rpg-panel').forEach(p => { if (p.id !== 'done-panel') p.style.display = 'none'; });
   document.getElementById('done-panel').style.display = 'block';
-  setTimeout(() => { window.location.href = '../rooms/living-room.html'; }, 1800);
+  setTimeout(() => { window.location.href = '../rooms/salon.html'; }, 1800);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

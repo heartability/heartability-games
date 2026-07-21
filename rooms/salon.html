@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
-<title>The Living Room — Heartability</title>
+<title>The Salon — Heartability</title>
 <meta name="description" content="Browse the Heartability tools library — a collective archive of coping tools, tagged by type, with places people use them.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
 <style>
@@ -251,7 +251,7 @@ html, body {
 <!-- TOP NAV -->
 <nav class="room-nav">
   <div id="gear-slot"></div>
-  <h1 class="nav-title">living room</h1>
+  <h1 class="nav-title">salon</h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
@@ -259,7 +259,7 @@ html, body {
       <a class="map-item" href="../rooms/game-room.html">game room</a>
       <a class="map-item" href="../rooms/patio.html">patio</a>
       <a class="map-item" href="../rooms/library.html">library</a>
-      <span class="map-item current">living room</span>
+      <span class="map-item current">salon</span>
     </div>
   </div>
 </nav>
@@ -338,7 +338,7 @@ async function fetchTools() {
   const { data, error } = await sb.from('tools').select('*')
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
-  if (error) { console.error('[living-room] tools fetch failed:', error); toolsCache = []; return; }
+  if (error) { console.error('[salon] tools fetch failed:', error); toolsCache = []; return; }
   toolsCache = data || [];
 }
 
@@ -346,7 +346,7 @@ async function fetchComments(toolId) {
   const { data, error } = await sb.from('tool_comments').select('*')
     .eq('tool_id', toolId)
     .order('created_at', { ascending: false });
-  if (error) { console.error('[living-room] comments fetch failed:', error); toolCommentsCache[toolId] = []; return; }
+  if (error) { console.error('[salon] comments fetch failed:', error); toolCommentsCache[toolId] = []; return; }
   toolCommentsCache[toolId] = data || [];
 }
 
@@ -481,7 +481,7 @@ async function submitComment(toolId) {
   const rating = ratingEl.value ? Number(ratingEl.value) : null;
   const username = await resolveUsername(currentUser);
   const { error } = await sb.from('tool_comments').insert({ tool_id: toolId, user_id: currentUser.id, username, comment_text, rating });
-  if (error) { console.error('[living-room] comment insert failed:', error); return; }
+  if (error) { console.error('[salon] comment insert failed:', error); return; }
   await fetchComments(toolId);
   render();
 }
