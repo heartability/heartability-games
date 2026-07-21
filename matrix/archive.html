@@ -527,6 +527,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .inv-card-noimg { display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; padding:4px; }
 .inv-card-name { font-size:15px; color:#3a2e1e; line-height:1.25; }
 .inv-card-badge { font-size:11px; color:#8a94c4; text-transform:uppercase; letter-spacing:.3px; }
+.inv-card.tool-slot img, .inv-card.tool-slot .inv-card-noimg { aspect-ratio:1/1; object-fit:contain; background:#eef0f9; }
 .inv-status-row { display:flex; gap:8px; align-items:center; margin-bottom:14px; }
 .inv-status-btn {
   background:var(--cream); border:1.5px solid #ccc; color:#777;
@@ -896,6 +897,13 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
           <div class="day-list-empty" id="inv-empty" style="display:none;">you haven't added anything to the library yet — visit <a href="../rooms/library.html" style="color:var(--purple);">the library</a> to add one</div>
         </div>
       </div>
+      <div class="window" id="inventory-tools-window" style="margin-top:16px;">
+        <div class="window-titlebar"><span>your tools</span></div>
+        <div class="window-body">
+          <div class="inv-grid" id="inv-tools-grid"></div>
+          <div class="day-list-empty" id="inv-tools-empty" style="display:none;">you haven't added any tools to your inventory yet — visit <a href="../rooms/salon.html" style="color:var(--purple);">the salon</a> to add one</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1201,6 +1209,7 @@ function switchTab(tab){
     loadArchetypeTab();
   } else if (tab==='inventory'){
     loadInventoryTab();
+    loadInventoryToolsTab();
   } else if (tab==='journal'){
     loadJournalTab();
   }
@@ -2343,6 +2352,103 @@ async function removeInvSave(saveId){
 
 function closeInvEntryPopup(){ document.getElementById('inv-entry-overlay').classList.remove('open'); }
 function handleInvEntryOverlayClick(e){ if (e.target === document.getElementById('inv-entry-overlay')) closeInvEntryPopup(); }
+
+// ── INVENTORY TAB: saved tools (tool_saves — this user's personal collection) ──
+let inventoryToolSaves = [];
+
+async function loadInventoryToolsTab(){
+  const grid = document.getElementById('inv-tools-grid');
+  const emptyEl = document.getElementById('inv-tools-empty');
+  emptyEl.style.display = 'none';
+  grid.innerHTML = '<div class="arch-picker-loading">gathering your tools…</div>';
+
+  const { data, error } = await sb.from('tool_saves')
+    .select('id, tool_id, tools(*)')
+    .eq('user_id', currentUser.id).order('created_at', { ascending:false });
+  if (error) console.error('[inventory] tool_saves fetch failed:', error);
+  inventoryToolSaves = data || [];
+  renderInventoryToolsGrid();
+}
+
+function renderInventoryToolsGrid(){
+  const grid = document.getElementById('inv-tools-grid');
+  const emptyEl = document.getElementById('inv-tools-empty');
+  grid.innerHTML = '';
+  if (!inventoryToolSaves.length){ emptyEl.style.display = 'block'; return; }
+  emptyEl.style.display = 'none';
+  inventoryToolSaves.forEach(row => {
+    const tool = row.tools || {};
+    const card = document.createElement('div');
+    card.className = 'inv-card tool-slot';
+    card.innerHTML = `${tool.icon_url ? `<img src="${escapeHtml(tool.icon_url)}" alt="">` : '<div class="inv-card-noimg">?</div>'}
+      <div class="inv-card-name">${escapeHtml(tool.title || 'untitled')}</div>
+      <div class="inv-card-badge">${escapeHtml(tool.tool_type || '')}</div>`;
+    card.onclick = () => openToolEntryPopup(row);
+    grid.appendChild(card);
+  });
+}
+
+// Popup: every dream/daily/cosmic matrix entry this tool was tagged to (via
+// that row's library_tool_ids — see the inventory step in dream.html /
+// daily.html / cosmic.html, and matrix-inventory.js). Reuses the same
+// #inv-entry-overlay the library window's popup uses.
+async function openToolEntryPopup(row){
+  const tool = row.tools || {};
+  document.getElementById('inv-entry-title').textContent = tool.title || 'untitled';
+  const list = document.getElementById('inv-entry-list');
+  const emptyEl = document.getElementById('inv-entry-empty');
+  const statusRow = document.getElementById('inv-entry-status-row');
+  emptyEl.style.display = 'none';
+  list.innerHTML = '<div class="day-list-empty">gathering entries…</div>';
+  statusRow.style.display = 'flex';
+  statusRow.innerHTML = `<button type="button" class="inv-entry-link" onclick="removeInvToolSave('${row.id}')">remove from inventory</button>`;
+  document.getElementById('inv-entry-overlay').classList.add('open');
+
+  const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
+    sb.from('dream_matrix')
+      .select('id, map_id, location_data, sidequest_data, map_phase, map_completed, created_at')
+      .eq('user_id', currentUser.id).contains('library_tool_ids', [row.tool_id]),
+    sb.from('daily_matrix')
+      .select('id, entry_date, location_data, created_at')
+      .eq('user_id', currentUser.id).contains('library_tool_ids', [row.tool_id]),
+    sb.from('cosmic_matrix')
+      .select('map_id, map_phase, location_data, updated_at')
+      .eq('user_id', currentUser.id).contains('library_tool_ids', [row.tool_id]),
+  ]);
+
+  const rows = [];
+  (dreamRes.data || []).forEach(r => rows.push({ source:'dream', dateVal:new Date(r.created_at), label:locationLabel(r), raw:r }));
+  (dailyRes.data || []).forEach(r => rows.push({ source:'daily', dateVal:new Date(r.entry_date + 'T00:00:00'), label:locationLabel(r), raw:r }));
+  (cosmicRes.data || []).forEach(r => rows.push({
+    source:'cosmic', dateVal:new Date(r.updated_at),
+    label: [r.location_data && r.location_data.sign, r.location_data && r.location_data.location].filter(Boolean).join(' · ') || 'a season',
+    raw:r,
+  }));
+  rows.sort((a,b) => b.dateVal - a.dateVal);
+
+  list.innerHTML = '';
+  if (!rows.length){ emptyEl.style.display = 'block'; return; }
+  rows.forEach(r => {
+    const badge = r.source==='dream' ? 'dream matrix' : r.source==='daily' ? 'daily tracker' : 'cosmic matrix';
+    const el = document.createElement('div');
+    el.className = 'loc-row';
+    el.innerHTML = `<span class="loc-name">${escapeHtml(r.label)} <span style="color:#bbb;font-size:11px;">· ${badge}</span></span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span class="loc-time">${r.dateVal.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+        <span class="loc-arrow">→</span>
+      </span>`;
+    el.onclick = () => jumpToInventoryRow(r);
+    list.appendChild(el);
+  });
+}
+
+async function removeInvToolSave(saveId){
+  const { error } = await sb.from('tool_saves').delete().eq('id', saveId);
+  if (error) { console.error('[inventory] tool remove failed:', error); return; }
+  inventoryToolSaves = inventoryToolSaves.filter(r => r.id !== saveId);
+  closeInvEntryPopup();
+  renderInventoryToolsGrid();
+}
 
 async function jumpToInventoryRow(row){
   closeInvEntryPopup();
