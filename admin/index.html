@@ -773,7 +773,7 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
           <div class="setting-row"><span class="setting-label">expires</span><span class="setting-value">${profile.membership_expires_at ? formatDate(profile.membership_expires_at) : '—'}</span></div>
           ${profile.stripe_customer_id ? `<div class="setting-row"><span class="setting-label">stripe</span><span class="setting-value"><a href="https://dashboard.stripe.com/customers/${profile.stripe_customer_id}" target="_blank" rel="noopener">view customer</a></span></div>` : ''}
           <div class="btn-row">
-            <button class="btn-action" onclick="compMembership('${account.id}','basic')">comp basic</button>
+            <button class="btn-action" onclick="compMembership('${account.id}','dream')">comp dream</button>
             <button class="btn-action" onclick="compMembership('${account.id}','founding')">comp founding</button>
             <button class="btn-action" onclick="downgradeMembership('${account.id}')">downgrade to free</button>
             <button class="btn-action" onclick="resendWelcome('${account.id}')">resend welcome email</button>

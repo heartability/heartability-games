@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       case "comp_membership": {
         const tier = body.tier;
         const months = Number.isFinite(body.months) ? body.months : 12;
-        if (tier !== "basic" && tier !== "founding") return jsonError(400, "tier must be 'basic' or 'founding'.");
+        if (tier !== "dream" && tier !== "founding") return jsonError(400, "tier must be 'dream' or 'founding'.");
 
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + months);

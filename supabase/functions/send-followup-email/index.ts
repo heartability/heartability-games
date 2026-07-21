@@ -18,7 +18,7 @@ serve(async (_req) => {
   const { data: users, error } = await sb
     .from('user-profiles')
     .select('id, email')
-    .in('membership_status', ['basic', 'founding'])
+    .in('membership_status', ['dream', 'founding'])
     .eq('followup_email_sent', false)
     .gte('created_at', start.toISOString())
     .lte('created_at', end.toISOString())

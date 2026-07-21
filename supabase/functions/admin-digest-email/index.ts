@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     const tickets = ticketsRes.data ?? [];
     const bugs = bugsRes.data ?? [];
 
-    const membershipCounts: Record<string, number> = { free: 0, basic: 0, founding: 0, other: 0 };
+    const membershipCounts: Record<string, number> = { free: 0, dream: 0, founding: 0, other: 0 };
     for (const p of allProfilesRes.data ?? []) {
       const status = p.membership_status || "free";
       if (status in membershipCounts) membershipCounts[status]++;
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       <p style="color:#555;">Covering the last ${lookbackHours} hours.</p>
       <h3 style="margin:20px 0 8px;">Snapshot</h3>
       <ul style="margin:0;padding-left:18px;">
-        <li>${totalUsers} total users (free: ${membershipCounts.free}, basic: ${membershipCounts.basic}, founding: ${membershipCounts.founding})</li>
+        <li>${totalUsers} total users (free: ${membershipCounts.free}, dream: ${membershipCounts.dream}, founding: ${membershipCounts.founding})</li>
         <li>${openTickets} open support tickets</li>
         <li>${openBugs} open bug reports</li>
       </ul>

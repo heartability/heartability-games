@@ -324,6 +324,32 @@ const CATEGORY_META = {
   visual: { label: 'visual media', types: ['movie', 'tv'] },
 };
 
+// terrain -> terrain category, matching games/treasure-map.html's TERRAIN list
+const TERRAIN_CATEGORY_MAP = {
+  pond: 'water', waterfall: 'water', spring: 'water', river: 'water', ocean: 'water', glacier: 'water',
+  marsh: 'barriers', dunes: 'barriers', mountains: 'barriers', cave: 'barriers', cliff: 'barriers', maze: 'barriers',
+  plateau: 'landscapes', valley: 'landscapes', meadow: 'landscapes', jungle: 'landscapes', island: 'landscapes', forest: 'landscapes',
+};
+const TERRAIN_CATEGORIES = [
+  { id: 'water', label: 'water' },
+  { id: 'barriers', label: 'barriers' },
+  { id: 'landscapes', label: 'landscapes' },
+];
+
+// feeling -> emotional climate, matching games/treasure-map.html's WEATHER list
+const FEELING_CLIMATE_MAP = {
+  trust: 'sunny', peace: 'sunny', joy: 'sunny', hope: 'sunny', confidence: 'sunny', truth: 'sunny', stability: 'sunny', acceptance: 'sunny', pressure: 'sunny', confrontation: 'sunny', temptation: 'sunny', reclamation: 'sunny', redemption: 'sunny', reunion: 'sunny',
+  shadows: 'rainy', worry: 'rainy', fear: 'rainy', depression: 'rainy', regret: 'rainy', confusion: 'rainy', boredom: 'rainy', loneliness: 'rainy', grief: 'rainy', sadness: 'rainy', betrayal: 'rainy', reckoning: 'rainy', surrender: 'rainy',
+  surprise: 'windy', curiosity: 'windy', inspiration: 'windy', excitement: 'windy', courage: 'windy', progress: 'windy', chaos: 'windy', disruption: 'windy', departure: 'windy', initiation: 'windy', crossroads: 'windy', unraveling: 'windy', rebirth: 'windy', release: 'windy',
+  anger: 'snowy', avoidance: 'snowy', bitterness: 'snowy', apathy: 'snowy', shock: 'snowy', stillness: 'snowy', quiet: 'snowy', melancholy: 'snowy', isolation: 'snowy', abandonment: 'snowy', exile: 'snowy', descent: 'snowy', 'self-confrontation': 'snowy',
+};
+const CLIMATE_CATEGORIES = [
+  { id: 'sunny', label: 'sunny' },
+  { id: 'rainy', label: 'rainy' },
+  { id: 'windy', label: 'windy' },
+  { id: 'snowy', label: 'snowy' },
+];
+
 let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all' };
 const publicCache = {};       // category -> rows from media_submissions_public
 const catalogCache = {};      // category -> rows from media_catalog_public (every title, reviewed or not)
@@ -399,15 +425,18 @@ function cardAvgRating(card) {
   if (!vals.length) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
-function cardHasTerrain(card, terrain) { return card.submissions.some(s => zonesOf(s).some(z => z.terrain === terrain)); }
-function cardHasFeeling(card, feeling) { return card.submissions.some(s => zonesOf(s).some(z => z.feeling === feeling)); }
+function cardHasTerrain(card, terrainCat) { return card.submissions.some(s => zonesOf(s).some(z => TERRAIN_CATEGORY_MAP[z.terrain] === terrainCat)); }
+function cardHasFeeling(card, climateCat) { return card.submissions.some(s => zonesOf(s).some(z => FEELING_CLIMATE_MAP[z.feeling] === climateCat)); }
 function computeFacets(cards) {
-  const terrains = new Set(), feelings = new Set();
+  const terrainCats = new Set(), climateCats = new Set();
   cards.forEach(c => c.submissions.forEach(s => zonesOf(s).forEach(z => {
-    if (z.terrain) terrains.add(z.terrain);
-    if (z.feeling) feelings.add(z.feeling);
+    const tc = TERRAIN_CATEGORY_MAP[z.terrain]; if (tc) terrainCats.add(tc);
+    const cc = FEELING_CLIMATE_MAP[z.feeling]; if (cc) climateCats.add(cc);
   })));
-  return { terrains: [...terrains].sort(), feelings: [...feelings].sort() };
+  return {
+    terrains: TERRAIN_CATEGORIES.filter(t => terrainCats.has(t.id)),
+    feelings: CLIMATE_CATEGORIES.filter(c => climateCats.has(c.id)),
+  };
 }
 function filteredCards(cards) {
   return cards.filter(c => {
@@ -450,11 +479,11 @@ function buildPublicGridHtml() {
   const filterHtml = `<div class="lib-filters">
     <select onchange="setTerrainFilter(this.value)">
       <option value="">any terrain</option>
-      ${facets.terrains.map(t => `<option value="${t}" ${libState.filterTerrain === t ? 'selected' : ''}>${t}</option>`).join('')}
+      ${facets.terrains.map(t => `<option value="${t.id}" ${libState.filterTerrain === t.id ? 'selected' : ''}>${t.label}</option>`).join('')}
     </select>
     <select onchange="setFeelingFilter(this.value)">
       <option value="">any climate</option>
-      ${facets.feelings.map(f => `<option value="${f}" ${libState.filterFeeling === f ? 'selected' : ''}>${f}</option>`).join('')}
+      ${facets.feelings.map(f => `<option value="${f.id}" ${libState.filterFeeling === f.id ? 'selected' : ''}>${f.label}</option>`).join('')}
     </select>
     <select onchange="setMinRating(this.value)">
       <option value="0" ${libState.minRating == 0 ? 'selected' : ''}>any rating</option>
