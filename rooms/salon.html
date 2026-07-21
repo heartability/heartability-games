@@ -439,6 +439,7 @@ function buildDetailHtml() {
   return backBtn + `
     <div class="tl-detail-title">${_escapeHtml(tool.title)}</div>
     <div class="tl-detail-type">${_escapeHtml(tool.tool_type)}</div>
+    ${tool.author_name ? `<div class="tl-detail-fact">added by ${_escapeHtml(tool.author_name)}</div>` : ''}
     <div class="tl-detail-fact">${_escapeHtml(tool.summary)}</div>
     ${tool.favorite_brands ? `<div class="tl-detail-fact">favorite brands: ${_escapeHtml(tool.favorite_brands)}</div>` : ''}
     ${avg ? `<div class="tl-detail-fact">average rating: ${'★'.repeat(Math.round(avg))} (${avg.toFixed(1)})</div>` : ''}
