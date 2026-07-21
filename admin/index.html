@@ -526,10 +526,10 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
   let activeType = 'all';
 
   function populateFilterOptions() {
-    document.querySelectorAll('.type-tab').forEach((btn) => {
+    document.querySelectorAll('#type-tabs .type-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeType = btn.dataset.type;
-        document.querySelectorAll('.type-tab').forEach((b) => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('#type-tabs .type-tab').forEach((b) => b.classList.toggle('active', b === btn));
         fillSelect('filter-status', STATUS_OPTIONS[activeType], 'any status');
         fillSelect('filter-category', CATEGORY_OPTIONS[activeType], 'any category');
         loadInbox();
@@ -943,13 +943,17 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     const statusEl = document.getElementById('tool-icon-status');
     if (statusEl) statusEl.textContent = 'uploading…';
     try {
-      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
-      const path = `${toolId}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await sb.storage.from('tool-icons').upload(path, file, { contentType: file.type, upsert: false });
-      if (upErr) throw upErr;
-      const { data: pub } = sb.storage.from('tool-icons').getPublicUrl(path);
-      const icon_url = pub?.publicUrl;
-      await callFn('admin-set-tool-icon', { id: toolId, icon_url });
+      const form = new FormData();
+      form.append('id', toolId);
+      form.append('file', file);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-upload-tool-icon`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${accessToken}` },
+        body: form,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || `upload failed [${res.status}]`);
+      const icon_url = json.icon_url;
       const item = toolsItems.find((t) => t.id === toolId);
       if (item) item.icon_url = icon_url;
       if (selectedTool && selectedTool.id === toolId) selectedTool.icon_url = icon_url;
