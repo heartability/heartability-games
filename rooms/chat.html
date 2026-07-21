@@ -32,9 +32,9 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   background-image: url('../assets/elements/patio-sky.png');
-  background-size: auto;
+  background-size: cover;
   background-position: center;
-  background-repeat: repeat;
+  background-repeat: no-repeat;
   font-family: var(--font-hand);
   user-select: none;
 }
@@ -87,6 +87,28 @@ html, body {
   text-align: left; white-space: nowrap; transition: background 0.12s;
 }
 .gear-item:hover { background: rgba(0,0,0,0.07); }
+
+/* ── Map dropdown ── */
+.map-wrap { position: relative; }
+.map-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
+}
+.map-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
+  background: #6e83d3; border: 2px solid var(--line-col);
+  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
+  z-index: 201; display: none; flex-direction: column; overflow: hidden;
+}
+.map-dropdown.open { display: flex; }
+.map-item {
+  display: block;
+  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
+  padding: 9px 14px; cursor: pointer; border: none; background: none;
+  text-align: left; white-space: nowrap; transition: background 0.12s;
+  text-decoration: none;
+}
+.map-item:hover { background: rgba(0,0,0,0.07); }
 
 /* ─────────────────────────────────────────────────
    PAGE LAYOUT
@@ -302,7 +324,7 @@ body.embed-mode .page-body { top: 0; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #ede8e0;
+  background: #bbbbbb;
 }
 
 .chat-as-label {
@@ -394,9 +416,15 @@ body.embed-mode .page-body { top: 0; }
     </div>
   </div>
   <span class="nav-title">chat room</span>
-  <div style="display:flex;align-items:center;gap:4px;">
-    <a class="nav-btn" id="nav-back" href="../rooms/bed.html">← back</a>
-    <a class="nav-btn" id="nav-next" href="../index.html">next →</a>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../rooms/bed.html">bedroom</a>
+      <a class="map-item" href="../rooms/game-room.html">game room</a>
+      <a class="map-item" href="../rooms/patio.html">patio</a>
+      <a class="map-item" href="../rooms/library.html">library</a>
+      <a class="map-item" href="../rooms/living-room.html">living room</a>
+    </div>
   </div>
 </nav>
 
@@ -609,7 +637,15 @@ body.embed-mode .page-body { top: 0; }
       document.getElementById('gear-dropdown').classList.remove('open');
     }
   });
-  document.getElementById('nav-back').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
+  document.getElementById('map-btn').addEventListener('click', () => {
+    document.getElementById('map-dropdown').classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    const mw = document.getElementById('map-wrap');
+    if (mw && !mw.contains(e.target)) {
+      document.getElementById('map-dropdown').classList.remove('open');
+    }
+  });
   document.getElementById('gear-logout').addEventListener('click', async () => {
     await supa.auth.signOut();
     window.location.href = '../users/login.html';
@@ -622,18 +658,22 @@ body.embed-mode .page-body { top: 0; }
     }
 
     const { data: { session } } = await supa.auth.getSession();
-    if (!session) {
+    if (!session && new URLSearchParams(location.search).get('devpreview') !== '1') {
       window.location.href = '../users/login.html';
       return;
     }
-    currentUserId = session.user.id;
+    currentUserId = session ? session.user.id : 'dev-preview';
 
-    const { data: profile } = await supa
-      .from('user-profiles')
-      .select('username')
-      .eq('id', currentUserId)
-      .single();
-    currentUsername = (profile && profile.username) || 'explorer';
+    if (session) {
+      const { data: profile } = await supa
+        .from('user-profiles')
+        .select('username')
+        .eq('id', currentUserId)
+        .single();
+      currentUsername = (profile && profile.username) || 'explorer';
+    } else {
+      currentUsername = 'preview-user';
+    }
     document.getElementById('chat-status').textContent = 'chatting as ' + currentUsername;
 
     renderSidebar();
