@@ -243,26 +243,28 @@ html, body {
 .lib-comment-ratings { font-family: var(--font-hand); font-size: 13px; color: #8a7a00; }
 .link-btn { background: none; border: none; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; text-align: left; align-self: flex-start; }
 
-/* ── SAVE-A-TITLE PANEL (bookmark to_read/done, no review) ── */
-.lib-save-panel { display: flex; flex-direction: column; gap: 12px; }
-.lib-save-toggle { display: flex; gap: 8px; }
-.lib-save-mode-btn { font-family: var(--font-hand); font-size: var(--tl-font-btn); padding: 6px 14px; background: #eee; border: 2px solid #ccc; cursor: pointer; color: #555; }
-.lib-save-mode-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-.lib-save-search-row { display: flex; gap: 8px; }
-.lib-save-input { flex: 1; font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 6px 10px; border: 2px solid #ccc; }
+/* ── story-arc editor "save" button (search-and-bookmark panel was removed
+   in favor of the quick-save button below) ── */
 .lib-save-btn { font-family: var(--font-hand); font-size: var(--tl-font-btn); padding: 6px 14px; background: var(--blue); color: #fff; border: 2px solid var(--blue); cursor: pointer; }
 .lib-save-btn:hover { opacity: .85; }
 .lib-save-btn:disabled { opacity: .5; cursor: not-allowed; }
-.lib-save-status { font-family: var(--font-hand); font-size: 14px; color: #888; }
-.lib-save-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
-.lib-save-result-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
-.lib-save-result-card img, .lib-save-result-noimg { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #ddd; border: 2px solid #ccc; }
-.lib-save-result-title { font-family: var(--font-hand); font-size: 12px; color: #333; line-height: 1.2; }
-.lib-save-selected { display: flex; gap: 10px; align-items: center; padding: 8px; background: #f4f4f4; border: 2px solid var(--blue); }
-.lib-save-selected img, .lib-save-selected .lib-card-noimg { width: 44px; height: 64px; object-fit: cover; background: #ddd; flex-shrink: 0; }
-.lib-save-manual { display: flex; flex-direction: column; gap: 8px; }
-.lib-save-manual input, .lib-save-manual select { font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 6px 10px; border: 2px solid #ccc; }
 .lib-save-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1.5px solid #ddd; }
+
+/* ── quick-save (bookmark a title to read later, straight from its detail page) ── */
+.lib-quicksave-btn {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-family: var(--font-hand); font-size: var(--tl-font-control); color: #333;
+}
+.lib-quicksave-circle {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--blue); color: var(--blue); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1;
+  transition: all 0.05s;
+}
+.lib-quicksave-btn:hover .lib-quicksave-circle { background: #e8ecf9; }
+.lib-quicksave-btn.saved .lib-quicksave-circle { background: var(--blue); color: #fff; }
 
 @media (max-width: 480px) {
   .lib-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
@@ -383,34 +385,10 @@ html, body {
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1/media-search`;
 const MEDIA_COVER_BUCKET = 'media-covers';
 let currentUser = null;
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function parseYear(v) { const n = parseInt(String(v || '').trim(), 10); return Number.isFinite(n) ? n : null; }
-
-async function _fetchJSON(url, timeoutMs) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    return await res.json();
-  } finally {
-    clearTimeout(t);
-  }
-}
-// Same cold-start-tolerant retry as matrix/media.html's search — a slow first
-// attempt (usually a cold Supabase Edge Function) gets one automatic retry
-// with a longer timeout instead of hanging on "searching…" forever.
-async function _fetchJSONWithRetry(url) {
-  try {
-    return await _fetchJSON(url, 8000);
-  } catch (e) {
-    if (e.name !== 'AbortError') throw e;
-    return await _fetchJSON(url, 15000);
-  }
-}
 
 const CATEGORY_META = {
   book:   { label: 'textual media',   types: ['book', 'essay', 'other'] },
@@ -443,7 +421,7 @@ const CLIMATE_CATEGORIES = [
   { id: 'snowy', label: 'snowy' },
 ];
 
-let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false, storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
+let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
 const publicCache = {};       // category -> rows from media_submissions_public
 const catalogCache = {};      // category -> rows from media_catalog_public (every title, reviewed or not)
 let privateAllCache = null;   // all of the current user's own submissions (any category)
@@ -670,10 +648,39 @@ function detailPosterAndSubtitle(info, mediaId) {
     ? `<img class="detail-poster aspect-cover" src="${_escapeHtml(cover)}" alt="">`
     : `<div class="detail-poster-noimg aspect-cover">${uploadPrompt || '?'}</div>`;
   const subtitleHtml = `<div class="detail-subtitle-row">
-    ${info?.release_year ? `<span class="detail-fact">released ${_escapeHtml(String(info.release_year))}</span>` : ''}
     ${info?.author ? `<span class="detail-fact">${authorLabel}: <a href="#" class="lib-author-link" data-author="${_escapeHtml(info.author)}" data-type="${_escapeHtml(mediaType || '')}">${_escapeHtml(info.author)}</a></span>` : ''}
+    ${info?.release_year ? `<span class="detail-fact">released ${_escapeHtml(String(info.release_year))}</span>` : ''}
   </div>`;
-  return { posterHtml, subtitleHtml };
+  const isSaved = !!(mediaId && (privateSavesCache || []).some(r => r.media_id === mediaId));
+  const saveHtml = (currentUser && mediaId) ? `<button type="button" class="lib-quicksave-btn ${isSaved ? 'saved' : ''}" onclick="toggleQuickSave('${mediaId}')">
+    <span class="lib-quicksave-circle">${isSaved ? '✓' : '+'}</span><span>${isSaved ? 'saved' : 'save'}</span>
+  </button>` : '';
+  return { posterHtml, subtitleHtml, saveHtml };
+}
+
+// Bookmarks/unbookmarks the media being viewed straight from its detail page —
+// no search step, since we already know its media_id. Always saves as
+// "to_read"; status can still be flipped to "done" from the my-shelf saved-item view.
+async function toggleQuickSave(mediaId) {
+  if (!currentUser) { window.location.href = '../users/login.html'; return; }
+  const existing = (privateSavesCache || []).find(r => r.media_id === mediaId);
+  try {
+    if (existing) {
+      const { error } = await sb.from('media_saves').delete().eq('id', existing.id);
+      if (error) throw error;
+      privateSavesCache = (privateSavesCache || []).filter(r => r.id !== existing.id);
+    } else {
+      const { data, error } = await sb.from('media_saves')
+        .insert({ user_id: currentUser.id, media_id: mediaId, status: 'to_read' })
+        .select('*, media(*)').single();
+      if (error) throw error;
+      privateSavesCache = [data, ...(privateSavesCache || [])];
+    }
+    render();
+  } catch (e) {
+    console.error('[library] quick save toggle failed:', e);
+    HGModal.alert('oops', "couldn't update that — try again");
+  }
 }
 
 function pooledZoneTags(rows) {
@@ -727,12 +734,13 @@ function buildDetailHtml() {
       const addCta = currentUser
         ? `<div class="lib-add-cta"><a href="../matrix/media.html?media=${encodeURIComponent(catalogRow.media_id)}">+ add your own take on this</a></div>`
         : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
-      const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(catalogRow, id);
+      const { posterHtml, subtitleHtml, saveHtml } = detailPosterAndSubtitle(catalogRow, id);
       return backBtn + `<div class="detail-layout">
         <div>${posterHtml}</div>
         <div class="detail-main">
           <div class="detail-title">${_escapeHtml(catalogRow.title)}</div>
           ${subtitleHtml}
+          ${saveHtml}
           <div class="lib-empty">nobody has reviewed this yet</div>
           ${addCta}
           ${buildArcSectionHtml(id)}
@@ -751,12 +759,13 @@ function buildDetailHtml() {
       ${r.story_arc_map_data ? `<div class="lib-comment-zones">story arc — ${summarizeZones(r.story_arc_map_data)}</div>` : ''}
       ${ratingsLine(r) ? `<div class="lib-comment-ratings">${ratingsLine(r)}</div>` : ''}
     </div>`).join('');
-    const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(rows[0], id);
+    const { posterHtml, subtitleHtml, saveHtml } = detailPosterAndSubtitle(rows[0], id);
     return backBtn + `<div class="detail-layout">
       <div>${posterHtml}</div>
       <div class="detail-main">
         <div class="detail-title">${_escapeHtml(title)}</div>
         ${subtitleHtml}
+        ${saveHtml}
         ${detailTagsPanelHtml(rows)}
         ${addCta}
         ${buildArcSectionHtml(id)}
@@ -788,230 +797,6 @@ function buildDetailHtml() {
       <div class="detail-sidebar">${detailRatingsPanelHtml(rows)}</div>
     </div>`;
   }
-}
-
-// ── SAVE-A-TITLE PANEL ──────────────────────────────────────────────────
-// Bookmarks a title as to_read/done straight from the library room, with no
-// review attached (about sentence / reading map / ratings). That full review
-// flow lives only in matrix/media.html — this panel never touches it.
-let saveSearchMode = 'book';
-let saveSelectedMedia = null; // { title, media_type, external_id, external_source, cover_url/poster, canonical_link, author, year }
-let saveManualCoverUrl = null;
-let saveManualOpen = false;
-let saveBusy = false;
-
-function openSavePanel() {
-  saveSearchMode = 'book'; saveSelectedMedia = null; saveManualCoverUrl = null; saveManualOpen = false; saveBusy = false;
-  libState.showSavePanel = true;
-  libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null;
-  render();
-}
-function closeSavePanel() { libState.showSavePanel = false; render(); }
-
-function setSaveSearchMode(mode) {
-  saveSearchMode = mode;
-  document.querySelectorAll('.lib-save-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  document.getElementById('libSaveResults').innerHTML = '';
-  document.getElementById('libSaveSearchInput').value = '';
-}
-
-function toggleSaveManualEntry() {
-  saveManualOpen = !saveManualOpen;
-  saveSelectedMedia = null;
-  render();
-}
-
-async function runSaveSearch() {
-  const q = document.getElementById('libSaveSearchInput').value.trim();
-  const resultsEl = document.getElementById('libSaveResults');
-  if (q.length < 2) { resultsEl.innerHTML = '<div class="lib-save-status">type at least 2 characters first.</div>'; return; }
-  const goBtn = document.getElementById('libSaveSearchBtn');
-  goBtn.disabled = true; goBtn.textContent = 'searching…';
-  resultsEl.innerHTML = '<div class="lib-save-status">searching…</div>';
-  try {
-    let items = [];
-    if (saveSearchMode === 'book') {
-      const data = await _fetchJSONWithRetry(`${SUPABASE_FUNCTIONS_URL}?type=book&q=${encodeURIComponent(q)}`);
-      if (data.error) { resultsEl.innerHTML = '<div class="lib-save-status">search isn\'t working right now — enter it manually below.</div>'; return; }
-      items = (data.items || []).map(it => {
-        const info = it.volumeInfo || {};
-        const isbn = (info.industryIdentifiers || []).find(id => id.type === 'ISBN_13') || (info.industryIdentifiers || [])[0];
-        return {
-          title: info.title || 'untitled',
-          year: (info.publishedDate || '').slice(0, 4),
-          poster: info.imageLinks?.thumbnail?.replace('http://', 'https://') || null,
-          media_type: 'book',
-          author: (info.authors || []).join(', ') || null,
-          external_id: isbn?.identifier || it.id,
-          external_source: 'google_books',
-          canonical_link: info.infoLink || null,
-        };
-      }).slice(0, 8);
-    } else {
-      const data = await _fetchJSONWithRetry(`${SUPABASE_FUNCTIONS_URL}?q=${encodeURIComponent(q)}`);
-      if (data.error) { resultsEl.innerHTML = '<div class="lib-save-status">search isn\'t working right now — enter it manually below.</div>'; return; }
-      items = (Array.isArray(data) ? data : []).map(it => ({
-        title: it.title, year: it.year,
-        poster: it.poster && it.poster !== 'N/A' ? it.poster : null,
-        media_type: 'movie',
-        external_id: it.imdb_id, external_source: 'omdb',
-        canonical_link: it.imdb_id ? `https://www.imdb.com/title/${it.imdb_id}/` : null,
-      })).slice(0, 8);
-    }
-    if (!items.length) { resultsEl.innerHTML = '<div class="lib-save-status">no matches — try a different search, or enter it manually below.</div>'; return; }
-    resultsEl.innerHTML = `<div class="lib-save-results">${items.map((item, i) => `<div class="lib-save-result-card" data-idx="${i}">
-      ${item.poster ? `<img src="${_escapeHtml(item.poster)}" alt="">` : '<div class="lib-save-result-noimg"></div>'}
-      <div class="lib-save-result-title">${_escapeHtml(item.title)}${item.year ? ` (${_escapeHtml(item.year)})` : ''}</div>
-    </div>`).join('')}</div>`;
-    resultsEl.querySelectorAll('.lib-save-result-card').forEach(card => {
-      card.addEventListener('click', () => selectSaveResult(items[Number(card.dataset.idx)]));
-    });
-  } catch (e) {
-    console.error('[library save search] failed:', e);
-    resultsEl.innerHTML = '<div class="lib-save-status">search isn\'t working right now — enter it manually below.</div>';
-  } finally {
-    goBtn.disabled = false; goBtn.textContent = 'search';
-  }
-}
-
-function selectSaveResult(item) {
-  saveSelectedMedia = { ...item };
-  saveManualOpen = false;
-  render();
-}
-
-async function onSaveCoverPicked(event) {
-  const file = event.target.files?.[0];
-  if (!file || !currentUser) return;
-  const statusEl = document.getElementById('libSaveCoverStatus');
-  if (statusEl) statusEl.textContent = 'uploading…';
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const path = `${currentUser.id}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await sb.storage.from(MEDIA_COVER_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-    if (error) throw error;
-    const { data: pub } = sb.storage.from(MEDIA_COVER_BUCKET).getPublicUrl(path);
-    saveManualCoverUrl = pub?.publicUrl || null;
-    if (statusEl) statusEl.textContent = 'photo attached ✓';
-  } catch (e) {
-    console.error('[library save cover] failed:', e);
-    if (statusEl) statusEl.textContent = "couldn't upload — try again";
-  }
-}
-
-function currentSaveTitle() {
-  return saveManualOpen
-    ? document.getElementById('libSaveManualTitle').value.trim()
-    : (saveSelectedMedia?.title || document.getElementById('libSaveSearchInput').value.trim());
-}
-
-// Looks for a `media` row that's already the same book/movie before creating a new
-// one — external_id+external_source is an exact match for anything from search;
-// manual entries (no external id) fall back to a title(+author) match so re-typing
-// a title someone already added doesn't spawn a duplicate.
-async function findExistingMediaId(mediaRow) {
-  try {
-    if (mediaRow.external_id && mediaRow.external_source) {
-      const { data } = await sb.from('media').select('id')
-        .eq('external_id', mediaRow.external_id).eq('external_source', mediaRow.external_source).limit(1);
-      if (data?.[0]) return data[0].id;
-    } else if (mediaRow.title) {
-      let q = sb.from('media').select('id').ilike('title', mediaRow.title).eq('media_type', mediaRow.media_type);
-      if (mediaRow.author) q = q.ilike('author', mediaRow.author);
-      const { data } = await q.limit(1);
-      if (data?.[0]) return data[0].id;
-    }
-  } catch (e) { console.error('[library] existing-media lookup failed:', e); }
-  return null;
-}
-
-async function saveTitle(status) {
-  if (saveBusy) return;
-  const title = currentSaveTitle();
-  if (!title) { HGModal.alert('hold on', 'add a title first.'); return; }
-  saveBusy = true;
-  document.querySelectorAll('.lib-save-actions .lib-save-btn').forEach(b => b.disabled = true);
-
-  const mediaRow = saveManualOpen ? {
-    title,
-    author: document.getElementById('libSaveManualAuthor').value.trim() || null,
-    media_type: document.getElementById('libSaveManualType').value,
-    external_id: null, external_source: null,
-    cover_url: saveManualCoverUrl,
-    canonical_link: document.getElementById('libSaveManualLink').value.trim() || null,
-    release_year: parseYear(document.getElementById('libSaveManualYear').value),
-  } : {
-    title,
-    author: saveSelectedMedia?.author || null,
-    media_type: saveSelectedMedia?.media_type || 'other',
-    external_id: saveSelectedMedia?.external_id || null,
-    external_source: saveSelectedMedia?.external_source || null,
-    cover_url: saveSelectedMedia?.cover_url || saveSelectedMedia?.poster || null,
-    canonical_link: saveSelectedMedia?.canonical_link || null,
-    release_year: parseYear(saveSelectedMedia?.year),
-  };
-
-  try {
-    let mediaId = await findExistingMediaId(mediaRow);
-    if (!mediaId) {
-      const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
-      if (mErr) throw mErr;
-      mediaId = media.id;
-    }
-    const { error: sErr } = await sb.from('media_saves').insert({ user_id: currentUser.id, media_id: mediaId, status });
-    if (sErr) throw sErr;
-    await fetchPrivateSaves();
-    libState.showSavePanel = false;
-    render();
-  } catch (e) {
-    console.error('[library save title] failed:', e);
-    HGModal.alert('oops', "couldn't save that — try again");
-    saveBusy = false;
-    document.querySelectorAll('.lib-save-actions .lib-save-btn').forEach(b => b.disabled = false);
-  }
-}
-
-function buildSavePanelHtml() {
-  const backBtn = `<button type="button" class="link-btn" onclick="closeSavePanel()">← back to list</button>`;
-  const selectedHtml = saveSelectedMedia ? `<div class="lib-save-selected">
-    ${saveSelectedMedia.cover_url || saveSelectedMedia.poster ? `<img src="${_escapeHtml(saveSelectedMedia.cover_url || saveSelectedMedia.poster)}" alt="">` : '<div class="lib-card-noimg"></div>'}
-    <div>${_escapeHtml(saveSelectedMedia.title)}${saveSelectedMedia.author ? `<div style="font-size:13px;color:#888;">${_escapeHtml(saveSelectedMedia.author)}</div>` : ''}</div>
-  </div>` : '';
-  const manualHtml = saveManualOpen ? `<div class="lib-save-manual">
-    <input id="libSaveManualTitle" type="text" placeholder="title">
-    <input id="libSaveManualAuthor" type="text" placeholder="author / director (optional)">
-    <input id="libSaveManualYear" type="text" inputmode="numeric" placeholder="year released (optional)">
-    <select id="libSaveManualType">
-      <option value="book">book</option>
-      <option value="movie">movie</option>
-      <option value="tv">tv</option>
-      <option value="other">other</option>
-    </select>
-    <input id="libSaveManualLink" type="text" placeholder="link (optional)">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <label class="lib-save-btn" style="cursor:pointer;">upload cover photo<input type="file" accept="image/*" hidden onchange="onSaveCoverPicked(event)"></label>
-      <span id="libSaveCoverStatus" style="font-family:var(--font-hand);font-size:13px;color:#888;"></span>
-    </div>
-  </div>` : '';
-  return backBtn + `<div class="lib-save-panel">
-    <div class="lib-detail-title" style="font-size:19px;">save a title to your list</div>
-    <div class="lib-save-toggle">
-      <button type="button" class="lib-save-mode-btn active" data-mode="book" onclick="setSaveSearchMode('book')">book</button>
-      <button type="button" class="lib-save-mode-btn" data-mode="movie" onclick="setSaveSearchMode('movie')">movie / tv</button>
-    </div>
-    <div class="lib-save-search-row">
-      <input id="libSaveSearchInput" class="lib-save-input" type="text" placeholder="type a title…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();runSaveSearch();}">
-      <button type="button" id="libSaveSearchBtn" class="lib-save-btn" onclick="runSaveSearch()">search</button>
-    </div>
-    <div id="libSaveResults"></div>
-    ${selectedHtml}
-    <button type="button" class="link-btn" style="margin:0;" onclick="toggleSaveManualEntry()">${saveManualOpen ? 'use search instead' : "can't find it? enter it manually"}</button>
-    ${manualHtml}
-    <div class="lib-save-actions">
-      <button type="button" class="lib-save-btn" onclick="saveTitle('to_read')">+ to be read</button>
-      <button type="button" class="lib-save-btn" onclick="saveTitle('done')">+ already read/watched</button>
-    </div>
-  </div>`;
 }
 
 function buildSaveDetailHtml() {
@@ -1066,16 +851,11 @@ function buildBodyHtml() {
   const addLink = currentUser
     ? `<a class="lib-add-top" href="../matrix/media.html">+ add an entry</a>`
     : `<a class="lib-add-top" href="../users/login.html">log in to add an entry</a>`;
-  const saveLink = (currentUser && libState.tab === 'private')
-    ? `<a class="lib-add-top" href="#" onclick="event.preventDefault(); openSavePanel();">+ save a title</a>`
-    : '';
   const tabsHtml = `<div class="lib-tabs">
     <button class="lib-tab-btn ${libState.tab === 'public' ? 'active' : ''}" onclick="switchTab('public')">collective library</button>
     <button class="lib-tab-btn ${libState.tab === 'private' ? 'active' : ''}" onclick="switchTab('private')">my shelf</button>
-    ${saveLink}
     ${addLink}
   </div>`;
-  if (libState.showSavePanel) return tabsHtml + buildSavePanelHtml();
   if (libState.authorFilter) return tabsHtml + buildAuthorBrowseHtml();
   if (libState.detailSaveId) return tabsHtml + buildSaveDetailHtml();
   if (libState.detailMediaId) return tabsHtml + buildDetailHtml();
@@ -1112,6 +892,7 @@ async function openDetail(mediaId) {
   libState.storyArcs = []; libState.myArc = null; libState.myVotes = {}; libState.arcEditorOpen = false;
   document.querySelector('#library-overlay .hg-modal').classList.add('detail-mode');
   render();
+  if (currentUser && !privateSavesCache) await fetchPrivateSaves();
   await fetchStoryArcs(mediaId);
   render();
 }
@@ -1216,7 +997,7 @@ function buildArcSectionHtml(mediaId) {
   </div>`;
 }
 function backToGrid() {
-  libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; libState.showSavePanel = false;
+  libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null;
   document.querySelector('#library-overlay .hg-modal').classList.remove('detail-mode');
   render();
 }
@@ -1265,7 +1046,7 @@ async function openAuthorBrowse(author, mediaType) {
 function clearAuthorFilter() { libState.authorFilter = null; render(); }
 
 async function switchTab(tab) {
-  libState.tab = tab; libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; libState.showSavePanel = false;
+  libState.tab = tab; libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null;
   renderModalBody('<div class="lib-loading">loading…</div>');
   if (tab === 'public' && !publicCache[libState.category]) await fetchPublic(libState.category);
   if (tab === 'private' && currentUser) {
@@ -1276,7 +1057,7 @@ async function switchTab(tab) {
 }
 
 async function openLibrary(category) {
-  libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false, storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
+  libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
   document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
   document.querySelector('#library-overlay .hg-modal').classList.remove('detail-mode');
   document.getElementById('library-overlay').classList.add('open');
