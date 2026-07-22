@@ -412,7 +412,7 @@ function buildGridHtml() {
       ${terrains.map(t => `<option value="${t}" ${toolsState.filterTerrain === t ? 'selected' : ''}>${t}</option>`).join('')}
     </select>
   </div>`;
-  if (!tools.length) return filterHtml + `<div class="tl-empty">no tools yet — be the first to <a href="../tools/submit.html">add one</a>.</div>`;
+  if (!tools.length) return filterHtml + `<div class="tl-empty">no tools yet — be the first to <a href="../matrix/tools.html">add one</a>.</div>`;
   if (!shown.length) return filterHtml + `<div class="tl-empty">nothing matches those filters.</div>`;
   return filterHtml + `<div class="tl-grid">${shown.map(toolCardHtml).join('')}</div>`;
 }
@@ -500,7 +500,7 @@ function buildDetailHtml() {
 
 function buildBodyHtml() {
   const addLink = currentUser
-    ? `<a class="tl-add-top" href="../tools/submit.html">+ add a tool</a>`
+    ? `<a class="tl-add-top" href="../matrix/tools.html">+ add a tool</a>`
     : `<a class="tl-add-top" href="../users/login.html">log in to add a tool</a>`;
   const topRow = `<div class="tl-top-row">${addLink}</div>`;
   if (toolsState.detailToolId) return topRow + buildDetailHtml();

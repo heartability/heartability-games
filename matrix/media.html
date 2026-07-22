@@ -310,9 +310,7 @@ body.embedded .wall { padding-top: 16px; }
         <div class="panel-title">summary</div>
         <div class="section-header">what was this story about to you?</div>
         <textarea class="map-textarea" id="aboutSentence" placeholder="summarize it in your own words…" maxlength="1500"></textarea>
-        <div class="section-sub" style="margin-top:14px;">rate the quality</div>
-        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
-        <div class="section-sub">rate the experience</div>
+        <div class="section-sub" style="margin-top:14px;">rate your experience with this story</div>
         <div class="star-row" id="experienceStars"></div>
       </div>
     </div>
@@ -608,7 +606,7 @@ async function onCoverPicked(event) {
 }
 
 // ── STAR RATINGS ─────────────────────────────────────────────────────────
-let qualityRating = 0, experienceRating = 0;
+let experienceRating = 0;
 function buildStarRow(containerId, getVal, setVal) {
   const wrap = document.getElementById(containerId);
   for (let i = 1; i <= 5; i++) {
@@ -619,7 +617,7 @@ function buildStarRow(containerId, getVal, setVal) {
   }
 }
 function refreshStars() {
-  [['qualityStars', () => qualityRating], ['experienceStars', () => experienceRating]].forEach(([id, getVal]) => {
+  [['experienceStars', () => experienceRating]].forEach(([id, getVal]) => {
     const val = getVal();
     document.querySelectorAll(`#${id} .star-btn`).forEach((btn, i) => btn.classList.toggle('filled', i < val));
   });
@@ -679,7 +677,7 @@ async function submitEntry() {
   const aboutSentence = document.getElementById('aboutSentence').value.trim();
   if (!aboutSentence) { statusEl.textContent = 'add a one-sentence description first.'; return; }
 
-  if (!qualityRating || !experienceRating) { statusEl.textContent = 'rate the quality and the experience first.'; return; }
+  if (!experienceRating) { statusEl.textContent = 'rate your experience with this story first.'; return; }
 
   if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) {
     statusEl.textContent = 'add a location and emotion to every zone of the map first.'; return;
@@ -727,7 +725,6 @@ async function submitEntry() {
       about_sentence: aboutSentence,
       map_type: 'three-act',
       map_data: readingMap.state,
-      quality_rating: qualityRating,
       experience_rating: experienceRating,
       cover_url_override: manualOpen ? manualCoverUrl : null,
       is_public: isPublic,
@@ -756,7 +753,6 @@ async function submitEntry() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function initPage() {
   readingMap.buildTerrain(); readingMap.buildWeather(); readingMap.render();
-  buildStarRow('qualityStars', () => qualityRating, v => qualityRating = v);
   buildStarRow('experienceStars', () => experienceRating, v => experienceRating = v);
   refreshStars();
   setIsPublic(true);

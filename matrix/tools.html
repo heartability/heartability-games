@@ -48,16 +48,16 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
   box-shadow: 6px 10px 40px rgba(0, 0, 0, 0.4);
 }
 
-.section-header { font-family: var(--font-hand); font-size: 20px; color: #000; margin-bottom: 2px; letter-spacing: 0.5px; }
-.section-sub { font-family: var(--font-hand); font-size: 15px; color: #555; margin: -8px 0 4px; }
+.section-header { font-family: var(--font-hand); font-size: 24px; color: #000; margin-bottom: 7px; letter-spacing: 0.5px; }
+.section-sub { font-family: var(--font-hand); font-size: 27px; color: #555; margin: -2px 0 10px; }
 
 .map-input, .map-textarea, .map-select {
   width: 100%; background: #cdd3ec;
   border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
   border-left-color: #5465c5; border-top-color: #5465c5;
-  padding: 8px 10px; font-family: var(--font-hand); font-size: 18px; color: #000; outline: none;
+  padding: 8px 10px; font-family: var(--font-hand); font-size: 20px; color: #000; outline: none;
 }
-.map-textarea { resize: vertical; min-height: 90px; }
+.map-textarea { resize: vertical; min-height: 90px; font-size: 17px; }
 .map-input::placeholder, .map-textarea::placeholder { color: rgba(90,90,140,0.4); }
 
 .rpg-btn {
@@ -77,34 +77,72 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 .link-row button { flex-shrink: 0; }
 .link-rows { display: flex; flex-direction: column; gap: 8px; }
 
-/* landscape builder */
-.terrain-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
-  gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px;
-}
-.terrain-thumb {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 6px 4px; border-radius: 4px; border: 2px solid transparent;
-  font-size: 12px; color: #333; text-align: center;
-}
-.terrain-thumb img { width: 36px; height: 36px; object-fit: contain; }
-.terrain-thumb:hover { background: rgba(110,131,211,0.12); }
-.terrain-thumb.active { border-color: var(--blue); background: rgba(110,131,211,0.18); }
+/* landscape builder — map frame matches matrix/daily.html's single-location dq-map-frame;
+   terrain/weather pickers match matrix/media.html's blue-panel design system */
+.two-col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: start; }
+@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
 
-.weather-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-@media (max-width: 500px) { .weather-categories { grid-template-columns: 1fr; } }
+.map-frame {
+  width: min(100%, 300px); aspect-ratio: 1/1;
+  background: #cdd3ec;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+}
+.map-frame svg { width: 100%; height: 100%; display: block; }
+
+.palette-section {
+  background: #cdd3ec;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  padding: 10px 12px;
+}
+.palette-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.palette-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 8px; background: #dfe2ef;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  cursor: pointer; user-select: none; transition: filter 0.1s;
+}
+.palette-item:hover { filter: brightness(1.06); }
+.palette-item.active { background: var(--blue); border-color: #3a4aaa; outline: 2px solid #fff; outline-offset: -4px; }
+.palette-item.active .palette-item-name { color: #fff; }
+.palette-item img { width: 60px; height: 50px; object-fit: contain; pointer-events: none; }
+.palette-item-name { font-family: var(--font-hand); font-size: 12px; color: #000; pointer-events: none; letter-spacing: 0.5px; }
+
+.terrain-cat-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.terrain-cat-btn {
+  padding: 4px 10px; background: #dfe2ef;
+  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
+  border-left-color: #5465c5; border-top-color: #5465c5;
+  font-family: var(--font-hand); font-size: 13px; letter-spacing: 0.5px;
+  color: #000; cursor: pointer; user-select: none; transition: filter 0.1s;
+}
+.terrain-cat-btn:hover { filter: brightness(1.06); }
+.terrain-cat-btn.active { background: var(--blue); color: #fff; border-color: #3a4aaa; outline: 2px solid #fff; outline-offset: -4px; }
+
+.weather-categories { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; grid-auto-flow: column; gap: 8px; }
+@media (max-width: 680px) { .weather-categories { grid-template-columns: 1fr; grid-auto-flow: row; } }
 .weather-category { padding: 8px 10px; border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa; border-left-color: #5465c5; border-top-color: #5465c5; }
-.weather-category.sunny { background: #f2e6a8; }
-.weather-category.rainy { background: #ae87e2; }
-.weather-category.windy { background: #a3eac9; }
-.weather-category.snowy { background: rgb(108, 209, 234); }
-.weather-cat-header { font-family: var(--font-hand); font-size: 16px; margin-bottom: 6px; }
-.weather-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-.weather-chip { padding: 3px 9px; border-radius: 10px; background: rgba(255,255,255,0.6); font-size: 13px; cursor: pointer; border: 1.5px solid transparent; }
-.weather-chip:hover { background: rgba(255,255,255,0.9); }
-.weather-chip.active { border-color: #1a1a2e; background: #fff; font-weight: 700; }
+.weather-category.sunny { background: #f2e6a8; border-color: #715f04; }
+.weather-category.rainy { background: #ae87e2; border-color: #260156; }
+.weather-category.windy { background: #a3eac9; border-color: #046957; }
+.weather-category.snowy { background: rgb(108, 209, 234); border-color: #033f50; }
+.weather-cat-header { font-family: var(--font-hand); font-size: 21px; margin-bottom: 6px; }
+.weather-cat-desc { font-size: 14px; font-weight: normal; opacity: 0.7; }
+.sunny .weather-cat-header { color: #715f04; }
+.rainy .weather-cat-header { color: #260156; }
+.windy .weather-cat-header { color: #046957; }
+.snowy .weather-cat-header { color: #033f50; }
+.feeling-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.feeling-chip { padding: 4px 10px; font-family: var(--font-hand); font-size: 15px; cursor: pointer; letter-spacing: 0.5px; border: 2px solid; user-select: none; transition: filter 0.1s; }
+.feeling-chip:hover { filter: brightness(0.92); }
+.feeling-chip.active { outline: 2px solid #000; outline-offset: 1px; }
+.sunny .feeling-chip { background: #f8edb8; border-color: #715f04; color: #715f04; }
+.rainy .feeling-chip { background: #c9b3e7; border-color: #260156; color: #260156; }
+.windy .feeling-chip { background: #b6e7d0; border-color: #046957; color: #046957; }
+.snowy .feeling-chip { background: #a0d7e6; border-color: #033f50; color: #033f50; }
 
-.landscape-preview { font-family: var(--font-hand); font-size: 17px; color: #333; min-height: 24px; margin: 4px 0; }
 .landscape-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .landscape-chip {
   display: inline-flex; align-items: center; gap: 6px;
@@ -120,7 +158,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 .submit-bar { display: flex; justify-content: center; padding-top: 6px; }
 
 #done-panel { display: none; text-align: center; }
-#done-panel .section-header { font-size: 22px; margin-bottom: 8px; }
+#done-panel .section-header { font-size: 26px; margin-bottom: 8px; }
 
 </style>
 </head>
@@ -163,15 +201,29 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
     <button type="button" class="rpg-btn" onclick="addLinkRow()">+ add another link</button>
   </div>
 
-  <div class="rpg-panel">
+  <div class="rpg-panel" style="max-width:900px;">
     <div class="section-header">where do you use this tool?</div>
     <div class="section-sub">pick a terrain and an emotional climate to build a landscape (e.g. "mountain of joy"), then add as many as you like — these aren't placed on a map, just listed as recommended environments.</div>
 
-    <div class="terrain-grid" id="terrain-grid"></div>
-    <div class="weather-categories" id="weather-categories"></div>
-    <div class="landscape-preview" id="landscape-preview">pick a terrain and a feeling</div>
+    <div class="two-col">
+      <div style="display:flex; justify-content:center;">
+        <div class="map-frame" id="landscape-map-frame"></div>
+      </div>
+      <div>
+        <div class="section-header">terrain</div>
+        <div class="palette-section">
+          <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
+          <div class="palette-items" id="terrainPalette"></div>
+        </div>
+      </div>
+    </div>
 
-    <div class="landscape-actions">
+    <div class="feelings-section" style="margin-top:14px;">
+      <div class="section-header">emotional climates</div>
+      <div class="weather-categories" id="weatherCategories"></div>
+    </div>
+
+    <div class="landscape-actions" style="margin-top:14px;">
       <button type="button" class="rpg-btn" id="btn-add-landscape" disabled onclick="addLandscape()">+ add another</button>
       <button type="button" class="rpg-btn primary" id="btn-save-landscapes" disabled onclick="saveLandscapes()">save</button>
     </div>
@@ -194,6 +246,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/three-act-map.js"></script>
 <script>
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
@@ -201,26 +254,6 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// ── terrain / climate constants (mirrors matrix/daily.html's dayquest builder) ──
-const TERRAIN_ORDER = ['pond','waterfall','spring','river','ocean','glacier','marsh','dunes','mountains','cave','cliff','maze','plateau','valley','meadow','jungle','island','forest'];
-const TERRAIN_IMGS = {
-  pond:"../assets/elements/maps/pond.png", waterfall:"../assets/elements/maps/waterfall.png",
-  spring:"../assets/elements/maps/spring.png", river:"../assets/elements/maps/river.png",
-  ocean:"../assets/elements/maps/ocean.png", glacier:"../assets/elements/maps/glacier.png",
-  marsh:"../assets/elements/maps/marsh.png", dunes:"../assets/elements/maps/dunes.png",
-  mountains:"../assets/elements/maps/mountains.png", cave:"../assets/elements/maps/cave.png",
-  cliff:"../assets/elements/maps/cliff.png", maze:"../assets/elements/maps/maze.png",
-  plateau:"../assets/elements/maps/plateau.png", valley:"../assets/elements/maps/valley.png",
-  meadow:"../assets/elements/maps/meadow.png", jungle:"../assets/elements/maps/jungle.png",
-  island:"../assets/elements/maps/island.png", forest:"../assets/elements/maps/forest.png",
-};
-const WEATHER_CATS = [
-  { id:"sunny", label:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence"] },
-  { id:"rainy", label:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret"] },
-  { id:"windy", label:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage"] },
-  { id:"snowy", label:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock"] },
-];
 
 // ── purchase links ──
 function addLinkRow(label, url) {
@@ -243,52 +276,98 @@ function collectLinks() {
   }).filter(l => l.url);
 }
 
-// ── landscape builder ──
+// ── landscape builder ── terrain/weather data + map-frame rendering shared with
+// matrix/media.html and rooms/library.html via assets/js/three-act-map.js.
 let landscapeDraft = { terrain: null, feeling: null, tint: null, cat: null };
 let landscapes = [];
+let activeTerrainCat = 'landscapes';
 
-function buildTerrainGrid() {
-  document.getElementById('terrain-grid').innerHTML = TERRAIN_ORDER.map(id => `
-    <div class="terrain-thumb" id="terrain-${id}" onclick="pickTerrain('${id}')">
-      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
-      <span>${id}</span>
-    </div>`).join('');
+function buildTerrainPalette() {
+  const tabs = document.getElementById('terrainCatTabs');
+  const allCats = [...ThreeActMap.TERRAIN_CATEGORIES, { id: 'all', label: 'view all' }];
+  tabs.innerHTML = allCats.map(cat => `<div class="terrain-cat-btn${cat.id === activeTerrainCat ? ' active' : ''}" data-cat-id="${cat.id}" onclick="selectTerrainCat('${cat.id}')">${cat.label}</div>`).join('');
+  const tp = document.getElementById('terrainPalette');
+  tp.innerHTML = ThreeActMap.TERRAIN.map(t => `<div class="palette-item" data-cat="${t.cat}" id="terrain-${t.id}" onclick="pickTerrain('${t.id}')">
+    <img src="${ThreeActMap.TERRAIN_IMGS[t.id]}" alt="${t.label}"><div class="palette-item-name">${t.label}</div>
+  </div>`).join('');
+  applyTerrainCatFilter();
 }
-function buildWeatherCats() {
-  document.getElementById('weather-categories').innerHTML = WEATHER_CATS.map(cat => `
-    <div class="weather-category ${cat.id}">
-      <div class="weather-cat-header">${cat.label}</div>
-      <div class="weather-chips">
-        ${cat.feelings.map(f => `<span class="weather-chip" id="chip-${f}" onclick="pickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+function selectTerrainCat(catId) {
+  activeTerrainCat = catId;
+  document.querySelectorAll('#terrainCatTabs .terrain-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.catId === catId));
+  applyTerrainCatFilter();
+}
+function applyTerrainCatFilter() {
+  document.querySelectorAll('#terrainPalette .palette-item').forEach(el => {
+    el.style.display = (activeTerrainCat === 'all' || el.dataset.cat === activeTerrainCat) ? 'flex' : 'none';
+  });
+}
+function buildWeatherCategories() {
+  document.getElementById('weatherCategories').innerHTML = ThreeActMap.WEATHER_CATS.map(cat => `
+    <div class="weather-category ${cat.cls}">
+      <div class="weather-cat-header">${cat.label} <span class="weather-cat-desc">(${cat.desc})</span></div>
+      <div class="feeling-chips">
+        ${cat.feelings.map(f => `<div class="feeling-chip" id="chip-${f}" onclick="pickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</div>`).join('')}
       </div>
     </div>`).join('');
 }
 
 function pickTerrain(id) {
   landscapeDraft.terrain = id;
-  document.querySelectorAll('.terrain-thumb').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('#terrainPalette .palette-item').forEach(el => el.classList.remove('active'));
   document.getElementById(`terrain-${id}`)?.classList.add('active');
-  refreshLandscapePreview();
+  renderMapFramePreview();
+  refreshLandscapeButtons();
 }
 function pickFeeling(feeling, cat, tint) {
   landscapeDraft.feeling = feeling; landscapeDraft.cat = cat; landscapeDraft.tint = tint;
-  document.querySelectorAll('.weather-chip').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('#weatherCategories .feeling-chip').forEach(el => el.classList.remove('active'));
   document.getElementById(`chip-${feeling}`)?.classList.add('active');
-  refreshLandscapePreview();
+  renderMapFramePreview();
+  refreshLandscapeButtons();
 }
-function refreshLandscapePreview() {
+function refreshLandscapeButtons() {
   const ready = landscapeDraft.terrain && landscapeDraft.feeling;
-  document.getElementById('landscape-preview').textContent = ready
-    ? `${landscapeDraft.terrain} of ${landscapeDraft.feeling}`
-    : 'pick a terrain and a feeling';
   document.getElementById('btn-add-landscape').disabled = !ready;
   document.getElementById('btn-save-landscapes').disabled = !ready && !landscapes.length;
 }
 
+// One centered destination — matches matrix/daily.html's renderDayquestPreview single-location pattern.
+function renderMapFramePreview() {
+  const R = 50, cx = 150, cy = 110;
+  let defs = '', body = '';
+  if (landscapeDraft.tint) {
+    defs += `<radialGradient id="toolmap-tint" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${landscapeDraft.tint}" stop-opacity="1"/>
+      <stop offset="55%" stop-color="${landscapeDraft.tint}" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="${landscapeDraft.tint}" stop-opacity="0"/></radialGradient>`;
+    body += `<circle cx="${cx}" cy="${cy}" r="${R+40}" fill="url(#toolmap-tint)"/>`;
+  }
+  if (landscapeDraft.terrain && ThreeActMap.TERRAIN_IMGS[landscapeDraft.terrain]) {
+    const label = ThreeActMap.TERRAIN_LABELS[landscapeDraft.terrain] || landscapeDraft.terrain;
+    body += `<image x="${cx-R}" y="${cy-R}" width="${R*2}" height="${R*2}"
+      href="${ThreeActMap.TERRAIN_IMGS[landscapeDraft.terrain]}" preserveAspectRatio="xMidYMid meet"/>
+      <text x="${cx}" y="${cy-R-8}" text-anchor="middle" fill="#000000"
+        font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${label} of</text>`;
+  } else {
+    body += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(200,196,180,.5)"
+      stroke="#6e83d3" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#7a86bb"
+        font-family="ZoesHandwriting,cursive" font-size="13">pick a terrain</text>`;
+  }
+  if (landscapeDraft.feeling) {
+    body += `<text x="${cx}" y="${cy+R+22}" text-anchor="middle" fill="#000000"
+      font-family="ZoesHandwriting,cursive" font-size="16" font-weight="bold">${landscapeDraft.feeling}</text>`;
+  }
+  document.getElementById('landscape-map-frame').innerHTML =
+    `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${body}</svg>`;
+}
+
 function resetLandscapeDraft() {
   landscapeDraft = { terrain: null, feeling: null, tint: null, cat: null };
-  document.querySelectorAll('.terrain-thumb, .weather-chip').forEach(el => el.classList.remove('active'));
-  refreshLandscapePreview();
+  document.querySelectorAll('#terrainPalette .palette-item, #weatherCategories .feeling-chip').forEach(el => el.classList.remove('active'));
+  renderMapFramePreview();
+  refreshLandscapeButtons();
 }
 
 function renderLandscapeChips() {
@@ -311,17 +390,17 @@ function removeLandscape(i) {
 }
 function saveLandscapes() {
   if (landscapeDraft.terrain && landscapeDraft.feeling) addLandscape();
-  document.getElementById('terrain-grid').style.opacity = '0.5';
-  document.getElementById('terrain-grid').style.pointerEvents = 'none';
-  document.getElementById('weather-categories').style.opacity = '0.5';
-  document.getElementById('weather-categories').style.pointerEvents = 'none';
+  document.querySelector('.palette-section').style.opacity = '0.5';
+  document.querySelector('.palette-section').style.pointerEvents = 'none';
+  document.getElementById('weatherCategories').style.opacity = '0.5';
+  document.getElementById('weatherCategories').style.pointerEvents = 'none';
   document.getElementById('btn-add-landscape').disabled = true;
   document.getElementById('btn-save-landscapes').disabled = true;
-  document.getElementById('landscape-preview').textContent = `${landscapes.length} landscape${landscapes.length === 1 ? '' : 's'} saved`;
 }
 
-buildTerrainGrid();
-buildWeatherCats();
+buildTerrainPalette();
+buildWeatherCategories();
+renderMapFramePreview();
 
 // ── submit ──
 async function submitTool() {
