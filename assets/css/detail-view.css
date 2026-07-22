@@ -12,6 +12,20 @@
   max-height: 94vh !important;
 }
 
+/* Shared type scale for the salon (tools) + library (media) grid/detail
+   views, extending modal.css's --modal-font-* hierarchy. Each tier bumps
+   very slightly over the old ad-hoc per-page px values; the nav-link tier
+   is intentionally much bigger since "back to list" / "add an entry" were
+   previously the same tiny size as body text and unreadable. */
+:root {
+  --tl-font-heading:     clamp(20px, 2.1vw, 23px);
+  --tl-font-card-title:  clamp(16px, 1.5vw, 18px);
+  --tl-font-control:     clamp(15px, 1.4vw, 16px);
+  --tl-font-btn:         clamp(15px, 1.4vw, 17px);
+  --tl-font-small:       clamp(13px, 1.2vw, 14px);
+  --tl-font-nav-link:    clamp(26px, 2.6vw, 30px);
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: 300px 1fr 280px;
@@ -95,4 +109,4 @@
 }
 .detail-rating-num { font-family: var(--font-hand); font-size: 32px; color: #222; line-height: 1; }
 .detail-rating-stars { font-family: var(--font-hand); font-size: 16px; color: #715f04; margin-top: 4px; }
-.detail-rating-count { font-family: var(--font-hand); font-size: 13px; color: #888; margin-top: 4px; }
+.detail-rating-count { font-family: var(--font-hand); font-size: var(--tl-font-small); color: #888; margin-top: 4px; }

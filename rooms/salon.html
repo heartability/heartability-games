@@ -200,11 +200,11 @@ html, body {
 
 /* ── TOOLS MODAL ── */
 .hg-modal-body.tl-body { overflow-y: auto; flex: 1; }
-.tl-add-top { margin-left: auto; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; white-space: nowrap; }
+.tl-add-top { margin-left: auto; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; white-space: nowrap; }
 .tl-top-row { display: flex; align-items: center; margin-bottom: 14px; }
 .tl-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .tl-filters select {
-  font-family: var(--font-hand); font-size: 15px; padding: 5px 8px;
+  font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 5px 8px;
   border: 2px solid #bbb; background: #fff; color: #333;
 }
 .tl-loading, .tl-empty { font-family: var(--font-hand); font-size: 16px; color: #888; padding: 20px 0; text-align: center; }
@@ -212,8 +212,8 @@ html, body {
 .tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .tl-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 12px; }
 .tl-card-type { font-family: var(--font-hand); font-size: 12px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.4px; }
-.tl-card-title { font-family: var(--font-hand); font-size: 17px; color: #222; line-height: 1.25; }
-.tl-card-meta { font-family: var(--font-hand); font-size: 13px; color: #666; }
+.tl-card-title { font-family: var(--font-hand); font-size: var(--tl-font-card-title); color: #222; line-height: 1.25; }
+.tl-card-meta { font-family: var(--font-hand); font-size: var(--tl-font-small); color: #666; }
 .tl-card-icon, .tl-card-icon-noimg { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #eef0f9; border: 1.5px solid var(--blue); display: block; }
 .tl-card-icon-noimg { display: flex; align-items: center; justify-content: center; font-family: var(--font-hand); font-size: 20px; color: #aab; }
 .tl-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 6px; }
@@ -224,15 +224,15 @@ html, body {
 .tl-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
 .tl-comment-rating { font-family: var(--font-hand); font-size: 13px; color: #8a7a00; }
 .tl-add-comment { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.tl-add-comment textarea { font-family: var(--font-hand); font-size: 15px; padding: 8px 10px; border: 2px solid #bbb; resize: vertical; min-height: 60px; }
-.tl-add-comment select { font-family: var(--font-hand); font-size: 15px; padding: 5px 8px; border: 2px solid #bbb; background: #fff; align-self: flex-start; }
+.tl-add-comment textarea { font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 8px 10px; border: 2px solid #bbb; resize: vertical; min-height: 60px; }
+.tl-add-comment select { font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 5px 8px; border: 2px solid #bbb; background: #fff; align-self: flex-start; }
 .tl-save-btn {
   align-self: flex-start; padding: 7px 16px; background: var(--blue); border: 2px solid #4a5bc4;
-  box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand); font-size: 16px; color: #fff; cursor: pointer;
+  box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand); font-size: var(--tl-font-btn); color: #fff; cursor: pointer;
 }
 .tl-save-btn:hover { background: #4a5bc4; }
 .tl-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
-.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; text-align: left; align-self: flex-start; }
+.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; text-align: left; align-self: flex-start; }
 
 @media (max-width: 480px) {
   .tl-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
@@ -296,7 +296,7 @@ html, body {
 
 <!-- TOOLS MODAL -->
 <div class="hg-modal-overlay" id="tools-overlay">
-  <div class="hg-modal" style="width:min(94vw,900px); max-height:86vh; display:flex; flex-direction:column;">
+  <div class="hg-modal" style="width:96vw; max-height:86vh; display:flex; flex-direction:column;">
     <div class="hg-modal-titlebar">
       <span>tools</span>
       <span class="hg-modal-close" id="tools-close">&#x2715;</span>

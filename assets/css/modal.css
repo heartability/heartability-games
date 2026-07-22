@@ -9,7 +9,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  --modal-font-title:      clamp(19px, 2.2vw, 22px);
+  --modal-font-title:      clamp(20px, 2.2vw, 23px);
   --modal-font-subheading: clamp(16px, 1.8vw, 18px);
   --modal-font-body:       clamp(17px, 1.9vw, 19px);
   --modal-font-label:      clamp(14px, 1.5vw, 15px);
