@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════════════════════════
    Room slider — turns a room built from vw/vh-positioned elements
-   into a fixed-size "stage" that pans horizontally on portrait /
-   vertical viewports, instead of squeezing everything into a
-   narrow stacked layout. The nav bar stays outside this wrapper
+   into a fixed-size "stage" that pans horizontally on viewports
+   narrower than 1280px, instead of squeezing everything into a
+   warped layout. The nav bar stays outside this wrapper
    so it never moves.
 
    Usage in a room page:
@@ -34,7 +34,7 @@
   container-name: room;
 }
 
-@media (orientation: portrait) {
+@media (max-width: 1279px) {
   .room-scroll {
     overflow-x: auto;
     overflow-y: hidden;

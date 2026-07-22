@@ -1,11 +1,11 @@
 /* Room slider — shows a "scroll left and right to explore this room"
-   hint whenever the viewport is in a vertical/portrait orientation,
-   pairing with assets/css/room-slider.css and the .room-scroll /
-   .room-stage wrapper markup. Fires on load and again any time the
-   viewport transitions into portrait (e.g. rotating a phone or
-   resizing a desktop window taller than it is wide) — but only once
-   per calendar day (shared across all room pages via localStorage),
-   so returning visitors aren't shown it on every room. */
+   hint whenever the viewport is narrower than 1280px (matching the
+   breakpoint in assets/css/room-slider.css), pairing with the
+   .room-scroll / .room-stage wrapper markup. Fires on load and again
+   any time the viewport crosses that width (e.g. rotating a phone or
+   resizing a desktop window narrower) — but only once per calendar
+   day (shared across all room pages via localStorage), so returning
+   visitors aren't shown it on every room. */
 (function () {
   var LAST_SHOWN_KEY = "roomHintLastShown";
 
@@ -58,7 +58,7 @@
     hideTimer = setTimeout(function () { overlay._close(); }, 4200);
   }
 
-  var mq = window.matchMedia("(orientation: portrait)");
+  var mq = window.matchMedia("(max-width: 1279px)");
   function handleChange(e) {
     if (e.matches) showHint();
   }
