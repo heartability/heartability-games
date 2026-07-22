@@ -79,9 +79,6 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 
 /* landscape builder — map frame matches matrix/daily.html's single-location dq-map-frame;
    terrain/weather pickers match matrix/media.html's blue-panel design system */
-.two-col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: start; }
-@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
-
 .map-frame {
   width: min(100%, 300px); aspect-ratio: 1/1;
   background: #cdd3ec;
@@ -194,17 +191,14 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
     <div class="section-header">where do you use this tool?</div>
     <div class="section-sub">pick a terrain and an emotional climate to build a landscape (e.g. "mountain of joy"), then add as many as you like — these aren't placed on a map, just listed as recommended environments.</div>
 
-    <div class="two-col">
-      <div style="display:flex; justify-content:center;">
-        <div class="map-frame" id="landscape-map-frame"></div>
-      </div>
-      <div>
-        <div class="section-header">terrain</div>
-        <div class="palette-section">
-          <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
-          <div class="palette-items" id="terrainPalette"></div>
-        </div>
-      </div>
+    <div style="display:flex; justify-content:center; margin-bottom:14px;">
+      <div class="map-frame" id="landscape-map-frame"></div>
+    </div>
+
+    <div class="section-header">terrain</div>
+    <div class="palette-section">
+      <div class="terrain-cat-tabs" id="terrainCatTabs"></div>
+      <div class="palette-items" id="terrainPalette"></div>
     </div>
 
     <div class="feelings-section" style="margin-top:14px;">
