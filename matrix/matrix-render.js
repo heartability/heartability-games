@@ -412,6 +412,22 @@
           ${dragHandles('book', entry.id)}</div>`;
     }).join('');
 
+    // TOOLS tagged to this entry → same top-right quadrant as books, slots
+    // continuing on from wherever the book grid left off.
+    const toolLayout = layout.tools || {};
+    const toolItems = (data.libraryTools||[]).map((tool, i) => {
+      const saved = toolLayout[tool.id] || {};
+      const slot = photoSlot('external-feeling', (data.libraryEntries||[]).length + i);
+      const left  = saved.x != null ? saved.x : (slot.left+jit(1.5)).toFixed(1);
+      const top   = saved.y != null ? saved.y : (slot.top+jit(1.5)).toFixed(1);
+      const tRot  = saved.rot != null ? saved.rot : rot(4);
+      const tScale = saved.scale || 1;
+      return `<div class="adv-item adv-tool${dragClass}"${dragAttrs('tool',tool.id,tRot,tScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+          ${tool.icon_url ? `<img class="adv-tool-icon" src="${esc(tool.icon_url)}" alt="">` : '<div class="adv-tool-noimg"></div>'}
+          <div class="adv-cap">${esc(tool.title||'untitled')}</div>
+          ${dragHandles('tool', tool.id)}</div>`;
+    }).join('');
+
     // Photos — start out placed inside their assigned quadrant (2-col grid so
     // each photo stays visible), but once a photo has been dragged in the
     // live editor its saved x/y takes over so it stays where it was put.
@@ -514,7 +530,7 @@
           <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
           <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
           <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
-          ${mapItem}${bingoItem}${charItem}${libraryItems}
+          ${mapItem}${bingoItem}${charItem}${libraryItems}${toolItems}
           ${photos}
           ${stickers}
           ${texts}
@@ -537,8 +553,8 @@
       zones: (g.map_data || {}).zones || [],
       mapPhase: null, locationData: null, sidequestData: null,
       bingoScore: 0, charState: null, journalText: '', matrixImages: [],
-      matrixStickers: [], matrixTexts: [], libraryEntries: [],
-      matrixLayout: {}, // drag/rotate/resize overrides for map/bingo/char/book — see buildHTML
+      matrixStickers: [], matrixTexts: [], libraryEntries: [], libraryTools: [],
+      matrixLayout: {}, // drag/rotate/resize overrides for map/bingo/char/book/tool — see buildHTML
     };
     if (!sb || !entryId) return d;
     try {
@@ -568,15 +584,20 @@
         }
         const libIds  = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
         const saveIds = Array.isArray(row.library_save_ids) ? row.library_save_ids : [];
-        const [libRes, saveRes] = await Promise.all([
+        const toolIds = Array.isArray(row.library_tool_ids) ? row.library_tool_ids : [];
+        const [libRes, saveRes, toolRes] = await Promise.all([
           libIds.length
             ? sb.from('media_submissions').select('id, cover_url_override, media(title, cover_url)').in('id', libIds)
             : Promise.resolve({ data: [] }),
           saveIds.length
             ? sb.from('media_saves').select('id, media(title, cover_url)').in('id', saveIds)
             : Promise.resolve({ data: [] }),
+          toolIds.length
+            ? sb.from('tools').select('id, title, icon_url').in('id', toolIds)
+            : Promise.resolve({ data: [] }),
         ]);
         d.libraryEntries = [...(libRes.data || []), ...(saveRes.data || [])];
+        d.libraryTools = toolRes.data || [];
       }
     } catch(e){ /* leave defaults */ }
     return d;
@@ -841,11 +862,13 @@
     sticker: { column: 'matrix_stickers', key: 'id'  },
     text:    { column: 'matrix_texts',    key: 'id'  },
   };
-  // map/bingo/char are singleton layout slots and book entries are keyed by
-  // their media_submissions id — none of them live in their own array column
-  // like photos/stickers/text do, so their x/y/rot/scale overrides are stored
-  // together in one small matrix_layout jsonb column instead.
-  const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book']);
+  // map/bingo/char are singleton layout slots and book/tool entries are keyed
+  // by their media_submissions/tools id — none of them live in their own
+  // array column like photos/stickers/text do, so their x/y/rot/scale
+  // overrides are stored together in one small matrix_layout jsonb column
+  // instead. book entries bucket under layout.books, tools under layout.tools.
+  const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book', 'tool']);
+  const LAYOUT_BUCKET = { book: 'books', tool: 'tools' };
 
   function createMatrixEditor(deps){
     deps = deps || {};
@@ -861,10 +884,11 @@
         const { data: row } = await sb.from(table)
           .select('matrix_layout').eq('id', entryId).maybeSingle();
         const layout = (row && row.matrix_layout) || {};
-        if (kind === 'book') {
-          const books = { ...(layout.books || {}) };
-          books[id] = { ...(books[id] || {}), ...patch };
-          layout.books = books;
+        const bucket = LAYOUT_BUCKET[kind];
+        if (bucket) {
+          const items = { ...(layout[bucket] || {}) };
+          items[id] = { ...(items[id] || {}), ...patch };
+          layout[bucket] = items;
         } else {
           layout[kind] = { ...(layout[kind] || {}), ...patch };
         }
@@ -907,6 +931,7 @@
         const texts    = Array.isArray(row && row.matrix_texts)    ? row.matrix_texts.map(i => ({ ...i }))    : [];
         const layout   = { ...((row && row.matrix_layout) || {}) };
         if (layout.books) layout.books = { ...layout.books };
+        if (layout.tools) layout.tools = { ...layout.tools };
 
         rootEl.querySelectorAll('.adv-draggable').forEach(el => {
           const kind = el.dataset.kind, id = el.dataset.id;
@@ -916,8 +941,13 @@
           const scale = parseFloat(el.dataset.scale || '1');
 
           if (LAYOUT_KINDS.has(kind)) {
-            if (kind === 'book') layout.books[id] = { ...(layout.books[id] || {}), x, y, rot, scale };
-            else layout[kind] = { ...(layout[kind] || {}), x, y, rot, scale };
+            const bucket = LAYOUT_BUCKET[kind];
+            if (bucket) {
+              layout[bucket] = layout[bucket] || {};
+              layout[bucket][id] = { ...(layout[bucket][id] || {}), x, y, rot, scale };
+            } else {
+              layout[kind] = { ...(layout[kind] || {}), x, y, rot, scale };
+            }
             return;
           }
           const cfg = MATRIX_ITEM_TABLE[kind];
@@ -1618,6 +1648,9 @@
 .adv-book-cover, .adv-book-noimg { width:100%; aspect-ratio:2/3; display:block; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); }
 .adv-book-cover { object-fit:cover; }
 .adv-book-noimg { background:#ccc; display:flex; align-items:center; justify-content:center; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:11px; color:#666; padding:4px; text-align:center; }
+.adv-tool { width:clamp(56px,7vw,80px); }
+.adv-tool-icon, .adv-tool-noimg { width:100%; aspect-ratio:1/1; display:block; object-fit:contain; background:#eef0f9; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); padding:6px; box-sizing:border-box; }
+.adv-tool-noimg { background:#ccc; }
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
 /* Fixed-ratio box (matches the standard polaroid frame's own proportions) —
    the photo fills it edge-to-edge via object-fit:cover, so it always fills

@@ -771,20 +771,40 @@ function clearSearchResults() {
   document.getElementById('searchResults').innerHTML = '';
 }
 
+// Deep-link from rooms/library.html or matrix/archive.html: reviewing a title that
+// already has a `media` row (saved, catalogued, or previously reviewed). Locking
+// onto its id and skipping the title step is what keeps a review from spawning a
+// duplicate `media` row for the same book/movie — see lockToExistingMedia().
+const lockedMediaId = new URLSearchParams(location.search).get('media');
+
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('titleSearch');
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); } });
 
-  // Deep-link prefill from rooms/library.html's "add your take" CTA
-  const params = new URLSearchParams(location.search);
-  const prefillTitle = params.get('title');
-  if (prefillTitle) {
-    toggleManualEntry();
-    document.getElementById('manualTitle').value = prefillTitle;
-    const prefillType = params.get('type');
-    if (prefillType) document.getElementById('manualType').value = prefillType;
+  if (!lockedMediaId) {
+    // Deep-link prefill from older links that only carried title/type (no media id yet)
+    const params = new URLSearchParams(location.search);
+    const prefillTitle = params.get('title');
+    if (prefillTitle) {
+      toggleManualEntry();
+      document.getElementById('manualTitle').value = prefillTitle;
+      const prefillType = params.get('type');
+      if (prefillType) document.getElementById('manualType').value = prefillType;
+    }
   }
 });
+
+async function lockToExistingMedia(mediaId) {
+  const { data, error } = await sb.from('media').select('*').eq('id', mediaId).single();
+  if (error || !data) { console.error('[media] locked media lookup failed:', error); return; }
+  selectedMedia = {
+    title: data.title, author: data.author, media_type: data.media_type,
+    external_id: data.external_id, external_source: data.external_source,
+    cover_url: data.cover_url, canonical_link: data.canonical_link, year: data.release_year,
+  };
+  renderSelectedMediaCard();
+  STEPS = STEPS.filter(s => s !== 'title');
+}
 
 function triggerSearch() {
   const q = document.getElementById('titleSearch').value.trim();
@@ -969,7 +989,7 @@ function setIsAuthorPublic(val) {
 }
 
 // ── STEP WIZARD ───────────────────────────────────────────────────────────
-const STEPS = ['title', 'about', 'map', 'optional', 'sharing', 'submit'];
+let STEPS = ['title', 'about', 'map', 'optional', 'sharing', 'submit'];
 let currentStepIndex = 0;
 
 function currentTitleValue() {
@@ -1033,7 +1053,12 @@ function renderReviewSummary() {
 function showStep(i) {
   currentStepIndex = i;
   STEPS.forEach((s, idx) => {
-    document.querySelector(`.step-panel[data-step="${s}"]`).classList.toggle('active', idx === i);
+    const panel = document.querySelector(`.step-panel[data-step="${s}"]`);
+    panel.classList.toggle('active', idx === i);
+    if (idx === i) {
+      const backLink = panel.querySelector('.step-back-link');
+      if (backLink) backLink.style.visibility = i === 0 ? 'hidden' : '';
+    }
   });
   document.getElementById('stepContinueBar').style.display = (i === STEPS.length - 1) ? 'none' : 'flex';
   if (STEPS[i] === 'submit') renderReviewSummary();
@@ -1046,6 +1071,26 @@ function goNext() {
 }
 function goBack() {
   if (currentStepIndex > 0) showStep(currentStepIndex - 1);
+}
+
+// Looks for a `media` row that's already the same book/movie before creating a new
+// one — external_id+external_source is an exact match for anything from search;
+// manual entries (no external id) fall back to a title(+author) match so re-typing
+// a title someone already added doesn't spawn a duplicate.
+async function findExistingMediaId(mediaRow) {
+  try {
+    if (mediaRow.external_id && mediaRow.external_source) {
+      const { data } = await sb.from('media').select('id')
+        .eq('external_id', mediaRow.external_id).eq('external_source', mediaRow.external_source).limit(1);
+      if (data?.[0]) return data[0].id;
+    } else if (mediaRow.title) {
+      let q = sb.from('media').select('id').ilike('title', mediaRow.title).eq('media_type', mediaRow.media_type);
+      if (mediaRow.author) q = q.ilike('author', mediaRow.author);
+      const { data } = await q.limit(1);
+      if (data?.[0]) return data[0].id;
+    }
+  } catch (e) { console.error('[media] existing-media lookup failed:', e); }
+  return null;
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────
@@ -1092,12 +1137,17 @@ async function submitEntry() {
       };
     }
 
-    const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
-    if (mErr) throw mErr;
+    let mediaId = lockedMediaId;
+    if (!mediaId) mediaId = await findExistingMediaId(mediaRow);
+    if (!mediaId) {
+      const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
+      if (mErr) throw mErr;
+      mediaId = media.id;
+    }
 
     const comparableTitles = document.getElementById('comparableTitles').value.trim();
     const { error: sErr } = await sb.from('media_submissions').insert({
-      media_id: media.id,
+      media_id: mediaId,
       submitted_by: currentUser.id,
       about_sentence: aboutSentence,
       map_type: 'three-act',
@@ -1116,7 +1166,7 @@ async function submitEntry() {
     if (isEmbedded && window.parent !== window) {
       statusEl.style.color = '#2a6a3a';
       statusEl.textContent = 'saved ✓';
-      window.parent.postMessage({ type: 'media_entry_saved', mediaId: media.id }, '*');
+      window.parent.postMessage({ type: 'media_entry_saved', mediaId }, '*');
     } else {
       statusEl.style.color = '#2a6a3a';
       statusEl.textContent = 'saved — taking you to the library…';
@@ -1139,6 +1189,7 @@ async function initPage() {
   refreshStars();
   setIsPublic(true);
   setIsAuthorPublic(false);
+  if (lockedMediaId) await lockToExistingMedia(lockedMediaId);
   showStep(0);
 
   HeartabilityNav.init({

@@ -679,7 +679,7 @@ function buildDetailHtml() {
       const catalogRow = (catalogCache[libState.category] || []).find(r => r.media_id === id);
       if (!catalogRow) return backBtn + '<div class="lib-empty">not found.</div>';
       const addCta = currentUser
-        ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(catalogRow.title)}&type=${encodeURIComponent(catalogRow.media_type)}">+ add your own take on this</a></div>`
+        ? `<div class="lib-add-cta"><a href="../matrix/media.html?media=${encodeURIComponent(catalogRow.media_id)}">+ add your own take on this</a></div>`
         : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
       const { posterHtml, subtitleHtml } = detailPosterAndSubtitle(catalogRow, id);
       return backBtn + `<div class="detail-layout">
@@ -695,7 +695,7 @@ function buildDetailHtml() {
     }
     const title = rows[0].title;
     const addCta = currentUser
-      ? `<div class="lib-add-cta"><a href="../matrix/media.html?title=${encodeURIComponent(title)}&type=${encodeURIComponent(rows[0].media_type)}">+ add your own take on this</a></div>`
+      ? `<div class="lib-add-cta"><a href="../matrix/media.html?media=${encodeURIComponent(id)}">+ add your own take on this</a></div>`
       : `<div class="lib-add-cta">want to add your own take? <a href="../users/login.html">log in</a></div>`;
     const comments = rows.map(r => `<div class="lib-comment">
       <div class="lib-comment-author">${r.author_username ? _escapeHtml(r.author_username) : 'anonymous'}</div>
@@ -857,6 +857,26 @@ function currentSaveTitle() {
     : (saveSelectedMedia?.title || document.getElementById('libSaveSearchInput').value.trim());
 }
 
+// Looks for a `media` row that's already the same book/movie before creating a new
+// one — external_id+external_source is an exact match for anything from search;
+// manual entries (no external id) fall back to a title(+author) match so re-typing
+// a title someone already added doesn't spawn a duplicate.
+async function findExistingMediaId(mediaRow) {
+  try {
+    if (mediaRow.external_id && mediaRow.external_source) {
+      const { data } = await sb.from('media').select('id')
+        .eq('external_id', mediaRow.external_id).eq('external_source', mediaRow.external_source).limit(1);
+      if (data?.[0]) return data[0].id;
+    } else if (mediaRow.title) {
+      let q = sb.from('media').select('id').ilike('title', mediaRow.title).eq('media_type', mediaRow.media_type);
+      if (mediaRow.author) q = q.ilike('author', mediaRow.author);
+      const { data } = await q.limit(1);
+      if (data?.[0]) return data[0].id;
+    }
+  } catch (e) { console.error('[library] existing-media lookup failed:', e); }
+  return null;
+}
+
 async function saveTitle(status) {
   if (saveBusy) return;
   const title = currentSaveTitle();
@@ -884,9 +904,13 @@ async function saveTitle(status) {
   };
 
   try {
-    const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
-    if (mErr) throw mErr;
-    const { error: sErr } = await sb.from('media_saves').insert({ user_id: currentUser.id, media_id: media.id, status });
+    let mediaId = await findExistingMediaId(mediaRow);
+    if (!mediaId) {
+      const { data: media, error: mErr } = await sb.from('media').insert(mediaRow).select().single();
+      if (mErr) throw mErr;
+      mediaId = media.id;
+    }
+    const { error: sErr } = await sb.from('media_saves').insert({ user_id: currentUser.id, media_id: mediaId, status });
     if (sErr) throw sErr;
     await fetchPrivateSaves();
     libState.showSavePanel = false;
@@ -954,7 +978,7 @@ function buildSaveDetailHtml() {
       currently: ${row.status === 'done' ? 'done reading' : 'to be read'}<br><br>
       <a href="#" onclick="event.preventDefault(); setSaveStatus('${row.id}','${otherStatus}')">${otherLabel}</a>
       &nbsp;·&nbsp;
-      <a href="../matrix/media.html?title=${encodeURIComponent(title)}">+ write a full review</a>
+      <a href="../matrix/media.html?media=${encodeURIComponent(row.media_id)}">+ write a full review</a>
       &nbsp;·&nbsp;
       <a href="#" onclick="event.preventDefault(); removeSave('${row.id}')">remove from your list</a>
     </div>`;

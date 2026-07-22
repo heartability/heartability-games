@@ -596,6 +596,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./matrix-render.js"></script>
 <script src="./matrix-inventory.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script>
@@ -624,7 +625,8 @@ let activeTemplate = null;   // cosmic_templates row
 let activeMapId    = null;   // cosmic_bingo.map_id — groups this season's rows
 let activeMapData  = null;   // the season's map_data (phases + windows)
 let activePhase    = null;   // map_phase key, e.g. 'sun_cancer_1'
-let currentStep    = null;   // 'character' | 'bingo' | 'library' | 'journal'
+let activeMatrixEntryId = null;   // cosmic_matrix row id for (activeMapId, activePhase) — resolved lazily in renderMatrix()
+let currentStep    = null;   // 'character' | 'bingo' | 'library' | 'journal' | 'matrix'
 let completedSet   = new Set();   // map_phase keys that have a character row
 let completedData  = new Map();   // map_phase → character_data
 let cosmicBoard    = { marked:null };  // the season bingo board (cosmic_bingo.bingo_data)
@@ -1011,6 +1013,16 @@ function tintFromLocation(loc){
   return null;
 }
 
+// A decan's location string is always "TERRAIN of FEELING" (e.g. "island of
+// trust") — same shape as dream/daily's zone data, just packed into one
+// string instead of separate fields. Unpacks it for MatrixRender's
+// buildSingleLocationSVG(), which wants {terrain, feeling, tint}.
+function locationDataFromPhase(ph){
+  if (!ph || !ph.location) return null;
+  const words = ph.location.trim().toLowerCase().split(/\s+/);
+  return { terrain: words[0], feeling: words[words.length-1], tint: tintFromLocation(ph.location), name: ph.location };
+}
+
 // ── BODY COLOR TABLE (mirrors CHAR_FULL_ASSETS slugs in infinity-mirror.html) ──
 const BODY_COLORS = {
   body_red:'#e85555', body_orange:'#f0922b', body_yellow:'#f5d033',
@@ -1282,6 +1294,7 @@ function selectPhase(key){
   const p = phaseByKey(key);
   if (!p || !isOpen(p)) return;
   activePhase = key;
+  activeMatrixEntryId = null;
   stepWelcome();
 }
 
@@ -1416,6 +1429,7 @@ async function expireAndWipe() {
     catch (e) { console.error('[timer] wipe failed', e); }
   }
   activePhase = null;
+  activeMatrixEntryId = null;
   _selectedPhaseKey = null;
   hidePanel();
   setSave(false);
@@ -1816,7 +1830,7 @@ async function saveJournalEntry(){
 function finishJournal(){
   document.getElementById('jrc-confirm')?.classList.remove('open');
   setSave(false);
-  stepDone();
+  stepMatrix();
 }
 async function confirmSendAndContinue(){ const ok=await sendJournalMessage(); if(ok) finishJournal(); }
 function confirmSkipUnsent(){
@@ -1824,11 +1838,65 @@ function confirmSkipUnsent(){
   removeJournalImage(); finishJournal();
 }
 
+// ── STEP: THE COSMIC MATRIX (native, no iframe) ───────────
+// Same scrapbook as dream.html/daily.html — rendering + interactive editing
+// (drag/rotate/resize, add photo/sticker/text, the save button) all live in
+// matrix-render.js. See MatrixRender.buildHTML/createMatrixEditor. This file
+// only resolves this phase's cosmic_matrix row id and wires step navigation.
+// Unlike dream/daily, cosmic_matrix rows aren't addressed by a client-minted
+// id — they're upserted by (map_id, map_phase) — so the row's own id is
+// looked up lazily the first time this phase's matrix is shown.
+let _matrixEditor = null;
+function getMatrixEditor(){
+  if (_matrixEditor) return _matrixEditor;
+  _matrixEditor = MatrixRender.createMatrixEditor({
+    sb, table: 'cosmic_matrix',
+    getEntryId: () => activeMatrixEntryId,
+    getUserId: () => currentUser?.id,
+    status: (msg, color) => showStatus(msg, color),
+    onChange: renderMatrix,
+  });
+  return _matrixEditor;
+}
+
+let _matrixSeed = 'matrix';
+async function renderMatrix(){
+  if (!activeMatrixEntryId){
+    try {
+      const { data: row } = await sb.from('cosmic_matrix').select('id')
+        .eq('map_id', activeMapId).eq('map_phase', activePhase).maybeSingle();
+      activeMatrixEntryId = row?.id || null;
+    } catch(e){ console.error('[cosmic matrix] row lookup failed', e); }
+  }
+  const data = await MatrixRender.assemble(sb, activeMatrixEntryId, activeMapData, 'cosmic_matrix');
+  const ph = phaseByKey(activePhase);
+  data.sidequestData = locationDataFromPhase(ph);
+  data.mapName = (ph && ph.location) || 'this phase';
+  showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
+    showAddPhoto: false, showEditNotes: false, showFrame: true, editable: true,
+  }));
+  const panel = $('content-panel');
+  const editor = getMatrixEditor();
+  editor.attachInteractions(panel);
+  MatrixRender.attachMatrix(panel, {
+    onRemovePhoto: url => editor.removeMatrixPhoto(url),
+  });
+}
+
+async function stepMatrix(){
+  currentStep = 'matrix';
+  setBubble('phase complete!');
+  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering this phase…</div></div>');
+  setSave(true, 'back to map →');
+  _matrixSeed = `${activeMapId}|${activePhase}`;
+  await renderMatrix();
+}
+
+// "back to map →" on the matrix step — marks the decan complete and returns.
 function stepDone(){
   justDoneKey = activePhase;
   completedSet.add(activePhase);
   setSave(false);
-  showStatus('phase complete!', '#E8478B');
   renderSeasonMap();
 }
 
@@ -1839,6 +1907,7 @@ async function saveAndContinue(){
   if (currentStep === null && _selectedPhaseKey){ selectPhase(_selectedPhaseKey); return; }
   if (currentStep === 'journal'){ await saveJournalEntry(); return; }
   if (currentStep === 'library'){ await saveLibrarySelection(); return; }
+  if (currentStep === 'matrix'){ stepDone(); return; }
 
   const iframe = $('game-iframe');
   if (!iframe){ btn.disabled=false; return; }

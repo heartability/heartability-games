@@ -2327,7 +2327,7 @@ function renderInvEntryStatusRow(item, statusRow){
   statusRow.innerHTML = `
     <span class="inv-entry-status-label">currently: ${item.status === 'done' ? 'done reading' : 'to be read'}</span>
     <button type="button" class="inv-entry-link" onclick="setInvSaveStatus('${item.id}','${otherStatus}')">${otherLabel}</button>
-    <a class="inv-entry-link" href="../matrix/media.html?title=${encodeURIComponent(item.title)}">+ write a full review</a>
+    <a class="inv-entry-link" href="../matrix/media.html?media=${encodeURIComponent(item.mediaId)}">+ write a full review</a>
     <button type="button" class="inv-entry-link" onclick="removeInvSave('${item.id}')">remove from list</button>
   `;
 }
