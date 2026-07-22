@@ -1042,6 +1042,14 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       </div>`;
     }).join('') : '<div class="detail-empty">no reviews yet — catalog entry only</div>';
     detailEl.innerHTML = `
+      <div class="detail-field">
+        <div class="detail-label">title</div>
+        <input class="field-input" id="media-title-input" value="${escapeHtml(item.title || '')}">
+        <div class="btn-row">
+          <button class="btn-action" onclick="saveMediaTitle('${item.id}')">save title</button>
+          <button class="btn-danger" onclick="deleteMediaEntry('${item.id}')">delete from library</button>
+        </div>
+      </div>
       <div class="detail-field"><div class="detail-label">type</div><div class="detail-value">${escapeHtml(item.media_type || '—')}</div></div>
       <div class="detail-field"><div class="detail-label">author</div><div class="detail-value">${escapeHtml(item.author || '—')}</div></div>
       ${item.canonical_link ? `<div class="detail-field"><div class="detail-label">link</div><div class="detail-value"><a href="${escapeHtml(item.canonical_link)}" target="_blank" rel="noopener">${escapeHtml(item.canonical_link)}</a></div></div>` : ''}
@@ -1049,6 +1057,40 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       ${reviewsHtml}
     `;
   }
+
+  window.saveMediaTitle = async function (id) {
+    const input = document.getElementById('media-title-input');
+    const title = input.value.trim();
+    if (!title) { await HGModal.alert('error', 'title cannot be empty'); return; }
+    try {
+      await callFn('admin-update-media', { id, action: 'update_title', title });
+      const item = mediaItems.find((m) => m.id === id);
+      if (item) {
+        item.title = title;
+        renderMediaDetail(item);
+      }
+      renderMediaList();
+      await HGModal.alert('done', 'title updated.');
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  };
+
+  window.deleteMediaEntry = async function (id) {
+    const ok = await HGModal.confirm('delete from library', 'permanently delete this title, its reviews, saves, and story arcs? this cannot be undone.', { danger: true, confirmLabel: 'delete' });
+    if (!ok) return;
+    try {
+      await callFn('admin-update-media', { id, action: 'delete' });
+      mediaItems = mediaItems.filter((m) => m.id !== id);
+      selectedMedia = null;
+      renderMediaList();
+      document.getElementById('media-detail-titlebar').textContent = 'detail';
+      document.getElementById('media-detail').innerHTML = '<div class="detail-empty">select a submission</div>';
+      await HGModal.alert('done', 'title deleted.');
+    } catch (e) {
+      await HGModal.alert('error', e.message);
+    }
+  };
 
   window.moderateMedia = async function (id, action) {
     const confirmMsg = action === 'delete'

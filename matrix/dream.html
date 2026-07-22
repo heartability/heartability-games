@@ -2393,8 +2393,10 @@ function showJournalStatus(msg, ok){
 // ── DREAM MATRIX ─────────────────────────────────────
 // Rendering + interactive editing (drag/rotate/resize, add photo/sticker/
 // text, the save button) all live in matrix-render.js now — see
-// MatrixRender.buildHTML/createMatrixEditor. This file only handles the
-// dream-specific data load (assembleTodayMatrixData) and step wiring.
+// MatrixRender.buildHTML/createMatrixEditor. Data loading also goes through
+// matrix-render.js's assemble() (single source of truth for pulling in
+// library_entry_ids/library_save_ids/library_tool_ids etc.) — this file only
+// handles step wiring. (archive gathers its own data separately.)
 
 // Lazily created once (it owns 3 modal DOM overlays — must not be recreated
 // on every render). getUserId/getEntryId close over the page's own auth/
@@ -2412,48 +2414,6 @@ function getMatrixEditor(){
   return _matrixEditor;
 }
 
-// Assemble this playthrough's saved data from the DB by its row id.
-// (archive gathers its own data separately.)
-async function assembleTodayMatrixData(entryId){
-  const d = {
-    dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
-    mapName: activeGameData?.map_name || 'my map',
-    mapType: activeGameData?.map_type || 'spiral',
-    zones: (activeGameData?.map_data||{}).zones || [],
-    mapPhase: null,                              // selected phase — used by single-phase matrix render
-    locationData: null,                          // {terrain,feeling,tint} of the selected place — self-contained
-    sidequestData: null,                         // sidequest snapshot {terrain,feeling,tint,name} when phase==='sidequest'
-    bingoScore: 0, charState: null, matrixImages: [],
-    matrixStickers: [], matrixTexts: [],
-    libraryEntries: [],                          // media_submissions tagged during the library step
-    matrixLayout: {},                             // drag/rotate/resize overrides for map/bingo/char/book
-  };
-  try {
-    const { data: row } = await sb.from('dream_matrix').select('*')
-      .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
-    if (row){
-      d.charState    = row.character_data || null;
-      d.bingoScore   = row.bingo_data?.score || 0;
-      d.mapPhase     = row.map_phase || null;
-      d.locationData = row.location_data || null;
-      d.sidequestData = row.sidequest_data || null;
-      // All matrix photos — manual uploads AND journal images — now live in
-      // matrix_images, each tagged to a quadrant (journal images: 'internal-feeling').
-      d.matrixImages = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-      d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
-      d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
-      d.matrixLayout   = row.matrix_layout || {};
-      const libIds = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
-      if (libIds.length){
-        const { data: libRows } = await sb.from('media_submissions')
-          .select('id, cover_url_override, media(title, cover_url)').in('id', libIds);
-        d.libraryEntries = libRows || [];
-      }
-    }
-  } catch(e){}
-  return d;
-}
-
 async function stepDone() {
   currentStep = 'done';
   setBubble("your entry is complete!");
@@ -2467,7 +2427,7 @@ async function stepDone() {
 // photo, sticker, or text note).
 let _matrixSeed = 'matrix';
 async function renderMatrix() {
-  const data = await assembleTodayMatrixData(activeEntryId);
+  const data = await MatrixRender.assemble(sb, activeEntryId, activeGameData, 'dream_matrix');
   showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showAddPhoto: false, showEditNotes: false, showFrame: true,
     editable: true,

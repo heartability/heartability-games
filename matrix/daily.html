@@ -1746,8 +1746,10 @@ function showJournalStatus(msg, ok){
 // ── DAILY MATRIX ─────────────────────────────────────
 // Rendering + interactive editing (drag/rotate/resize, add photo/sticker/
 // text, the save button) all live in matrix-render.js now — see
-// MatrixRender.buildHTML/createMatrixEditor. This file only handles the
-// daily-specific data load (assembleTodayMatrixData) and step wiring.
+// MatrixRender.buildHTML/createMatrixEditor. Data loading also goes through
+// matrix-render.js's assemble() (single source of truth for pulling in
+// library_entry_ids/library_save_ids/library_tool_ids etc.) — this file only
+// handles step wiring.
 
 // Lazily created once (it owns 3 modal DOM overlays — must not be recreated
 // on every render). getUserId/getEntryId close over the page's own auth/
@@ -1765,44 +1767,6 @@ function getMatrixEditor(){
   return _matrixEditor;
 }
 
-// Assemble a day's saved data from daily_matrix by its row id.
-async function assembleTodayMatrixData(entryId){
-  const d = {
-    dateLabel: new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
-    mapName: 'today',
-    locationData: null,                          // {name,terrain,feeling,tint,cat} of today's place
-    bingoScore: 0, charState: null, matrixImages: [], matrixStickers: [], matrixTexts: [],
-    libraryEntries: [],                          // media_submissions tagged during the library step
-    matrixLayout: {},                             // drag/rotate/resize overrides for map/bingo/char/book
-  };
-  try {
-    const { data: row } = await sb.from('daily_matrix').select('*')
-      .eq('id', entryId).eq('user_id', currentUser.id).maybeSingle();
-    if (row){
-      d.charState    = row.character_data || null;
-      d.bingoScore   = row.bingo_data?.score || 0;
-      d.locationData = row.location_data || null;
-      d.matrixImages   = Array.isArray(row.matrix_images) ? row.matrix_images : [];
-      d.matrixStickers = Array.isArray(row.matrix_stickers) ? row.matrix_stickers : [];
-      d.matrixTexts    = Array.isArray(row.matrix_texts) ? row.matrix_texts : [];
-      d.matrixLayout   = row.matrix_layout || {};
-      if (row.entry_date){
-        // Render the matrix under the day it was actually saved (local-safe).
-        const [y,m,dd] = String(row.entry_date).split('-').map(Number);
-        if (y && m && dd) d.dateLabel = new Date(y, m-1, dd)
-          .toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-      }
-      const libIds = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
-      if (libIds.length){
-        const { data: libRows } = await sb.from('media_submissions')
-          .select('id, cover_url_override, media(title, cover_url)').in('id', libIds);
-        d.libraryEntries = libRows || [];
-      }
-    }
-  } catch(e){}
-  return d;
-}
-
 async function stepDone() {
   currentStep = 'done';
   setBubble("see you tomorrow!");
@@ -1815,7 +1779,7 @@ async function stepDone() {
 // photo, sticker, or text note).
 let _matrixSeed = 'matrix';
 async function renderMatrix() {
-  const data = await assembleTodayMatrixData(activeEntryId);
+  const data = await MatrixRender.assemble(sb, activeEntryId, null, 'daily_matrix');
   showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showAddPhoto: false, showEditNotes: false, showFrame: true, editable: true,
   }));
