@@ -982,7 +982,7 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     try {
       const res = await callFn('admin-list-media', { visibility: activeMediaVisibility || undefined, page: 0, pageSize: 50 });
       mediaLoaded = true;
-      mediaItems = res.submissions || [];
+      mediaItems = res.items || [];
       renderMediaList();
     } catch (e) {
       listEl.innerHTML = `<div class="detail-empty">${e.message}</div>`;
@@ -996,68 +996,80 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       listEl.innerHTML = '<div class="detail-empty">nothing here</div>';
       return;
     }
-    listEl.innerHTML = mediaItems.map((sub, idx) => {
-      const media = sub.media || {};
+    listEl.innerHTML = mediaItems.map((item, idx) => {
+      const subs = item.media_submissions || [];
+      const publicCount = subs.filter((s) => s.is_public).length;
+      const badge = !subs.length
+        ? '<span class="badge badge-wontfix">catalog only</span>'
+        : publicCount
+          ? `<span class="badge badge-approved">${publicCount} public</span>`
+          : '<span class="badge badge-rejected">unpublished</span>';
+      const subLabel = subs.length ? `${subs.length} review${subs.length > 1 ? 's' : ''}` : 'no reviews yet';
       return `
       <div class="ticket-row" data-idx="${idx}" onclick="selectMedia(${idx})">
         <div class="ticket-row-top">
-          <span>📚 ${escapeHtml(media.title || 'untitled')}</span>
-          <span class="badge ${sub.is_public ? 'badge-approved' : 'badge-rejected'}">${sub.is_public ? 'public' : 'unpublished'}</span>
+          <span>📚 ${escapeHtml(item.title || 'untitled')}</span>
+          ${badge}
         </div>
-        <div class="ticket-row-sub">${escapeHtml(media.media_type || '—')} · ${escapeHtml(sub.submitter_username || 'anonymous')} · ${formatDate(sub.created_at)}</div>
+        <div class="ticket-row-sub">${escapeHtml(item.media_type || '—')} · ${subLabel} · ${formatDate(item.created_at)}</div>
       </div>`;
     }).join('');
   }
 
   window.selectMedia = function (idx) {
-    const sub = mediaItems[idx];
-    selectedMedia = sub;
+    const item = mediaItems[idx];
+    selectedMedia = item;
     document.querySelectorAll('#media-list .ticket-row').forEach((r, i) => r.classList.toggle('selected', i === idx));
-    renderMediaDetail(sub);
+    renderMediaDetail(item);
   };
 
-  function renderMediaDetail(sub) {
-    const media = sub.media || {};
-    document.getElementById('media-detail-titlebar').textContent = `media · ${media.title || 'untitled'}`;
+  function renderMediaDetail(item) {
+    document.getElementById('media-detail-titlebar').textContent = `media · ${item.title || 'untitled'}`;
     const detailEl = document.getElementById('media-detail');
-    const comparables = sub.comparable_titles || [];
-    detailEl.innerHTML = `
-      <div class="detail-field"><div class="detail-label">type</div><div class="detail-value">${escapeHtml(media.media_type || '—')}</div></div>
-      <div class="detail-field"><div class="detail-label">author</div><div class="detail-value">${escapeHtml(media.author || '—')}</div></div>
-      <div class="detail-field"><div class="detail-label">submitted by</div><div class="detail-value">${escapeHtml(sub.submitter_username || 'anonymous')}${sub.is_public ? (sub.is_author_public ? ' (shown publicly)' : ' (shared anonymously)') : ''}</div></div>
-      <div class="detail-field"><div class="detail-label">about</div><div class="detail-value">${escapeHtml(sub.about_sentence || '—')}</div></div>
-      <div class="detail-field"><div class="detail-label">comparable titles</div><div class="detail-value">${comparables.length ? comparables.map(escapeHtml).join(', ') : '—'}</div></div>
-      <div class="detail-field"><div class="detail-label">ratings</div><div class="detail-value">quality: ${sub.quality_rating ?? '—'} · experience: ${sub.experience_rating ?? '—'}</div></div>
-      ${media.canonical_link ? `<div class="detail-field"><div class="detail-label">link</div><div class="detail-value"><a href="${escapeHtml(media.canonical_link)}" target="_blank" rel="noopener">${escapeHtml(media.canonical_link)}</a></div></div>` : ''}
-      <div class="detail-field">
-        <div class="detail-label">visibility</div>
-        <div class="detail-value">${sub.is_public ? 'public' : 'unpublished'}</div>
+    const subs = item.media_submissions || [];
+    const reviewsHtml = subs.length ? subs.map((sub) => {
+      const comparables = sub.comparable_titles || [];
+      return `
+      <div class="detail-field" style="border-top:1px solid var(--border-color, #ddd);padding-top:10px;margin-top:10px;">
+        <div class="detail-label">review by ${escapeHtml(sub.submitter_username || 'anonymous')}${sub.is_public ? (sub.is_author_public ? ' (shown publicly)' : ' (shared anonymously)') : ' (private)'}</div>
+        <div class="detail-value">${escapeHtml(sub.about_sentence || '—')}</div>
+        <div class="detail-value">comparable titles: ${comparables.length ? comparables.map(escapeHtml).join(', ') : '—'}</div>
+        <div class="detail-value">ratings — quality: ${sub.quality_rating ?? '—'} · experience: ${sub.experience_rating ?? '—'} · ${formatDate(sub.created_at)}</div>
         <div class="btn-row">
           ${sub.is_public ? `<button class="btn-danger" onclick="moderateMedia('${sub.id}','unpublish')">unpublish</button>` : ''}
-          <button class="btn-danger" onclick="moderateMedia('${sub.id}','delete')">delete submission</button>
+          <button class="btn-danger" onclick="moderateMedia('${sub.id}','delete')">delete review</button>
         </div>
-      </div>
+      </div>`;
+    }).join('') : '<div class="detail-empty">no reviews yet — catalog entry only</div>';
+    detailEl.innerHTML = `
+      <div class="detail-field"><div class="detail-label">type</div><div class="detail-value">${escapeHtml(item.media_type || '—')}</div></div>
+      <div class="detail-field"><div class="detail-label">author</div><div class="detail-value">${escapeHtml(item.author || '—')}</div></div>
+      ${item.canonical_link ? `<div class="detail-field"><div class="detail-label">link</div><div class="detail-value"><a href="${escapeHtml(item.canonical_link)}" target="_blank" rel="noopener">${escapeHtml(item.canonical_link)}</a></div></div>` : ''}
+      <div class="detail-field"><div class="detail-label">reviews (${subs.length})</div></div>
+      ${reviewsHtml}
     `;
   }
 
   window.moderateMedia = async function (id, action) {
     const confirmMsg = action === 'delete'
-      ? 'permanently delete this media submission? this cannot be undone.'
-      : 'unpublish this submission so it no longer shows publicly?';
-    const ok = await HGModal.confirm(action === 'delete' ? 'delete submission' : 'unpublish', confirmMsg, { danger: true, confirmLabel: action === 'delete' ? 'delete' : 'unpublish' });
+      ? 'permanently delete this review? this cannot be undone.'
+      : 'unpublish this review so it no longer shows publicly?';
+    const ok = await HGModal.confirm(action === 'delete' ? 'delete review' : 'unpublish', confirmMsg, { danger: true, confirmLabel: action === 'delete' ? 'delete' : 'unpublish' });
     if (!ok) return;
     try {
       await callFn('admin-moderate-media', { id, action });
-      if (action === 'delete') {
-        mediaItems = mediaItems.filter((s) => s.id !== id);
-        document.getElementById('media-detail').innerHTML = '<div class="detail-empty">select a submission</div>';
-        document.getElementById('media-detail-titlebar').textContent = 'detail';
-      } else {
-        const item = mediaItems.find((s) => s.id === id);
-        if (item) { item.is_public = false; item.is_author_public = false; renderMediaDetail(item); }
+      const item = mediaItems.find((m) => (m.media_submissions || []).some((s) => s.id === id));
+      if (item) {
+        if (action === 'delete') {
+          item.media_submissions = item.media_submissions.filter((s) => s.id !== id);
+        } else {
+          const sub = item.media_submissions.find((s) => s.id === id);
+          if (sub) { sub.is_public = false; sub.is_author_public = false; }
+        }
+        renderMediaDetail(item);
       }
       renderMediaList();
-      await HGModal.alert('done', action === 'delete' ? 'submission deleted.' : 'submission unpublished.');
+      await HGModal.alert('done', action === 'delete' ? 'review deleted.' : 'review unpublished.');
     } catch (e) {
       await HGModal.alert('error', e.message);
     }
