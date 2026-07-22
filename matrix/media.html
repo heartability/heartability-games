@@ -47,7 +47,7 @@ body.embedded .wall { padding-top: 16px; }
 .room { min-height: 100vh; display: flex; flex-direction: column; }
 .wall {
   flex: 1; background: var(--wall); position: relative;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center;
   padding: 60px 16px; overflow-y: auto;
 }
 .wall::before {
@@ -66,16 +66,14 @@ body.embedded .wall { padding-top: 16px; }
 .nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 .nav-btn { cursor: pointer; padding: 4px 8px; border-radius: 2px; transition: background .15s; color: inherit; text-decoration: none; }
 .nav-btn:hover { background: rgba(0,0,0,.08); }
-/* STEP WIZARD */
-.step-panel { display: none; flex-direction: column; align-items: center; width: 100%; }
-.step-panel.active { display: flex; }
-.step-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.step-header-title { font-family: var(--font-hand); font-size: 36px; color: var(--text-mid); }
-.step-back-link { font-family: var(--font-hand); font-size: 20px; color: var(--blue); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
-.save-continue-bar {
-  width: 100%; display: flex; justify-content: center; padding-top: 14px;
+/* SINGLE-PAGE FORM — panels stack in normal flow, no step chrome */
+.form-panel { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.panel-title { font-family: var(--font-hand); font-size: 36px; color: var(--text-mid); margin-bottom: 8px; }
+.submit-bar {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 14px;
 }
-.save-continue-bar .rpg-btn { padding: 10px 30px; font-size: 19px; }
+.submit-bar .rpg-btn { padding: 10px 30px; font-size: 19px; }
+.submit-status { font-family: var(--font-hand); font-size: 16px; color: #a04040; min-height: 20px; }
 
 .rpg-panel {
   position: relative; z-index: 1; background: #dfe2ef;
@@ -176,14 +174,13 @@ body.embedded .wall { padding-top: 16px; }
 .rpg-btn:active { transform: translate(1px,1px); }
 .rpg-btn.primary, .rpg-btn.mode-active { background: var(--panel-bg); color: #0a1a2e; }
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
-.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; }
+.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 19px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; }
 
 /* TWO COL layout for the three-act map + palette — canvas gets more of the
    row than the palette so the map itself renders bigger. */
 .two-col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: start; }
 @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
-.step-panel[data-step="map"] .rpg-panel,
-.step-panel[data-step="optional"] .rpg-panel { max-width: 900px; }
+#mapPanel { max-width: 900px; }
 
 .three-act-canvas {
   background: #cdd3ec;
@@ -206,8 +203,9 @@ body.embedded .wall { padding-top: 16px; }
 .search-result-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
 .search-result-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #ccc; border: 2px solid #6e83d3; }
 .search-result-card-noimg { width: 100%; aspect-ratio: 2/3; background: #ccc; border: 2px solid #6e83d3; }
-.search-result-card-title { font-family: var(--font-hand); font-size: 14px; color: var(--text-dark); line-height: 1.25; }
+.search-result-card-title { font-family: var(--font-hand); font-size: 17px; color: var(--text-dark); line-height: 1.25; }
 .search-result-card-year { font-size: 12px; color: #7a86bb; }
+.search-result-card-author { font-family: var(--font-hand); font-size: 13px; color: #7a86bb; line-height: 1.2; }
 .search-more-row { display: flex; justify-content: center; margin-top: 12px; }
 
 .selected-media-card { display: flex; gap: 12px; align-items: center; padding: 10px; background: #cdd3ec; border: 2px solid #6e83d3; margin-top: 8px; }
@@ -217,23 +215,9 @@ body.embedded .wall { padding-top: 16px; }
 /* STAR RATINGS */
 .star-row { display: flex; gap: 4px; }
 .star-btn { background: none; border: none; font-size: 30px; line-height: 1; cursor: pointer; color: #5465c5; padding: 0; }
-.star-btn.filled { color: #715f04; }
+.star-btn.filled { color: #e8b400; }
 
 .panel-action-bar { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--panel-border); }
-
-/* REVIEW SUMMARY */
-.review-summary { display: flex; flex-direction: column; gap: 10px; }
-.review-row {
-  background: #cdd3ec;
-  border: 2px solid #6e83d3; border-right-color: #3a4aaa; border-bottom-color: #3a4aaa;
-  border-left-color: #5465c5; border-top-color: #5465c5;
-  padding: 8px 12px;
-  overflow: hidden;
-}
-.review-label { font-family: var(--font-hand); font-size: 14px; color: var(--text-mid); opacity: 0.65; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 3px; }
-.review-value { font-family: var(--font-hand); font-size: 18px; color: var(--text-dark); line-height: 1.4; white-space: pre-wrap; }
-.review-stars { color: #715f04; font-size: 22px; letter-spacing: 2px; }
-.review-cover { width: 64px; height: auto; float: right; border: 2px solid #6e83d3; margin-left: 10px; }
 </style>
 </head>
 <body>
@@ -245,8 +229,8 @@ body.embedded .wall { padding-top: 16px; }
 <div class="room">
   <div class="wall">
 
-    <!-- STEP 1: TITLE SEARCH -->
-    <div class="step-panel" data-step="title">
+    <!-- TITLE SEARCH -->
+    <div class="form-panel" id="titlePanel">
       <div class="rpg-panel" style="z-index: 20;">
         <div class="section-header">what did you read or watch?</div>
         <div class="search-toggle">
@@ -286,14 +270,10 @@ body.embedded .wall { padding-top: 16px; }
       </div>
     </div>
 
-    <!-- STEP 2: ABOUT -->
-    <div class="step-panel" data-step="about">
+    <!-- SUMMARY + RATINGS -->
+    <div class="form-panel">
       <div class="rpg-panel">
-        <div class="step-header">
-          <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">summary</span>
-          <span></span>
-        </div>
+        <div class="panel-title">summary</div>
         <div class="section-header">what was this story about to you?</div>
         <textarea class="map-textarea" id="aboutSentence" placeholder="summarize it in your own words…" maxlength="1500"></textarea>
         <div class="section-sub" style="margin-top:14px;">rate the quality</div>
@@ -303,14 +283,10 @@ body.embedded .wall { padding-top: 16px; }
       </div>
     </div>
 
-    <!-- STEP 3: THREE-ACT MAP -->
-    <div class="step-panel" data-step="map">
-      <div class="rpg-panel">
-        <div class="step-header">
-          <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">map your reading experience</span>
-          <span></span>
-        </div>
+    <!-- THREE-ACT MAP -->
+    <div class="form-panel">
+      <div class="rpg-panel" id="mapPanel">
+        <div class="panel-title">map your reading experience</div>
         <div class="section-sub">how did you feel reading the beginning, middle and end?</div>
         <div class="two-col">
           <div>
@@ -342,59 +318,10 @@ body.embedded .wall { padding-top: 16px; }
       </div>
     </div>
 
-    <!-- STEP 4: OPTIONAL -->
-    <div class="step-panel" data-step="optional">
+    <!-- SHARING -->
+    <div class="form-panel">
       <div class="rpg-panel">
-        <div class="step-header">
-          <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">optional</span>
-          <span></span>
-        </div>
-        <div class="action-row">
-          <button type="button" class="link-btn" id="arcToggleBtn" onclick="toggleArcMap()">+ map to story arc</button>
-        </div>
-        <div id="arcMapContainer" style="display:none;margin-top:10px;padding-top:14px;border-top:1px solid var(--panel-border);">
-          <div class="section-header">story arc: map the exposition → climax → resolution</div>
-          <div class="section-sub">how does the plot itself move — beginning, middle, end?</div>
-          <div class="two-col">
-            <div>
-              <div class="three-act-canvas">
-                <svg id="threeActSvgArc" viewBox="-135 -140 950 465" xmlns="http://www.w3.org/2000/svg">
-                  <image href="../assets/elements/maps/three-act.png" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
-                  <defs id="threeActDefsArc"></defs>
-                  <g id="threeActZoneGroupArc"></g>
-                </svg>
-              </div>
-            </div>
-            <div>
-              <div style="margin-bottom:8px;">
-                <div class="status-bar" id="zonePromptArc" style="display:none;">
-                  <span id="promptTextArc"></span>
-                </div>
-              </div>
-              <div class="section-header">terrain</div>
-              <div class="palette-section">
-                <div class="terrain-cat-tabs" id="terrainCatTabsArc"></div>
-                <div class="palette-items" id="terrainPaletteArc"></div>
-              </div>
-            </div>
-          </div>
-          <div class="feelings-section" style="margin-top:14px;">
-            <div class="section-header">emotional climates</div>
-            <div class="weather-categories" id="weatherCategoriesArc"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 5: SHARING -->
-    <div class="step-panel" data-step="sharing">
-      <div class="rpg-panel">
-        <div class="step-header">
-          <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">sharing</span>
-          <span></span>
-        </div>
+        <div class="panel-title">sharing</div>
         <div class="section-header">share this in the collective library?</div>
         <div class="action-row" style="margin-bottom:16px;">
           <button type="button" class="rpg-btn" id="btn-public-yes" onclick="setIsPublic(true)">yes, share it</button>
@@ -410,24 +337,9 @@ body.embedded .wall { padding-top: 16px; }
       </div>
     </div>
 
-    <!-- STEP 6: SUBMIT -->
-    <div class="step-panel" data-step="submit">
-      <div class="rpg-panel">
-        <div class="step-header">
-          <span class="step-back-link" onclick="goBack()">← back</span>
-          <span class="step-header-title">review and save</span>
-          <span></span>
-        </div>
-        <div id="reviewSummary" class="review-summary"></div>
-        <div id="submitStatus" style="font-family:var(--font-hand);color:#a04040;min-height:20px;"></div>
-        <div class="panel-action-bar">
-          <button class="rpg-btn primary" id="submitBtn" onclick="submitEntry()">save to the library</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="save-continue-bar" id="stepContinueBar">
-      <button type="button" class="rpg-btn primary" id="continueBtn" onclick="goNext()">continue →</button>
+    <div class="submit-bar">
+      <div class="submit-status" id="submitStatus"></div>
+      <button type="button" class="rpg-btn primary" id="submitBtn" onclick="submitEntry()">save to the library</button>
     </div>
 
   </div>
@@ -435,6 +347,7 @@ body.embedded .wall { padding-top: 16px; }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/three-act-map.js"></script>
 <script>
 // ── SUPABASE ─────────────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -457,271 +370,11 @@ async function resolveUsername(user) {
   } catch (e) { return user.email.split('@')[0]; }
 }
 
-// ── TERRAIN + WEATHER DATA (copied from games/treasure-map.html) ─────────
-const TERRAIN_IMGS = {
-  pond:      "../assets/elements/maps/pond.png",
-  waterfall: "../assets/elements/maps/waterfall.png",
-  spring:    "../assets/elements/maps/spring.png",
-  river:     "../assets/elements/maps/river.png",
-  ocean:     "../assets/elements/maps/ocean.png",
-  glacier:   "../assets/elements/maps/glacier.png",
-  marsh:     "../assets/elements/maps/marsh.png",
-  dunes:     "../assets/elements/maps/dunes.png",
-  mountains: "../assets/elements/maps/mountains.png",
-  cave:      "../assets/elements/maps/cave.png",
-  cliff:     "../assets/elements/maps/cliff.png",
-  maze:      "../assets/elements/maps/maze.png",
-  plateau:   "../assets/elements/maps/plateau.png",
-  valley:    "../assets/elements/maps/valley.png",
-  meadow:    "../assets/elements/maps/meadow.png",
-  jungle:    "../assets/elements/maps/jungle.png",
-  island:    "../assets/elements/maps/island.png",
-  forest:    "../assets/elements/maps/forest.png",
-};
-const TERRAIN_CATEGORIES = [
-  { id:"water",      label:"water"      },
-  { id:"barriers",   label:"barriers"   },
-  { id:"landscapes", label:"landscapes" },
-];
-const TERRAIN = [
-  { id:"pond",      label:"pond",      cat:"water" },
-  { id:"waterfall", label:"waterfall", cat:"water" },
-  { id:"spring",    label:"spring",    cat:"water" },
-  { id:"river",     label:"river",     cat:"water" },
-  { id:"ocean",     label:"ocean",     cat:"water" },
-  { id:"glacier",   label:"glacier",   cat:"water" },
-  { id:"marsh",     label:"marsh",     cat:"barriers" },
-  { id:"dunes",     label:"dunes",     cat:"barriers" },
-  { id:"mountains", label:"mountains", cat:"barriers" },
-  { id:"cave",      label:"cave",      cat:"barriers" },
-  { id:"cliff",     label:"cliff",     cat:"barriers" },
-  { id:"maze",      label:"maze",      cat:"barriers" },
-  { id:"plateau",   label:"plateau",   cat:"landscapes" },
-  { id:"valley",    label:"valley",    cat:"landscapes" },
-  { id:"meadow",    label:"meadow",    cat:"landscapes" },
-  { id:"jungle",    label:"jungle",    cat:"landscapes" },
-  { id:"island",    label:"island",    cat:"landscapes" },
-  { id:"forest",    label:"forest",    cat:"landscapes" },
-];
-const TERRAIN_LABELS = Object.fromEntries(TERRAIN.map(t => [t.id, t.label]));
-const WEATHER_CATS = [
-  { id:"sunny", label:"sunny", desc:"bright/happy/intense", cls:"sunny", tint:"#f2e6a8", feelings:["trust","peace","joy","hope","confidence","truth","stability","acceptance","pressure","confrontation","temptation","reclamation","redemption","reunion"] },
-  { id:"rainy", label:"rainy", desc:"sad/heavy/grief", cls:"rainy", tint:"#c9b3e7", feelings:["shadows","worry","fear","depression","regret","confusion","boredom","loneliness","grief","sadness","betrayal","reckoning","surrender"] },
-  { id:"windy", label:"windy", desc:"change/transition/evolution", cls:"windy", tint:"#b6e6cf", feelings:["surprise","curiosity","inspiration","excitement","courage","progress","chaos","disruption","departure","initiation","crossroads","unraveling","rebirth","release"] },
-  { id:"snowy", label:"snowy", desc:"cold/stuck/isolating", cls:"snowy", tint:"#a0d7e6", feelings:["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","self-confrontation"] },
-];
-
-// ── THREE-ACT MAP (factory — supports multiple independent instances) ───
-const ZONE_PROMPTS = [
-  "exposition — how does the story begin?",
-  "climax — what is the problem?",
-  "resolution — how does it end?",
-];
-// Tuned by eye against the story-arc curve in assets/elements/maps/three-act.png
-// (687×188 image: low-left → peak-center → low-right)
-const THREE_ACT_ZONE_POSITIONS = [
-  { x: 65,  y: 172 },
-  { x: 352, y: 12  },
-  { x: 618, y: 140 },
-];
-
-function createThreeActMap(ids) {
-  const state = { zones: [{}, {}, {}] };
-  let activeZone = null;
-  let activeTerrainCat = "landscapes";
-
-  function zoneTarget() {
-    if (activeZone === 0 || activeZone === 1 || activeZone === 2) return state.zones[activeZone];
-    return null;
-  }
-
-  function updateZonePrompt() {
-    const prompt = document.getElementById(ids.promptId);
-    const text   = document.getElementById(ids.promptTextId);
-    if (activeZone === null) { prompt.style.display = 'none'; return; }
-    text.textContent = ZONE_PROMPTS[activeZone];
-    prompt.style.display = 'block';
-  }
-
-  function selectZone(i) { activeZone = i; render(); updateZonePrompt(); }
-
-  function render() {
-    const zoneGroup = document.getElementById(ids.zoneGroupId);
-    const defs      = document.getElementById(ids.defsId);
-    zoneGroup.innerHTML = ''; defs.innerHTML = '';
-    const R = 60;
-    THREE_ACT_ZONE_POSITIONS.forEach((pos, i) => {
-      const zone = state.zones[i] || {};
-      const isActive = activeZone === i;
-      if (zone.tint) {
-        const gradId = `${ids.svgId}-halo-${i}`;
-        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-        grad.setAttribute('id', gradId); grad.setAttribute('cx','50%'); grad.setAttribute('cy','50%'); grad.setAttribute('r','50%');
-        const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        s1.setAttribute('offset','0%'); s1.setAttribute('stop-color', zone.tint); s1.setAttribute('stop-opacity','1');
-        const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        s2.setAttribute('offset','55%'); s2.setAttribute('stop-color', zone.tint); s2.setAttribute('stop-opacity','0.85');
-        const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        s3.setAttribute('offset','100%'); s3.setAttribute('stop-color', zone.tint); s3.setAttribute('stop-opacity','0');
-        grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
-        const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        halo.setAttribute('cx', pos.x); halo.setAttribute('cy', pos.y); halo.setAttribute('r', R + 76);
-        halo.setAttribute('fill', `url(#${gradId})`); halo.style.pointerEvents = 'none';
-        zoneGroup.appendChild(halo);
-      }
-      const hasTerrain = !!(zone.terrain && TERRAIN_IMGS[zone.terrain]);
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', R);
-      if (hasTerrain) { circle.setAttribute('fill', 'transparent'); circle.setAttribute('stroke', 'transparent'); }
-      else {
-        circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
-        circle.setAttribute('stroke', isActive ? '#6e83d3' : '#6e83d3');
-      }
-      circle.setAttribute('stroke-width', isActive ? '5' : '3');
-      zoneGroup.appendChild(circle);
-      if (hasTerrain) {
-        const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-        img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
-        img.setAttribute('width', R * 2); img.setAttribute('height', R * 2);
-        img.setAttribute('href', TERRAIN_IMGS[zone.terrain]);
-        img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        img.style.pointerEvents = 'none';
-        zoneGroup.appendChild(img);
-      }
-      const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      numEl.setAttribute('x', pos.x); numEl.setAttribute('y', pos.y + 8);
-      numEl.setAttribute('text-anchor', 'middle');
-      numEl.setAttribute('fill', hasTerrain ? '#00000000' : (isActive ? '#6e83d3' : '#3a4aaa'));
-      numEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); numEl.setAttribute('font-size', '40');
-      numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
-      if (!hasTerrain) zoneGroup.appendChild(numEl);
-      if (hasTerrain) {
-        const terrainEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        terrainEl.setAttribute('x', pos.x); terrainEl.setAttribute('y', pos.y - R - 22);
-        terrainEl.setAttribute('text-anchor', 'middle'); terrainEl.setAttribute('fill', '#000000');
-        terrainEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); terrainEl.setAttribute('font-size', '52');
-        terrainEl.setAttribute('font-weight', 'bold');
-        terrainEl.style.pointerEvents = 'none'; terrainEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
-        zoneGroup.appendChild(terrainEl);
-      }
-      if (zone.feeling) {
-        const feelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        feelEl.setAttribute('x', pos.x); feelEl.setAttribute('y', pos.y + R + 48);
-        feelEl.setAttribute('text-anchor', 'middle'); feelEl.setAttribute('fill', '#000000');
-        feelEl.setAttribute('font-family', '"ZoesHandwriting", cursive'); feelEl.setAttribute('font-size', '52');
-        feelEl.setAttribute('font-weight', 'bold');
-        feelEl.style.pointerEvents = 'none'; feelEl.textContent = zone.feeling;
-        zoneGroup.appendChild(feelEl);
-      }
-      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      hit.setAttribute('cx', pos.x); hit.setAttribute('cy', pos.y); hit.setAttribute('r', R + 12);
-      hit.setAttribute('fill', 'transparent'); hit.style.cursor = 'pointer';
-      hit.addEventListener('click', () => selectZone(i));
-      zoneGroup.appendChild(hit);
-    });
-  }
-
-  function buildTerrain() {
-    const tabs = document.getElementById(ids.terrainTabsId);
-    const allCats = [...TERRAIN_CATEGORIES, { id: "all", label: "view all" }];
-    allCats.forEach(cat => {
-      const btn = document.createElement("div");
-      btn.className = "terrain-cat-btn" + (cat.id === activeTerrainCat ? " active" : "");
-      btn.dataset.catId = cat.id;
-      btn.textContent = cat.label;
-      btn.addEventListener("click", () => selectTerrainCat(cat.id));
-      tabs.appendChild(btn);
-    });
-    const tp = document.getElementById(ids.terrainPaletteId);
-    TERRAIN.forEach(t => {
-      const el = document.createElement("div");
-      el.className = "palette-item";
-      el.dataset.cat = t.cat;
-      el.innerHTML = `<img src="${TERRAIN_IMGS[t.id]}" alt="${t.label}"><div class="palette-item-name">${t.label}</div>`;
-      el.addEventListener("click", () => selectTerrain(t, el));
-      tp.appendChild(el);
-    });
-    applyTerrainCatFilter();
-  }
-  function selectTerrainCat(catId) {
-    activeTerrainCat = catId;
-    document.getElementById(ids.terrainTabsId).querySelectorAll(".terrain-cat-btn").forEach(b => b.classList.toggle("active", b.dataset.catId === catId));
-    applyTerrainCatFilter();
-  }
-  function applyTerrainCatFilter() {
-    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(el => {
-      el.style.display = (activeTerrainCat === "all" || el.dataset.cat === activeTerrainCat) ? "flex" : "none";
-    });
-  }
-  function selectTerrain(t, el) {
-    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(p => p.classList.remove("active"));
-    el.classList.add("active");
-    const target = zoneTarget();
-    if (!target) return;
-    target.terrain = t.id;
-    render();
-  }
-
-  function buildWeather() {
-    const wc = document.getElementById(ids.weatherId);
-    WEATHER_CATS.forEach(cat => {
-      const section = document.createElement("div");
-      section.className = `weather-category ${cat.cls}`;
-      const header = document.createElement("div");
-      header.className = "weather-cat-header";
-      header.innerHTML = `${cat.label} <span class="weather-cat-desc">(${cat.desc})</span>`;
-      const chips = document.createElement("div"); chips.className = "feeling-chips";
-      cat.feelings.forEach(feeling => {
-        const chip = document.createElement("div");
-        chip.className = "feeling-chip"; chip.textContent = feeling;
-        chip.addEventListener("click", () => selectFeeling(feeling, cat, chip));
-        chips.appendChild(chip);
-      });
-      section.appendChild(header); section.appendChild(chips); wc.appendChild(section);
-    });
-  }
-  function selectFeeling(feeling, cat, el) {
-    document.querySelectorAll(`#${ids.weatherId} .feeling-chip`).forEach(c => c.classList.remove("active"));
-    el.classList.add("active");
-    const target = zoneTarget();
-    if (!target) return;
-    target.feeling = feeling; target.tint = cat.tint; target.cat = cat.id;
-    render();
-  }
-
-  function reset() {
-    state.zones = [{}, {}, {}];
-    activeZone = null;
-    render();
-    updateZonePrompt();
-    document.querySelectorAll(`#${ids.terrainPaletteId} .palette-item`).forEach(p => p.classList.remove('active'));
-    document.querySelectorAll(`#${ids.weatherId} .feeling-chip`).forEach(c => c.classList.remove('active'));
-  }
-  function isTouched()  { return state.zones.some(z => z.terrain || z.feeling); }
-  function isComplete() { return state.zones.every(z => z.terrain && z.feeling); }
-
-  return { state, buildTerrain, buildWeather, render, reset, isTouched, isComplete };
-}
-
-const readingMap = createThreeActMap({
+const readingMap = ThreeActMap.create({
   svgId: 'threeActSvg', zoneGroupId: 'threeActZoneGroup', defsId: 'threeActDefs',
   promptId: 'zonePrompt', promptTextId: 'promptText',
   terrainTabsId: 'terrainCatTabs', terrainPaletteId: 'terrainPalette', weatherId: 'weatherCategories',
 });
-const arcMap = createThreeActMap({
-  svgId: 'threeActSvgArc', zoneGroupId: 'threeActZoneGroupArc', defsId: 'threeActDefsArc',
-  promptId: 'zonePromptArc', promptTextId: 'promptTextArc',
-  terrainTabsId: 'terrainCatTabsArc', terrainPaletteId: 'terrainPaletteArc', weatherId: 'weatherCategoriesArc',
-});
-
-function toggleArcMap() {
-  const container = document.getElementById('arcMapContainer');
-  const btn = document.getElementById('arcToggleBtn');
-  const show = container.style.display === 'none';
-  container.style.display = show ? 'block' : 'none';
-  btn.textContent = show ? 'remove story arc map' : '+ map to story arc';
-  if (!show) arcMap.reset();
-}
 
 function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseYear(v) { const n = parseInt(String(v || '').trim(), 10); return Number.isFinite(n) ? n : null; }
@@ -802,7 +455,7 @@ async function lockToExistingMedia(mediaId) {
     cover_url: data.cover_url, canonical_link: data.canonical_link, year: data.release_year,
   };
   renderSelectedMediaCard();
-  STEPS = STEPS.filter(s => s !== 'title');
+  document.getElementById('titlePanel').style.display = 'none';
 }
 
 function triggerSearch() {
@@ -890,6 +543,7 @@ function renderSearchResults() {
   const cards = shown.map((item, i) => `<div class="search-result-card" data-idx="${i}">
     ${item.poster ? `<img src="${item.poster}" alt="">` : '<div class="search-result-card-noimg"></div>'}
     <div class="search-result-card-title">${_escapeHtml(item.title)}${item.year ? ` <span class="search-result-card-year">(${_escapeHtml(item.year)})</span>` : ''}</div>
+    ${item.author ? `<div class="search-result-card-author">${_escapeHtml(item.author)}</div>` : ''}
   </div>`).join('');
   const moreBtn = searchResultsShown < searchResultsPool.length
     ? `<div class="search-more-row"><button type="button" class="rpg-btn" onclick="showMoreResults()">see more results</button></div>`
@@ -988,87 +642,10 @@ function setIsAuthorPublic(val) {
 }
 
 // ── STEP WIZARD ───────────────────────────────────────────────────────────
-let STEPS = ['title', 'about', 'map', 'optional', 'sharing', 'submit'];
-let currentStepIndex = 0;
-
 function currentTitleValue() {
   const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
   const manualTitle = document.getElementById('manualTitle').value.trim();
   return manualOpen ? manualTitle : (selectedMedia?.title || document.getElementById('titleSearch').value.trim());
-}
-
-function validateStep(i) {
-  const step = STEPS[i];
-  if (step === 'title') {
-    if (!currentTitleValue()) return { ok: false, message: 'add a title first.' };
-  } else if (step === 'about') {
-    if (!document.getElementById('aboutSentence').value.trim()) return { ok: false, message: 'add a one-sentence description first.' };
-    if (!qualityRating || !experienceRating) return { ok: false, message: 'rate the quality and the experience first.' };
-  } else if (step === 'map') {
-    if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) return { ok: false, message: 'add a location and emotion to every zone of the map first.' };
-  } else if (step === 'optional') {
-    if (arcMap.isTouched() && !arcMap.isComplete()) return { ok: false, message: 'finish all three zones of the story arc map, or remove it before continuing.' };
-  }
-  return { ok: true };
-}
-
-const REVIEW_ZONE_NAMES = ['beginning', 'middle', 'end'];
-
-function summarizeZones(map) {
-  return map.state.zones.map((z, i) => {
-    const terrain = z.terrain ? TERRAIN_LABELS[z.terrain] : '—';
-    const feeling = z.feeling || '—';
-    return `${REVIEW_ZONE_NAMES[i]}: ${terrain} / ${feeling}`;
-  }).join('\n');
-}
-
-function renderReviewSummary() {
-  const el = document.getElementById('reviewSummary');
-  const manualOpen = document.getElementById('manualEntry').style.display !== 'none';
-  const title = currentTitleValue();
-  const author = manualOpen ? document.getElementById('manualAuthor').value.trim() : (selectedMedia?.author || '');
-  const year = manualOpen ? parseYear(document.getElementById('manualYear').value) : parseYear(selectedMedia?.year);
-  const cover = manualOpen ? manualCoverUrl : (selectedMedia?.cover_url || selectedMedia?.poster || null);
-  const about = document.getElementById('aboutSentence').value.trim();
-
-  const rows = [];
-  rows.push(['title', _escapeHtml(title) + (author ? ` — ${_escapeHtml(author)}` : '') + (year ? ` (${year})` : '')]);
-  rows.push(['summary', _escapeHtml(about)]);
-  rows.push(['reading experience map', _escapeHtml(summarizeZones(readingMap))]);
-  if (arcMap.isTouched()) rows.push(['story arc map', _escapeHtml(summarizeZones(arcMap))]);
-  rows.push(['quality rating', `<span class="review-stars">${'★'.repeat(qualityRating)}</span>`]);
-  rows.push(['experience rating', `<span class="review-stars">${'★'.repeat(experienceRating)}</span>`]);
-  rows.push(['sharing', isPublic ? (isAuthorPublic ? 'public — showing your name' : 'public — anonymous') : 'private']);
-
-  el.innerHTML = rows.map(([label, value]) => `<div class="review-row"><div class="review-label">${label}</div><div class="review-value">${value || '—'}</div></div>`).join('');
-  if (cover) {
-    const img = document.createElement('img');
-    img.className = 'review-cover'; img.src = cover; img.alt = '';
-    el.firstElementChild.prepend(img);
-  }
-}
-
-function showStep(i) {
-  currentStepIndex = i;
-  STEPS.forEach((s, idx) => {
-    const panel = document.querySelector(`.step-panel[data-step="${s}"]`);
-    panel.classList.toggle('active', idx === i);
-    if (idx === i) {
-      const backLink = panel.querySelector('.step-back-link');
-      if (backLink) backLink.style.visibility = i === 0 ? 'hidden' : '';
-    }
-  });
-  document.getElementById('stepContinueBar').style.display = (i === STEPS.length - 1) ? 'none' : 'flex';
-  if (STEPS[i] === 'submit') renderReviewSummary();
-  window.scrollTo(0, 0);
-}
-function goNext() {
-  const check = validateStep(currentStepIndex);
-  if (!check.ok) { HGModal.alert('hold on', check.message); return; }
-  if (currentStepIndex < STEPS.length - 1) showStep(currentStepIndex + 1);
-}
-function goBack() {
-  if (currentStepIndex > 0) showStep(currentStepIndex - 1);
 }
 
 // Looks for a `media` row that's already the same book/movie before creating a new
@@ -1151,7 +728,6 @@ async function submitEntry() {
       about_sentence: aboutSentence,
       map_type: 'three-act',
       map_data: readingMap.state,
-      story_arc_map_data: arcMap.isTouched() ? arcMap.state : null,
       quality_rating: qualityRating,
       experience_rating: experienceRating,
       cover_url_override: manualOpen ? manualCoverUrl : null,
@@ -1181,14 +757,12 @@ async function submitEntry() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function initPage() {
   readingMap.buildTerrain(); readingMap.buildWeather(); readingMap.render();
-  arcMap.buildTerrain(); arcMap.buildWeather(); arcMap.render();
   buildStarRow('qualityStars', () => qualityRating, v => qualityRating = v);
   buildStarRow('experienceStars', () => experienceRating, v => experienceRating = v);
   refreshStars();
   setIsPublic(true);
   setIsAuthorPublic(false);
   if (lockedMediaId) await lockToExistingMedia(lockedMediaId);
-  showStep(0);
 
   HeartabilityNav.init({
     mount: '#gear-slot', assetsBase: '../assets', authMode: 'dynamic', sb,

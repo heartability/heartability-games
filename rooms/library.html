@@ -268,6 +268,51 @@ html, body {
   .lib-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
 }
 
+/* ── STORY ARC BOARD (crowd-sourced, votable, always anonymous) ── */
+.lib-arc-section { margin-bottom: 16px; }
+.lib-arc-section > .section-header { font-family: var(--font-hand); font-size: 20px; color: #222; margin-bottom: 8px; }
+.lib-arc-frame { background: #cdd3ec; border: 2px solid var(--blue); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.lib-arc-card { display: flex; flex-direction: column; gap: 6px; }
+.lib-arc-preview { max-width: 260px; }
+.lib-arc-preview svg { width: 100%; height: auto; display: block; }
+.lib-arc-vote-btn { font-family: var(--font-hand); font-size: 15px; background: #dfe2ef; border: 1.5px solid var(--blue); color: var(--blue); cursor: pointer; padding: 1px 8px; }
+.lib-arc-vote-btn:hover:not(:disabled) { background: var(--blue); color: #fff; }
+.lib-arc-vote-btn.active { background: var(--blue); color: #fff; }
+.lib-arc-vote-btn:disabled { opacity: .4; cursor: not-allowed; }
+.lib-arc-editor { background: #fff; border: 2px solid var(--blue); padding: 12px; margin-bottom: 4px; }
+.lib-arc-editor .two-col-arc { display: grid; grid-template-columns: 3fr 2fr; gap: 12px; align-items: start; }
+@media (max-width: 560px) { .lib-arc-editor .two-col-arc { grid-template-columns: 1fr; } }
+.lib-arc-editor .three-act-canvas { background: #e8ecf9; border: 2px solid var(--blue); padding: 16px; }
+.lib-arc-editor .three-act-canvas svg { width: 100%; height: auto; display: block; }
+.lib-arc-editor .status-bar { background: #e8ecf9; border: 2px solid var(--blue); padding: 6px 10px; font-family: var(--font-hand); font-size: 15px; color: #333; min-height: 32px; margin-bottom: 8px; }
+.lib-arc-editor .section-header { font-family: var(--font-hand); font-size: 16px; color: #333; margin-bottom: 6px; }
+.lib-arc-editor .palette-section { background: #e8ecf9; border: 2px solid var(--blue); padding: 8px 10px; }
+.lib-arc-editor .terrain-cat-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.lib-arc-editor .terrain-cat-btn { padding: 3px 9px; background: #fff; border: 1.5px solid var(--blue); font-family: var(--font-hand); font-size: 12px; color: #333; cursor: pointer; user-select: none; }
+.lib-arc-editor .terrain-cat-btn.active { background: var(--blue); color: #fff; }
+.lib-arc-editor .palette-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.lib-arc-editor .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 7px; background: #fff; border: 1.5px solid var(--blue); cursor: pointer; user-select: none; }
+.lib-arc-editor .palette-item.active { background: var(--blue); }
+.lib-arc-editor .palette-item.active .palette-item-name { color: #fff; }
+.lib-arc-editor .palette-item img { width: 46px; height: 38px; object-fit: contain; pointer-events: none; }
+.lib-arc-editor .palette-item-name { font-family: var(--font-hand); font-size: 11px; color: #333; pointer-events: none; }
+.lib-arc-editor .weather-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+@media (max-width: 560px) { .lib-arc-editor .weather-categories { grid-template-columns: 1fr; } }
+.lib-arc-editor .weather-category { padding: 6px 8px; border: 1.5px solid; }
+.lib-arc-editor .weather-category.sunny { background: #f2e6a8; border-color: #715f04; }
+.lib-arc-editor .weather-category.rainy { background: #c9b3e7; border-color: #260156; }
+.lib-arc-editor .weather-category.windy { background: #b6e6cf; border-color: #046957; }
+.lib-arc-editor .weather-category.snowy { background: #a0d7e6; border-color: #033f50; }
+.lib-arc-editor .weather-cat-header { font-family: var(--font-hand); font-size: 15px; margin-bottom: 4px; }
+.lib-arc-editor .weather-cat-desc { font-size: 11px; font-weight: normal; opacity: .7; }
+.lib-arc-editor .feeling-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.lib-arc-editor .feeling-chip { padding: 2px 8px; font-family: var(--font-hand); font-size: 12px; cursor: pointer; border: 1.5px solid; user-select: none; }
+.lib-arc-editor .feeling-chip.active { outline: 2px solid #222; outline-offset: 1px; }
+.lib-arc-editor .sunny .feeling-chip { background: #f8edb8; border-color: #715f04; color: #715f04; }
+.lib-arc-editor .rainy .feeling-chip { background: #dcc9f0; border-color: #260156; color: #260156; }
+.lib-arc-editor .windy .feeling-chip { background: #cdf0e0; border-color: #046957; color: #046957; }
+.lib-arc-editor .snowy .feeling-chip { background: #c3e8f0; border-color: #033f50; color: #033f50; }
+
 </style>
 </head>
 <body>
@@ -333,6 +378,7 @@ html, body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/three-act-map.js"></script>
 <script>
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
@@ -397,7 +443,7 @@ const CLIMATE_CATEGORIES = [
   { id: 'snowy', label: 'snowy' },
 ];
 
-let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false };
+let libState = { category: null, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false, storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
 const publicCache = {};       // category -> rows from media_submissions_public
 const catalogCache = {};      // category -> rows from media_catalog_public (every title, reviewed or not)
 let privateAllCache = null;   // all of the current user's own submissions (any category)
@@ -689,6 +735,7 @@ function buildDetailHtml() {
           ${subtitleHtml}
           <div class="lib-empty">nobody has reviewed this yet</div>
           ${addCta}
+          ${buildArcSectionHtml(id)}
         </div>
         <div class="detail-sidebar">${detailRatingsPanelHtml([])}</div>
       </div>`;
@@ -712,6 +759,7 @@ function buildDetailHtml() {
         ${subtitleHtml}
         ${detailTagsPanelHtml(rows)}
         ${addCta}
+        ${buildArcSectionHtml(id)}
         <div class="lib-comments">${comments}</div>
       </div>
       <div class="detail-sidebar">${detailRatingsPanelHtml(rows)}</div>
@@ -1040,18 +1088,132 @@ function bindAuthorLinks() {
     a.addEventListener('click', (e) => { e.preventDefault(); openAuthorBrowse(a.dataset.author, a.dataset.type); });
   });
 }
-function render() { renderModalBody(buildBodyHtml()); bindAuthorLinks(); }
+function render() {
+  renderModalBody(buildBodyHtml());
+  bindAuthorLinks();
+  // Re-attach the interactive story-arc editor and redraw preview SVGs after every
+  // innerHTML rebuild — this file has no partial-patch mechanism, only full re-render,
+  // so any interactive/canvas widget has to be rebuilt each time (mirrors bindAuthorLinks above).
+  if (libState.arcEditorOpen && document.getElementById('arcEditorMount')) initArcEditor();
+  (libState.storyArcs || []).forEach(a => {
+    const mount = document.getElementById('arcPreview-' + a.id);
+    if (mount) ThreeActMap.renderStatic(mount, a.map_data?.zones, 'arcPrev-' + a.id);
+  });
+}
 
 function setTerrainFilter(v) { libState.filterTerrain = v || null; render(); }
 function setFeelingFilter(v) { libState.filterFeeling = v || null; render(); }
 function setMinRating(v) { libState.minRating = Number(v) || 0; render(); }
 
-function openDetail(mediaId) {
+async function openDetail(mediaId) {
   libState.detailMediaId = mediaId;
   libState.detailSaveId = null;
   libState.authorFilter = null;
+  libState.storyArcs = []; libState.myArc = null; libState.myVotes = {}; libState.arcEditorOpen = false;
   document.querySelector('#library-overlay .hg-modal').classList.add('detail-mode');
   render();
+  await fetchStoryArcs(mediaId);
+  render();
+}
+
+// ── STORY ARC BOARD (crowd-sourced, votable, always anonymous) ──────────
+async function fetchStoryArcs(mediaId) {
+  const { data, error } = await sb.from('media_story_arcs_public').select('*').eq('media_id', mediaId).order('score', { ascending: false });
+  if (error) { console.error('[library] story arcs fetch failed:', error); libState.storyArcs = []; }
+  else libState.storyArcs = data || [];
+
+  if (!currentUser) { libState.myArc = null; libState.myVotes = {}; return; }
+  const { data: mine } = await sb.from('media_story_arcs').select('id, map_data').eq('media_id', mediaId).eq('submitted_by', currentUser.id).maybeSingle();
+  libState.myArc = mine || null;
+  const arcIds = libState.storyArcs.map(a => a.id);
+  if (!arcIds.length) { libState.myVotes = {}; return; }
+  const { data: votes } = await sb.from('media_story_arc_votes').select('arc_id, vote').eq('voter_id', currentUser.id).in('arc_id', arcIds);
+  libState.myVotes = Object.fromEntries((votes || []).map(v => [v.arc_id, v.vote]));
+}
+
+let arcEditorInstance = null;
+function initArcEditor() {
+  arcEditorInstance = ThreeActMap.create({
+    svgId: 'libArcSvg', zoneGroupId: 'libArcZoneGroup', defsId: 'libArcDefs',
+    promptId: 'libArcPrompt', promptTextId: 'libArcPromptText',
+    terrainTabsId: 'libArcTerrainTabs', terrainPaletteId: 'libArcTerrainPalette', weatherId: 'libArcWeather',
+  });
+  arcEditorInstance.buildTerrain();
+  arcEditorInstance.buildWeather();
+  if (libState.myArc?.map_data?.zones) arcEditorInstance.state.zones = libState.myArc.map_data.zones.map(z => ({ ...z }));
+  arcEditorInstance.render();
+}
+function toggleArcEditor() { libState.arcEditorOpen = !libState.arcEditorOpen; render(); }
+
+async function saveArc(mediaId) {
+  if (!arcEditorInstance || !arcEditorInstance.isComplete()) { HGModal.alert('hold on', 'add a terrain and feeling to all three points first.'); return; }
+  const { error } = await sb.from('media_story_arcs').upsert(
+    { media_id: mediaId, submitted_by: currentUser.id, map_data: arcEditorInstance.state, updated_at: new Date().toISOString() },
+    { onConflict: 'media_id,submitted_by' }
+  );
+  if (error) { console.error('[library] save arc failed:', error); HGModal.alert('oops', "couldn't save that — try again"); return; }
+  libState.arcEditorOpen = false;
+  await fetchStoryArcs(mediaId);
+  render();
+}
+
+async function voteArc(mediaId, arcId, val) {
+  if (!currentUser) return;
+  if (libState.myVotes[arcId] === val) {
+    const { error } = await sb.from('media_story_arc_votes').delete().eq('arc_id', arcId).eq('voter_id', currentUser.id);
+    if (error) { console.error('[library] retract vote failed:', error); return; }
+  } else {
+    const { error } = await sb.from('media_story_arc_votes').upsert({ arc_id: arcId, voter_id: currentUser.id, vote: val }, { onConflict: 'arc_id,voter_id' });
+    if (error) { console.error('[library] vote failed:', error); return; }
+  }
+  await fetchStoryArcs(mediaId);
+  render();
+}
+
+function buildArcSectionHtml(mediaId) {
+  const editorLabel = libState.arcEditorOpen ? 'close story arc editor' : (libState.myArc ? 'edit your story arc' : '+ add your own');
+  const trigger = currentUser
+    ? `<div class="lib-add-cta"><a href="#" onclick="event.preventDefault(); toggleArcEditor();">${editorLabel}</a></div>`
+    : `<div class="lib-add-cta">want to map the story arc? <a href="../users/login.html">log in</a></div>`;
+
+  const editor = libState.arcEditorOpen ? `<div class="lib-arc-editor" id="arcEditorMount">
+    <div class="section-header">exposition, climax, resolution — click a point on the curve, then pick its terrain and feeling</div>
+    <div class="two-col-arc">
+      <div class="three-act-canvas">
+        <svg id="libArcSvg" viewBox="${ThreeActMap.THREE_ACT_VIEWBOX}" xmlns="http://www.w3.org/2000/svg">
+          <image href="${ThreeActMap.THREE_ACT_CURVE_IMG}" x="0" y="0" width="687" height="188" preserveAspectRatio="xMidYMid meet" style="pointer-events:none;"/>
+          <defs id="libArcDefs"></defs>
+          <g id="libArcZoneGroup"></g>
+        </svg>
+      </div>
+      <div>
+        <div class="status-bar" id="libArcPrompt" style="display:none;"><span id="libArcPromptText"></span></div>
+        <div class="section-header">terrain</div>
+        <div class="palette-section"><div class="terrain-cat-tabs" id="libArcTerrainTabs"></div><div class="palette-items" id="libArcTerrainPalette"></div></div>
+      </div>
+    </div>
+    <div class="weather-categories" id="libArcWeather"></div>
+    <div class="lib-save-actions"><button type="button" class="lib-save-btn" onclick="saveArc('${mediaId}')">save arc map</button></div>
+  </div>` : '';
+
+  const listHtml = libState.storyArcs.length
+    ? libState.storyArcs.map(a => `<div class="lib-comment lib-arc-card">
+        <div id="arcPreview-${a.id}" class="lib-arc-preview"></div>
+        <div class="lib-comment-ratings">score ${a.score}
+          <button type="button" class="lib-arc-vote-btn ${libState.myVotes[a.id] === 1 ? 'active' : ''}" onclick="voteArc('${mediaId}','${a.id}',1)" ${currentUser ? '' : 'disabled'}>▲</button>
+          <button type="button" class="lib-arc-vote-btn ${libState.myVotes[a.id] === -1 ? 'active' : ''}" onclick="voteArc('${mediaId}','${a.id}',-1)" ${currentUser ? '' : 'disabled'}>▼</button>
+        </div>
+      </div>`).join('')
+    : `<div class="lib-empty">no story arcs mapped yet — be the first</div>`;
+
+  return `<div class="lib-arc-section">
+    <div class="section-header">map the story arc</div>
+    <div class="lib-arc-frame">
+      ${trigger}
+      ${editor}
+      ${listHtml}
+    </div>
+  </div>`;
 }
 function backToGrid() {
   libState.detailMediaId = null; libState.detailSaveId = null; libState.authorFilter = null; libState.showSavePanel = false;
@@ -1114,7 +1276,7 @@ async function switchTab(tab) {
 }
 
 async function openLibrary(category) {
-  libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false };
+  libState = { category, tab: 'public', detailMediaId: null, detailSaveId: null, filterTerrain: null, filterFeeling: null, minRating: 0, authorFilter: null, savesFilter: 'all', showSavePanel: false, storyArcs: [], myArc: null, myVotes: {}, arcEditorOpen: false };
   document.getElementById('library-modal-title').textContent = CATEGORY_META[category].label;
   document.querySelector('#library-overlay .hg-modal').classList.remove('detail-mode');
   document.getElementById('library-overlay').classList.add('open');

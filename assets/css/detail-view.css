@@ -108,5 +108,5 @@
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
 }
 .detail-rating-num { font-family: var(--font-hand); font-size: 32px; color: #222; line-height: 1; }
-.detail-rating-stars { font-family: var(--font-hand); font-size: 16px; color: #715f04; margin-top: 4px; }
+.detail-rating-stars { font-family: var(--font-hand); font-size: 16px; color: #e8b400; margin-top: 4px; }
 .detail-rating-count { font-family: var(--font-hand); font-size: var(--tl-font-small); color: #888; margin-top: 4px; }
