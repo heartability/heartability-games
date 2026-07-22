@@ -69,9 +69,9 @@ body.embedded .wall { padding-top: 16px; }
 /* STEP WIZARD */
 .step-panel { display: none; flex-direction: column; align-items: center; width: 100%; }
 .step-panel.active { display: flex; }
-.step-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.step-header-title { font-family: var(--font-hand); font-size: 18px; color: var(--text-mid); opacity: 0.8; }
-.step-back-link { font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
+.step-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.step-header-title { font-family: var(--font-hand); font-size: 36px; color: var(--text-mid); }
+.step-back-link { font-family: var(--font-hand); font-size: 20px; color: var(--blue); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
 .save-continue-bar {
   width: 100%; display: flex; justify-content: center; padding-top: 14px;
 }
@@ -90,8 +90,8 @@ body.embedded .wall { padding-top: 16px; }
   box-shadow: 6px 10px 40px rgba(0, 0, 0, 0.4);
 }
 
-.section-header { font-family: var(--font-hand); font-size: 20px; color: var(--text-mid); margin-bottom: 7px; letter-spacing: 0.5px; }
-.section-sub { font-family: var(--font-hand); font-size: 18px; color: #000; margin: -4px 0 8px; }
+.section-header { font-family: var(--font-hand); font-size: 24px; color: var(--text-mid); margin-bottom: 7px; letter-spacing: 0.5px; }
+.section-sub { font-family: var(--font-hand); font-size: 27px; color: #000; margin: -2px 0 10px; }
 
 .map-input, .map-textarea, .map-select {
   width: 100%; background: #cdd3ec;
@@ -127,7 +127,8 @@ body.embedded .wall { padding-top: 16px; }
   cursor: pointer; user-select: none; transition: filter 0.1s;
 }
 .palette-item:hover { filter: brightness(1.06); }
-.palette-item.active { border-color: var(--panel-bg); outline: 2px solid var(--panel-bg); outline-offset: 1px; background: #e5e8f5; }
+.palette-item.active { background: var(--blue); border-color: #3a4aaa; outline: 2px solid #fff; outline-offset: -4px; }
+.palette-item.active .palette-item-name { color: #fff; }
 .palette-item img { width: 60px; height: 50px; object-fit: contain; pointer-events: none; }
 .palette-item-name { font-family: var(--font-game); font-size: 12px; color: var(--text-mid); pointer-events: none; letter-spacing: 0.5px; }
 
@@ -140,7 +141,7 @@ body.embedded .wall { padding-top: 16px; }
   color: var(--text-mid); cursor: pointer; user-select: none; transition: filter 0.1s;
 }
 .terrain-cat-btn:hover { filter: brightness(1.06); }
-.terrain-cat-btn.active { border-color: var(--panel-bg); outline: 2px solid var(--panel-bg); outline-offset: 1px; background: #e5e8f5; }
+.terrain-cat-btn.active { background: var(--blue); color: #fff; border-color: #3a4aaa; outline: 2px solid #fff; outline-offset: -4px; }
 
 .weather-categories { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; grid-auto-flow: column; gap: 8px; }
 @media (max-width: 680px) { .weather-categories { grid-template-columns: 1fr; grid-auto-flow: row; } }
@@ -173,7 +174,7 @@ body.embedded .wall { padding-top: 16px; }
 }
 .rpg-btn:hover { filter: brightness(1.15); }
 .rpg-btn:active { transform: translate(1px,1px); }
-.rpg-btn.primary { background: var(--panel-bg); color: #0a1a2e; }
+.rpg-btn.primary, .rpg-btn.mode-active { background: var(--panel-bg); color: #0a1a2e; }
 .rpg-btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 .link-btn { background: none; border: none; font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; }
 
@@ -216,7 +217,7 @@ body.embedded .wall { padding-top: 16px; }
 /* STAR RATINGS */
 .star-row { display: flex; gap: 4px; }
 .star-btn { background: none; border: none; font-size: 30px; line-height: 1; cursor: pointer; color: #5465c5; padding: 0; }
-.star-btn.filled { color: #e8b400; }
+.star-btn.filled { color: #715f04; }
 
 .panel-action-bar { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--panel-border); }
 
@@ -231,6 +232,7 @@ body.embedded .wall { padding-top: 16px; }
 }
 .review-label { font-family: var(--font-hand); font-size: 14px; color: var(--text-mid); opacity: 0.65; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 3px; }
 .review-value { font-family: var(--font-hand); font-size: 18px; color: var(--text-dark); line-height: 1.4; white-space: pre-wrap; }
+.review-stars { color: #715f04; font-size: 22px; letter-spacing: 2px; }
 .review-cover { width: 64px; height: auto; float: right; border: 2px solid #6e83d3; margin-left: 10px; }
 </style>
 </head>
@@ -294,6 +296,10 @@ body.embedded .wall { padding-top: 16px; }
         </div>
         <div class="section-header">what was this story about to you?</div>
         <textarea class="map-textarea" id="aboutSentence" placeholder="summarize it in your own words…" maxlength="1500"></textarea>
+        <div class="section-sub" style="margin-top:14px;">rate the quality</div>
+        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
+        <div class="section-sub">rate the experience</div>
+        <div class="star-row" id="experienceStars"></div>
       </div>
     </div>
 
@@ -344,14 +350,7 @@ body.embedded .wall { padding-top: 16px; }
           <span class="step-header-title">optional</span>
           <span></span>
         </div>
-        <div class="section-sub">what other stories would you compare it to?</div>
-        <input class="map-input" id="comparableTitles" type="text" placeholder="comma-separated titles…" style="margin-bottom:12px;">
-        <div class="section-sub">rate the quality</div>
-        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
-        <div class="section-sub">rate the experience</div>
-        <div class="star-row" id="experienceStars"></div>
-
-        <div class="action-row" style="margin-top:16px;">
+        <div class="action-row">
           <button type="button" class="link-btn" id="arcToggleBtn" onclick="toggleArcMap()">+ map to story arc</button>
         </div>
         <div id="arcMapContainer" style="display:none;margin-top:10px;padding-top:14px;border-top:1px solid var(--panel-border);">
@@ -1004,6 +1003,7 @@ function validateStep(i) {
     if (!currentTitleValue()) return { ok: false, message: 'add a title first.' };
   } else if (step === 'about') {
     if (!document.getElementById('aboutSentence').value.trim()) return { ok: false, message: 'add a one-sentence description first.' };
+    if (!qualityRating || !experienceRating) return { ok: false, message: 'rate the quality and the experience first.' };
   } else if (step === 'map') {
     if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) return { ok: false, message: 'add a location and emotion to every zone of the map first.' };
   } else if (step === 'optional') {
@@ -1030,16 +1030,14 @@ function renderReviewSummary() {
   const year = manualOpen ? parseYear(document.getElementById('manualYear').value) : parseYear(selectedMedia?.year);
   const cover = manualOpen ? manualCoverUrl : (selectedMedia?.cover_url || selectedMedia?.poster || null);
   const about = document.getElementById('aboutSentence').value.trim();
-  const comparable = document.getElementById('comparableTitles').value.trim();
 
   const rows = [];
   rows.push(['title', _escapeHtml(title) + (author ? ` — ${_escapeHtml(author)}` : '') + (year ? ` (${year})` : '')]);
   rows.push(['summary', _escapeHtml(about)]);
   rows.push(['reading experience map', _escapeHtml(summarizeZones(readingMap))]);
   if (arcMap.isTouched()) rows.push(['story arc map', _escapeHtml(summarizeZones(arcMap))]);
-  if (comparable) rows.push(['comparable titles', _escapeHtml(comparable)]);
-  if (qualityRating) rows.push(['quality rating', '★'.repeat(qualityRating)]);
-  if (experienceRating) rows.push(['experience rating', '★'.repeat(experienceRating)]);
+  rows.push(['quality rating', `<span class="review-stars">${'★'.repeat(qualityRating)}</span>`]);
+  rows.push(['experience rating', `<span class="review-stars">${'★'.repeat(experienceRating)}</span>`]);
   rows.push(['sharing', isPublic ? (isAuthorPublic ? 'public — showing your name' : 'public — anonymous') : 'private']);
 
   el.innerHTML = rows.map(([label, value]) => `<div class="review-row"><div class="review-label">${label}</div><div class="review-value">${value || '—'}</div></div>`).join('');
@@ -1105,6 +1103,8 @@ async function submitEntry() {
   const aboutSentence = document.getElementById('aboutSentence').value.trim();
   if (!aboutSentence) { statusEl.textContent = 'add a one-sentence description first.'; return; }
 
+  if (!qualityRating || !experienceRating) { statusEl.textContent = 'rate the quality and the experience first.'; return; }
+
   if (readingMap.state.zones.some(z => !z.terrain || !z.feeling)) {
     statusEl.textContent = 'add a location and emotion to every zone of the map first.'; return;
   }
@@ -1145,7 +1145,6 @@ async function submitEntry() {
       mediaId = media.id;
     }
 
-    const comparableTitles = document.getElementById('comparableTitles').value.trim();
     const { error: sErr } = await sb.from('media_submissions').insert({
       media_id: mediaId,
       submitted_by: currentUser.id,
@@ -1153,9 +1152,8 @@ async function submitEntry() {
       map_type: 'three-act',
       map_data: readingMap.state,
       story_arc_map_data: arcMap.isTouched() ? arcMap.state : null,
-      comparable_titles: comparableTitles ? comparableTitles.split(',').map(s => s.trim()).filter(Boolean) : null,
-      quality_rating: qualityRating || null,
-      experience_rating: experienceRating || null,
+      quality_rating: qualityRating,
+      experience_rating: experienceRating,
       cover_url_override: manualOpen ? manualCoverUrl : null,
       is_public: isPublic,
       is_author_public: isPublic ? isAuthorPublic : false,

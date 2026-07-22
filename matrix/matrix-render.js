@@ -1591,9 +1591,9 @@
 .matrix-header { position:relative; height:34px; flex-shrink:0; }
 .matrix-frame {
   width:76%; height:76%; margin:auto; align-self:center;
-  position:relative; overflow:hidden;
+  position:relative; overflow:visible;
 }
-.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; background:transparent; }
+.adv-matrix { position:absolute; top:0; left:0; width:100%; height:100%; overflow:visible; background:transparent; }
 .adv-grid {
   position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
   background-image:

@@ -193,6 +193,18 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .weather-circle-pct { font-family:var(--font-game); font-size:13px; color:#333; text-shadow:0 1px 3px rgba(255,255,255,.6); }
 .weather-circle-label { font-family:var(--font-hand); font-size:15px; color:#555; text-transform:capitalize; }
 
+.terrain-icon-list { display:flex; align-items:flex-start; justify-content:center; gap:30px; flex-wrap:wrap; padding:20px 10px 10px; }
+.terrain-icon-item { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; }
+.terrain-icon-img-wrap { position:relative; width:84px; height:84px; }
+.terrain-icon-img { width:100%; height:100%; object-fit:contain; }
+.terrain-icon-item:hover .terrain-icon-img { filter:brightness(1.06); }
+.terrain-icon-count {
+  position:absolute; top:-6px; right:-6px; min-width:22px; height:22px; padding:0 5px;
+  border-radius:50%; background:var(--purple); color:#fff; border:2px solid #fff;
+  font-family:var(--font-game); font-size:12px; display:flex; align-items:center; justify-content:center;
+}
+.terrain-icon-label { font-family:var(--font-hand); font-size:16px; color:#555; text-transform:capitalize; }
+
 @media (max-width:700px) {
   .dp-body { flex-direction:column; }
   .dp-menu { width:100%; flex-direction:row; flex-wrap:wrap; border-left:none; border-top:2px solid #bbb; }
@@ -1742,7 +1754,7 @@ function renderDpWeatherView(){
       const d = Math.round(MIN_D + Math.sqrt(n / total) * (MAX_D - MIN_D));
       const c = DP_WEATHER_COLORS[id];
       return `<div class="weather-circle-wrap">
-        <div class="weather-circle" style="width:${d}px;height:${d}px;background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.7), ${c.fill} 65%);border:3px solid ${c.border};">
+        <div class="weather-circle" style="width:${d}px;height:${d}px;background:radial-gradient(circle at 50% 50%, ${c.fill}ff 0%, ${c.fill}d9 55%, ${c.fill}00 100%);border:3px solid ${c.border};">
           <span class="weather-circle-pct">${pct}%</span>
         </div>
         <div class="weather-circle-label">${id}</div>
@@ -1750,28 +1762,34 @@ function renderDpWeatherView(){
     }).join('')}</div>`;
 }
 
+// Groups by terrain alone (climate/feeling ignored) — a terrain visited under
+// different emotional climates still counts as the same place.
 function renderDpLocationsView(){
   showDpSubview('locations');
   document.getElementById('dp-window-title').textContent = 'commonly visited locations';
   const wrap = document.getElementById('dp-view-locations');
   const groups = {};
-  allSaves.forEach(s => { const label = locationLabel(s); (groups[label] = groups[label] || []).push(s); });
+  allSaves.forEach(s => {
+    const terrain = s.location_data && s.location_data.terrain;
+    if (!terrain) return;
+    (groups[terrain] = groups[terrain] || []).push(s);
+  });
   const top = Object.entries(groups).sort((a, b) => b[1].length - a[1].length).slice(0, 3);
   if (!top.length){
     wrap.innerHTML = '<div class="day-list-empty">no locations tracked yet</div>';
     return;
   }
-  wrap.innerHTML = `<div class="dp-section-label">your top ${top.length === 1 ? 'location' : 'three locations'}</div>
-    <div class="loc-list">${top.map(([label, entries], i) => `
-      <div class="loc-row" id="dp-top-loc-${i}">
-        <span class="loc-name">${escapeHtml(label)}</span>
-        <span style="display:flex;align-items:center;gap:10px;">
-          <span class="loc-time">${entries.length} ${entries.length === 1 ? 'visit' : 'visits'}</span>
-          <span class="loc-arrow">→</span>
-        </span>
+  wrap.innerHTML = `<div class="dp-section-label">your top ${top.length === 1 ? 'terrain' : 'three terrains'}</div>
+    <div class="terrain-icon-list">${top.map(([terrain, entries], i) => `
+      <div class="terrain-icon-item" id="dp-top-loc-${i}">
+        <div class="terrain-icon-img-wrap">
+          <img class="terrain-icon-img" src="${MatrixRender.TERRAIN_IMGS[terrain] || ''}" alt="${escapeHtml(terrain)}">
+          <span class="terrain-icon-count">${entries.length}</span>
+        </div>
+        <span class="terrain-icon-label">${escapeHtml(terrain)}</span>
       </div>`).join('')}</div>`;
-  top.forEach(([label, entries], i) => {
-    document.getElementById('dp-top-loc-' + i).onclick = () => openLocationHistoryPopup(label, entries);
+  top.forEach(([terrain, entries], i) => {
+    document.getElementById('dp-top-loc-' + i).onclick = () => openLocationHistoryPopup(capitalize(terrain), entries);
   });
 }
 function openLocationHistoryPopup(label, entries){

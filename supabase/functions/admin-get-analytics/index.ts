@@ -44,7 +44,7 @@ async function computeAnalytics() {
     }
   }
 
-  const membershipCounts: Record<string, number> = { free: 0, basic: 0, founding: 0, other: 0 };
+  const membershipCounts: Record<string, number> = { free: 0, dream: 0, founding: 0, other: 0 };
   for (const p of profiles ?? []) {
     const status = p.membership_status || "free";
     if (status in membershipCounts) membershipCounts[status]++;
