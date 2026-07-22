@@ -39,7 +39,7 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 
 .rpg-panel {
   position: relative; background: #dfe2ef;
-  width: 100%; max-width: 720px;
+  width: 100%; max-width: 900px;
   padding: 18px; display: flex; flex-direction: column; gap: 14px;
   margin-bottom: 16px;
   border: 3px solid #6e83d3;
@@ -188,20 +188,9 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
 
     <div class="section-header">summary</div>
     <textarea class="map-textarea" id="f-summary" maxlength="1000" placeholder="what is it, and why does it help?"></textarea>
-
-    <div class="section-header">favorite brands</div>
-    <div class="section-sub">optional</div>
-    <input class="map-input" id="f-brands" type="text" maxlength="300" placeholder="e.g. Marpac, Yeti, Hydro Flask">
   </div>
 
   <div class="rpg-panel">
-    <div class="section-header">where to get it</div>
-    <div class="section-sub">optional — add as many links as you like</div>
-    <div class="link-rows" id="link-rows"></div>
-    <button type="button" class="rpg-btn" onclick="addLinkRow()">+ add another link</button>
-  </div>
-
-  <div class="rpg-panel" style="max-width:900px;">
     <div class="section-header">where do you use this tool?</div>
     <div class="section-sub">pick a terrain and an emotional climate to build a landscape (e.g. "mountain of joy"), then add as many as you like — these aren't placed on a map, just listed as recommended environments.</div>
 
@@ -232,10 +221,15 @@ body { min-height: 100vh; background: var(--wall); font-family: var(--font-hand)
   </div>
 
   <div class="rpg-panel">
-    <div class="status-line" id="submit-status"></div>
-    <div class="submit-bar">
-      <button type="button" class="rpg-btn primary" id="submit-btn" onclick="submitTool()">submit for review</button>
-    </div>
+    <div class="section-header">where to get it</div>
+    <div class="section-sub">optional — add as many links as you like</div>
+    <div class="link-rows" id="link-rows"></div>
+    <button type="button" class="rpg-btn" onclick="addLinkRow()">+ add another link</button>
+  </div>
+
+  <div class="status-line" id="submit-status"></div>
+  <div class="submit-bar" id="submit-bar">
+    <button type="button" class="rpg-btn primary" id="submit-btn" onclick="submitTool()">submit for review</button>
   </div>
 
   <div class="rpg-panel" id="done-panel">
@@ -413,7 +407,6 @@ async function submitTool() {
   const title = document.getElementById('f-title').value.trim();
   const tool_type = document.getElementById('f-type').value;
   const summary = document.getElementById('f-summary').value.trim();
-  const favorite_brands = document.getElementById('f-brands').value.trim() || null;
 
   if (!title || !tool_type || !summary) {
     statusEl.className = 'status-line error';
@@ -426,7 +419,7 @@ async function submitTool() {
   const purchase_links = collectLinks();
 
   const { error } = await sb.from('tools').insert({
-    title, tool_type, summary, favorite_brands,
+    title, tool_type, summary,
     purchase_links, landscapes,
     submitted_by: currentUser.id,
     status: 'pending',
@@ -441,6 +434,7 @@ async function submitTool() {
   }
 
   document.getElementById('form-panel').closest('.wall').querySelectorAll('.rpg-panel').forEach(p => { if (p.id !== 'done-panel') p.style.display = 'none'; });
+  document.getElementById('submit-bar').style.display = 'none';
   document.getElementById('done-panel').style.display = 'block';
   setTimeout(() => { window.location.href = '../rooms/salon.html'; }, 1800);
 }
