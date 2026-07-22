@@ -1043,6 +1043,12 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
     }).join('') : '<div class="detail-empty">no reviews yet — catalog entry only</div>';
     detailEl.innerHTML = `
       <div class="detail-field">
+        <div class="detail-label">cover</div>
+        ${item.cover_url ? `<img src="${escapeHtml(item.cover_url)}" alt="" style="width:80px;height:112px;object-fit:cover;background:#eef0f9;border:1.5px solid var(--purple);display:block;margin-bottom:6px;">` : '<div style="width:80px;height:112px;background:#eef0f9;border:1.5px dashed #aaa;margin-bottom:6px;"></div>'}
+        <input type="file" accept="image/*" id="media-cover-input" onchange="uploadMediaCover(event, '${item.id}')">
+        <span id="media-cover-status" style="font-size:14px;color:#888;margin-left:8px;"></span>
+      </div>
+      <div class="detail-field">
         <div class="detail-label">title</div>
         <input class="field-input" id="media-title-input" value="${escapeHtml(item.title || '')}">
         <div class="btn-row">
@@ -1057,6 +1063,35 @@ textarea.field-input { resize: vertical; min-height: 70px; font-family: var(--fo
       ${reviewsHtml}
     `;
   }
+
+  window.uploadMediaCover = async function (event, id) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const statusEl = document.getElementById('media-cover-status');
+    if (statusEl) statusEl.textContent = 'uploading…';
+    try {
+      const form = new FormData();
+      form.append('id', id);
+      form.append('file', file);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-upload-media-cover`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${accessToken}` },
+        body: form,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || `upload failed [${res.status}]`);
+      const item = mediaItems.find((m) => m.id === id);
+      if (item) {
+        item.cover_url = json.cover_url;
+        renderMediaDetail(item);
+      }
+      renderMediaList();
+      if (statusEl) statusEl.textContent = '';
+    } catch (e) {
+      console.error('[admin] media cover upload failed:', e);
+      if (statusEl) statusEl.textContent = "couldn't upload — try again";
+    }
+  };
 
   window.saveMediaTitle = async function (id) {
     const input = document.getElementById('media-title-input');
