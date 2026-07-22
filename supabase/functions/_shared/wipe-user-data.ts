@@ -16,6 +16,7 @@ const USER_ID_TABLES = [
   'character_archetypes',
   'bed_wall_photos',
   'media_saves',
+  'tool_saves',
 ]
 
 // Recursively collect every file path under a storage folder.
