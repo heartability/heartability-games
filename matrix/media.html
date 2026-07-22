@@ -77,7 +77,7 @@ body.embedded .wall { padding-top: 16px; }
 
 .rpg-panel {
   position: relative; z-index: 1; background: #dfe2ef;
-  width: 100%; max-width: 720px;
+  width: 100%; max-width: 900px;
   padding: 18px; display: flex; flex-direction: column; gap: 14px;
   margin-bottom: 16px;
   border: 3px solid #6e83d3;
@@ -180,7 +180,6 @@ body.embedded .wall { padding-top: 16px; }
    row than the palette so the map itself renders bigger. */
 .two-col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; align-items: start; }
 @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
-#mapPanel { max-width: 900px; }
 
 .three-act-canvas {
   background: #cdd3ec;
@@ -270,19 +269,6 @@ body.embedded .wall { padding-top: 16px; }
       </div>
     </div>
 
-    <!-- SUMMARY + RATINGS -->
-    <div class="form-panel">
-      <div class="rpg-panel">
-        <div class="panel-title">summary</div>
-        <div class="section-header">what was this story about to you?</div>
-        <textarea class="map-textarea" id="aboutSentence" placeholder="summarize it in your own words…" maxlength="1500"></textarea>
-        <div class="section-sub" style="margin-top:14px;">rate the quality</div>
-        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
-        <div class="section-sub">rate the experience</div>
-        <div class="star-row" id="experienceStars"></div>
-      </div>
-    </div>
-
     <!-- THREE-ACT MAP -->
     <div class="form-panel">
       <div class="rpg-panel" id="mapPanel">
@@ -315,6 +301,19 @@ body.embedded .wall { padding-top: 16px; }
           <div class="section-header">emotional climates</div>
           <div class="weather-categories" id="weatherCategories"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY + RATINGS -->
+    <div class="form-panel">
+      <div class="rpg-panel">
+        <div class="panel-title">summary</div>
+        <div class="section-header">what was this story about to you?</div>
+        <textarea class="map-textarea" id="aboutSentence" placeholder="summarize it in your own words…" maxlength="1500"></textarea>
+        <div class="section-sub" style="margin-top:14px;">rate the quality</div>
+        <div class="star-row" id="qualityStars" style="margin-bottom:12px;"></div>
+        <div class="section-sub">rate the experience</div>
+        <div class="star-row" id="experienceStars"></div>
       </div>
     </div>
 
