@@ -684,7 +684,7 @@ html, body {
     const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
       sb.from('dream_matrix').select('id, map_id, matrix_images').eq('user_id', currentUserId),
       sb.from('daily_matrix').select('id, matrix_images').eq('user_id', currentUserId),
-      sb.from('cosmic_matrix').select('map_id, map_phase, matrix_images').eq('user_id', currentUserId),
+      sb.from('cosmic_matrix').select('map_id, transit_id, matrix_images').eq('user_id', currentUserId),
     ]);
 
     const items = [];
@@ -695,7 +695,7 @@ html, body {
       if (img && img.url) items.push({ img, sourceTable: 'daily_matrix', sourceId: row.id, sourceMapId: null, sourceMapPhase: null });
     }));
     (cosmicRes.data || []).forEach(row => (row.matrix_images || []).forEach(img => {
-      if (img && img.url) items.push({ img, sourceTable: 'cosmic_matrix', sourceId: null, sourceMapId: row.map_id, sourceMapPhase: row.map_phase });
+      if (img && img.url) items.push({ img, sourceTable: 'cosmic_matrix', sourceId: null, sourceMapId: row.map_id, sourceMapPhase: row.transit_id });
     }));
 
     if (!items.length) {

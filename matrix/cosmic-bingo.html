@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
 <title>Cosmic Bingo — Heartability</title>
 <meta name="robots" content="noindex,follow">
 <style>
@@ -51,6 +52,18 @@ body {
   flex-direction: column;
 }
 
+/* NAV — matches the rest of matrix/*.html */
+.room-nav{ position:fixed; top:0; left:0; right:0; height:44px; background:#6e83d3;
+  border-bottom:2px solid #111; z-index:200; display:flex; align-items:center;
+  justify-content:space-between; padding:0 clamp(12px,2vw,28px);
+  font-family:var(--font-hand); font-size:clamp(21px,1.6vw,25px); color:#fff; }
+.nav-btn{ cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
+.nav-btn:hover{ background:rgba(0,0,0,.08); }
+.nav-title{ position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; margin:0; font:inherit; }
+
+.save-status-bar{ position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+  font-family:var(--font-hand); font-size:16px; color:#6ab86a; z-index:16; pointer-events:none; }
+
 /* ROOM LAYOUT */
 .room {
   min-height: 100vh;
@@ -66,7 +79,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 28px 20px 0;
+  padding: 72px 20px 0;
   min-height: 0;
 }
 
@@ -306,12 +319,19 @@ body {
 .bingo-tabs { justify-content: flex-start; align-items: center; }
 
 @media (max-width: 500px) {
-  .wall { padding: 16px 10px 0; }
+  .wall { padding: 60px 10px 0; }
   .rpg-panel { padding: 12px; }
 }
 </style>
 </head>
 <body>
+
+<nav class="room-nav">
+  <div id="gear-slot"></div>
+  <h1 class="nav-title">cosmic bingo</h1>
+  <a class="nav-btn" href="cosmic.html" id="back-link">← season</a>
+</nav>
+
 <div class="room">
   <div class="wall">
 
@@ -340,26 +360,34 @@ body {
   </div>
 </div>
 
+<div class="save-status-bar" id="save-status-bar"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
 <script>
 /* ============================================================
-   COSMIC BINGO — season board (embedded as an iframe by cosmic_matrix.html)
-   This page plays in-memory and never touches Supabase. The cosmic matrix
-   is the sole writer, exactly like adventure-matrix.html: it hydrates the
-   board via load_state and persists via the bingo_state it requests.
-
-   postMessage contract
-     game → parent : cosmic_bingo_ready            (on load; matrix then hydrates)
-     parent → game : load_state { marked: bool[25] }   (saved season board)
-     parent → game : request_state                 (matrix's "continue →" clicked)
-     game → parent : bingo_state { marked, score }     (matrix writes if paid)
-
+   COSMIC BINGO — standalone season board.
+   Reached from the heart-meter icon on cosmic.html's transit selector.
+   Holds its own Supabase session directly (map_id + user_id key the row)
+   instead of being driven by a parent page over postMessage.
    Prompts come from BOARD (in production: cosmic_templates.bingo_prompts).
    ============================================================ */
 
-// ── URL params (set by the cosmic matrix when it builds the iframe src) ──
-const _params = new URLSearchParams(window.location.search);
-const SEASON  = _params.get('season') || 'cancer season';
-document.getElementById('meterLabel').textContent = SEASON.toLowerCase() + ' progress';
+// ── SUPABASE (same project as cosmic.html) ──────────────────
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+const MAP_ID = new URLSearchParams(window.location.search).get('map_id');
+let seasonLabel = 'cosmic season';
+
+function showStatus(msg, color){
+  const el = document.getElementById('save-status-bar');
+  if (!el) return;
+  el.textContent = msg; el.style.color = color || '#6ab86a';
+  clearTimeout(el._t); el._t = setTimeout(()=>{ el.textContent=''; }, 3000);
+}
 
 /* ── BOARD CONTENT ──────────────────────────────────────────
    COLUMN-MAJOR: five categories are the five columns, five prompts
@@ -442,11 +470,11 @@ function buildGrid() {
         marked[i] = !marked[i];
         showReading(i);
         update();
-        notifyParent();
+        queueSave();
       });
       el.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
       el.addEventListener('mouseenter', () => {
-        if (dragging) { marked[i] = true; showReading(i); update(); notifyParent(); }
+        if (dragging) { marked[i] = true; showReading(i); update(); queueSave(); }
       });
     } else {
       el.addEventListener('click', () => showReading(i));
@@ -497,45 +525,72 @@ function update() {
   document.getElementById('meterCount').textContent = score + ' of 24';
 }
 
-/* ── postMessage contract with cosmic_matrix.html ───────────
-   The matrix is the sole writer. This page never saves; it reports
-   state when asked (on continue) and accepts a saved board to hydrate. */
-function currentState() {
+/* ── DIRECT SUPABASE LOAD/SAVE — this page owns cosmic_bingo now ──────── */
+let _saveTimer = null;
+function queueSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(saveBoard, 400);
+}
+async function saveBoard(){
+  if (!currentUser || !MAP_ID) return;
   const score = marked.filter((v, i) => v && i !== FREE_INDEX).length;
-  return { type: 'bingo_state', marked: Array.from(marked), score };
+  try {
+    const { error } = await sb.from('cosmic_bingo').upsert({
+      map_id: MAP_ID, user_id: currentUser.id,
+      bingo_data: { marked: Array.from(marked), score },
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,map_id' });
+    if (error) throw error;
+    showStatus('saved ✓', '#6ab86a');
+  } catch(err){
+    console.error('[cosmic bingo save]', err);
+    showStatus('save failed', '#E8478B');
+  }
 }
 
-// Push live state up on every change, so a paid matrix can persist
-// continuously across the session if it chooses (it can also just wait
-// for request_state on continue — both are supported).
-function notifyParent() {
-  if (window.parent !== window) window.parent.postMessage(currentState(), '*');
-}
+async function loadBoard(){
+  if (!MAP_ID) { window.location.href = 'cosmic.html'; return; }
+  let row = null;
+  try {
+    const { data } = await sb.from('cosmic_bingo').select('*')
+      .eq('map_id', MAP_ID).eq('user_id', currentUser.id).maybeSingle();
+    row = data || null;
+  } catch(e){ console.error('[cosmic bingo load]', e); }
 
-window.addEventListener('message', e => {
-  const msg = e.data || {};
-  // Matrix hands us the saved season board to render (accumulated marks)
-  if (msg.type === 'load_state' && Array.isArray(msg.marked)) {
-    marked = msg.marked.slice(0, 25);
+  seasonLabel = row?.transit_data?.season || 'cosmic season';
+  document.getElementById('meterLabel').textContent = seasonLabel.replace(/-\d+$/,'').toLowerCase() + ' progress';
+  const backLink = document.getElementById('back-link');
+  if (backLink) backLink.href = `cosmic.html?season=${encodeURIComponent(seasonLabel)}`;
+
+  if (Array.isArray(row?.bingo_data?.marked)) {
+    marked = row.bingo_data.marked.slice(0, 25);
     while (marked.length < 25) marked.push(false);
-    marked[FREE_INDEX] = true;            // free space is always lit
-    buildGrid();
-    update();
   }
-  // Matrix's "continue →" was clicked — report current state for the write
-  if (msg.type === 'request_state') {
-    window.parent.postMessage(currentState(), '*');
-  }
-});
-
-(function init() {
+  marked[FREE_INDEX] = true; // free space is always lit
   buildGrid();
   update();
-  // Tell the matrix we're ready so it can hydrate with the saved board.
-  if (window.parent !== window) {
-    window.parent.postMessage({ type: 'cosmic_bingo_ready' }, '*');
-  }
-})();
+}
+
+// ── AUTH GATE ─────────────────────────────────────────────
+sb.auth.getSession().then(async ({ data: { session } }) => {
+  if (!session) { window.location.href = '../users/login.html'; return; }
+  currentUser = session.user;
+
+  let paid = false;
+  try {
+    const { data: profile } = await sb.from('user-profiles')
+      .select('username, membership_status').eq('id', currentUser.id).maybeSingle();
+    paid = !!profile?.membership_status && profile.membership_status !== 'free';
+    HeartabilityNav.init({
+      mount: '#gear-slot', assetsBase: '../assets', authMode: 'dynamic', sb,
+      profileHref: '../users/account-settings.html',
+    });
+    HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
+  } catch(e){}
+
+  if (!paid) { window.location.href = 'cosmic.html'; return; }
+  await loadBoard();
+});
 </script>
 
 </body>
