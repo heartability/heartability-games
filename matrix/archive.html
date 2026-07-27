@@ -1096,17 +1096,23 @@ let allArchetypes = [];
 let archCameFromAll = false;
 
 // planetary bodies for the cosmic tab. Each transit in a season's
-// transit_data.transits[] carries its own real `planet` field (a season/sign
-// can hold transits from several planets), so browsing by planet is a
-// cross-season filter over transits rather than a per-season property.
+// transit_data.transits[] carries its own real `planets[]` array (a
+// season/sign can hold transits from several planets, and a two-body
+// transit like "Sun Square Neptune" is tagged under both), so browsing by
+// planet is a cross-season filter over transits, not a per-season property.
+// No static "coming soon" gate — like signs, a planet unlocks purely from
+// having matching transit data (see hasEntries in renderCosmicBrowseGrid).
 const COSMIC_PLANETS = [
-  { id:'sun',     name:'sun',     locked:false },
-  { id:'moon',    name:'moon',    locked:true  },
-  { id:'mercury', name:'mercury', locked:true  },
-  { id:'venus',   name:'venus',   locked:true  },
-  { id:'mars',    name:'mars',    locked:true  },
-  { id:'jupiter', name:'jupiter', locked:true  },
-  { id:'saturn',  name:'saturn',  locked:true  },
+  { id:'sun',     name:'sun'     },
+  { id:'moon',    name:'moon'    },
+  { id:'mercury', name:'mercury' },
+  { id:'venus',   name:'venus'   },
+  { id:'mars',    name:'mars'    },
+  { id:'jupiter', name:'jupiter' },
+  { id:'saturn',  name:'saturn'  },
+  { id:'uranus',  name:'uranus'  },
+  { id:'neptune', name:'neptune' },
+  { id:'pluto',   name:'pluto'   },
 ];
 const COSMIC_SIGNS = [
   'aries','taurus','gemini','cancer','leo','virgo',
@@ -1889,9 +1895,9 @@ function renderCosmicBrowseGrid(){
     });
   } else {
     slots = COSMIC_PLANETS.map(p => {
-      const hasEntries = !p.locked && allCosmicSeasons.some(s => (s.transit_data?.transits||[]).some(t => (t.planets||[]).includes(p.id)));
+      const hasEntries = allCosmicSeasons.some(s => (s.transit_data?.transits||[]).some(t => (t.planets||[]).includes(p.id)));
       return buildGlyphSlot({
-        name: p.name, locked: p.locked || !hasEntries, lockedLabel: p.locked ? 'coming soon' : 'no entries yet',
+        name: p.name, locked: !hasEntries, lockedLabel: 'no entries yet',
         src: glyphSrc('planet', p.id),
         onClick: () => enterCosmicResults(p.id),
       });

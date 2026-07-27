@@ -211,6 +211,18 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 /* TRANSITS POPUP — shared by the past-transits and future-transits lists */
 .transits-row-clickable{ cursor:pointer; }
 .transits-row-clickable:hover{ background:rgba(101,121,226,.08); }
+
+/* COSMIC-ONLY MATRIX RENDER TWEAKS — location moves to internal-action
+   (bottom-left, see renderMatrix()), this transit's planet glyphs take its
+   old external-action spot (top-left), and the shared per-entry bingo
+   meter is hidden since bingo is now the standalone cosmic-bingo.html
+   season page. Scoped to this page only — matrix-render.js itself is
+   untouched, dream/daily keep the shared renderer's original layout. */
+.adv-matrix .adv-bingo{ display:none; }
+.cosmic-transit-glyphs{ position:absolute; left:27%; top:30%; transform:translate(-50%,-50%);
+  display:flex; gap:8px; align-items:center; justify-content:center; z-index:5; pointer-events:none; }
+.cosmic-transit-glyph{ width:clamp(30px,4vw,46px); height:clamp(30px,4vw,46px); object-fit:contain;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
 .transits-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; padding:18px; }
 .transits-overlay.open{ display:flex; }
 .transits-window{ width:min(92vw,420px); max-height:80vh; background:#dfe2ef;
@@ -508,8 +520,15 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .lm-msg.success{ display:block; color:#2d7a4f; background:rgba(45,122,79,.08); border:1px solid rgba(45,122,79,.2); }
 .lm-footer{ text-align:center; padding:0 24px 14px; font-family:var(--font-hand); font-size:13px; color:#aaa; }
 
-/* MAP MODE — panel goes transparent so sky shows through the SVG */
-.content-panel.map-mode{ background:transparent !important; border:none !important; box-shadow:none !important; overflow:visible !important; }
+/* MAP MODE — panel goes transparent so sky shows through, and fills the
+   whole viewport below the nav instead of the --bw-* "wall panel" box other
+   steps use — the zodiac grid and transit selector are full-screen sky
+   experiences, not bounded content, so they should resize to fit the page
+   rather than becoming a scrollable box within a fixed-height panel. */
+.content-panel.map-mode{
+  background:transparent !important; border:none !important; box-shadow:none !important; overflow:visible !important;
+  top:44px !important; left:0 !important; width:100% !important; height:calc(100dvh - 44px) !important;
+}
 
 
 /* MOBILE */
@@ -953,14 +972,14 @@ function showZodiacGrid(tpls){
   window._zodiacTpls = tpls;
   const cards = SIGNS.map(s=>{
     const tpl = tplForSign(tpls, s.id);
-    const locked = !tpl;
+    const { locked, label } = seasonLockInfo(tpl);
     const halo = `radial-gradient(circle, ${hexA(s.color,0.9)} 0%, ${hexA(s.color,0.55)} 45%, ${hexA(s.color,0)} 75%)`;
     const hover = locked ? `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"` : '';
     return `<div class="picker-slot ${locked?'locked':'unlocked'}" ${locked?hover:`onclick="openZodiacSeason('${s.id}')"`}>
       <div class="picker-halo" style="background:${halo}"></div>
       <div class="picker-disc"><img src="../assets/elements/glyphs/${s.glyph}.png" alt="${s.name}"></div>
       <div class="picker-name">${s.name}</div>
-      ${locked?'<div class="picker-soon">coming soon</div>':''}
+      ${locked?`<div class="picker-soon">${label}</div>`:''}
     </div>`;
   }).join('');
   const panel = $('content-panel');
@@ -978,9 +997,30 @@ function showZodiacGrid(tpls){
 function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
 function tplForSign(tpls, signId){ return (tpls||[]).find(t => seasonSignId(t.season) === signId) || null; }
 
+// A template only counts as the "live" season if today falls inside its own
+// [season_start_utc, season_end_utc) window — a published template whose
+// season has already ended (or hasn't started yet) shouldn't present as the
+// open, current experience just because it exists in the DB. Templates
+// without boundary fields fail open (always current) rather than vanishing.
+function isSeasonCurrent(tpl){
+  const td = tpl?.transit_data || {};
+  const startMs = Date.parse(td.season_start_utc);
+  const endMs = Date.parse(td.season_end_utc);
+  if (isNaN(startMs) || isNaN(endMs)) return true;
+  const now = Date.now();
+  return now >= startMs && now < endMs;
+}
+function seasonLockInfo(tpl){
+  if (!tpl) return { locked:true, label:'coming soon' };
+  if (isSeasonCurrent(tpl)) return { locked:false, label:'' };
+  const startMs = Date.parse(tpl.transit_data?.season_start_utc);
+  const label = (!isNaN(startMs) && Date.now() < startMs) ? 'coming soon' : 'season ended';
+  return { locked:true, label };
+}
+
 async function openZodiacSeason(signId){
   const tpl = tplForSign(window._zodiacTpls, signId);
-  if (!tpl) return;
+  if (!tpl || !isSeasonCurrent(tpl)) return;
   await openSeason(tpl);
 }
 
@@ -1895,10 +1935,19 @@ async function renderMatrix(){
   data.mapName = activeLocation?.name
     || (activeLocation ? `${activeLocation.terrain} of ${activeLocation.feeling}` : null)
     || activeTransit?.name || 'this transit';
-  // The real season score lives on cosmic_bingo (season-level), not on this
-  // per-transit cosmic_matrix row, so assemble()'s row.bingo_data is always
-  // empty for cosmic — override with the actual season board score.
-  data.bingoScore = Array.isArray(cosmicBoard?.marked) ? cosmicBoard.marked.filter((v,i)=>v&&i!==12).length : 0;
+
+  // Cosmic-only layout tweak: the shared renderer's default spot for the
+  // location item is external-action (top-left) — for cosmic that quadrant
+  // is reserved for this transit's planet glyphs instead (see below), so
+  // give location a default of internal-action (bottom-left), where the
+  // shared renderer's per-entry bingo meter used to sit (bingo is now the
+  // standalone cosmic-bingo.html season page, so that item is hidden via
+  // CSS below rather than removed from matrix-render.js, which dream/daily
+  // still use unchanged). Only sets a default — a manually dragged position
+  // (data.matrixLayout.map already present) always wins.
+  if (!data.matrixLayout) data.matrixLayout = {};
+  if (!data.matrixLayout.map) data.matrixLayout.map = { x: 27, y: 71 };
+
   showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showAddPhoto: false, showEditNotes: false, showFrame: true, editable: true,
   }));
@@ -1908,6 +1957,23 @@ async function renderMatrix(){
   MatrixRender.attachMatrix(panel, {
     onRemovePhoto: url => editor.removeMatrixPhoto(url),
   });
+
+  // Cosmic-only: this transit's planet glyphs go where location used to sit
+  // (external-action, top-left). matrix-render.js has no concept of
+  // "planets in this transit" (that's cosmic-specific transit_data), so
+  // this is layered on after the shared render instead of touching that
+  // shared file — non-draggable, just a small badge cluster.
+  const matrixEl = panel.querySelector('.adv-matrix');
+  if (matrixEl) matrixEl.insertAdjacentHTML('beforeend', buildTransitGlyphsHTML(activeTransit));
+}
+
+function buildTransitGlyphsHTML(transit){
+  const planets = Array.isArray(transit?.planets) ? transit.planets : [];
+  if (!planets.length) return '';
+  const imgs = planets.map(p =>
+    `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`
+  ).join('');
+  return `<div class="cosmic-transit-glyphs">${imgs}</div>`;
 }
 
 async function stepMatrix(){
