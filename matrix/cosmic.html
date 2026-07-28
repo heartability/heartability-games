@@ -223,6 +223,11 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
   display:flex; gap:8px; align-items:center; justify-content:center; z-index:5; pointer-events:none; }
 .cosmic-transit-glyph{ width:clamp(30px,4vw,46px); height:clamp(30px,4vw,46px); object-fit:contain;
   filter:drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
+/* Shared renderer defaults these dark (#3a4aaa / #7a86bb) for dream/daily's
+   lighter matrix background — cosmic's is the dark sky, so flip to white. */
+.matrix-panel .matrix-date{ color:#fff; }
+.adv-matrix .adv-axlbl{ color:#fff; }
+.adv-matrix .adv-cap{ color:#fff; }
 .transits-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; padding:18px; }
 .transits-overlay.open{ display:flex; }
 .transits-window{ width:min(92vw,420px); max-height:80vh; background:#dfe2ef;
