@@ -601,7 +601,7 @@ function reopenHowto() {
   const content = HOWTO_CONTENT[pendingGameSlug];
   if (!content) return;
   document.getElementById('howto-title').textContent = content.title;
-  document.getElementById('howto-steps').textContent = content.steps;
+  document.getElementById('howto-steps').innerHTML = content.steps;
   document.getElementById('howto-overlay').classList.add('open');
 }
 
