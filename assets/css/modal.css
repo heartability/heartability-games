@@ -109,6 +109,12 @@
   justify-content: flex-end;
   gap: 10px;
 }
+/* opts.stacked (see modal.js HGModal.confirm) — primary action on top, a
+   plain-text alternative (.hg-modal-btn-link) below it instead of a row. */
+.hg-modal-actions.stacked {
+  flex-direction: column;
+  align-items: center;
+}
 
 .hg-modal-btn {
   font-family: var(--font-hand, "ZoesHandwriting", cursive);
@@ -139,3 +145,16 @@
   box-shadow: 2px 2px 0 #8a2a27;
 }
 .hg-modal-btn-danger:hover { background: #c9433f; }
+
+/* Plain-text alternative action (see opts.cancelVariant in modal.js) —
+   matches the site's existing "skip this" link convention. */
+.hg-modal-btn-link {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: #7a86bb;
+  text-decoration: underline;
+  padding: 4px;
+}
+.hg-modal-btn-link:hover { background: none; color: var(--pink, #E8478B); }
+.hg-modal-btn-link:active { box-shadow: none; transform: none; }

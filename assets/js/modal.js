@@ -33,6 +33,7 @@
 
     var actions = document.getElementById("hg-modal-actions");
     actions.innerHTML = "";
+    actions.classList.toggle("stacked", !!buttons.stacked);
 
     return new Promise(function (resolve) {
       function close(value) {
@@ -63,14 +64,19 @@
   }
 
   window.HGModal = {
+    // opts.stacked: true renders the confirm button on top and the cancel
+    // option as a plain underlined link below it (instead of the default
+    // side-by-side boxed buttons) — used by the journal "unsent message"
+    // prompt. opts.cancelVariant: "link" pairs with it to style the cancel
+    // option as that plain link; omit either for the original look.
     confirm: function (title, message, opts) {
       opts = opts || {};
+      var confirmItem = { label: opts.confirmLabel || "ok", value: true, variant: opts.danger ? "danger" : "primary" };
+      var cancelItem  = { label: opts.cancelLabel || "cancel", value: false, variant: opts.cancelVariant };
       return open(title, message, {
         escValue: false,
-        items: [
-          { label: opts.cancelLabel || "cancel", value: false },
-          { label: opts.confirmLabel || "ok", value: true, variant: opts.danger ? "danger" : "primary" }
-        ]
+        stacked: !!opts.stacked,
+        items: opts.stacked ? [confirmItem, cancelItem] : [cancelItem, confirmItem]
       });
     },
     alert: function (title, message, opts) {

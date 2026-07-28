@@ -770,18 +770,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .jrc-status { font-size:clamp(10px,.9vw,13px); color:#999; font-family:var(--font-hand); min-height:13px; }
 .jrc-status.ok  { color:#6ab86a; }
 .jrc-status.err { color:#E8478B; }
-.jrc-confirm {
-  display:none; align-items:center; flex-wrap:wrap; gap:8px;
-  padding-top:7px; border-top:1px dashed #ccc;
-  font-family:var(--font-hand); font-size:clamp(13px,1.2vw,16px); color:#7a86bb;
-}
-.jrc-confirm.open { display:flex; }
-.jrc-confirm button { font-family:var(--font-hand); font-size:clamp(13px,1.2vw,16px); cursor:pointer; padding:5px 12px; transition:all .05s; }
-.jrc-confirm-send { background:var(--blue); color:#fff; border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa; }
-.jrc-confirm-send:hover  { background:#4a5bc4; }
-.jrc-confirm-send:active { box-shadow:none; transform:translate(2px,2px); }
-.jrc-confirm-skip { background:none; border:none; color:#7a86bb; text-decoration:underline; }
-.jrc-confirm-skip:hover { color:#E8478B; }
 
 /* ── INVENTORY PANEL (media/tools tie-in, between bingo and journal) ──
    CSS moved to matrix-inventory.js (ensureStyles()), which injects it once. ── */
@@ -2184,23 +2172,25 @@ async function saveJournalEntry() {
   const msgEl = document.getElementById('jrc-msg');
   const hasUnsent = !!(msgEl && msgEl.value.trim());
   if (hasUnsent) {
-    document.getElementById('jrc-confirm')?.classList.add('open');
-    showJournalStatus('you have unsent notes', false);
     setSaveBtnVisible(true, 'continue →');   // un-stick the bar from "saving..."
+    const send = await HGModal.confirm(
+      'do you want to save this entry?', '',
+      { stacked:true, confirmLabel:'send message', cancelLabel:'continue without saving', cancelVariant:'link' }
+    );
+    if (send) await confirmSendAndContinue(); else confirmSkipUnsent();
     return;
   }
   finishJournal();
 }
 
 function finishJournal() {
-  document.getElementById('jrc-confirm')?.classList.remove('open');
   setSaveBtnVisible(false);
   stepDone();
 }
 
 async function confirmSendAndContinue() {
   const ok = await sendJournalMessage();
-  if (ok) finishJournal();
+  if (ok) finishJournal(); else setSaveBtnVisible(true, 'continue →');
 }
 function confirmSkipUnsent() {
   const msgEl = document.getElementById('jrc-msg');
@@ -2229,11 +2219,6 @@ function buildJournalPanel(){
           </div>
         </div>
         <div class="jrc-status" id="jrc-status"></div>
-        <div class="jrc-confirm" id="jrc-confirm">
-          <span>you've got notes you haven't sent —</span>
-          <button class="jrc-confirm-send" onclick="confirmSendAndContinue()">send &amp; continue</button>
-          <button class="jrc-confirm-skip" onclick="confirmSkipUnsent()">continue without them →</button>
-        </div>
       </div>
     </div>
   </div>`;
@@ -2371,7 +2356,6 @@ async function sendJournalMessage(){
   container.appendChild(renderJournalMessage(message, _side, _char));
 
   if (msgEl) msgEl.value = '';
-  document.getElementById('jrc-confirm')?.classList.remove('open');
   if (sendBtn) sendBtn.disabled = false;
   showJournalStatus('saved ✓', true);
   jrcScrollBottom();
