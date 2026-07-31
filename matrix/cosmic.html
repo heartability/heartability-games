@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
+<script src="../assets/js/treasure-map.js"></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
 <title>Cosmic Matrix — Heartability</title>
 <meta name="description" content="Follow how cosmic transits influence your world with the Cosmic Matrix.">
@@ -1086,36 +1087,10 @@ async function loadProgress(){
   } catch(e){}
 }
 
-// ── TERRAIN IMAGES (match treasure-map.html TERRAIN_IMGS) ───
-const TERRAIN_IMGS = {
-  pond:      '../assets/elements/maps/pond.png',
-  waterfall: '../assets/elements/maps/waterfall.png',
-  spring:    '../assets/elements/maps/spring.png',
-  river:     '../assets/elements/maps/river.png',
-  ocean:     '../assets/elements/maps/ocean.png',
-  glacier:   '../assets/elements/maps/glacier.png',
-  marsh:     '../assets/elements/maps/marsh.png',
-  dunes:     '../assets/elements/maps/dunes.png',
-  mountains: '../assets/elements/maps/mountains.png',
-  cave:      '../assets/elements/maps/cave.png',
-  cliff:     '../assets/elements/maps/cliff.png',
-  maze:      '../assets/elements/maps/maze.png',
-  plateau:   '../assets/elements/maps/plateau.png',
-  valley:    '../assets/elements/maps/valley.png',
-  meadow:    '../assets/elements/maps/meadow.png',
-  jungle:    '../assets/elements/maps/jungle.png',
-  island:    '../assets/elements/maps/island.png',
-  forest:    '../assets/elements/maps/forest.png',
-};
-// Ordered terrain list + climates for the location builder (mirrors
-// daily.html's dayquest builder — see matrix/daily.html TERRAIN_ORDER/WEATHER_CATS).
-const TERRAIN_ORDER = ['pond','waterfall','spring','river','ocean','glacier','marsh','dunes','mountains','cave','cliff','maze','plateau','valley','meadow','jungle','island','forest'];
-const WEATHER_CATS = [
-  { id:'sunny', label:'sunny', tint:'#f2e6a8', feelings:['trust','peace','joy','hope','confidence','truth'] },
-  { id:'rainy', label:'rainy', tint:'#c9b3e7', feelings:['shadows','worry','fear','depression','regret','confusion'] },
-  { id:'windy', label:'windy', tint:'#b6e6cf', feelings:['surprise','curiosity','inspiration','excitement','courage'] },
-  { id:'snowy', label:'snowy', tint:'#a0d7e6', feelings:['anger','avoidance','bitterness','apathy','shock','stillness'] },
-];
+// Terrain images + ordered list + climates come from assets/js/treasure-map.js
+// (window.TreasureMap) — single source of truth shared with treasure-map.html,
+// daily.html, and dream.html.
+const { TERRAIN_IMGS, TERRAIN_ORDER, WEATHER_CATS } = TreasureMap;
 
 // ── BODY COLOR TABLE (mirrors CHAR_FULL_ASSETS slugs in infinity-mirror.html) ──
 const BODY_COLORS = {

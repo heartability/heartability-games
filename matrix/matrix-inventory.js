@@ -55,13 +55,21 @@
 }
 .lib-add-btn:hover { background:#4a5bc4; }
 .lib-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.lib-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900; display:none; align-items:center; justify-content:center; padding:18px; }
+.lib-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900; display:none; align-items:center; justify-content:center; padding:18px; overflow-y:auto; }
 .lib-overlay.open { display:flex; }
 .lib-overlay-window {
-  width:min(94vw,640px); height:min(86vh,700px); background:#dfe2ef; border:2px solid var(--blue,#6e83d3);
-  display:flex; flex-direction:column; overflow:hidden;
+  width:min(94vw,640px); height:min(86dvh,700px); background:#dfe2ef; border:2px solid var(--blue,#6e83d3);
+  display:flex; flex-direction:column; overflow:hidden; flex-shrink:0;
 }
-.lib-overlay-titlebar { flex-shrink:0; background:#cdd3ec; border-bottom:2px solid #bbb; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-hand); font-size:16px; color:#333; }
+.lib-overlay-titlebar { flex-shrink:0; position:sticky; top:0; background:#cdd3ec; border-bottom:2px solid #bbb; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-hand); font-size:16px; color:#333; z-index:1; }
+/* iOS Safari sizes vh against the toolbar-hidden viewport, so a fixed
+   full-screen overlay centered with plain vh can render its titlebar
+   (and the only close control) above the visible area, behind the room
+   nav, with no way to scroll back to it. dvh + a scrollable backdrop +
+   a sticky titlebar keep the close (x) reachable no matter what. */
+@media (max-width:768px) {
+  .lib-overlay { align-items:flex-start; padding-top:calc(44px + 14px); }
+}
 .lib-overlay-close { cursor:pointer; font-size:22px; color:#aaa; padding:2px 6px; }
 .lib-overlay-close:hover { color:#E8478B; }
 .lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }

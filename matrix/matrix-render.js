@@ -72,17 +72,10 @@
     acc_rainbow:      "../assets/characters-full/10.04-RAINBOW.png",
   };
 
-  const TERRAIN_IMGS = {
-    pond:"../assets/elements/maps/pond.png", waterfall:"../assets/elements/maps/waterfall.png",
-    spring:"../assets/elements/maps/spring.png", river:"../assets/elements/maps/river.png",
-    ocean:"../assets/elements/maps/ocean.png", glacier:"../assets/elements/maps/glacier.png",
-    marsh:"../assets/elements/maps/marsh.png", dunes:"../assets/elements/maps/dunes.png",
-    mountains:"../assets/elements/maps/mountains.png", cave:"../assets/elements/maps/cave.png",
-    cliff:"../assets/elements/maps/cliff.png", maze:"../assets/elements/maps/maze.png",
-    plateau:"../assets/elements/maps/plateau.png", valley:"../assets/elements/maps/valley.png",
-    meadow:"../assets/elements/maps/meadow.png", jungle:"../assets/elements/maps/jungle.png",
-    island:"../assets/elements/maps/island.png", forest:"../assets/elements/maps/forest.png",
-  };
+  // Sourced from assets/js/treasure-map.js (window.TreasureMap), which every
+  // page loading this file also loads first — single source of truth for
+  // terrain image paths, shared with treasure-map.html/cosmic.html/daily.html/dream.html.
+  const TERRAIN_IMGS = (window.TreasureMap && window.TreasureMap.TERRAIN_IMGS) || {};
 
   // ── PHOTO FRAMES (mirrors PHOTO_FRAMES in dream.html/daily.html) ──
   // Each frame also has a solid-silhouette mask (assets/.../frames/masks/,
