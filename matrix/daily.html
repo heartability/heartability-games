@@ -118,15 +118,14 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .char-heart {
   position:fixed; left:4vw; bottom:6vh;
   width:clamp(100px,14vw,220px);
-  z-index:400; cursor:pointer;
+  z-index:400;
+  transition:left .2s ease, bottom .2s ease, width .2s ease;
 }
 .char-heart .char-img {
   display:block; width:100%; height:auto;
   animation:idle-pulse 3.6s ease-in-out 1s infinite;
 }
 
-/* ── THOUGHT BUBBLE — hidden until the heart is hovered or clicked, so it
-   doesn't sit permanently on top of whatever step content is behind it ── */
 .thought-bubble {
   position:absolute; left:calc(100% - 8px); bottom:60%;
   min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
@@ -135,18 +134,26 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   font-size:clamp(13px,1.3vw,17px); color:#000; text-align:center;
   line-height:1.5;
   z-index:21;
+}
+.bubble-btns { display:none; } /* buttons moved to back wall */
+
+/* ── MINI STATE — once the flow begins (mode chosen), the heart shrinks
+   into the corner and the bubble only peeks on hover/click, so it doesn't
+   sit permanently on top of step content for the rest of the session.
+   Reset in stepWelcome(). ── */
+.char-heart.mini { left:14px; bottom:14px; width:56px; }
+.char-heart.mini .char-img { cursor:pointer; }
+.char-heart.mini .thought-bubble {
   opacity:0;
   transform:scale(0.92) translateY(4px);
-  transition:opacity .2s ease, transform .2s ease;
   pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
 }
-.char-heart:hover .thought-bubble,
-.thought-bubble.pinned {
+.char-heart.mini:hover .thought-bubble {
   opacity:1;
   transform:scale(1) translateY(0);
   pointer-events:auto;
 }
-.bubble-btns { display:none; } /* buttons moved to back wall */
 
 /* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
 .timer-badge {
@@ -1104,9 +1111,9 @@ function setBubble(text, buttons=[]) {
   }
 }
 
-// Tapping the heart on touch devices (no hover) toggles the bubble open/closed.
-document.getElementById('char-heart').addEventListener('click', () => {
-  document.getElementById('thought-bubble').classList.toggle('pinned');
+// Clicking the heart while it's mini expands it back to full size.
+document.querySelector('#char-heart .char-img').addEventListener('click', () => {
+  document.getElementById('char-heart').classList.remove('mini');
 });
 
 // ── CONTENT PANEL HELPERS ────────────────────────────────
@@ -1195,6 +1202,7 @@ function stepWelcome() {
   setSaveBtnVisible(false);
   setBubble('ready when you are');
   showPanel(buildWelcomePanel());
+  document.getElementById('char-heart').classList.remove('mini');
 }
 
 function buildWelcomePanel() {
@@ -1219,6 +1227,7 @@ function showTimedModeInfo() {
 function chooseDailyMode(timed) {
   dailyTimedMode = timed;
   hidePanel();
+  document.getElementById('char-heart').classList.add('mini');
   stepBuildLocation();
   if (timed) startFlowTimer();
 }

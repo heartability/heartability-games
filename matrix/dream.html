@@ -284,6 +284,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   position:fixed; left:4vw; bottom:6vh;
   width:clamp(100px,14vw,220px);
   z-index:20; cursor:default;
+  transition:left .2s ease, bottom .2s ease, width .2s ease;
 }
 .char-heart .char-img {
   display:block; width:100%; height:auto;
@@ -299,6 +300,24 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   font-size:clamp(13px,1.3vw,17px); color:#000; text-align:center;
   line-height:1.5;
   z-index:21;
+}
+
+/* ── MINI STATE — once the flow begins (mode chosen), the heart shrinks
+   into the corner and the bubble only peeks on hover/click, so it doesn't
+   sit permanently on top of step content for the rest of the session.
+   Reset in stepWelcome(). ── */
+.char-heart.mini { left:14px; bottom:14px; width:56px; }
+.char-heart.mini .char-img { cursor:pointer; }
+.char-heart.mini .thought-bubble {
+  opacity:0;
+  transform:scale(0.92) translateY(4px);
+  pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.char-heart.mini:hover .thought-bubble {
+  opacity:1;
+  transform:scale(1) translateY(0);
+  pointer-events:auto;
 }
 .bubble-btns { display:none; } /* buttons moved to back wall */
 
@@ -1807,6 +1826,7 @@ function stepWelcome() {
   setSaveBtnVisible(false);
   setBubble('ready when you are');
   showPanel(buildWelcomePanel());
+  document.getElementById('char-heart').classList.remove('mini');
 }
 
 function buildWelcomePanel() {
@@ -1831,9 +1851,15 @@ function showTimedModeInfo() {
 function chooseDailyMode(timed) {
   dailyTimedMode = timed;
   hidePanel();
+  document.getElementById('char-heart').classList.add('mini');
   stepLoadGame();
   if (timed) startFlowTimer();
 }
+
+// Clicking the heart while it's mini expands it back to full size.
+document.querySelector('#char-heart .char-img').addEventListener('click', () => {
+  document.getElementById('char-heart').classList.remove('mini');
+});
 
 // ── FLOW TIMER — timed mode runs map select → phase select → character → bingo ───
 function msToClock(ms) {
