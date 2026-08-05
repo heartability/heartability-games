@@ -35,7 +35,7 @@
 }
 
 html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
-  background:url("../assets/elements/matrix-sky.png") center / cover no-repeat fixed;
+  background:url("../assets/elements/matrix-dream.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
 /* ── PANEL SCROLL REGION — no-op by default (just a plain wrapper); becomes
@@ -275,96 +275,18 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
-/* ── HEART CHARACTER ── */
-@keyframes idle-pulse {
-  0%,100% { transform:translateY(0) rotate(-2deg) scale(1); }
-  50%      { transform:translateY(-8px) rotate(2deg) scale(1.03); }
+/* ── MATRIX PAGE TOGGLE — switches between daily/dream/cosmic ── */
+.matrix-toggle {
+  position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+  z-index:210; display:flex; gap:clamp(24px,4vw,48px);
 }
-.char-heart {
-  position:fixed; left:4vw; bottom:6vh;
-  width:clamp(100px,14vw,220px);
-  z-index:20; cursor:default;
-  transition:left .2s ease, bottom .2s ease, width .2s ease;
+.matrix-toggle-link {
+  font-family:var(--font-hand); font-size:clamp(19px,2.2vw,26px);
+  color:#fff; text-decoration:none; padding-bottom:2px;
+  border-bottom:2px solid transparent;
 }
-.char-heart .char-img {
-  display:block; width:100%; height:auto;
-  animation:idle-pulse 3.6s ease-in-out 1s infinite;
-}
-
-/* ── THOUGHT BUBBLE ── */
-.thought-bubble {
-  position:absolute; left:calc(100% - 8px); bottom:60%;
-  min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
-  background:#fff; border:2px solid #000; border-radius:50%;
-  padding:14px 20px; font-family:var(--font-hand);
-  font-size:clamp(13px,1.3vw,17px); color:#000; text-align:center;
-  line-height:1.5;
-  z-index:21;
-}
-
-/* ── MINI STATE — once the flow begins (mode chosen), the heart shrinks
-   into the corner and the bubble only peeks on hover/click, so it doesn't
-   sit permanently on top of step content for the rest of the session.
-   Reset in stepWelcome(). ── */
-.char-heart.mini { left:14px; bottom:14px; width:56px; }
-.char-heart.mini .char-img { cursor:pointer; }
-.char-heart.mini .thought-bubble {
-  opacity:0;
-  transform:scale(0.92) translateY(4px);
-  pointer-events:none;
-  transition:opacity .2s ease, transform .2s ease;
-}
-.char-heart.mini:hover .thought-bubble {
-  opacity:1;
-  transform:scale(1) translateY(0);
-  pointer-events:auto;
-}
-.bubble-btns { display:none; } /* buttons moved to back wall */
-
-/* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
-.timer-badge {
-  position:absolute; top:-74px; left:50%; transform:translateX(-50%);
-  background:#fff; border:4px solid var(--blue); border-radius:40px;
-  padding:8px 32px; font-family:var(--font-hand); font-size:clamp(30px,3vw,38px);
-  color:var(--ink); white-space:nowrap; z-index:401; display:none;
-  box-shadow:4px 4px 0 rgba(0,0,0,.15);
-}
-.timer-badge.active { display:block; }
-.timer-badge.warn { color:#E8478B; border-color:#E8478B; animation:timer-warn-pulse 1s ease-in-out infinite; }
-@keyframes timer-warn-pulse {
-  0%,100% { transform:translateX(-50%) scale(1); }
-  50%     { transform:translateX(-50%) scale(1.08); }
-}
-.timer-extend {
-  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
-  width:230px; background:#fff; border:2px solid #E8478B; border-radius:8px;
-  padding:12px 14px; font-family:var(--font-hand); font-size:15px; color:#000;
-  text-align:center; z-index:402; display:none;
-  box-shadow:3px 4px 0 rgba(0,0,0,.15);
-}
-.timer-extend.active { display:block; }
-.timer-extend-msg { margin-bottom:9px; line-height:1.4; }
-.timer-extend-btns { display:flex; gap:8px; justify-content:center; }
-.timer-extend-btn {
-  flex:1; padding:7px 8px; font-family:var(--font-hand); font-size:13px; cursor:pointer;
-  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
-  transition:all .05s;
-}
-.timer-extend-btn:hover { background:#4a5bc4; }
-.timer-extend-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.timer-extend-btn.ghost { background:none; border-color:#ccc; color:#999; box-shadow:none; }
-.timer-extend-btn.ghost:hover { border-color:#E8478B; color:#E8478B; }
-
-/* ── WELCOME STEP — timed/untimed mode choice before the timed portion ── */
-.welcome-panel { gap:20px; }
-.welcome-title { font-family:var(--font-hand); font-size:clamp(30px,3.2vw,44px); color:#fff; text-align:center; }
-.welcome-sub { font-family:var(--font-hand); font-size:clamp(17px,1.7vw,22px); color:var(--ink); text-align:center; margin-top:-8px; }
-.welcome-modes { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
-.welcome-why {
-  font-family:var(--font-hand); font-size:15px; color:var(--ink);
-  text-decoration:underline; cursor:pointer; margin-top:2px;
-}
-.welcome-why:hover { color:#E8478B; }
+.matrix-toggle-link:hover { opacity:.8; }
+.matrix-toggle-link.active { border-bottom-color:#fff; }
 
 /* ── WALL BUTTONS — centered on the back wall ── */
 .wall-btns {
@@ -426,31 +348,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .save-continue-btn:disabled {
   opacity: .38; cursor: not-allowed;
   transform: none !important; box-shadow: 3px 3px 0 #3a4aaa;
-}
-
-/* Iframe-mode steps (bingo, builders) now grow taller than the viewport in
-   normal flow (see .content-panel.iframe-mode) — keep the continue bar and
-   heart character in flow right after it instead of pinned to the viewport
-   bottom/corner, so they trail the frame instead of floating on top of it.
-   Mobile keeps its own fixed footer (see the max-width:768px block) since
-   that panel scrolls internally instead of growing the page. */
-@media (min-width:769px) {
-  body:has(.content-panel.iframe-mode) .save-continue-bar {
-    position: static;
-    height: auto;
-    padding: 24px 0 12px;
-  }
-  body:has(.content-panel.iframe-mode) .char-heart {
-    position: relative;
-    left: auto; bottom: auto;
-    margin: 0 0 40px 4vw;
-  }
-  /* The flow timer badge floats 74px above the heart's own box (see
-     .timer-badge) — when it's showing, give the heart extra top margin so
-     the badge clears the continue button above instead of sitting on it. */
-  body:has(.content-panel.iframe-mode) .char-heart:has(.timer-badge.active) {
-    margin-top: 100px;
-  }
 }
 
 .save-status-bar {
@@ -532,53 +429,15 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
   /* step-panel centered its content vertically (justify-content:center) —
      when a step had more content than fit (like a full "your maps" grid),
-     the centering pushed the top rows up and under the fixed nav bar
-     instead of just scrolling. Start from the top so it only scrolls down. */
+     the centering pushed the top rows up instead of just scrolling. Start
+     from the top so it only scrolls down. The quad-popup's own scroll
+     region (.quad-popup-window .panel-scroll-region) handles scrolling
+     uniformly for mobile and desktop, so no iframe-mode-specific fixed-
+     position overrides are needed here. */
   .step-panel { justify-content:flex-start; }
-  /* The welcome step is short and never overflows, so it can stay vertically
-     centered on mobile instead of hugging the top like the taller steps. */
-  .welcome-panel { justify-content:center; }
-  /* iframe panels (bingo, builders) used to scroll away with the whole page —
-     tall content (like the bingo board) would scroll its top rows up under
-     the fixed nav bar, AND the continue bar (a separate fixed sibling) would
-     float on top of whatever content was currently in view instead of
-     trailing it. Fix: .panel-scroll-region becomes the single pinned-below-
-     nav scroll container for both the panel and the continue bar, so the
-     continue button flows in normal document order after the panel's
-     content — same fix as the dayquest builder's .dq-scroll — instead of
-     floating fixed over it, while the whole region still stays below the
-     nav rather than scrolling under it. Only kicks in for iframe steps;
-     non-iframe steps keep their own self-contained fixed box below. */
-  body:has(.content-panel.iframe-mode) .panel-scroll-region {
-    display:flex; flex-direction:column; align-items:center;
-    position:fixed; top:44px; left:0; right:0; bottom:0;
-    overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
-  }
-  body:has(.content-panel.iframe-mode) .content-panel.iframe-mode {
-    position:static; width:94vw; height:auto; max-height:none; overflow:visible;
-    margin:0 auto;
-  }
-  body:has(.content-panel.iframe-mode) .save-continue-bar {
-    position:static; height:auto; padding:0; margin:20px 0 30px; z-index:auto;
-  }
-  /* Heart guide + bubble are desktop-only, but the flow timer still needs to
-     show somewhere — keep the (invisible) char-heart container around as an
-     anchor and re-pin the timer badge to the bottom-left as its own pill. */
-  .char-heart .char-img, .char-heart .thought-bubble { display:none; }
-  .thought-bubble { font-size:clamp(13px,3vw,16px); min-width:140px; left:calc(100% - 6px); }
-  .timer-badge {
-    position:fixed; top:auto; left:14px; bottom:14px; transform:none;
-    padding:5px 16px; font-size:16px; border-width:2px; border-radius:20px;
-    box-shadow:2px 2px 0 rgba(0,0,0,.15);
-  }
-  .timer-badge.warn { animation:none; }
-  .timer-extend {
-    position:fixed; top:auto; bottom:14px; left:14px; transform:none;
-    width:min(230px, calc(100vw - 28px));
-  }
+  .matrix-toggle { gap:16px; bottom:8px; }
   .phase-key { width:180px; font-size:14px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
-  .save-continue-bar { height:auto; padding:10px 0; bottom:0; z-index:30; }
   .add-new-btn { bottom:12px; right:12px; }
   .journal-wall-overlay {
     top: 80px !important;
@@ -726,70 +585,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 /* Matrix scrapbook styles (matrix-panel, adv-*, hm-*, matrix-toolbar/save-btn,
    photo/sticker/text modal CSS) now live in matrix-render.js's injectStyles(). */
 
-/* ── NATIVE JOURNAL — chat-style journal on the back wall ── */
-.jrc-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
-.jrc-window {
-  width:75%; height:75%; background:#dfe2ef;
-  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.35);
-  display:flex; flex-direction:column; overflow:hidden;
-}
-.jrc-titlebar {
-  flex-shrink:0; height:38px; background:#cdd3ec; border-bottom:2px solid var(--blue);
-  display:flex; align-items:center; justify-content:center; position:relative;
-  font-family:var(--font-hand); font-size:clamp(16px,1.5vw,22px); color:#333; letter-spacing:.5px;
-}
-.jrc-date { position:absolute; right:12px; font-size:clamp(10px,1vw,14px); color:#999; font-family:var(--font-hand); }
-.jrc-messages {
-  flex:1; overflow-y:auto; padding:14px 16px;
-  display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth;
-}
-.jrc-msg-wrap { display:flex; align-items:flex-start; gap:8px; }
-.jrc-msg-wrap.right { flex-direction:row-reverse; align-self:flex-end; }
-.jrc-msg-wrap.left  { flex-direction:row; align-self:flex-start; }
-.jrc-avatar { flex-shrink:0; width:52px; height:52px; border-radius:50%; overflow:hidden; position:relative; border:1.5px solid #ccc; background:#e5e8f5; }
-.jrc-avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.jrc-msg { display:flex; flex-direction:column; gap:3px; max-width:72%; }
-.jrc-msg-wrap.right .jrc-msg { align-items:flex-end; }
-.jrc-msg-wrap.left  .jrc-msg { align-items:flex-start; }
-.jrc-bubble {
-  padding:11px 16px; font-family:var(--font-hand); font-size:clamp(16px,1.6vw,22px);
-  line-height:1.5; word-break:break-word; user-select:text;
-}
-.jrc-msg-wrap.right .jrc-bubble { background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
-.jrc-msg-wrap.left  .jrc-bubble { background:#fff; color:#222; border:1.5px solid #ccc; }
-.jrc-bubble img { display:block; width:210px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
-.jrc-msg-wrap.left .jrc-bubble img { border-color:#ccc; }
-.jrc-meta { font-size:clamp(13px,1vw,15px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
-.jrc-empty {
-  margin:auto; text-align:center; color:#7a86bb; font-style:italic;
-  font-size:clamp(15px,1.4vw,18px); line-height:1.6; max-width:84%; padding:24px 0;
-}
-.jrc-date-divider { display:flex; align-items:center; gap:10px; padding:2px 0; align-self:stretch; }
-.jrc-date-divider span { font-size:14px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
-.jrc-date-divider .divider-location { font-size:15px; color:#7a86bb; font-family:var(--font-hand); white-space:nowrap; }
-.jrc-date-divider::before, .jrc-date-divider::after { content:''; flex:1; height:1px; background:#ddd; }
-.jrc-input-area {
-  flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px;
-  display:flex; flex-direction:column; gap:7px; background:#cdd3ec;
-}
-.jrc-msg-row { display:flex; gap:8px; align-items:stretch; }
-.jrc-msg-input {
-  flex:1; font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#222;
-  background:#fff; border:1.5px solid var(--blue); padding:8px 11px; outline:none; resize:none;
-  height:58px; line-height:1.5;
-}
-.jrc-msg-input:focus { border-color:var(--blue); }
-.jrc-btn-stack { flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
-.jrc-send-btn {
-  flex:1; background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#fff; cursor:pointer; padding:0; transition:all .05s;
-}
-.jrc-send-btn:hover  { background:#4a5bc4; }
-.jrc-send-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.jrc-send-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-.jrc-status { font-size:clamp(10px,.9vw,13px); color:#999; font-family:var(--font-hand); min-height:13px; }
-.jrc-status.ok  { color:#6ab86a; }
-.jrc-status.err { color:#E8478B; }
+/* ── NATIVE JOURNAL — chat-style journal on the back wall ──
+   CSS moved to matrix-journal.js (ensureStyles()), which injects it once. ── */
 
 /* ── INVENTORY PANEL (media/tools tie-in, between bingo and journal) ──
    CSS moved to matrix-inventory.js (ensureStyles()), which injects it once. ── */
@@ -821,6 +618,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
   border-left-color:#5465c5; border-top-color:#5465c5;
 }
+.map-builder-card .sq-name { width:75%; margin-left:0; margin-right:auto; }
 .sq-name::placeholder { color:#7a86bb; font-style:italic; }
 .sq-body { display:flex; gap:16px; align-items:flex-start; }
 @media (max-width:640px){ .sq-body { flex-direction:column; } }
@@ -967,6 +765,56 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .popup-close:hover { color: var(--blue); }
 @keyframes popIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ── QUADRANT POPUP — reuses the site-standard modal shell (modal.css's
+   .hg-modal-overlay/.hg-modal/.hg-modal-titlebar/.hg-modal-close), just
+   wider (game content, not a small alert) and with a scrollable body. The
+   matrix canvas (#matrix-panel-host) stays visible/dimmed behind it. ── */
+.quad-popup-window {
+  width: min(1050px, 94vw); max-height: calc(100vh - 84px);
+  display: flex; flex-direction: column;
+}
+.quad-popup-window .hg-modal-body {
+  flex: 1; min-height: 0; padding: 0; display: flex; flex-direction: column;
+}
+/* display:flex (not the base .panel-scroll-region's display:contents) so
+   this actually generates a box that can scroll — see .panel-scroll-region
+   above, which is display:contents by default for the old mobile-only layout
+   this file used before the popup redesign. */
+.quad-popup-window .panel-scroll-region {
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0; overflow-y: auto; padding: 20px;
+}
+.quad-popup-window .content-panel {
+  /* Base .content-panel has overflow:hidden, which makes a flex item's
+     automatic min-height resolve to 0 (spec: auto min-size is 0 when
+     overflow isn't visible) — without flex-shrink:0 the flex algorithm
+     would happily crush this down to fit the popup instead of letting
+     panel-scroll-region's overflow-y:auto scroll to it. .content-panel.
+     iframe-mode also brings its own `margin: var(--bw-top) auto 0` (a
+     leftover from the old full-page back-wall layout, where it pushed the
+     panel down below the fixed nav) — reset it to 0 here. */
+  position: static; width: 100%; height: auto; display: flex; flex-shrink: 0;
+  overflow: visible; margin: 0;
+}
+.quad-popup-window .save-continue-bar {
+  position: static; height: auto; padding: 14px 0 4px; z-index: auto; flex-shrink: 0;
+}
+/* Native (non-iframe) panels — map builder, inventory, journal — brought
+   their own bordered/shadowed card + inner titlebar, designed to stand alone
+   on the old full back-wall panel. Inside the popup that reads as a box
+   nested in a box, so strip their outer framing and hide their duplicate
+   inner titlebar text (the popup's own .hg-modal-titlebar now carries the
+   heading instead). */
+.quad-popup-window .map-builder-card {
+  border: none; box-shadow: none; padding: 0; background: transparent;
+}
+.quad-popup-window .map-builder-card .sq-head { display: none; }
+.quad-popup-window .map-builder-card .game-iframe { width: 100%; margin: 12px 0 0; }
+.quad-popup-window .lib-window {
+  width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
+}
+.quad-popup-window .lib-titlebar { display: none; }
+
 /* small text-link trigger for opening the how-to popup from a builder header.
    Default color matches .step-back (white) since the character-builder header
    sits directly on the room's blue background; inside the cream map-builder
@@ -977,6 +825,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 }
 .howto-trigger:hover { text-decoration: underline; }
 .sq-head .howto-trigger { color: var(--blue); }
+.popup-howto-row { display: flex; justify-content: flex-end; margin: 0 40px 8px 0; }
+.popup-howto-row .howto-trigger { color: var(--blue); }
 </style>
 </head>
 <body>
@@ -985,47 +835,56 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <nav class="room-nav">
   <div id="gear-slot"></div>
   <h1 class="nav-title">dream matrix</h1>
-  <a class="nav-btn" href="../matrix/archive.html">archive →</a>
+  <a class="nav-btn" href="../matrix/archive.html" onclick="return matrixNav(event,'../matrix/archive.html')">archive →</a>
 </nav>
 
-<!-- PANEL SCROLL REGION — on mobile, when an iframe step is active, this
-     becomes the single scroll container for both the panel and the continue
-     bar (see .panel-scroll-region CSS), so the continue button trails the
-     content instead of floating fixed on top of it. Otherwise it's just a
-     plain, non-positioned wrapper and everything behaves as before. -->
-<div class="panel-scroll-region" id="panel-scroll-region">
-  <!-- CONTENT PANEL -->
-  <div class="content-panel" id="content-panel">
-    <!-- filled dynamically -->
-  </div>
+<!-- MATRIX CANVAS — always visible landing view (see stepInitial/renderMatrix).
+     Same fixed back-wall position the old content-panel used, reusing its CSS. -->
+<div class="content-panel active" id="matrix-panel-host">
+  <!-- filled dynamically by renderMatrix() -->
+</div>
 
-  <!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
-  <div class="save-continue-bar" id="save-continue-bar">
-    <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
-      continue →
-    </button>
+<!-- QUADRANT POPUP — the site-standard modal shell (see assets/css/modal.css),
+     just wider, hosting whichever quadrant's game is open (map/bingo/
+     character/library/journal). showPanel/showIframe/showMapBuilder render
+     into #quad-popup-body; the matrix canvas stays visible (dimmed) behind
+     it. Own id (not modal.js's dynamically-created #hg-modal-overlay) since
+     this is a persistent, richer popup, not an alert/confirm dialog. -->
+<div class="hg-modal-overlay quad-popup-overlay" id="quad-popup-overlay" onclick="handleQuadPopupOverlayClick(event)">
+  <div class="hg-modal quad-popup-window">
+    <div class="hg-modal-titlebar">
+      <span id="quad-popup-title"></span>
+      <span class="hg-modal-close" onclick="closeQuadrantPopup()">&#x2715;</span>
+    </div>
+    <!-- PANEL SCROLL REGION — also the popup's hg-modal-body: the scroll
+         container for both the game content and the continue bar, so the
+         continue button trails the content instead of floating fixed on
+         top of it. -->
+    <div class="hg-modal-body panel-scroll-region" id="panel-scroll-region">
+      <!-- CONTENT PANEL -->
+      <div class="content-panel" id="quad-popup-body">
+        <!-- filled dynamically -->
+      </div>
+
+      <!-- SAVE & CONTINUE BAR — shown during character and bingo steps -->
+      <div class="save-continue-bar" id="save-continue-bar">
+        <button class="save-continue-btn" id="save-continue-btn" onclick="saveAndContinue()">
+          continue →
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- WALL BUTTONS — centered on back wall for step choices -->
 <div class="wall-btns" id="wall-btns"></div>
 
-<!-- HEART CHARACTER + BUBBLE -->
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble" id="thought-bubble">
-    <span id="bubble-text">loading...</span>
-    <div class="bubble-btns" id="bubble-btns"></div>
-  </div>
-  <div class="timer-badge" id="timer-badge"></div>
-  <div class="timer-extend" id="timer-extend">
-    <div class="timer-extend-msg" id="timer-extend-msg"></div>
-    <div class="timer-extend-btns">
-      <button class="timer-extend-btn" onclick="extendFlowTimer()">extend +11 min</button>
-      <button class="timer-extend-btn ghost" onclick="expireAndWipe()">let it go</button>
-    </div>
-  </div>
-  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
-</div>
+<!-- MATRIX PAGE TOGGLE -->
+<nav class="matrix-toggle" aria-label="switch matrix">
+  <a class="matrix-toggle-link" href="daily.html" onclick="return matrixNav(event,'daily.html')">daily</a>
+  <a class="matrix-toggle-link active" href="dream.html" onclick="return matrixNav(event,'dream.html')">dream</a>
+  <a class="matrix-toggle-link" href="cosmic.html" onclick="return matrixNav(event,'cosmic.html')">cosmic</a>
+</nav>
 
 <div class="save-status-bar" id="save-status-bar"></div>
 
@@ -1168,6 +1027,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./matrix-render.js"></script>
 <script src="./matrix-inventory.js"></script>
+<script src="./matrix-journal.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
@@ -1215,20 +1075,10 @@ async function deleteMatrixPhotoFiles(urls){
 let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
-let currentStep    = null; // 'character' | 'bingo' | 'library' | 'journal'
+let currentStep    = null; // 'map' | 'character' | 'bingo' | 'library' | 'journal' — whichever popup is open
 let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row
 let activeSidequest    = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 let activeDreamCameTrue = null; // {name,terrain,feeling,tint,cat} when dream-came-true phase is taken
-
-// ── FLOW TIMER STATE ──────────────────────────────────────
-// Timed mode runs from character selection through bingo; journal is untimed.
-const TIMER_DURATION_MS = 11 * 60 * 1000;
-const TIMER_EXTEND_WINDOW_MS = 45 * 1000;
-let dailyTimedMode  = false;
-let timerEndAt      = null;
-let timerTickHandle = null;
-let extendEndAt     = null;
-let extendTickHandle = null;
 
 function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
 
@@ -1315,7 +1165,7 @@ sb.auth.onAuthStateChange((event, session) => {
       } catch(e) {}
       if (!isPaid) { showMemberGate(); return; }
       document.getElementById('member-gate-overlay').classList.remove('open');
-      stepWelcome();
+      stepInitial();
     }, 0);
   }
 });
@@ -1345,11 +1195,6 @@ async function saveAndContinue() {
   btn.disabled = true;
   btn.textContent = 'saving...';
 
-  // Journal step — save notes directly
-  if (currentStep === 'journal') {
-    await saveJournalEntry();
-    return;
-  }
   // Library step — save the tagged entries directly (no iframe involved)
   if (currentStep === 'library') {
     await saveLibrarySelection();
@@ -1373,9 +1218,7 @@ async function saveAndContinue() {
     // Request current state from character builder or bingo
     iframe.contentWindow.postMessage({ type: 'request_state' }, '*');
     // Fallback: re-enable if no response in 5s
-    const label = currentStep === 'character'
-      ? 'continue →'
-      : 'finish →';
+    const label = 'add to matrix →';
     clearTimeout(window._saveFallback);
     window._saveFallback = setTimeout(() => {
       const b = document.getElementById('save-continue-btn');
@@ -1411,9 +1254,9 @@ const SQUARE_LABELS= ['1','2','3','4'];
 const { TERRAIN_IMGS, TERRAIN_ORDER, WEATHER_CATS } = TreasureMap;
 
 // ── BUBBLE HELPERS ────────────────────────────────────────
+// Buttons go on the wall, not in a bubble (there's no heart guide to anchor
+// one to anymore); text is currently unused by every call site.
 function setBubble(text, buttons=[]) {
-  document.getElementById('bubble-text').textContent = text;
-  // Buttons go on the wall, not in the bubble
   const wall = document.getElementById('wall-btns');
   wall.innerHTML = '';
   if (buttons.length) {
@@ -1430,21 +1273,50 @@ function setBubble(text, buttons=[]) {
   }
 }
 
+// ── MATRIX PAGE TOGGLE — guards against leaving mid-rearrange ─────
+async function matrixNav(e, url) {
+  e.preventDefault();
+  const dirty = _matrixEditor && _matrixEditor.isDirty && _matrixEditor.isDirty();
+  if (dirty) {
+    const save = await HGModal.confirm(
+      'unsaved changes',
+      'you moved something on your matrix that hasn’t been saved yet. save before leaving?',
+      { confirmLabel: 'save & leave', cancelLabel: 'stay' }
+    );
+    if (!save) return false;
+    const host = document.getElementById('matrix-panel-host');
+    if (host) await _matrixEditor.saveAllPositions(host);
+  }
+  window.location.href = url;
+  return false;
+}
+
 // ── CONTENT PANEL HELPERS ────────────────────────────────
 function showPanel(html) {
-  const panel = document.getElementById('content-panel');
+  const panel = document.getElementById('quad-popup-body');
   panel.innerHTML = html;
   panel.classList.remove('iframe-mode');
   panel.classList.add('active');
   document.getElementById('wall-btns').classList.remove('active');
-  // Chrome occasionally fails to paint freshly-inserted transformed children
-  // (rotate()/scale() on .mx-note/.adv-sticker/.adv-photo) after a big
-  // innerHTML swap, leaving them invisible until some unrelated repaint
-  // happens to trigger. A single reflow on the panel itself isn't always
-  // enough to catch every transformed item's own compositor layer — text
-  // notes seem the most prone to this (smallest/newest layer, most likely to
-  // get skipped) — so nudge each one's transform directly: clear it, force a
-  // layout read, then restore it, guaranteeing Chrome repaints that layer.
+}
+function hidePanel() {
+  const panel = document.getElementById('quad-popup-body');
+  panel.classList.remove('active', 'iframe-mode');
+  panel.innerHTML = '';
+}
+// The persistent matrix canvas (always visible, not a popup step) — holds
+// map/bingo/char/library items + photos/stickers/text, per renderMatrix().
+// Chrome occasionally fails to paint freshly-inserted transformed children
+// (rotate()/scale() on .mx-note/.adv-sticker/.adv-photo) after a big
+// innerHTML swap, leaving them invisible until some unrelated repaint
+// happens to trigger. A single reflow on the panel itself isn't always
+// enough to catch every transformed item's own compositor layer — text
+// notes seem the most prone to this (smallest/newest layer, most likely to
+// get skipped) — so nudge each one's transform directly: clear it, force a
+// layout read, then restore it, guaranteeing Chrome repaints that layer.
+function showMatrixPanel(html) {
+  const panel = document.getElementById('matrix-panel-host');
+  panel.innerHTML = html;
   void panel.offsetHeight;
   panel.querySelectorAll('.mx-note, .adv-sticker, .adv-photo').forEach(el => {
     const t = el.style.transform;
@@ -1452,11 +1324,6 @@ function showPanel(html) {
     void el.offsetHeight;
     el.style.transform = t;
   });
-}
-function hidePanel() {
-  const panel = document.getElementById('content-panel');
-  panel.classList.remove('active', 'iframe-mode');
-  panel.innerHTML = '';
 }
 // Same-origin game iframes don't auto-size to their content by default, so
 // once loaded we measure the real document height and apply it directly —
@@ -1479,13 +1346,10 @@ function autoSizeIframe(iframe) {
   });
 }
 
-function showIframe(src, backFn, howtoSlug) {
-  const panel = document.getElementById('content-panel');
-  const spacer = howtoSlug
-    ? `<span class="howto-trigger" onclick="openHowto('${howtoSlug}')">how to play</span>`
-    : '<span></span>';
-  const header = backFn
-    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span>${spacer}</div>`
+function showIframe(src, howtoSlug) {
+  const panel = document.getElementById('quad-popup-body');
+  const header = howtoSlug
+    ? `<div class="popup-howto-row"><span class="howto-trigger" onclick="openHowto('${howtoSlug}')">how to play</span></div>`
     : '';
   panel.innerHTML = `${header}<iframe class="game-iframe" src="${src}" id="game-iframe"></iframe>`;
   panel.classList.add('active', 'iframe-mode');
@@ -1493,9 +1357,8 @@ function showIframe(src, backFn, howtoSlug) {
   autoSizeIframe(document.getElementById('game-iframe'));
 }
 function showMapBuilder(src) {
-  const panel = document.getElementById('content-panel');
+  const panel = document.getElementById('quad-popup-body');
   panel.innerHTML = `
-    <div class="step-header"><span class="step-back" onclick="stepLoadGame()">← back</span><span></span><span></span></div>
     <div class="map-builder-card">
       <div class="sq-head"><span class="sq-title">map a new dream</span><span class="howto-trigger" onclick="openHowto('treasure-map')">how to play</span></div>
       <input class="sq-name" id="dream-map-name" type="text" placeholder="name this dream" maxlength="60">
@@ -1541,9 +1404,10 @@ function showAddNew(visible) {
   // add-new-btn is now rendered inline in the map grid panel
 }
 
-// ── STEP 1: welcome (timed/untimed mode) before the map selector ─
+// ── LANDING — land directly on the matrix canvas (map/phase quadrant is the
+// only unlocked one until it's filled in; see renderMatrix). ─────────────
 function stepInitial() {
-  stepWelcome();
+  renderMatrix();
 }
 
 // ── DELETE MAP ────────────────────────────────────────────
@@ -1558,6 +1422,7 @@ function stepNewGame() {
   showAddNew(false);
   currentStep = 'map';
   setBubble('what does this dream feel like?', []);
+  setQuadPopupTitle('map a new dream');
   const src = '../games/treasure-map.html?mode=new&loop=true';
   showMapBuilder(src);
   setSaveBtnVisible(true, 'continue →');
@@ -1573,6 +1438,7 @@ async function stepLoadGame() {
   }
   setBubble('choose a dream to track', []);
   setSaveBtnVisible(false);
+  setQuadPopupTitle(QUADRANT_PROMPTS.map);
   showAddNew(true);
 
   let games = [];
@@ -1750,6 +1616,7 @@ function stepPhaseSelect() {
 
   setBubble(`what are you navigating today?`, []);
   setSaveBtnVisible(false);
+  setQuadPopupTitle(activeGameData.map_name || 'your map');
 
   const svgContent = mapType === 'square' ? buildSquareSVG(zones) : buildSpiralSVG(zones);
 
@@ -1762,11 +1629,6 @@ function stepPhaseSelect() {
   }
 
   const html = `<div class="step-panel phase-select-panel">
-    <div class="step-header">
-      <span class="step-back" onclick="stepLoadGame()">← back</span>
-      <span class="step-header-title">${activeGameData.map_name || 'your map'}</span>
-      <span></span>
-    </div>
     <div class="phase-select-inner">
       <div class="phase-map-block">
         <div class="phase-map-svg">${svgContent}</div>
@@ -1779,7 +1641,7 @@ function stepPhaseSelect() {
           <div class="phase-bar phase-bar-dct" onclick="openDctBuilder()">dream is complete</div>
         </div>
       </div>
-      <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">continue →</button>
+      <button class="begin-btn" id="begin-btn" disabled onclick="stepBegin()">add to matrix →</button>
     </div>
   </div>`;
   showPanel(html);
@@ -1819,177 +1681,65 @@ function selectPhase(idx) {
   document.getElementById('begin-btn').disabled = false;
 }
 
-// ── STEP 0: WELCOME — choose timed or untimed mode before the map selector ─
-function stepWelcome() {
-  currentStep = 'welcome';
-  stopFlowTimer();
-  setSaveBtnVisible(false);
-  setBubble('ready when you are');
-  showPanel(buildWelcomePanel());
-  document.getElementById('char-heart').classList.remove('mini');
-}
+// ── MAP/PHASE CONFIRMED → save to dream_matrix, close popup, redraw matrix ─
+async function stepBegin() {
+  const btn = document.getElementById('begin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'saving...'; }
+  if (!activeEntryId) activeEntryId = crypto.randomUUID();   // fresh dream_matrix row for this session
 
-function buildWelcomePanel() {
-  return `<div class="step-panel welcome-panel">
-    <div class="welcome-title">welcome to the dream matrix!</div>
-    <div class="welcome-sub">ready to begin? choose a mode:</div>
-    <div class="welcome-modes">
-      <button class="wall-btn" type="button" onclick="chooseDailyMode(true)">timed mode</button>
-      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">untimed mode</button>
-    </div>
-    <div class="welcome-why" onclick="showTimedModeInfo()">why timed mode? &rarr;</div>
-  </div>`;
-}
+  // Resolve the place for this entry: a self-contained snapshot (terrain +
+  // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
+  let sidequestData = null, locationData = null;
+  if (activePhase === 'sidequest' && activeSidequest) {
+    sidequestData = activeSidequest;
+    locationData  = { terrain: activeSidequest.terrain || null,
+                      feeling: activeSidequest.feeling || null,
+                      tint:    activeSidequest.tint    || null };
+  } else if (activePhase === 'dream_came_true' && activeDreamCameTrue) {
+    sidequestData = activeDreamCameTrue;  // stored in sidequest_data; map_phase distinguishes it
+    locationData  = { terrain: activeDreamCameTrue.terrain || null,
+                      feeling: activeDreamCameTrue.feeling || null,
+                      tint:    activeDreamCameTrue.tint    || null };
+  } else if (activePhase && activeGameData?.map_data?.zones) {
+    const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
+    const z = activeGameData.map_data.zones[idx] || {};
+    locationData = { terrain: z.terrain || null,
+                     feeling: z.feeling || null,
+                     tint:    z.tint    || null };
+  }
 
-function showTimedModeInfo() {
-  HGModal.alert(
-    'timed mode',
-    'a timer can help people who get easily distracted by creating a container that makes it easier to complete tasks. if you are prone to overthinking or walking away, try timed mode!'
-  );
-}
+  const { error } = await sb.from('dream_matrix').upsert({
+    id: activeEntryId,
+    map_id: activeGameId, user_id: currentUser.id,
+    map_phase: activePhase,
+    location_data: locationData,
+    sidequest_data: sidequestData,
+    map_completed: activePhase === 'dream_came_true' ? true : undefined,
+  }, { onConflict: 'id' });
 
-function chooseDailyMode(timed) {
-  dailyTimedMode = timed;
-  hidePanel();
-  document.getElementById('char-heart').classList.add('mini');
-  stepLoadGame();
-  if (timed) startFlowTimer();
-}
-
-// Clicking the heart while it's mini expands it back to full size.
-document.querySelector('#char-heart .char-img').addEventListener('click', () => {
-  document.getElementById('char-heart').classList.remove('mini');
-});
-
-// ── FLOW TIMER — timed mode runs map select → phase select → character → bingo ───
-function msToClock(ms) {
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
-function startFlowTimer() {
-  if (!dailyTimedMode) return;
-  timerEndAt = Date.now() + TIMER_DURATION_MS;
-  document.getElementById('timer-badge').classList.add('active');
-  clearInterval(timerTickHandle);
-  timerTickHandle = setInterval(tickFlowTimer, 1000);
-  tickFlowTimer();
-}
-
-function tickFlowTimer() {
-  const badge = document.getElementById('timer-badge');
-  const remaining = timerEndAt - Date.now();
-  if (remaining <= 0) {
-    clearInterval(timerTickHandle);
-    timerTickHandle = null;
-    badge.classList.remove('active', 'warn');
-    handleTimerExpire();
+  if (error) {
+    HGModal.alert('oops', 'save failed');
+    if (btn) { btn.disabled = false; btn.textContent = 'add to matrix →'; }
     return;
   }
-  badge.textContent = msToClock(remaining);
-  badge.classList.toggle('warn', remaining <= 60000);
-}
 
-// Stops the countdown outright — used entering the (untimed) journal step,
-// on completion, and whenever the flow resets.
-function stopFlowTimer() {
-  clearInterval(timerTickHandle);
-  timerTickHandle = null;
-  timerEndAt = null;
-  document.getElementById('timer-badge').classList.remove('active', 'warn');
-  clearExtendPrompt();
-}
-
-function handleTimerExpire() {
-  extendEndAt = Date.now() + TIMER_EXTEND_WINDOW_MS;
-  document.getElementById('timer-extend').classList.add('active');
-  clearInterval(extendTickHandle);
-  extendTickHandle = setInterval(tickExtendPrompt, 1000);
-  tickExtendPrompt();
-}
-
-function tickExtendPrompt() {
-  const remaining = extendEndAt - Date.now();
-  if (remaining <= 0) {
-    clearInterval(extendTickHandle);
-    extendTickHandle = null;
-    expireAndWipe();
-    return;
-  }
-  document.getElementById('timer-extend-msg').textContent =
-    `time's up! extend 11 min? (${Math.ceil(remaining / 1000)}s)`;
-}
-
-function clearExtendPrompt() {
-  clearInterval(extendTickHandle);
-  extendTickHandle = null;
-  document.getElementById('timer-extend').classList.remove('active');
-}
-
-function extendFlowTimer() {
-  clearExtendPrompt();
-  timerEndAt = Date.now() + TIMER_DURATION_MS;
-  document.getElementById('timer-badge').classList.add('active');
-  clearInterval(timerTickHandle);
-  timerTickHandle = setInterval(tickFlowTimer, 1000);
-  tickFlowTimer();
-}
-
-// Extend window lapsed unanswered — clear this session's in-progress entry
-// (if any row was already saved) and send the user back to the map picker,
-// since timed mode now covers the whole session from page load.
-async function expireAndWipe() {
-  clearExtendPrompt();
-  stopFlowTimer();
-  clearTimeout(window._saveFallback);
-  if (activeEntryId) {
-    try { await sb.from('dream_matrix').delete().eq('id', activeEntryId); }
-    catch (e) { console.error('[timer] wipe failed', e); }
-  }
-  activeEntryId       = null;
-  activeGameId         = null;
-  activeGameData       = null;
-  activePhase          = null;
-  activeSidequest      = null;
-  activeDreamCameTrue  = null;
-  closeSidequestBuilder();
-  closeDctBuilder();
-  hidePanel();
-  setSaveBtnVisible(false);
-  await HGModal.alert(
-    "time's up",
-    "your progress for this session was cleared. take a breath, then try again whenever you're ready."
-  );
-  stepLoadGame();
-}
-
-// ── STEP 4: BEGIN → CHOOSE ARCHETYPE OR CHARACTER BUILDER ─
-function stepBegin() {
-  activeEntryId = crypto.randomUUID();   // fresh dream_matrix row for this session
-  currentStep = 'character';
-  setBubble('who do you feel like today?', []);
-  showArchetypePicker();
-}
-
-// Re-opens the archetype picker without minting a new activeEntryId — used as
-// the "back" target from steps reached after stepBegin already ran,
-// so the in-progress dream_matrix row isn't orphaned by a fresh id.
-function backToCharacterStep() {
-  currentStep = 'character';
-  setBubble('who do you feel like today?', []);
-  showArchetypePicker();
+  showRoomStatus('map saved ✓', '#6ab86a');
+  closeQuadrantPopup();
+  await renderMatrix();
 }
 
 function openCharacterBuilder() {
+  setQuadPopupTitle('build a character');
   const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src, 'showArchetypePicker()', 'infinity-mirror');
+  showIframe(src, 'infinity-mirror');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
 }
 
 // ── ARCHETYPE PICKER — reuse a saved cast member or build new ─
 async function showArchetypePicker() {
-  const panel = document.getElementById('content-panel');
+  currentStep = 'character';
+  const panel = document.getElementById('quad-popup-body');
   panel.className = 'content-panel active';
   panel.innerHTML = `<div class="arch-picker-loading">loading your cast…</div>`;
   document.getElementById('wall-btns').classList.remove('active');
@@ -2003,7 +1753,7 @@ async function showArchetypePicker() {
 
 function renderArchetypePicker(archetypes) {
   if (currentStep !== 'character') return;
-  const panel = document.getElementById('content-panel');
+  const panel = document.getElementById('quad-popup-body');
   const cards = archetypes.map(a => `
     <button class="arch-card" data-id="${a.id}" type="button">
       ${MatrixRender.buildCharStack(a)}
@@ -2011,10 +1761,6 @@ function renderArchetypePicker(archetypes) {
     </button>`).join('');
   panel.innerHTML = `
     <div class="step-panel">
-      <div class="step-header">
-        <span class="step-back" onclick="stepWelcome()">← back</span>
-        <span></span><span></span>
-      </div>
       <div class="arch-picker">
         <div class="arch-picker-title">choose an archetype for today</div>
         <div class="arch-grid">
@@ -2043,35 +1789,12 @@ async function useArchetype(archetype) {
   await saveCharacterAndAdvance(charState, { fork: false, archetypeId: archetype.id });
 }
 
-// Saves charState to dream_matrix and advances the flow. When fork is true
-// (built fresh via the character builder), also adds it to the user's
-// reusable cast — picking a saved archetype never touches that table again.
-// archetypeId links the entry back to character_archetypes for the archive's
-// per-archetype location history; forked entries get their id after insert.
+// Saves charState to dream_matrix (map/phase is already saved by this point —
+// the map quadrant is filled in first — so this only ever touches
+// character_data/archetype_id). When fork is true (built fresh via the
+// character builder), also adds it to the user's reusable cast — picking a
+// saved archetype never touches that table again.
 async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
-  // Resolve the place for this entry: a self-contained snapshot (terrain +
-  // feeling + tint) so the matrix/archive can redraw it WITHOUT the parent map.
-  let sidequestData = null, locationData = null;
-  if (activePhase === 'sidequest' && activeSidequest) {
-    sidequestData = activeSidequest;
-    locationData  = { terrain: activeSidequest.terrain || null,
-                      feeling: activeSidequest.feeling || null,
-                      tint:    activeSidequest.tint    || null };
-  } else if (activePhase === 'dream_came_true' && activeDreamCameTrue) {
-    sidequestData = activeDreamCameTrue;  // stored in sidequest_data; map_phase distinguishes it
-    locationData  = { terrain: activeDreamCameTrue.terrain || null,
-                      feeling: activeDreamCameTrue.feeling || null,
-                      tint:    activeDreamCameTrue.tint    || null };
-  } else if (activePhase && activeGameData?.map_data?.zones) {
-    const idx = parseInt(String(activePhase).split('_')[1], 10) - 1;
-    const z = activeGameData.map_data.zones[idx] || {};
-    locationData = { terrain: z.terrain || null,
-                     feeling: z.feeling || null,
-                     tint:    z.tint    || null };
-  }
-
-  // New archetypes are inserted before the matrix row so the row can be
-  // stamped with the real archetype_id in the same save.
   let finalArchetypeId = archetypeId || null;
   if (fork) {
     const { data: newArch, error: forkErr } = await sb.from('character_archetypes').insert({
@@ -2086,37 +1809,29 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
   const { error } = await sb.from('dream_matrix').upsert({
     id: activeEntryId,
     map_id: activeGameId, user_id: currentUser.id,
-    map_phase: activePhase,
-    location_data: locationData,
-    sidequest_data: sidequestData,
     character_data: charState,
     archetype_id: finalArchetypeId,
-    map_completed: activePhase === 'dream_came_true' ? true : undefined,
   }, { onConflict: 'id' });
 
   if (error) {
     HGModal.alert('oops', 'save failed');
     const btn = document.getElementById('save-continue-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'add to matrix →'; }
     return;
   }
 
   showRoomStatus('character saved ✓', '#6ab86a');
-  setSaveBtnVisible(false);
-  if (activePhase === 'dream_came_true') {
-    stepJournal();
-  } else {
-    stepBingo();
-  }
+  closeQuadrantPopup();
+  await renderMatrix();
 }
 
-// ── STEP 5: CHARACTER DONE → BINGO ───────────────────────
+// ── BINGO (heart meter) ──────────────────────────────────
 function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
   const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
-  showIframe(src, 'backToCharacterStep()');
-  setSaveBtnVisible(true, 'continue →');
+  showIframe(src);
+  setSaveBtnVisible(true, 'add to matrix →');
 }
 
 // ── STEP 6: BINGO DONE → THE INVENTORY (native, no iframe) ─────
@@ -2133,8 +1848,8 @@ const inventoryPanel = MatrixInventory.createPanel({
     }, { onConflict: 'id' });
     if (error) throw error;
   },
-  onContinue: () => { setSaveBtnVisible(false); stepJournal(); },
-  backStep: () => stepBingo(),
+  onContinue: () => { closeQuadrantPopup(); renderMatrix(); },
+  backStep: () => closeQuadrantPopup(),
 });
 
 function stepLibrary() {
@@ -2142,7 +1857,7 @@ function stepLibrary() {
   setBubble('want to pull anything from your inventory into this dream?', []);
   showPanel(inventoryPanel.panelHtml());
   inventoryPanel.enter();
-  setSaveBtnVisible(true, 'continue →');
+  setSaveBtnVisible(true, 'add to matrix →');
 }
 
 async function saveLibrarySelection(){
@@ -2150,238 +1865,46 @@ async function saveLibrarySelection(){
   const result = await inventoryPanel.save();
   if (!result.ok) {
     HGModal.alert('oops', 'save failed');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'continue →'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'add to matrix →'; }
   }
 }
 
-// ── STEP 7: LIBRARY DONE → JOURNAL (native, no iframe) ───
-function stepJournal() {
-  currentStep = 'journal';
-  clearTimeout(window._saveFallback);
-  stopFlowTimer();
-  setBubble('any discoveries in this phase?', []);
-  showPanel(buildJournalPanel());
-  loadJournalEntries();
-  setSaveBtnVisible(true, 'continue →');
-  // Plain Enter = newline (journaling, not quick chat); Cmd/Ctrl+Enter sends.
-  const msgEl = document.getElementById('jrc-msg');
-  if (msgEl) msgEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); sendJournalMessage(); }
-  });
-}
-
-function skipJournal() {
-  hidePanel();
-  setSaveBtnVisible(false);
-  stepDone();
-}
-
-// Continue pressed. Messages persist on every send, so the only thing left to
-// handle is text the user typed but never sent. "Warn, let me choose":
-// reveal a confirm row and don't advance until they pick.
-async function saveJournalEntry() {
-  const msgEl = document.getElementById('jrc-msg');
-  const hasUnsent = !!(msgEl && msgEl.value.trim());
-  if (hasUnsent) {
-    setSaveBtnVisible(true, 'continue →');   // un-stick the bar from "saving..."
-    const send = await HGModal.confirm(
-      'do you want to save this entry?', '',
-      { stacked:true, confirmLabel:'send message', cancelLabel:'continue without saving', cancelVariant:'link' }
-    );
-    if (send) await confirmSendAndContinue(); else confirmSkipUnsent();
-    return;
-  }
-  finishJournal();
-}
-
-function finishJournal() {
-  setSaveBtnVisible(false);
-  stepDone();
-}
-
-async function confirmSendAndContinue() {
-  const ok = await sendJournalMessage();
-  if (ok) finishJournal(); else setSaveBtnVisible(true, 'continue →');
-}
-function confirmSkipUnsent() {
-  const msgEl = document.getElementById('jrc-msg');
-  if (msgEl) msgEl.value = '';
-  finishJournal();
-}
-
-// ── NATIVE JOURNAL (chat-style) ──────────────────────────
-// Each send appends a message to dream_matrix.journal_messages (jsonb) on this
-// playthrough's row. Photos are attached exclusively via the matrix builder now.
-const journal = { entries: [] };
-
-function buildJournalPanel(){
-  return `<div class="step-panel jrc-panel">
-    <div class="step-header"><span class="step-back" onclick="stepLibrary()">← back</span><span></span><span></span></div>
-    <div class="jrc-window">
-      <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
-      <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries</div>
-      </div>
-      <div class="jrc-input-area">
-        <div class="jrc-msg-row">
-          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what do you want to remember?" maxlength="4000"></textarea>
-          <div class="jrc-btn-stack">
-            <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
-          </div>
-        </div>
-        <div class="jrc-status" id="jrc-status"></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function jrcEscape(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function jrcTime(iso){ return new Date(iso||Date.now()).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
-function jrcDay(iso){ return new Date(iso||Date.now()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
-
-function jrcRowMessages(row){
-  const arr = Array.isArray(row?.journal_messages) ? row.journal_messages : [];
-  return arr.slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
-}
-
-function buildAvatar(charData){
-  if (!charData) return '<div class="jrc-avatar"></div>';
-  const layers = ['body','eyes','mouth','hair'];
-  const imgs = layers.map(k => charData[k] && MatrixRender.CHAR_FULL_ASSETS[charData[k]]
-    ? `<img src="${MatrixRender.CHAR_FULL_ASSETS[charData[k]]}" alt="">`
-    : '').join('');
-  return `<div class="jrc-avatar">${imgs}</div>`;
-}
-
-function renderJournalMessage(msg, side, charData){
-  const wrap = document.createElement('div');
-  wrap.className = 'jrc-msg-wrap ' + (side === 'right' ? 'right' : 'left');
-  if (msg.id) wrap.dataset.id = msg.id;
-  const img = msg.image_url ? `<img src="${jrcEscape(msg.image_url)}" alt="" onerror="this.style.display='none'">` : '';
-  const txt = msg.text ? `<span class="jrc-bubble-txt">${jrcEscape(msg.text)}</span>` : '';
-  const avatar = buildAvatar(charData);
-  wrap.innerHTML = `${avatar}<div class="jrc-msg"><div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div></div>`;
-  return wrap;
-}
-
-function jrcScrollBottom(){
-  const c = document.getElementById('jrc-messages');
-  if (c) c.scrollTop = c.scrollHeight;
-}
-
-function jrcMaybeDivider(container, dayLabel, location){
-  const last = [...container.querySelectorAll('.jrc-date-divider span')].pop();
-  if (last && last.textContent === dayLabel) return;
-  const div = document.createElement('div');
-  div.className = 'jrc-date-divider';
-  const locHtml = location ? `<span class="divider-location">${jrcEscape(location)}</span> · ` : '';
-  div.innerHTML = `${locHtml}<span>${dayLabel}</span>`;
-  container.appendChild(div);
-}
-
-async function loadJournalEntries(){
-  journal.entries = [];
-  const dateEl = document.getElementById('jrc-date');
-  if (dateEl) dateEl.textContent = jrcDay();
-  if (!currentUser || !activeGameId) return;
-
-  let rows = [];
-  try {
+// ── JOURNAL (native chat, opened from the on-canvas notes button) ───
+// Messages persist on every send — there's no separate "done" step;
+// closing the popup (×) is all that's needed. Panel logic lives in the
+// shared matrix-journal.js module (also used by daily.html/cosmic.html).
+const journalPanel = MatrixJournal.createPanel({
+  sb,
+  getCurrentUser: () => currentUser,
+  table: 'dream_matrix',
+  charAssets: MatrixRender.CHAR_FULL_ASSETS,
+  placeholder: 'what do you want to remember?',
+  emptyText: 'What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries',
+  isReady: () => !!activeEntryId,
+  identityColumns: ['id'],
+  buildUpsertBase: () => ({ id: activeEntryId, map_id: activeGameId, user_id: currentUser.id }),
+  rowMatchesActive: row => row.id === activeEntryId,
+  sideForRow: (row, i) => i % 2 === 0 ? 'left' : 'right',
+  charDataForRow: row => row.character_data || null,
+  locationLabelForRow: row => {
+    const ld = row.location_data || {};
+    return (ld.terrain && ld.feeling) ? `${ld.terrain} of ${ld.feeling}` : (ld.terrain || ld.feeling || '');
+  },
+  loadHistoryRows: async () => {
     const { data } = await sb.from('dream_matrix')
       .select('id, journal_messages, matrix_images, created_at, character_data, location_data')
       .eq('map_id', activeGameId).eq('user_id', currentUser.id)
-      .order('created_at',{ ascending:true }).limit(60);
-    rows = data || [];
-  } catch(e){ console.error('[journal load]', e); }
+      .order('created_at', { ascending: true }).limit(60);
+    return data || [];
+  },
+});
 
-  rows = rows.filter(r => r.id === activeEntryId || jrcRowMessages(r).length);
-  journal.entries = rows;
-
-  const container = document.getElementById('jrc-messages');
-  const empty = document.getElementById('jrc-empty');
-  if (!container) return;
-  container.querySelectorAll('.jrc-msg-wrap, .jrc-date-divider').forEach(e=>e.remove());
-
-  let anyMsg = false;
-  rows.forEach((row, i) => {
-    const side = i % 2 === 0 ? 'left' : 'right';
-    const charData = row.character_data || null;
-    const _ld = row.location_data || {};
-    const location = (_ld.terrain && _ld.feeling) ? `${_ld.terrain} of ${_ld.feeling}` : (_ld.terrain || _ld.feeling || '');
-    jrcRowMessages(row).forEach(msg => {
-      jrcMaybeDivider(container, jrcDay(msg.created_at || row.created_at), location);
-      container.appendChild(renderJournalMessage(msg, side, charData));
-      anyMsg = true;
-    });
-  });
-  if (empty) empty.style.display = anyMsg ? 'none' : 'block';
-  jrcScrollBottom();
-}
-
-// Append one message to the current playthrough's row. Returns true on success.
-async function sendJournalMessage(){
-  const msgEl   = document.getElementById('jrc-msg');
-  const sendBtn = document.getElementById('jrc-send');
-  const text = (msgEl?.value || '').trim();
-  if (!text) return false;          // nothing to send
-  if (!(currentUser && activeEntryId)){ HGModal.alert('oops', 'not signed in'); return false; }
-
-  if (sendBtn) sendBtn.disabled = true;
-
-  const message = { id: crypto.randomUUID(), text, created_at: new Date().toISOString() };
-
-  // 1) read current row, append
-  let row = {};
-  try {
-    const { data } = await sb.from('dream_matrix')
-      .select('journal_messages').eq('id', activeEntryId).maybeSingle();
-    row = data || {};
-  } catch(e){}
-  const messages = (Array.isArray(row.journal_messages) ? row.journal_messages : []).concat([message]);
-
-  // 2) write
-  try {
-    const { error } = await sb.from('dream_matrix').upsert({
-      id: activeEntryId, map_id: activeGameId, user_id: currentUser.id,
-      journal_messages: messages,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'id' });
-    if (error) throw error;
-  } catch(err){
-    console.error('[journal send] failed:', err);
-    HGModal.alert('oops', 'something went wrong — try again');
-    if (sendBtn) sendBtn.disabled = false;
-    return false;
-  }
-
-  // 4) reflect in the scroll
-  const container = document.getElementById('jrc-messages');
-  const empty = document.getElementById('jrc-empty');
-  if (empty) empty.style.display = 'none';
-  const _rowIdx = journal.entries.findIndex(r => r.id === activeEntryId);
-  const _side = _rowIdx % 2 === 0 ? 'left' : 'right';
-  const _activeRow = journal.entries[_rowIdx] || {};
-  const _loc = _activeRow.location_data?.terrain || _activeRow.location_data?.location || '';
-  const _char = _activeRow.character_data || null;
-  jrcMaybeDivider(container, jrcDay(message.created_at), _loc);
-  container.appendChild(renderJournalMessage(message, _side, _char));
-
-  if (msgEl) msgEl.value = '';
-  if (sendBtn) sendBtn.disabled = false;
-  showJournalStatus('saved ✓', true);
-  jrcScrollBottom();
-  if (msgEl) msgEl.focus();
-  return true;
-}
-
-function showJournalStatus(msg, ok){
-  const el = document.getElementById('jrc-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.remove('ok','err');
-  el.classList.add(ok ? 'ok' : 'err');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => { el.textContent=''; el.classList.remove('ok','err'); }, 2600);
+function stepJournal() {
+  currentStep = 'journal';
+  clearTimeout(window._saveFallback);
+  setBubble('any discoveries in this phase?', []);
+  showPanel(journalPanel.panelHtml());
+  journalPanel.enter();
 }
 
 // ── STEP 7: DONE ──────────────────────────────────────────
@@ -2405,34 +1928,96 @@ function getMatrixEditor(){
     getUserId: () => currentUser?.id,
     status: (msg, color) => showRoomStatus(msg, color),
     onChange: renderMatrix,
+    onQuadrantOpen: openQuadrant,
+    onOpenJournal: openJournalPopup,
   });
   return _matrixEditor;
 }
 
-async function stepDone() {
-  currentStep = 'done';
-  setBubble("your entry is complete!");
-  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering your day…</div></div>');
-  _matrixSeed = `${activeGameId}|${activeEntryId}`;
+const QUADRANT_PROMPTS = {
+  map: 'where are you?', bingo: 'how are you?',
+  library: "what's in your bag?", char: 'who are you?',
+};
 
-  await renderMatrix();
-}
-
-// Re-assemble + redraw the matrix in place (used after adding/removing a
-// photo, sticker, or text note).
+// Re-assemble + redraw the matrix in place — this is the landing view itself
+// now (see stepInitial), not a final "step". With no activeEntryId yet, the
+// map/phase quadrant is the only unlocked prompt; the other 3 stay locked
+// until it's filled in (see the plan's map-first gating decision).
 let _matrixSeed = 'matrix';
 async function renderMatrix() {
-  const data = await MatrixRender.assemble(sb, activeEntryId, activeGameData, 'dream_matrix');
-  showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
-    showAddPhoto: false, showEditNotes: false, showFrame: true,
-    editable: true,
+  const data = activeEntryId
+    ? await MatrixRender.assemble(sb, activeEntryId, activeGameData, 'dream_matrix')
+    : {};
+  _matrixSeed = `${activeGameId}|${activeEntryId}`;
+  showMatrixPanel(MatrixRender.buildHTML(data, _matrixSeed, {
+    showEditNotes: false, showFrame: true,
+    editable: !!activeEntryId, showJournalTool: !!activeEntryId,
+    quadrantPrompts: QUADRANT_PROMPTS,
+    lockedQuadrants: activeEntryId ? [] : ['bingo', 'library', 'char'],
   }));
-  const panel = document.getElementById('content-panel');
+  const panel = document.getElementById('matrix-panel-host');
   const editor = getMatrixEditor();
   editor.attachInteractions(panel);
   MatrixRender.attachMatrix(panel, {
     onRemovePhoto: url => editor.removeMatrixPhoto(url),
+    onQuadrantOpen: openQuadrant,
   });
+}
+
+// ── QUADRANT POPUP SHELL — modal overlay hosting whichever quadrant's game
+// is currently open. showPanel/showIframe/showMapBuilder (unchanged) render
+// into #quad-popup-body inside it. No back-navigation chrome — each
+// quadrant's game is self-contained (they're no longer played in a fixed
+// sequence); the popup's own × is the only way out. setQuadPopupTitle lets a
+// sub-step (e.g. "map a new dream") relabel the titlebar after opening. ──
+function openQuadrantPopup(title) {
+  setQuadPopupTitle(title);
+  document.getElementById('quad-popup-overlay').classList.add('open');
+}
+function setQuadPopupTitle(title) {
+  document.getElementById('quad-popup-title').textContent = title || '';
+}
+function closeQuadrantPopup() {
+  document.getElementById('quad-popup-overlay').classList.remove('open');
+  hidePanel();
+  setSaveBtnVisible(false);
+  currentStep = null;
+}
+function handleQuadPopupOverlayClick(e) {
+  if (e.target === document.getElementById('quad-popup-overlay')) closeQuadrantPopup();
+}
+
+// Dispatches a quadrant click/dblclick (from the matrix canvas) to the right
+// popup. Bingo/library/char are locked (no data-quadrant wired) until a map
+// entry exists, so this should only ever fire for those once activeEntryId
+// is set — the guard is just a safety net.
+function openQuadrant(quadrant) {
+  if (quadrant === 'map') return openMapPopup();
+  if (!activeEntryId) return;
+  if (quadrant === 'bingo') return openBingoPopup();
+  if (quadrant === 'char') return openCharPopup();
+  if (quadrant === 'library') return openLibraryPopup();
+}
+function openMapPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.map);
+  stepLoadGame();
+}
+function openBingoPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.bingo);
+  stepBingo();
+}
+function openCharPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.char);
+  showArchetypePicker();
+}
+function openLibraryPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.library);
+  stepLibrary();
+}
+function openJournalPopup() {
+  if (!activeEntryId) return;
+  openQuadrantPopup('journal');
+  stepJournal();
 }
 
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
@@ -2445,7 +2030,7 @@ window.addEventListener('message', async e => {
     const btn = document.getElementById('save-continue-btn');
     if (btn && currentStep === 'character') {
       btn.disabled = false;
-      btn.innerHTML = 'continue →';
+      btn.innerHTML = 'add to matrix →';
     }
     return;
   }
@@ -2501,13 +2086,13 @@ window.addEventListener('message', async e => {
     if (!charState.body) {
       HGModal.alert('oops', 'pick a body first!');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'continue →';
+      btn.disabled = false; btn.innerHTML = 'add to matrix →';
       return;
     }
     if (!charState.name || !charState.name.trim()) {
       HGModal.alert('oops', 'name this archetype first!');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'continue →';
+      btn.disabled = false; btn.innerHTML = 'add to matrix →';
       return;
     }
     await saveCharacterAndAdvance(charState, { fork: true });
@@ -2520,7 +2105,7 @@ window.addEventListener('message', async e => {
     if (!score || score === 0) {
       HGModal.alert('oops', 'check some squares first!');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'continue →';
+      btn.disabled = false; btn.innerHTML = 'add to matrix →';
       return;
     }
     const energyScore  = Math.round((score / 24) * 100);
@@ -2534,12 +2119,12 @@ window.addEventListener('message', async e => {
 
     if (!error) {
       showRoomStatus('all saved ✓', '#6ab86a');
-      setSaveBtnVisible(false);
-      stepLibrary();
+      closeQuadrantPopup();
+      await renderMatrix();
     } else {
       HGModal.alert('oops', 'save failed');
       const btn = document.getElementById('save-continue-btn');
-      btn.disabled = false; btn.innerHTML = 'continue →';
+      btn.disabled = false; btn.innerHTML = 'add to matrix →';
     }
     return;
   }
@@ -2699,7 +2284,7 @@ function confirmSidequest() {
   };
   activePhase = 'sidequest';
   closeSidequestBuilder();
-  stepBegin();   // mints the entry id and continues into character → bingo → journal
+  stepBegin();   // saves this entry's location, closes the popup, redraws the matrix
 }
 
 // ── DREAM CAME TRUE BUILDER ───────────────────────────────
@@ -2794,7 +2379,7 @@ function confirmDct() {
   };
   activePhase = 'dream_came_true';
   closeDctBuilder();
-  stepBegin();  // character → journal → matrix (bingo skipped for this phase)
+  stepBegin();  // saves this entry's location, closes the popup, redraws the matrix
 }
 
 // ── INIT ──────────────────────────────────────────────────

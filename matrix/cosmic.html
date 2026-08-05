@@ -26,7 +26,7 @@
   --bw-top:9%; --bw-left:15%; --bw-width:70%; --bw-height:70%;
 }
 html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
-  background:url("../assets/elements/cosmic-sky.png") center / cover no-repeat fixed;
+  background:url("../assets/elements/matrix-cosmic.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
 /* NAV (matches adventure) */
@@ -54,9 +54,8 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
    other steps it isn't fixed to the viewport: it sits in normal document
    flow, so if its content runs taller than the screen, the whole page grows
    and scrolls with it (via html/body's overflow-y) instead of clipping into
-   its own internal scrollbar — and #save-bar and #char-heart, which follow
-   right after it in the DOM, trail along below instead of floating fixed
-   on top of it. ── */
+   its own internal scrollbar — and #save-bar, which follows right after it
+   in the DOM, trails along below instead of floating fixed on top of it. ── */
 .game-iframe{ width:100%; height:70vh; border:none; display:block; flex-shrink:0; }
 .content-panel.iframe-mode{
   border:none; box-shadow:none; background:transparent;
@@ -67,87 +66,13 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 }
 .panel-scroll{ width:100%; height:100%; overflow-y:auto; padding:22px; display:flex; flex-direction:column; align-items:center; }
 
-/* HEART + BUBBLE (matches adventure: heart bottom-left, bubble to its RIGHT) */
-@keyframes idle-pulse{ 0%,100%{ transform:translateY(0) rotate(-2deg) scale(1);} 50%{ transform:translateY(-8px) rotate(2deg) scale(1.03);} }
-.char-heart{ position:fixed; left:4vw; bottom:6vh; width:clamp(100px,14vw,220px); z-index:20;
-  transition:left .2s ease, bottom .2s ease, width .2s ease; }
-.char-heart .char-img{ display:block; width:100%; height:auto; animation:idle-pulse 3.6s ease-in-out 1s infinite; }
-.thought-bubble{ position:absolute; left:calc(100% - 8px); bottom:60%;
-  min-width:clamp(160px,18vw,260px); max-width:clamp(180px,22vw,300px);
-  background:#fff; border:2px solid #000; border-radius:50%; padding:14px 20px;
-  font-family:var(--font-hand); font-size:clamp(13px,1.3vw,17px); color:#000;
-  text-align:center; line-height:1.5; z-index:21; }
-
-/* MINI STATE — once the flow begins (mode chosen), the heart shrinks into
-   the corner and the bubble only peeks on hover/click so it doesn't sit on
-   top of step content for the rest of the session. Reset in stepWelcome(). */
-.char-heart.mini{ left:14px; bottom:14px; width:56px; }
-.char-heart.mini .char-img{ cursor:pointer; }
-.char-heart.mini .thought-bubble{
-  opacity:0; transform:scale(0.92) translateY(4px); pointer-events:none;
-  transition:opacity .2s ease, transform .2s ease; }
-.char-heart.mini:hover .thought-bubble{
-  opacity:1; transform:scale(1) translateY(0); pointer-events:auto; }
-
-/* ── FLOW TIMER — countdown badge + extend prompt near the heart ── */
-.timer-badge {
-  position:absolute; top:-74px; left:50%; transform:translateX(-50%);
-  background:#fff; border:4px solid var(--blue); border-radius:40px;
-  padding:8px 32px; font-family:var(--font-hand); font-size:clamp(30px,3vw,38px);
-  color:var(--ink); white-space:nowrap; z-index:401; display:none;
-  box-shadow:4px 4px 0 rgba(0,0,0,.15);
-}
-.timer-badge.active { display:block; }
-.timer-badge.warn { color:#E8478B; border-color:#E8478B; animation:timer-warn-pulse 1s ease-in-out infinite; }
-@keyframes timer-warn-pulse {
-  0%,100% { transform:translateX(-50%) scale(1); }
-  50%     { transform:translateX(-50%) scale(1.08); }
-}
-.timer-extend {
-  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
-  width:230px; background:#fff; border:2px solid #E8478B; border-radius:8px;
-  padding:12px 14px; font-family:var(--font-hand); font-size:15px; color:#000;
-  text-align:center; z-index:402; display:none;
-  box-shadow:3px 4px 0 rgba(0,0,0,.15);
-}
-.timer-extend.active { display:block; }
-.timer-extend-msg { margin-bottom:9px; line-height:1.4; }
-.timer-extend-btns { display:flex; gap:8px; justify-content:center; }
-.timer-extend-btn {
-  flex:1; padding:7px 8px; font-family:var(--font-hand); font-size:13px; cursor:pointer;
-  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
-  transition:all .05s;
-}
-.timer-extend-btn:hover { background:#4a5bc4; }
-.timer-extend-btn:active { box-shadow:none; transform:translate(2px,2px); }
-.timer-extend-btn.ghost { background:none; border-color:#ccc; color:#999; box-shadow:none; }
-.timer-extend-btn.ghost:hover { border-color:#E8478B; color:#E8478B; }
-
-/* ── WALL BUTTON — reused for the welcome step's mode choice ── */
-.wall-btn {
-  padding:14px 40px;
-  background:var(--blue);
-  border:2px solid #4a5bc4; box-shadow:3px 3px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:clamp(17px,1.8vw,23px); color:#fff;
-  cursor:pointer; transition:all .05s; min-width:220px; text-align:center;
-}
-.wall-btn:hover { background:#4a5bc4; }
-.wall-btn:active { box-shadow:none; transform:translate(3px,3px); }
-.wall-btn.secondary {
-  background:none; border-color:#ccc; color:#999; box-shadow:none;
-}
-.wall-btn.secondary:hover { border-color:var(--blue); color:var(--blue); }
-
-/* ── WELCOME STEP — timed/untimed mode choice before the timed portion ── */
-.welcome-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; min-height:100%; }
-.welcome-title { font-family:var(--font-hand); font-size:clamp(30px,3.2vw,44px); color:#fff; text-align:center; }
-.welcome-sub { font-family:var(--font-hand); font-size:clamp(17px,1.7vw,22px); color:var(--ink); text-align:center; margin-top:-8px; }
-.welcome-modes { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
-.welcome-why {
-  font-family:var(--font-hand); font-size:15px; color:var(--ink);
-  text-decoration:underline; cursor:pointer; margin-top:2px;
-}
-.welcome-why:hover { color:#E8478B; }
+/* MATRIX PAGE TOGGLE — switches between daily/dream/cosmic */
+.matrix-toggle{ position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+  z-index:210; display:flex; gap:clamp(24px,4vw,48px); }
+.matrix-toggle-link{ font-family:var(--font-hand); font-size:clamp(19px,2.2vw,26px);
+  color:#fff; text-decoration:none; padding-bottom:2px; border-bottom:2px solid transparent; }
+.matrix-toggle-link:hover{ opacity:.8; }
+.matrix-toggle-link.active{ border-bottom-color:#fff; }
 
 /* SAVE BAR (matches adventure: floating blue button) */
 .save-continue-bar{ position:fixed; bottom:0; left:0; right:0; height:calc(21% - 44px);
@@ -160,98 +85,101 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .save-continue-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 .save-continue-btn:disabled{ opacity:.38; cursor:not-allowed; transform:none!important; box-shadow:3px 3px 0 #3a4aaa; }
 
-/* Iframe-mode steps (character builder, bingo) now grow taller than the
-   viewport in normal flow (see .content-panel.iframe-mode) — keep the
-   continue bar and heart character in flow right after it instead of
-   pinned to the viewport bottom/corner, so they trail the frame instead of
-   floating on top of it. Mobile keeps its own fixed footer (see the
-   max-width:768px block) since that panel scrolls internally instead of
-   growing the page. */
-@media (min-width:769px) {
-  body:has(.content-panel.iframe-mode) .save-continue-bar {
-    position: static;
-    height: auto;
-    padding: 24px 0 12px;
-  }
-  body:has(.content-panel.iframe-mode) .char-heart {
-    position: relative;
-    left: auto; bottom: auto;
-    margin: 0 0 40px 4vw;
-  }
-  /* The flow timer badge floats 74px above the heart's own box (see
-     .timer-badge) — when it's showing, give the heart extra top margin so
-     the badge clears the continue button above instead of sitting on it. */
-  body:has(.content-panel.iframe-mode) .char-heart:has(.timer-badge.active) {
-    margin-top: 100px;
-  }
-}
-
 .save-status-bar{ position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
   font-family:var(--font-hand); font-size:16px; color:#6ab86a; z-index:16; pointer-events:none; }
 
-/* SEASON HEADER */
-.season-head{ text-align:center; margin-bottom:8px; position:relative; z-index:6; padding-top:56px; }
+/* ── QUADRANT POPUP — reuses the site-standard modal shell (modal.css's
+   .hg-modal-overlay/.hg-modal/.hg-modal-titlebar/.hg-modal-close), just
+   wider (game content, not a small alert) and with a scrollable body. The
+   matrix canvas (#matrix-panel-host) stays visible/dimmed behind it. Hosts
+   the transit picker (auto-opened on load when no transit is active yet)
+   and the character/library/journal panels — the location terrain/climate builder
+   uses its own separate #loc-overlay instead (see below), same pattern as
+   daily.html's #dq-overlay. ── */
+.quad-popup-window {
+  width: min(1050px, 94vw); max-height: calc(100vh - 84px);
+  display: flex; flex-direction: column;
+}
+/* Narrower variant for content that doesn't need the full game-panel width —
+   currently just the recent-transits list (see showTransitSelector). */
+.quad-popup-window.narrow-popup { width: min(600px, 92vw); }
+.quad-popup-window .hg-modal-body {
+  flex: 1; min-height: 0; padding: 0; display: flex; flex-direction: column;
+}
+.quad-popup-window .panel-scroll-region {
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0; overflow-y: auto; padding: 20px;
+}
+.quad-popup-window .content-panel {
+  position: static; width: 100%; height: auto; display: flex; flex-shrink: 0;
+  overflow: visible; margin: 0;
+}
+.quad-popup-window .save-continue-bar {
+  position: static; height: auto; padding: 14px 0 4px; z-index: auto; flex-shrink: 0;
+}
+.quad-popup-window .lib-window {
+  width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
+}
+.quad-popup-window .lib-titlebar { display: none; }
+/* The "recent transits" heading was styled for the dark cosmic-sky
+   background (light/cyan text) — now that it renders inside the light
+   popup, darken it for contrast. */
+.quad-popup-window .season-title { color:#3a4aaa; }
+
+/* loc-overlay (the terrain/climate builder) stays its own independent
+   top-level modal — not nested inside the quad-popup shell — same pattern
+   as daily.html's dq-overlay. */
+.loc-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.loc-title { font-size:clamp(22px,2.2vw,30px); color:#3a4aaa; font-family:var(--font-hand); }
+.loc-title-row .loc-close { margin:0; font-size:32px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.loc-title-row .loc-close:hover { color:#E8478B; }
+
+/* RECENT TRANSITS — the sole transit-selection/switch UI now (no season
+   grouping or separate past/future popups — season-based browsing lives in
+   the archive instead). Rendered inside the quadrant popup (see
+   openTransitPopup/showTransitSelector) as one chronological, scrollable
+   list covering past, today, and future transits for the live season. */
+.season-head{ text-align:center; margin-bottom:8px; }
 .season-title{ font-family:var(--font-hand); font-size:clamp(30px,3.4vw,42px); color:#fff; }
-.season-sub{ font-family:var(--font-hand); font-size:clamp(15px,1.5vw,18px); letter-spacing:2px; color:rgba(201,255,245,0.7); }
-
-/* TRANSIT SELECTOR — past/future nav buttons + heart-meter icon (links to the
-   standalone season bingo board) + today's transit card list */
-.transit-nav-btn{ position:fixed; top:7vh; z-index:15; font-family:var(--font-hand);
-  font-size:clamp(14px,1.4vw,18px); color:rgba(201,255,245,0.85);
-  background:rgba(255,255,255,.08); border:1.5px solid rgba(201,255,245,.4);
-  padding:8px 16px; cursor:pointer; transition:background .15s, border-color .15s; }
-.transit-nav-btn:hover{ background:rgba(201,255,245,.15); border-color:rgba(201,255,245,.85); }
-.transit-nav-btn.past{ left:11vw; }
-.transit-nav-btn.future{ right:11vw; }
-.transit-heart-icon{ position:fixed; top:1.5vh; right:11vw; z-index:16; width:46px; cursor:pointer; }
-.transit-heart-icon .hm-box{ padding:2px; }
-.transit-heart-icon .hm-track{ height:34px; }
-.transit-today-list{ position:relative; z-index:6; display:flex; flex-direction:column;
-  align-items:center; gap:14px; padding:10px 20px 40px; max-width:520px; margin:0 auto; }
-.transit-card{ width:min(420px,90%); background:rgba(255,255,255,.08);
-  border:1.5px solid rgba(201,255,245,.4); padding:16px 20px; cursor:pointer;
-  transition:background .15s, border-color .15s; text-align:center; }
-.transit-card:hover{ background:rgba(201,255,245,.12); border-color:rgba(201,255,245,.8); }
-.transit-card.just-done{ animation:flash 1.6s ease-out; }
-.transit-card-name{ font-family:var(--font-hand); font-size:clamp(20px,2.2vw,28px); color:#fff; }
-.transit-card-time{ font-family:var(--font-game); font-size:14px; color:rgba(201,255,245,.7); margin-top:4px; }
-.transit-card-badge{ font-family:var(--font-hand); font-size:14px; letter-spacing:.5px; margin-top:8px; }
-.transit-card-badge.done{ color:var(--pink); }
-.transit-card-badge.open{ color:rgba(201,255,245,.9); }
-.transit-empty{ text-align:center; color:rgba(201,255,245,.5); font-family:var(--font-hand);
-  font-style:italic; padding:40px 0; }
-
-/* TRANSITS POPUP — shared by the past-transits and future-transits lists */
+.transits-list{ width:100%; max-width:520px; margin:0 auto; padding:6px 4px 20px; overflow-y:auto; }
 .transits-row-clickable{ cursor:pointer; }
 .transits-row-clickable:hover{ background:rgba(101,121,226,.08); }
+.transits-row.just-done{ animation:flash 1.6s ease-out; }
 
 /* COSMIC-ONLY MATRIX RENDER TWEAKS — location moves to internal-action
-   (bottom-left, see renderMatrix()), this transit's planet glyphs take its
-   old external-action spot (top-left), and the shared per-entry bingo
-   meter is hidden since bingo is now the standalone cosmic-bingo.html
-   season page. Scoped to this page only — matrix-render.js itself is
-   untouched, dream/daily keep the shared renderer's original layout. */
+   (bottom-left, see renderMatrix()); the vacated external-action spot
+   (top-left) becomes the "what's transiting?" tile instead (the 'bingo'
+   quadrant key, repurposed — see QUADRANT_PROMPTS) before a transit is
+   picked, then the clickable glyph badge below once one is active; the
+   shared per-entry bingo meter itself is hidden since bingo is now the
+   standalone cosmic-bingo.html season page. Scoped to this page only —
+   matrix-render.js itself is untouched, dream/daily keep the shared
+   renderer's original layout. */
 .adv-matrix .adv-bingo{ display:none; }
-.cosmic-transit-glyphs{ position:absolute; left:27%; top:30%; transform:translate(-50%,-50%);
-  display:flex; gap:8px; align-items:center; justify-content:center; z-index:5; pointer-events:none; }
-.cosmic-transit-glyph{ width:clamp(30px,4vw,46px); height:clamp(30px,4vw,46px); object-fit:contain;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
+/* Once a transit is active, this clickable badge (this transit's planet
+   glyphs, or a fallback icon) takes the "what's transiting?" tile's spot —
+   same top-left position, same click-to-switch behavior, just no more
+   dashed prompt box now that it's "filled" (see buildTransitBadgeHTML). */
+.cosmic-transit-badge{ position:absolute; left:27%; top:30%; transform:translate(-50%,-50%);
+  z-index:5; display:flex; gap:6px; align-items:center; justify-content:center;
+  cursor:pointer; padding:10px 14px; border-radius:6px; transition:background .12s; }
+.cosmic-transit-badge:hover{ background:rgba(255,255,255,.15); }
+.cosmic-transit-glyph{ width:26px; height:26px; object-fit:contain;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+.cosmic-transit-badge-fallback{ font-family:var(--font-hand); font-size:26px; color:#fff; }
+/* The location quadrant is moved to bottom-left, and the "what's
+   transiting?" tile takes over its old top-left spot (see renderMatrix) —
+   the empty-state prompt tiles need the same repositioning, since matrix-
+   render.js only knows its normal defaults (map→top-left, bingo→bottom-left).
+   Scoped to the prompts only (not .adv-map, which is draggable — !important
+   here would fight dragging via inline style). */
+.adv-quad-prompt[data-quadrant="map"]{ left:27% !important; top:71% !important; }
+.adv-quad-prompt[data-quadrant="bingo"]{ left:27% !important; top:30% !important; }
 /* Shared renderer defaults these dark (#3a4aaa / #7a86bb) for dream/daily's
    lighter matrix background — cosmic's is the dark sky, so flip to white. */
 .matrix-panel .matrix-date{ color:#fff; }
 .adv-matrix .adv-axlbl{ color:#fff; }
 .adv-matrix .adv-cap{ color:#fff; }
-.transits-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; padding:18px; }
-.transits-overlay.open{ display:flex; }
-.transits-window{ width:min(92vw,420px); max-height:80vh; background:#dfe2ef;
-  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.35);
-  display:flex; flex-direction:column; overflow:hidden; }
-.transits-titlebar{ flex-shrink:0; height:38px; background:#cdd3ec; border-bottom:2px solid var(--blue);
-  display:flex; align-items:center; justify-content:space-between; padding:0 16px;
-  font-family:var(--font-hand); font-size:25px; color:#555; }
-.transits-close{ cursor:pointer; font-size:23px; color:#bbb; padding:2px 4px; transition:color .15s; }
-.transits-close:hover{ color:#444; }
-.transits-body{ flex:1; overflow-y:auto; padding:6px 18px 18px; }
 .transits-empty{ text-align:center; color:#aaa; font-family:var(--font-hand); font-style:italic; padding:24px 0; }
 .transits-row{ display:flex; align-items:baseline; justify-content:space-between; gap:10px;
   padding:10px 0; border-bottom:1px solid rgba(101,121,226,.12);
@@ -293,40 +221,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .gate-btn:hover{ background:#4a5bc4; }
 .gate-btn:active{ box-shadow:none; transform:translate(3px,3px); }
 
-/* PICKER GRID — shared by the planet selector and the sign selector */
-.picker-grid{ display:flex; flex-wrap:wrap; gap:30px 26px; justify-content:center; padding:10px; max-width:840px; }
-.picker-grid.grid-3{ display:grid; grid-template-columns:repeat(3, 126px); gap:34px 46px; justify-content:center; }
-.picker-disc img{ width:48px; height:48px; object-fit:contain; }
-.picker-slot{ position:relative; width:126px; display:flex; flex-direction:column; align-items:center; gap:9px; }
-.picker-halo{ position:absolute; top:38px; left:50%; width:170px; height:170px; transform:translate(-50%,-50%);
-  border-radius:50%; pointer-events:none; filter:blur(4px); opacity:.55; transition:opacity .2s; }
-.picker-disc{ position:relative; width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:44px; color:#fff; background:rgba(10,10,25,0.32); border:2px solid rgba(255,255,255,0.4);
-  transition:transform .15s, border-color .15s, box-shadow .15s; }
-.picker-name{ font-family:var(--font-hand); font-size:16px; letter-spacing:.5px; color:rgba(201,255,245,0.85); text-align:center; }
-.picker-soon{ font-family:var(--font-hand); font-size:9px; letter-spacing:1.5px; color:rgba(201,255,245,0.4); text-transform:uppercase; }
-.picker-slot.unlocked .picker-disc{ cursor:pointer; border-color:rgba(255,255,255,0.65); }
-.picker-slot.unlocked:hover .picker-disc{ transform:translateY(-4px) scale(1.06); box-shadow:0 8px 20px rgba(0,0,0,.35); }
-.picker-slot.unlocked:hover .picker-halo{ opacity:.85; }
-.picker-slot.locked .picker-halo{ opacity:.18; filter:blur(4px) grayscale(.5); }
-.picker-slot.locked .picker-disc{ opacity:.45; cursor:default; }
-.picker-slot.locked .picker-name{ color:rgba(201,255,245,0.4); }
-
-/* JOURNAL (chat-style, matches adventure) */
-.jrc-panel{ padding:8px; overflow:hidden; justify-content:center; align-items:center; }
-.jrc-window{ width:75%; height:75%; background:#dfe2ef;
-  box-shadow:0 0 0 4px var(--blue), 6px 10px 40px rgba(0,0,0,.35);
-  display:flex; flex-direction:column; overflow:hidden; }
-.jrc-titlebar{ flex-shrink:0; height:38px; background:#cdd3ec; border-bottom:2px solid var(--blue);
-  display:flex; align-items:center; justify-content:center; position:relative;
-  font-family:var(--font-hand); font-size:clamp(16px,1.5vw,22px); color:#333; letter-spacing:.5px; }
-.jrc-date{ position:absolute; right:12px; font-size:clamp(10px,1vw,14px); color:#999; font-family:var(--font-hand); }
-.jrc-messages{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
-.jrc-msg-wrap{ display:flex; align-items:flex-start; gap:8px; }
-.jrc-msg-wrap.right{ flex-direction:row-reverse; align-self:flex-end; }
-.jrc-msg-wrap.left{ flex-direction:row; align-self:flex-start; }
-.jrc-avatar{ flex-shrink:0; width:52px; height:52px; border-radius:50%; overflow:hidden; position:relative; border:1.5px solid #ccc; background:#e5e8f5; }
-.jrc-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+/* Journal CSS moved to matrix-journal.js (ensureStyles()), which injects it once. */
 
 /* Step header bar — back link atop steps reached via "continue" */
 .step-panel {
@@ -379,46 +274,6 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .arch-card-new:hover .arch-card-plus { color: var(--blue); }
 .arch-stack { position:relative; width:100%; aspect-ratio:1; }
 .arch-stack img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
-.jrc-msg{ display:flex; flex-direction:column; gap:3px; max-width:72%; }
-.jrc-msg-wrap.right .jrc-msg{ align-items:flex-end; }
-.jrc-msg-wrap.left  .jrc-msg{ align-items:flex-start; }
-.jrc-bubble{ padding:11px 16px; font-family:var(--font-hand); font-size:clamp(16px,1.6vw,22px); line-height:1.5; word-break:break-word; user-select:text; }
-.jrc-msg-wrap.right .jrc-bubble{ background:var(--blue); color:#fff; border:1.5px solid #4a5bc4; }
-.jrc-msg-wrap.left  .jrc-bubble{ background:#fff; color:#222; border:1.5px solid #ccc; }
-.jrc-bubble img{ display:block; width:210px; max-width:100%; margin-bottom:6px; object-fit:cover; border:3px solid rgba(255,255,255,.6); }
-.jrc-msg-wrap.left .jrc-bubble img{ border-color:#ccc; }
-.jrc-meta{ font-size:clamp(13px,1vw,15px); color:#aaa; font-family:var(--font-hand); padding:0 4px; }
-.jrc-empty{ margin:auto; text-align:center; color:#7a86bb; font-style:italic;
-  font-size:clamp(15px,1.4vw,18px); line-height:1.6; max-width:84%; padding:24px 0; }
-.jrc-date-divider{ display:flex; align-items:center; gap:10px; padding:2px 0; align-self:stretch; }
-.jrc-date-divider span{ font-size:14px; color:#bbb; font-family:var(--font-hand); white-space:nowrap; }
-.jrc-date-divider .divider-location{ font-size:15px; color:#7a86bb; font-family:var(--font-hand); white-space:nowrap; }
-.jrc-date-divider::before, .jrc-date-divider::after{ content:''; flex:1; height:1px; background:#ddd; }
-.jrc-input-area{ flex-shrink:0; border-top:2px solid #ccc; padding:10px 14px; display:flex; flex-direction:column; gap:7px; background:#cdd3ec; }
-.jrc-img-chip{ position:relative; width:70px; display:none; }
-.jrc-img-chip.has-img{ display:block; }
-.jrc-img-chip img{ width:100%; height:auto; max-height:90px; border:1.5px solid var(--blue); display:block; object-fit:contain; background:#fff; }
-.jrc-img-x{ position:absolute; top:-7px; right:-7px; width:18px; height:18px; padding:0; line-height:1;
-  background:#fff; border:1.5px solid #ccc; border-radius:50%; cursor:pointer; font-size:12px; color:#888;
-  display:flex; align-items:center; justify-content:center; }
-.jrc-img-x:hover{ color:var(--pink); border-color:var(--pink); }
-.jrc-msg-row{ display:flex; gap:8px; align-items:stretch; }
-.jrc-msg-input{ flex:1; font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#222;
-  background:#fff; border:1.5px solid var(--blue); padding:8px 11px; outline:none; resize:none; height:58px; line-height:1.5; }
-.jrc-msg-input:focus{ border-color:var(--blue); }
-.jrc-btn-stack{ flex-shrink:0; display:flex; flex-direction:column; gap:6px; width:58px; }
-.jrc-plus-btn{ flex:1; background:rgba(255,255,255,.72); border:2px solid var(--blue); box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-game); font-size:23px; color:var(--blue); cursor:pointer; line-height:1; padding:0; transition:all .05s; }
-.jrc-plus-btn:hover{ background:var(--blue); color:#fff; }
-.jrc-plus-btn:active{ box-shadow:none; transform:translate(2px,2px); }
-.jrc-send-btn{ flex:1; background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand); font-size:clamp(14px,1.3vw,17px); color:#fff; cursor:pointer; padding:0; transition:all .05s; }
-.jrc-send-btn:hover{ background:#4a5bc4; }
-.jrc-send-btn:active{ box-shadow:none; transform:translate(2px,2px); }
-.jrc-send-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
-.jrc-status{ font-size:clamp(10px,.9vw,13px); color:#999; font-family:var(--font-hand); min-height:13px; }
-.jrc-status.ok{ color:#6ab86a; }
-.jrc-status.err{ color:var(--pink); }
 
 /* ── INVENTORY PANEL (media/tools tie-in, between character and journal) ──
    CSS moved to matrix-inventory.js (ensureStyles()), which injects it once. ── */
@@ -531,9 +386,9 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 
 /* MAP MODE — panel goes transparent so sky shows through, and fills the
    whole viewport below the nav instead of the --bw-* "wall panel" box other
-   steps use — the zodiac grid and transit selector are full-screen sky
-   experiences, not bounded content, so they should resize to fit the page
-   rather than becoming a scrollable box within a fixed-height panel. */
+   steps use — the transit selector is a full-screen sky experience, not
+   bounded content, so it should resize to fit the page rather than becoming
+   a scrollable box within a fixed-height panel. */
 .content-panel.map-mode{
   background:transparent !important; border:none !important; box-shadow:none !important; overflow:visible !important;
   top:44px !important; left:0 !important; width:100% !important; height:calc(100dvh - 44px) !important;
@@ -544,66 +399,12 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 @media (max-width:768px){
   :root{ --bw-top:44px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 44px); }
   .content-panel.active:not(.iframe-mode){ border:none; box-shadow:none; }
-  /* Heart guide + bubble are desktop-only, but the flow timer still needs to
-     show somewhere — keep the (invisible) char-heart container around as an
-     anchor and re-pin the timer badge to the bottom-left as its own pill. */
-  .char-heart .char-img, .char-heart .thought-bubble { display:none; }
-  .timer-badge {
-    position:fixed; top:auto; left:14px; bottom:14px; transform:none;
-    padding:5px 16px; font-size:16px; border-width:2px; border-radius:20px;
-    box-shadow:2px 2px 0 rgba(0,0,0,.15);
-  }
-  .timer-badge.warn { animation:none; }
-  .timer-extend {
-    position:fixed; top:auto; bottom:14px; left:14px; transform:none;
-    width:min(230px, calc(100vw - 28px));
-  }
-  .save-continue-bar{ height:auto; padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px)); bottom:0; z-index:30; background:var(--cream); border-top:2px solid var(--blue); }
-  /* leave room below the panel so the continue bar doesn't sit on top of it */
-  body:has(.save-continue-bar.visible) .content-panel{ --bw-height: calc(100dvh - 44px - 100px); }
+  .matrix-toggle { gap:16px; bottom:8px; }
+  .nav-title { font-size:clamp(15px,4vw,21px); }
 
   /* season map title + progress meter were overlapping — stack them instead */
   #map-season-title{ top:54px; left:0; right:0; text-align:center; font-size:clamp(30px,7vw,42px); }
   #map-progress{ top:104px; left:50%; right:auto; transform:translateX(-50%); min-width:0; width:min(320px,84vw); }
-
-  /* iframe panels (character step, cosmic bingo) used to scroll away with the
-     whole page — tall content would scroll its top rows up under the fixed
-     nav bar, AND the continue bar (a separate fixed sibling) would float on
-     top of whatever content was currently in view instead of trailing it.
-     Fix: .panel-scroll-region becomes the single pinned-below-nav scroll
-     container for both the panel and the continue bar, so the continue
-     button flows in normal document order after the panel's content instead
-     of floating fixed over it, while the whole region still stays below the
-     nav rather than scrolling under it. Only kicks in for iframe steps;
-     non-iframe steps keep their own self-contained fixed box below. */
-  body:has(.content-panel.iframe-mode) .panel-scroll-region {
-    display:flex; flex-direction:column; align-items:center;
-    position:fixed; top:44px; left:0; right:0; bottom:0;
-    overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
-  }
-  body:has(.content-panel.iframe-mode) .content-panel.iframe-mode {
-    position:static; width:94vw; height:auto; max-height:none; overflow:visible;
-    margin:0 auto;
-  }
-  body:has(.content-panel.iframe-mode) .save-continue-bar {
-    position:static; height:auto; padding:0; margin:20px 0 30px; z-index:auto;
-  }
-
-  /* zodiac picker grid: fixed 126px columns overflowed narrow screens
-     and forced horizontal scrolling — shrink slots to fit within the panel width */
-  .picker-grid.grid-3{ grid-template-columns:repeat(3, 88px); gap:20px 8px; }
-  .picker-grid.grid-3 .picker-slot{ width:88px; }
-  .picker-grid.grid-3 .picker-disc{ width:56px; height:56px; }
-  .picker-grid.grid-3 .picker-disc img{ width:32px; height:32px; }
-  .picker-grid.grid-3 .picker-halo{ width:110px; height:110px; top:28px; }
-  .picker-grid.grid-3 .picker-name{ font-size:14px; }
-
-  /* transit selector: past/future buttons + heart icon move to fixed
-     bottom corners instead of crowding the top of the panel */
-  .transit-nav-btn{ top:auto; bottom:14px; font-size:13px; padding:6px 10px; }
-  .transit-nav-btn.past{ left:14px; }
-  .transit-nav-btn.future{ right:14px; }
-  .transit-heart-icon{ top:auto; bottom:64px; right:14px; width:38px; }
 }
 </style>
 </head>
@@ -612,34 +413,43 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 <nav class="room-nav">
   <div id="gear-slot"></div>
   <h1 class="nav-title">cosmic matrix</h1>
-  <a class="nav-btn" href="archive.html">archive →</a>
+  <div style="display:flex;gap:12px;">
+    <a class="nav-btn" href="archive.html" onclick="return matrixNav(event,'archive.html')">archive →</a>
+  </div>
 </nav>
 
-<!-- PANEL SCROLL REGION — on mobile, when an iframe step is active, this
-     becomes the single scroll container for both the panel and the continue
-     bar (see .panel-scroll-region CSS), so the continue button trails the
-     content instead of floating fixed on top of it. Otherwise it's just a
-     plain, non-positioned wrapper and everything behaves as before. -->
-<div class="panel-scroll-region" id="panel-scroll-region">
-  <div class="content-panel" id="content-panel"></div>
+<!-- MATRIX CANVAS — always visible landing view once a transit is active
+     (see stepInitial/renderMatrix). Same fixed back-wall position the old
+     content-panel used, reusing its CSS. -->
+<div class="content-panel active" id="matrix-panel-host"></div>
 
-  <div class="save-continue-bar" id="save-bar">
-    <button class="save-continue-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
-  </div>
-</div>
+<!-- QUADRANT POPUP — the site-standard modal shell (see assets/css/modal.css),
+     just wider, hosting whichever quadrant's content is open (the transit
+     picker, character, library, journal). showPanel/
+     showIframe render into #quad-popup-body; the matrix canvas stays
+     visible (dimmed) behind it. -->
+<div class="hg-modal-overlay quad-popup-overlay" id="quad-popup-overlay" onclick="handleQuadPopupOverlayClick(event)">
+  <div class="hg-modal quad-popup-window" id="quad-popup-window">
+    <div class="hg-modal-titlebar">
+      <span id="quad-popup-title"></span>
+      <span class="hg-modal-close" onclick="closeQuadrantPopup()">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body panel-scroll-region" id="panel-scroll-region">
+      <div class="content-panel" id="quad-popup-body"></div>
 
-<div class="char-heart" id="char-heart">
-  <div class="thought-bubble" id="bubble">reading the sky…</div>
-  <div class="timer-badge" id="timer-badge"></div>
-  <div class="timer-extend" id="timer-extend">
-    <div class="timer-extend-msg" id="timer-extend-msg"></div>
-    <div class="timer-extend-btns">
-      <button class="timer-extend-btn" onclick="extendFlowTimer()">extend +11 min</button>
-      <button class="timer-extend-btn ghost" onclick="expireAndWipe()">let it go</button>
+      <div class="save-continue-bar" id="save-bar">
+        <button class="save-continue-btn" id="save-btn" onclick="saveAndContinue()">continue →</button>
+      </div>
     </div>
   </div>
-  <img class="char-img" src="../assets/elements/guides/heart.png" alt="Heart guide">
 </div>
+
+<!-- MATRIX PAGE TOGGLE -->
+<nav class="matrix-toggle" aria-label="switch matrix">
+  <a class="matrix-toggle-link" href="daily.html" onclick="return matrixNav(event,'daily.html')">daily</a>
+  <a class="matrix-toggle-link" href="dream.html" onclick="return matrixNav(event,'dream.html')">dream</a>
+  <a class="matrix-toggle-link active" href="cosmic.html" onclick="return matrixNav(event,'cosmic.html')">cosmic</a>
+</nav>
 <div class="save-status-bar" id="status"></div>
 
 <!-- LOGIN MODAL — direct form, no redirect -->
@@ -687,21 +497,14 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
   </div>
 </div>
 
-<!-- TRANSITS POPUP — shared by "past transits" and "future transits" -->
-<div class="transits-overlay" id="transits-overlay" onclick="if(event.target===this)closeTransitsPopup()">
-  <div class="transits-window">
-    <div class="transits-titlebar">
-      <span id="transits-title">transits</span>
-      <span class="transits-close" onclick="closeTransitsPopup()">×</span>
-    </div>
-    <div class="transits-body" id="transits-body"></div>
-  </div>
-</div>
-
 <!-- LOCATION BUILDER — user builds their own experience of a transit -->
 <div class="loc-overlay" id="loc-overlay">
   <div class="loc-scroll">
     <div class="loc-card">
+      <div class="loc-title-row">
+        <span class="loc-title">how did this transit feel?</span>
+        <span class="loc-close" onclick="closeLocationBuilder()">&#x2715;</span>
+      </div>
       <div class="loc-body">
         <div class="loc-preview-col">
           <div class="loc-section-label">this transit:</div>
@@ -718,7 +521,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
       </div>
     </div>
     <div class="loc-foot">
-      <button class="save-continue-btn" id="loc-confirm" disabled onclick="confirmLocation()">continue →</button>
+      <button class="save-continue-btn" id="loc-confirm" disabled onclick="confirmLocation()">add to matrix →</button>
     </div>
   </div>
 </div>
@@ -726,6 +529,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./matrix-render.js"></script>
 <script src="./matrix-inventory.js"></script>
+<script src="./matrix-journal.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script>
 /* ============================================================
@@ -757,32 +561,53 @@ let activeMapData  = null;   // the season's transit_data (season + transits[])
 let activeTransit  = null;   // the selected transit object {transit_id, planet, name, utc}
 let activeLocation = null;   // user-built {name,terrain,feeling,tint,cat} for activeTransit
 let activeMatrixEntryId = null;   // cosmic_matrix row id for (activeMapId, activeTransit.transit_id) — resolved lazily in renderMatrix()
-let currentStep    = null;   // 'welcome' | 'location' | 'character' | 'library' | 'journal' | 'matrix'
+let currentStep    = null;   // 'location' | 'character' | 'library' | 'journal' — whichever popup is open
 let completedSet   = new Set();   // transit_id keys that have a character row
 let completedData  = new Map();   // transit_id → character_data
-let cosmicBoard    = { marked:null };  // the season bingo board (cosmic_bingo.bingo_data) — read-only here, owned by cosmic-bingo.html
 let justDoneKey    = null;
-const journal = { entries:[], pendingImage:null };
-
-// ── FLOW TIMER STATE ──────────────────────────────────────
-// Timed mode runs from the location builder through character selection; journal is untimed.
-const TIMER_DURATION_MS = 11 * 60 * 1000;
-const TIMER_EXTEND_WINDOW_MS = 45 * 1000;
-let dailyTimedMode  = false;
-let timerEndAt      = null;
-let timerTickHandle = null;
-let extendEndAt     = null;
-let extendTickHandle = null;
+let _seasonTpls    = null;   // cosmic_templates rows, fetched once on load
 
 // ── HELPERS ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-function setBubble(t){ $('bubble').textContent = t; }
+// No-op — there's no heart guide to show this text anymore, but call sites
+// throughout this file still pass guidance strings, so keep the function.
+function setBubble(t){}
 function showStatus(msg,color){ const el=$('status'); el.textContent=msg; el.style.color=color||'#6ab86a';
   clearTimeout(el._t); el._t=setTimeout(()=>el.textContent='',3000); }
+
+// ── MATRIX PAGE TOGGLE — guards against leaving mid-rearrange ─────
+async function matrixNav(e, url){
+  e.preventDefault();
+  const dirty = _matrixEditor && _matrixEditor.isDirty && _matrixEditor.isDirty();
+  if (dirty) {
+    const save = await HGModal.confirm(
+      'unsaved changes',
+      'you moved something on your matrix that hasn’t been saved yet. save before leaving?',
+      { confirmLabel: 'save & leave', cancelLabel: 'stay' }
+    );
+    if (!save) return false;
+    const host = $('matrix-panel-host');
+    if (host) await _matrixEditor.saveAllPositions(host);
+  }
+  window.location.href = url;
+  return false;
+}
 function setSave(visible,label='continue →'){ const bar=$('save-bar'),btn=$('save-btn');
   bar.classList.toggle('visible',visible); if(btn){ btn.innerHTML=label; btn.disabled=false; } }
-function showPanel(html){ const p=$('content-panel'); p.className='content-panel active'; p.innerHTML=`<div class="panel-scroll">${html}</div>`; }
-function hidePanel(){ const p=$('content-panel'); p.className='content-panel'; p.innerHTML=''; }
+function showPanel(html){ const p=$('quad-popup-body'); p.className='content-panel active'; p.innerHTML=`<div class="panel-scroll">${html}</div>`; }
+function hidePanel(){ const p=$('quad-popup-body'); p.className='content-panel'; p.innerHTML=''; }
+// The persistent matrix canvas (always visible, not a popup step).
+function showMatrixPanel(html){
+  const p = $('matrix-panel-host');
+  p.innerHTML = html;
+  void p.offsetHeight;
+  p.querySelectorAll('.mx-note, .adv-sticker, .adv-photo').forEach(el => {
+    const t = el.style.transform;
+    el.style.transform = 'none';
+    void el.offsetHeight;
+    el.style.transform = t;
+  });
+}
 
 // Same-origin game iframes don't auto-size to their content by default, so
 // once loaded we measure the real document height and apply it directly —
@@ -805,11 +630,8 @@ function autoSizeIframe(iframe){
   });
 }
 
-function showIframe(src, backFn){ const p=$('content-panel'); p.className='content-panel active iframe-mode';
-  const backHtml = backFn
-    ? `<div class="step-header"><span class="step-back" onclick="${backFn}">← back</span><span></span><span></span></div>`
-    : '';
-  p.innerHTML=backHtml+`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`;
+function showIframe(src){ const p=$('quad-popup-body'); p.className='content-panel active iframe-mode';
+  p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`;
   autoSizeIframe($('game-iframe')); }
 
 function transits(){ return (activeMapData?.transits || []).slice().sort((a,b)=>Date.parse(a.utc)-Date.parse(b.utc)); }
@@ -821,18 +643,6 @@ function todayRangeUTC(){
   const n = new Date();
   const start = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
   return [start, start + 86400000];
-}
-function todaysTransits(){
-  const [start,end] = todayRangeUTC();
-  return transits().filter(t=>{ const ms=Date.parse(t.utc); return ms>=start && ms<end; });
-}
-function pastTransits(){
-  const [start] = todayRangeUTC();
-  return transits().filter(t=>Date.parse(t.utc) < start);
-}
-function futureTransits(){
-  const [,end] = todayRangeUTC();
-  return transits().filter(t=>Date.parse(t.utc) >= end);
 }
 function isActiveTransit(t){ return Date.parse(t.utc) < todayRangeUTC()[1]; }
 function fmtTransitTime(t){
@@ -859,7 +669,20 @@ async function init(){
   const paid = !!status && status !== 'free';
   if (!paid){ return showUpgradeGate(); }
 
-  loadSeason();
+  await stepInitial();
+}
+
+// ── LANDING — land on the matrix canvas (see renderMatrix), then
+// immediately open the transit picker on top of it — this is purely a
+// transit tracker now (no season/sign picker), so there's no reason to make
+// the user click into the "what's transiting?" quadrant just to see what's
+// trackable. The matrix underneath stays locked (map/library/char) until a
+// transit + location are picked, same as before. ──
+async function stepInitial(){
+  const tpls = await loadSeasonTemplates();
+  if (!tpls.length){ return showNoSeason(); }
+  await renderMatrix();
+  if (!activeTransit) openTransitPopup();
 }
 
 sb.auth.onAuthStateChange((event, session)=>{
@@ -867,9 +690,14 @@ sb.auth.onAuthStateChange((event, session)=>{
 });
 
 // ── GATES ───────────────────────────────────────────────────
+function showGate(html){
+  const p = $('matrix-panel-host');
+  p.className = 'content-panel active';
+  p.innerHTML = `<div class="panel-scroll">${html}</div>`;
+}
 function showLoginGate(){
   setBubble('the sky is waiting for you.');
-  showPanel(`<div class="gate">
+  showGate(`<div class="gate">
     <div class="gate-title">the cosmic matrix</div>
     <div class="gate-text">log in to walk the season's moon phases.</div>
     <button class="gate-btn" onclick="openLoginModal()">log in →</button>
@@ -919,7 +747,7 @@ async function lmSignup(){
 }
 function showUpgradeGate(){
   setBubble('this ritual is for members.');
-  showPanel(`<div class="gate">
+  showGate(`<div class="gate">
     <div class="gate-title">a members' ritual</div>
     <div class="gate-text">the cosmic matrix guides you through each astrological season — one location per moon phase. it's part of membership.</div>
     <button class="gate-btn" onclick="window.location.href='${UPGRADE_URL}'">become a member →</button>
@@ -927,84 +755,29 @@ function showUpgradeGate(){
 }
 function showNoSeason(){
   setBubble('no season is open right now.');
-  showPanel(`<div class="gate">
+  showGate(`<div class="gate">
     <div class="gate-title">between seasons</div>
     <div class="gate-text">there's no published cosmic season at the moment. check back when the next one begins.</div>
     <button class="gate-btn" onclick="window.location.href='${LOGIN_URL}'">back to the castle →</button>
   </div>`);
 }
 
-function hexA(hex, alpha){ // hex "#rrggbb" + alpha 0-1 → "#rrggbbaa"
-  const v = Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,'0');
-  return hex + v;
-}
-
 // ── SEASON LOAD + CLONE-ON-FIRST-OPEN ───────────────────────
-async function loadSeason(){
-  const param = new URLSearchParams(location.search).get('season'); // test hook: load by key
+// Fetches available season templates once and caches them in _seasonTpls.
+// The ?season= test hook (dev/direct link) silently pre-loads that one
+// season so the location popup goes straight to its transit selector
+// instead of auto-picking whichever template is currently live.
+async function loadSeasonTemplates(){
+  if (_seasonTpls) return _seasonTpls;
+  const param = new URLSearchParams(location.search).get('season');
   let query = sb.from('cosmic_templates').select('*');
   query = param ? query.eq('season', param) : query.eq('is_published', true);
   let tpls=[];
   try { const { data } = await query; tpls = data || []; } catch(e){}
-  if (!tpls.length){ return showNoSeason(); }
-
-  // ?season= param: bypass selector (dev/direct link)
-  if (param){ return openSeason(tpls[0]); }
-  // Always show the zodiac wheel at root URL
-  showZodiacGrid(tpls);
+  _seasonTpls = tpls;
+  if (param && tpls.length) await openSeason(tpls[0], { silent: true });
+  return tpls;
 }
-
-// ── ZODIAC GRID — 12 signs as picker-slot cards, same layout as the planet
-// selector. Standard calendar order, 4 rows of 3. Colors follow elemental
-// groups: fire=f2e6a8, earth=b6e6cf, air=c9b3e7, water=a0d7e6 — the same
-// halo technique as the planet picker, just colored by element instead of
-// per-body. glyph filenames live in assets/elements/glyphs/ — note
-// "sagitarrius.png" is a typo in the asset itself.
-const SIGNS = [
-  { id:'aries',       glyph:'aries',       name:'aries',       color:'#f2e6a8' }, // fire
-  { id:'taurus',      glyph:'taurus',      name:'taurus',      color:'#b6e6cf' }, // earth
-  { id:'gemini',      glyph:'gemini',      name:'gemini',      color:'#c9b3e7' }, // air
-  { id:'cancer',      glyph:'cancer',      name:'cancer',      color:'#a0d7e6' }, // water
-  { id:'leo',         glyph:'leo',         name:'leo',         color:'#f2e6a8' }, // fire
-  { id:'virgo',       glyph:'virgo',       name:'virgo',       color:'#b6e6cf' }, // earth
-  { id:'libra',       glyph:'libra',       name:'libra',       color:'#c9b3e7' }, // air
-  { id:'scorpio',     glyph:'scorpio',     name:'scorpio',     color:'#a0d7e6' }, // water
-  { id:'sagittarius', glyph:'sagitarrius', name:'sagittarius', color:'#f2e6a8' }, // fire
-  { id:'capricorn',   glyph:'capricorn',   name:'capricorn',   color:'#b6e6cf' }, // earth
-  { id:'aquarius',    glyph:'aquarius',    name:'aquarius',    color:'#c9b3e7' }, // air
-  { id:'pisces',      glyph:'pisces',      name:'pisces',      color:'#a0d7e6' }, // water
-];
-
-function showZodiacGrid(tpls){
-  setBubble('choose a sign.');
-  setSave(false);
-  window._zodiacTpls = tpls;
-  const cards = SIGNS.map(s=>{
-    const tpl = tplForSign(tpls, s.id);
-    const { locked, label } = seasonLockInfo(tpl);
-    const halo = `radial-gradient(circle, ${hexA(s.color,0.9)} 0%, ${hexA(s.color,0.55)} 45%, ${hexA(s.color,0)} 75%)`;
-    const hover = locked ? `onmouseenter="setBubble('nothing here yet')" onmouseleave="setBubble('choose a sign.')"` : '';
-    return `<div class="picker-slot ${locked?'locked':'unlocked'}" ${locked?hover:`onclick="openZodiacSeason('${s.id}')"`}>
-      <div class="picker-halo" style="background:${halo}"></div>
-      <div class="picker-disc"><img src="../assets/elements/glyphs/${s.glyph}.png" alt="${s.name}"></div>
-      <div class="picker-name">${s.name}</div>
-      ${locked?`<div class="picker-soon">${label}</div>`:''}
-    </div>`;
-  }).join('');
-  const panel = $('content-panel');
-  panel.className = 'content-panel active map-mode';
-  panel.innerHTML = `
-    <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
-      <div style="text-align:center;margin-bottom:36px;">
-        <span style="font-family:var(--font-hand);font-size:clamp(32px,4vw,52px);color:#fff;">choose a sign</span>
-      </div>
-      <div class="picker-grid grid-3">${cards}</div>
-    </div>`;
-}
-
-// tpl.season is a slug like "cancer-2026" — match on its leading word.
-function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
-function tplForSign(tpls, signId){ return (tpls||[]).find(t => seasonSignId(t.season) === signId) || null; }
 
 // A template only counts as the "live" season if today falls inside its own
 // [season_start_utc, season_end_utc) window — a published template whose
@@ -1019,34 +792,19 @@ function isSeasonCurrent(tpl){
   const now = Date.now();
   return now >= startMs && now < endMs;
 }
-function seasonLockInfo(tpl){
-  if (!tpl) return { locked:true, label:'coming soon' };
-  if (isSeasonCurrent(tpl)) return { locked:false, label:'' };
-  const startMs = Date.parse(tpl.transit_data?.season_start_utc);
-  const label = (!isNaN(startMs) && Date.now() < startMs) ? 'coming soon' : 'season ended';
-  return { locked:true, label };
-}
-
-async function openZodiacSeason(signId){
-  const tpl = tplForSign(window._zodiacTpls, signId);
-  if (!tpl || !isSeasonCurrent(tpl)) return;
-  await openSeason(tpl);
-}
-
-async function openSeason(tpl){
+async function openSeason(tpl, opts){
   activeTemplate = tpl;
   activeMapData  = tpl.transit_data;
   await ensureCosmicSeason(tpl);
-  if (!activeMapId){ HGModal.alert('oops','could not open this season — try again'); return; }
+  if (!activeMapId){ if (!opts?.silent) HGModal.alert('oops','could not open this season — try again'); return; }
   await loadProgress();
-  showTransitSelector();
+  if (!opts?.silent) showTransitSelector();
 }
 
 // Clone the season template into the user's cosmic_bingo row exactly once.
 // cosmic_bingo is the season anchor (1 row per user per season): it holds
 // the map_id every cosmic_matrix transit row groups under, plus the
-// transit_data clone and the bingo board itself — so this also primes
-// cosmicBoard (read-only here; the standalone cosmic-bingo.html owns writes).
+// transit_data clone (the bingo board itself is owned by cosmic-bingo.html).
 async function ensureCosmicSeason(tpl){
   const season = tpl.transit_data?.season || tpl.season;
   let row=null;
@@ -1078,7 +836,6 @@ async function ensureCosmicSeason(tpl){
   if (row){
     activeMapId   = row.map_id;
     activeMapData = row.transit_data || activeMapData;
-    cosmicBoard   = row.bingo_data || { marked:null };
   }
 }
 
@@ -1151,245 +908,64 @@ function escSvg(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<'
 function escAttr(s){ return (s||'').replace(/'/g,"\\'"); }
 
 function showTransitSelector(){
-  currentStep = null; activeTransit = null; activeLocation = null;
+  currentStep = null; activeTransit = null; activeLocation = null; activeMatrixEntryId = null;
   setSave(false);
   setBubble('choose a transit to track.');
-  const p = $('content-panel');
-  p.className = 'content-panel active map-mode';
+  document.getElementById('quad-popup-window').classList.add('narrow-popup');
+  const p = $('quad-popup-body');
+  p.className = 'content-panel active';
   p.innerHTML = buildTransitSelectorView();
+  // Cap the list to ~11 rows tall (then scroll) instead of growing the popup
+  // to fit every transit — measured off a real row so it holds regardless of
+  // font metrics/zoom.
+  const list = p.querySelector('.transits-list');
+  const firstRow = list?.querySelector('.transits-row');
+  if (list && firstRow) list.style.maxHeight = (firstRow.offsetHeight * 11) + 'px';
+  renderMatrix();
 }
 
+// One scrollable list covering every transit this season — past, today, and
+// future — in place of the old season-title/today's-cards/past+future-popup
+// trio. Season-level browsing (by sign, by planet, across past seasons)
+// belongs to the archive, not here; this just needs to let you track today's
+// (or a missed past) transit, or glance at what's coming.
 function buildTransitSelectorView(){
-  const today = todaysTransits();
-  const titleText = (activeTemplate?.title || activeMapData?.season || 'cosmic season');
-  const centerHtml = today.length
-    ? today.map(t => `
-        <div class="transit-card${t.transit_id===justDoneKey?' just-done':''}" onclick="selectTransit('${escAttr(t.transit_id)}')">
-          <div class="transit-card-name">${escSvg(t.name||t.transit_id)}</div>
-          <div class="transit-card-time">${fmtTransitTime(t)}</div>
-          ${completedSet.has(t.transit_id) ? '<div class="transit-card-badge done">tracked ✓</div>' : '<div class="transit-card-badge open">track this →</div>'}
-        </div>`).join('')
-    : `<div class="transit-empty">no transits today.</div>`;
+  const list = transits();
+  const rowsHtml = list.length
+    ? list.map(t => {
+        const clickable = isActiveTransit(t);
+        return `<div class="transits-row${clickable ? ' transits-row-clickable' : ''}${t.transit_id===justDoneKey?' just-done':''}"${clickable ? ` onclick="selectTransit('${escAttr(t.transit_id)}')"` : ''}>
+          <span>${escSvg(t.name||t.transit_id)}${completedSet.has(t.transit_id) ? ' ✓' : ''}</span>
+          <span class="transits-row-time">${fmtTransitTime(t)}</span>
+        </div>`;
+      }).join('')
+    : `<div class="transits-empty">no transits yet.</div>`;
 
-  const score = Array.isArray(cosmicBoard?.marked) ? cosmicBoard.marked.filter((v,i)=>v&&i!==12).length : 0;
-  const hmPct = Math.max(0, Math.min(100, Math.round((score/24)*100)));
-  const hmFull = score >= 24;
-  const hmHeartPos = Math.max(6, Math.min(94, hmPct));
-  const heartInner = hmFull
-    ? `<img class="hm-full-img" src="../assets/elements/heart-gold.png" alt="bingo complete">`
-    : `<div class="hm-box"><div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
-        <img class="hm-heart" src="../assets/elements/heart-pink.png" alt="heart meter" style="bottom:${hmHeartPos}%"></div>`;
-
-  return `<div style="position:relative;width:100%;height:100%;">
-    <button class="transit-nav-btn past" onclick="openPastTransitsPopup()">← past transits</button>
-    <button class="transit-nav-btn future" onclick="openFutureTransitsPopup()">future transits →</button>
-    <div class="transit-heart-icon" title="season bingo board" onclick="goToCosmicBingo()">${heartInner}</div>
-    <div class="season-head">
-      <div class="season-title">${escSvg(titleText)}</div>
-      <div class="season-sub">TODAY'S TRANSITS</div>
+  return `<div class="season-head">
+      <div class="season-title">recent transits</div>
     </div>
-    <div class="transit-today-list">${centerHtml}</div>
-  </div>`;
+    <div class="transits-list">${rowsHtml}</div>`;
 }
-
-function goToCosmicBingo(){
-  if (!activeMapId) return;
-  window.location.href = `cosmic-bingo.html?map_id=${encodeURIComponent(activeMapId)}`;
-}
-
-// ── PAST / FUTURE TRANSIT POPUPS ─────────────────────────────
-function openPastTransitsPopup(){
-  const list = pastTransits();
-  document.getElementById('transits-title').textContent = 'past transits';
-  document.getElementById('transits-body').innerHTML = list.length
-    ? list.map(t => `<div class="transits-row transits-row-clickable" onclick="closeTransitsPopup();selectTransit('${escAttr(t.transit_id)}')">
-        <span>${escSvg(t.name||t.transit_id)}${completedSet.has(t.transit_id)?' ✓':''}</span>
-        <span class="transits-row-time">${fmtTransitTime(t)}</span>
-      </div>`).join('')
-    : `<div class="transits-empty">no past transits yet this season.</div>`;
-  document.getElementById('transits-overlay').classList.add('open');
-}
-function openFutureTransitsPopup(){
-  const list = futureTransits();
-  document.getElementById('transits-title').textContent = 'future transits';
-  document.getElementById('transits-body').innerHTML = list.length
-    ? list.map(t => `<div class="transits-row">
-        <span>${escSvg(t.name||t.transit_id)}</span>
-        <span class="transits-row-time">${fmtTransitTime(t)}</span>
-      </div>`).join('')
-    : `<div class="transits-empty">no upcoming transits.</div>`;
-  document.getElementById('transits-overlay').classList.add('open');
-}
-function closeTransitsPopup(){ document.getElementById('transits-overlay').classList.remove('open'); }
-
 
 // ── FLOW ────────────────────────────────────────────────────
+// Picking a transit just closes the picker and sets it active — it does NOT
+// jump straight into the location builder anymore. "where are you?" (the
+// map quadrant) unlocks on the next render; building the location is a
+// separate, deliberate click from there. Also how you switch to a different
+// (already-active) transit — see openTransitPopup.
 function selectTransit(transitId){
   const t = transitByKey(transitId);
   if (!t || !isActiveTransit(t)) return; // future transits aren't clickable
   activeTransit = t;
   activeLocation = null;
   activeMatrixEntryId = null;
-  stepWelcome();
-}
-
-// Re-shows the transit selector — used as the "back" target from the welcome step.
-function backToTransitSelector(){
-  stopFlowTimer();
-  currentStep = null;
-  activeTransit = null;
-  showTransitSelector();
-}
-
-// ── WELCOME — choose timed or untimed mode before the timed portion ─
-function stepWelcome(){
-  currentStep = 'welcome';
-  stopFlowTimer();
-  setSave(false);
-  setBubble('ready when you are');
-  showPanel(buildWelcomePanel());
-  $('char-heart').classList.remove('mini');
-}
-
-function buildWelcomePanel() {
-  return `<div class="welcome-panel">
-    <div class="step-header"><span class="step-back" onclick="backToTransitSelector()">← back</span><span></span><span></span></div>
-    <div class="welcome-title">welcome to the cosmic matrix!</div>
-    <div class="welcome-sub">ready to begin? choose a mode:</div>
-    <div class="welcome-modes">
-      <button class="wall-btn" type="button" onclick="chooseDailyMode(true)">timed mode</button>
-      <button class="wall-btn secondary" type="button" onclick="chooseDailyMode(false)">untimed mode</button>
-    </div>
-    <div class="welcome-why" onclick="showTimedModeInfo()">why timed mode? &rarr;</div>
-  </div>`;
-}
-
-function showTimedModeInfo() {
-  HGModal.alert(
-    'timed mode',
-    'a timer can help people who get easily distracted by creating a container that makes it easier to complete tasks. if you are prone to overthinking or walking away, try timed mode!'
-  );
-}
-
-function chooseDailyMode(timed) {
-  dailyTimedMode = timed;
-  hidePanel();
-  $('char-heart').classList.add('mini');
-  stepBuildLocation();
-  if (timed) startFlowTimer();
-}
-
-// Clicking the heart while it's mini expands it back to full size.
-document.querySelector('#char-heart .char-img').addEventListener('click', () => {
-  $('char-heart').classList.remove('mini');
-});
-
-// ── FLOW TIMER — timed mode runs the location builder through character ───
-function msToClock(ms) {
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
-function startFlowTimer() {
-  if (!dailyTimedMode) return;
-  timerEndAt = Date.now() + TIMER_DURATION_MS;
-  document.getElementById('timer-badge').classList.add('active');
-  clearInterval(timerTickHandle);
-  timerTickHandle = setInterval(tickFlowTimer, 1000);
-  tickFlowTimer();
-}
-
-function tickFlowTimer() {
-  const badge = document.getElementById('timer-badge');
-  const remaining = timerEndAt - Date.now();
-  if (remaining <= 0) {
-    clearInterval(timerTickHandle);
-    timerTickHandle = null;
-    badge.classList.remove('active', 'warn');
-    handleTimerExpire();
-    return;
-  }
-  badge.textContent = msToClock(remaining);
-  badge.classList.toggle('warn', remaining <= 60000);
-}
-
-// Stops the countdown outright — used entering the (untimed) journal step,
-// on completion, and whenever the flow resets.
-function stopFlowTimer() {
-  clearInterval(timerTickHandle);
-  timerTickHandle = null;
-  timerEndAt = null;
-  document.getElementById('timer-badge').classList.remove('active', 'warn');
-  clearExtendPrompt();
-}
-
-function handleTimerExpire() {
-  extendEndAt = Date.now() + TIMER_EXTEND_WINDOW_MS;
-  document.getElementById('timer-extend').classList.add('active');
-  clearInterval(extendTickHandle);
-  extendTickHandle = setInterval(tickExtendPrompt, 1000);
-  tickExtendPrompt();
-}
-
-function tickExtendPrompt() {
-  const remaining = extendEndAt - Date.now();
-  if (remaining <= 0) {
-    clearInterval(extendTickHandle);
-    extendTickHandle = null;
-    expireAndWipe();
-    return;
-  }
-  document.getElementById('timer-extend-msg').textContent =
-    `time's up! extend 11 min? (${Math.ceil(remaining / 1000)}s)`;
-}
-
-function clearExtendPrompt() {
-  clearInterval(extendTickHandle);
-  extendTickHandle = null;
-  document.getElementById('timer-extend').classList.remove('active');
-}
-
-function extendFlowTimer() {
-  clearExtendPrompt();
-  timerEndAt = Date.now() + TIMER_DURATION_MS;
-  document.getElementById('timer-badge').classList.add('active');
-  clearInterval(timerTickHandle);
-  timerTickHandle = setInterval(tickFlowTimer, 1000);
-  tickFlowTimer();
-}
-
-// Extend window lapsed unanswered — clear this phase's in-progress entry (if
-// any row was already saved) and send the user back to the season map.
-async function expireAndWipe() {
-  clearExtendPrompt();
-  stopFlowTimer();
-  clearTimeout(window._fb);
-  if (activeTransit) {
-    try { await sb.from('cosmic_matrix').delete().eq('map_id', activeMapId).eq('transit_id', activeTransit.transit_id); }
-    catch (e) { console.error('[timer] wipe failed', e); }
-  }
-  activeTransit = null;
-  activeLocation = null;
-  activeMatrixEntryId = null;
-  hidePanel();
-  setSave(false);
-  await HGModal.alert(
-    "time's up",
-    "your progress for this transit was cleared. take a breath, then try again whenever you're ready."
-  );
-  showTransitSelector();
+  closeQuadrantPopup();
+  renderMatrix();
 }
 
 // ── LOCATION BUILDER — user builds their own experience of this transit
 // (terrain + emotional climate), ported from daily.html's dayquest builder.
 let locDraft = { name:null, terrain:null, feeling:null, tint:null, cat:null };
-
-function stepBuildLocation(){
-  currentStep = 'location';
-  setBubble('how did this transit feel?');
-  setSave(false);
-  openLocationBuilder();
-}
 
 function buildLocationPalette(){
   const pal = $('loc-palette');
@@ -1481,22 +1057,14 @@ async function confirmLocation(){
       updated_at: new Date().toISOString(),
     }, { onConflict:'map_id,transit_id' });
     if (error) throw error;
+    showStatus('location saved ✓','#6ab86a');
     closeLocationBuilder();
-    stepCharacter();
+    await renderMatrix();
   } catch(err){
     console.error('[location save]', err);
     HGModal.alert('oops','save failed');
-    if (btn){ btn.disabled=false; btn.innerHTML='continue →'; }
+    if (btn){ btn.disabled=false; btn.innerHTML='add to matrix →'; }
   }
-}
-
-// Re-opens the location builder without wiping the draft — used as the
-// "back" target from the character step.
-function backToLocationStep(){
-  currentStep = 'location';
-  setBubble('how did this transit feel?');
-  setSave(false);
-  openLocationBuilder();
 }
 
 function stepCharacter(){
@@ -1507,7 +1075,8 @@ function stepCharacter(){
 }
 
 function openCharacterBuilder(){
-  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&transit=${activeTransit.transit_id}&loop=true&mode=cloud`, 'showArchetypePicker()');
+  setQuadPopupTitle('build a character');
+  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&transit=${activeTransit.transit_id}&loop=true&mode=cloud`);
   setSave(true,'loading…'); $('save-btn').disabled = true;
 }
 
@@ -1519,7 +1088,8 @@ function _buildArchStack(charData){
 }
 
 async function showArchetypePicker(){
-  const p = $('content-panel');
+  currentStep = 'character';
+  const p = $('quad-popup-body');
   p.className = 'content-panel active';
   p.innerHTML = `<div class="panel-scroll"><div class="arch-picker-loading">loading your cast…</div></div>`;
   setSave(false);
@@ -1539,10 +1109,6 @@ function renderArchetypePicker(archetypes){
     </button>`).join('');
   showPanel(`
     <div class="step-panel">
-      <div class="step-header">
-        <span class="step-back" onclick="backToLocationStep()">← back</span>
-        <span></span><span></span>
-      </div>
       <div class="arch-picker">
         <div class="arch-picker-title">choose an archetype for today</div>
         <div class="arch-grid">
@@ -1571,11 +1137,11 @@ async function useArchetype(archetype){
   await saveCharacterAndAdvance(charState, { fork: false, archetypeId: archetype.id });
 }
 
-// Saves charState to cosmic_matrix and advances the flow. When fork is true
-// (built fresh via the character builder), also adds it to the user's
-// reusable cast — picking a saved archetype never touches that table again.
-// archetypeId links the entry back to character_archetypes for the archive's
-// per-archetype location history; forked entries get their id after insert.
+// Saves charState to cosmic_matrix (this transit's location is already
+// saved by this point — the location quadrant is filled in first — so this
+// only ever touches character_data/archetype_id). When fork is true (built
+// fresh via the character builder), also adds it to the user's reusable
+// cast — picking a saved archetype never touches that table again.
 async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
   try {
     // New archetypes are inserted before the matrix row so the row can be
@@ -1599,9 +1165,13 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
     }, { onConflict:'map_id,transit_id' });
     if (error) throw error;
     completedData.set(activeTransit.transit_id, charState);
+    completedSet.add(activeTransit.transit_id);
+    justDoneKey = activeTransit.transit_id;
 
-    showStatus('character saved ✓','#6ab86a'); setSave(false); stepLibrary();
-  } catch(err){ console.error('[char save]',err); HGModal.alert('oops','save failed'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; }
+    showStatus('character saved ✓','#6ab86a');
+    closeQuadrantPopup();
+    await renderMatrix();
+  } catch(err){ console.error('[char save]',err); HGModal.alert('oops','save failed'); const b=$('save-btn'); b.disabled=false; b.innerHTML='add to matrix →'; }
 }
 
 // ── THE INVENTORY (media/tools tie-in, between character and journal) ─────
@@ -1619,18 +1189,18 @@ const inventoryPanel = MatrixInventory.createPanel({
     }, { onConflict:'map_id,transit_id' });
     if (error) throw error;
   },
-  onContinue: () => { setSave(false); stepJournal(); },
-  backStep: () => stepCharacter(),
+  onContinue: () => { closeQuadrantPopup(); renderMatrix(); },
+  backStep: () => closeQuadrantPopup(),
 });
 
 function stepLibrary(){
   currentStep = 'library';
   setBubble('anything from your inventory echoing in this landscape?');
-  const p=$('content-panel');
+  const p=$('quad-popup-body');
   p.className='content-panel active';
   p.innerHTML=inventoryPanel.panelHtml();
   inventoryPanel.enter();
-  setSave(true,'continue →');
+  setSave(true,'add to matrix →');
 }
 
 async function saveLibrarySelection(){
@@ -1638,253 +1208,59 @@ async function saveLibrarySelection(){
   const result = await inventoryPanel.save();
   if (!result.ok) {
     HGModal.alert('oops','save failed');
-    if (btn){ btn.disabled=false; btn.innerHTML='continue →'; }
+    if (btn){ btn.disabled=false; btn.innerHTML='add to matrix →'; }
   }
 }
 
-function stepJournal(){
-  currentStep = 'journal';
-  stopFlowTimer();
-  setBubble('what did you discover in this landscape?');
-  const p=$('content-panel');
-  p.className='content-panel active';
-  p.innerHTML=buildJournalPanel();
-  loadJournalEntries();
-  setSave(true,'continue →');
-  const msgEl = document.getElementById('jrc-msg');
-  if (msgEl) msgEl.addEventListener('keydown', e=>{
-    if (e.key==='Enter' && (e.metaKey||e.ctrlKey)){ e.preventDefault(); sendJournalMessage(); }
-  });
-}
-
-function buildJournalPanel(){
-  return `<div class="step-panel jrc-panel">
-    <div class="step-header"><span class="step-back" onclick="stepLibrary()">← back</span><span></span><span></span></div>
-    <div class="jrc-window">
-      <div class="jrc-titlebar">your journal<span class="jrc-date" id="jrc-date"></span></div>
-      <div class="jrc-messages" id="jrc-messages">
-        <div class="jrc-empty" id="jrc-empty">you have no messages</div>
-      </div>
-      <div class="jrc-input-area">
-        <div class="jrc-img-chip" id="jrc-img-chip">
-          <img id="jrc-img-preview" src="" alt="attached">
-          <button class="jrc-img-x" onclick="removeJournalImage()" title="remove photo">✕</button>
-        </div>
-        <div class="jrc-msg-row">
-          <textarea class="jrc-msg-input" id="jrc-msg" placeholder="what feels important?" maxlength="4000"></textarea>
-          <div class="jrc-btn-stack">
-            <button class="jrc-plus-btn" title="add a photo" onclick="document.getElementById('jr-file').click()">+</button>
-            <button class="jrc-send-btn" id="jrc-send" onclick="sendJournalMessage()">send</button>
-          </div>
-        </div>
-        <input type="file" id="jr-file" accept="image/*" style="display:none" onchange="onJournalImagePicked(event)">
-        <div class="jrc-status" id="jrc-status"></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ── JOURNAL HELPERS ──────────────────────────────────────────
-function jrcEscape(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function jrcTime(iso){ return new Date(iso||Date.now()).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
-function jrcDay(iso){ return new Date(iso||Date.now()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
-function jrcRowMessages(row){ const arr=Array.isArray(row?.journal_messages)?row.journal_messages:[]; return arr.slice().sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)); }
-
-function buildAvatar(charData){
-  if (!charData) return '<div class="jrc-avatar"></div>';
-  const layers = ['body','eyes','mouth','hair'];
-  const imgs = layers.map(k => charData[k] && CHAR_FULL_ASSETS[charData[k]]
-    ? `<img src="${CHAR_FULL_ASSETS[charData[k]]}" alt="">`
-    : '').join('');
-  return `<div class="jrc-avatar">${imgs}</div>`;
-}
-
-function renderJournalMessage(msg, side, charData){
-  const wrap=document.createElement('div');
-  wrap.className='jrc-msg-wrap '+(side==='right'?'right':'left');
-  const img=msg.image_url?`<img src="${jrcEscape(msg.image_url)}" alt="" onerror="this.style.display='none'">`:''
-  const txt=msg.text?`<span class="jrc-bubble-txt">${jrcEscape(msg.text)}</span>`:'';
-  const avatar=buildAvatar(charData);
-  wrap.innerHTML=`${avatar}<div class="jrc-msg"><div class="jrc-bubble">${img}${txt}</div><div class="jrc-meta">${jrcTime(msg.created_at)}</div></div>`;
-  return wrap;
-}
-
-function jrcScrollBottom(){ const c=document.getElementById('jrc-messages'); if(c) c.scrollTop=c.scrollHeight; }
-
-function jrcMaybeDivider(container, dayLabel, location){
-  const last=[...container.querySelectorAll('.jrc-date-divider span')].pop();
-  if(last&&last.textContent===dayLabel) return;
-  const div=document.createElement('div');
-  div.className='jrc-date-divider';
-  const locHtml=location?`<span class="divider-location">${jrcEscape(location)}</span> · `:'';
-  div.innerHTML=`${locHtml}<span>${dayLabel}</span>`;
-  container.appendChild(div);
-}
-
-function showJournalStatus(msg,ok){
-  const el=document.getElementById('jrc-status'); if(!el) return;
-  el.textContent=msg; el.className='jrc-status '+(ok?'ok':'err');
-  clearTimeout(el._t); el._t=setTimeout(()=>{ el.textContent=''; el.className='jrc-status'; },3000);
-}
-
-async function loadJournalEntries(){
-  journal.entries=[]; journal.pendingImage=null;
-  const dateEl=document.getElementById('jrc-date');
-  if(dateEl) dateEl.textContent=jrcDay();
-  if(!currentUser||!activeMapId) return;
-
-  let rows=[];
-  try {
-    const { data } = await sb.from('cosmic_matrix')
-      .select('transit_id,journal_messages,matrix_images,location_data,updated_at')
-      .eq('map_id',activeMapId).eq('user_id',currentUser.id)
-      .order('updated_at',{ascending:true});
-    rows=data||[];
-  } catch(e){ console.error('[journal load]',e); }
-
-  rows=rows.filter(r=>r.transit_id===activeTransit.transit_id||jrcRowMessages(r).length);
-  journal.entries=rows;
-
-  const container=document.getElementById('jrc-messages');
-  const empty=document.getElementById('jrc-empty');
-  if(!container) return;
-  container.querySelectorAll('.jrc-msg,.jrc-date-divider').forEach(e=>e.remove());
-
-  // Build a transit order index so alternation is consistent across sessions
-  const transitOrder = transits().map(t=>t.transit_id);
-  const transitLabel = row => {
+// Panel logic lives in the shared matrix-journal.js module (also used by
+// dream.html/daily.html). Messages persist on every send — there's no
+// separate "done" step; closing the popup (×) is all that's needed.
+// Row order alternation is keyed off this season's transit order (not
+// position among filtered/loaded rows) so a given transit always lands on
+// the same side across sessions; character_data isn't selected per-row
+// (cosmic_matrix doesn't need it re-fetched) — completedData already holds
+// it from the transit picker's own query.
+const journalPanel = MatrixJournal.createPanel({
+  sb,
+  getCurrentUser: () => currentUser,
+  table: 'cosmic_matrix',
+  charAssets: CHAR_FULL_ASSETS,
+  placeholder: 'what feels important?',
+  emptyText: 'you have no messages',
+  allowPhoto: true,
+  photoBucket: MATRIX_PHOTO_BUCKET,
+  buildPhotoPath: (file, ext) => `${currentUser.id}/${activeMapId}/${activeTransit.transit_id}/journal-${crypto.randomUUID()}.${ext}`,
+  isReady: () => !!(activeMapId && activeTransit),
+  identityColumns: ['map_id', 'transit_id'],
+  buildUpsertBase: () => ({ map_id: activeMapId, user_id: currentUser.id, transit_id: activeTransit.transit_id }),
+  rowMatchesActive: row => row.transit_id === activeTransit.transit_id,
+  sideForRow: row => {
+    const idx = transits().map(t => t.transit_id).indexOf(row.transit_id);
+    return idx % 2 === 0 ? 'left' : 'right';
+  },
+  charDataForRow: row => completedData.get(row.transit_id) || null,
+  locationLabelForRow: row => {
     const l = row.location_data;
     if (l?.name) return l.name;
     if (l?.terrain && l?.feeling) return `the ${l.terrain} of ${l.feeling}`;
     return transitByKey(row.transit_id)?.name || '';
-  };
-
-  let anyMsg=false;
-  rows.forEach(row=>{
-    const idx = transitOrder.indexOf(row.transit_id);
-    const side = idx % 2 === 0 ? 'left' : 'right';
-    const charData = completedData.get(row.transit_id) || null;
-    const location = transitLabel(row);
-    jrcRowMessages(row).forEach(msg=>{
-      jrcMaybeDivider(container, jrcDay(msg.created_at||row.updated_at), location);
-      container.appendChild(renderJournalMessage(msg, side, charData));
-      anyMsg=true;
-    });
-  });
-  if(empty) empty.style.display=anyMsg?'none':'block';
-  jrcScrollBottom();
-}
-
-function onJournalImagePicked(e){
-  const file=e.target.files&&e.target.files[0]; if(!file) return;
-  if(!file.type.startsWith('image/')) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    journal.pendingImage={file,base64:ev.target.result};
-    document.getElementById('jrc-img-preview').src=ev.target.result;
-    document.getElementById('jrc-img-chip').classList.add('has-img');
-  };
-  reader.readAsDataURL(file);
-}
-
-function removeJournalImage(){
-  journal.pendingImage=null;
-  const chip=document.getElementById('jrc-img-chip');
-  if(chip){ chip.classList.remove('has-img'); document.getElementById('jrc-img-preview').src=''; }
-  const f=document.getElementById('jr-file'); if(f) f.value='';
-}
-
-async function sendJournalMessage(){
-  const msgEl=document.getElementById('jrc-msg');
-  const sendBtn=document.getElementById('jrc-send');
-  const text=(msgEl?.value||'').trim();
-  if(!text&&!journal.pendingImage) return false;
-  if(!(currentUser&&activeMapId&&activeTransit)){ HGModal.alert('oops','not signed in'); return false; }
-  if(sendBtn) sendBtn.disabled=true;
-
-  let imageUrl=null;
-  if(journal.pendingImage){
-    try {
-      const file=journal.pendingImage.file;
-      const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-      const path=`${currentUser.id}/${activeMapId}/${activeTransit.transit_id}/journal-${crypto.randomUUID()}.${ext}`;
-      const { error:upErr } = await sb.storage.from(MATRIX_PHOTO_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
-      if(upErr) throw upErr;
-      const { data:pub } = sb.storage.from(MATRIX_PHOTO_BUCKET).getPublicUrl(path);
-      imageUrl=pub?.publicUrl||null;
-    } catch(err){
-      console.error('[journal image]',err);
-      HGModal.alert('oops',"couldn't attach photo — try again");
-      if(sendBtn) sendBtn.disabled=false;
-      return false;
-    }
-  }
-
-  const message={id:crypto.randomUUID(),text,image_url:imageUrl,created_at:new Date().toISOString()};
-
-  let currentRow={};
-  try {
+  },
+  loadHistoryRows: async () => {
     const { data } = await sb.from('cosmic_matrix')
-      .select('journal_messages,matrix_images').eq('map_id',activeMapId).eq('transit_id',activeTransit.transit_id).maybeSingle();
-    currentRow=data||{};
-  } catch(e){}
-  const messages=(Array.isArray(currentRow.journal_messages)?currentRow.journal_messages:[]).concat([message]);
-  let imgs=Array.isArray(currentRow.matrix_images)?currentRow.matrix_images:[];
-  if(imageUrl) imgs=imgs.concat([{url:imageUrl,source:'journal'}]);
+      .select('transit_id, journal_messages, matrix_images, location_data, updated_at')
+      .eq('map_id', activeMapId).eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: true });
+    return data || [];
+  },
+});
 
-  try {
-    const { error } = await sb.from('cosmic_matrix').upsert({
-      map_id:activeMapId, user_id:currentUser.id, transit_id:activeTransit.transit_id,
-      journal_messages:messages, matrix_images:imgs,
-      updated_at:new Date().toISOString(),
-    },{onConflict:'map_id,transit_id'});
-    if(error) throw error;
-  } catch(err){
-    console.error('[journal send]',err);
-    HGModal.alert('oops','something went wrong — try again');
-    if(sendBtn) sendBtn.disabled=false;
-    return false;
-  }
-
-  const container=document.getElementById('jrc-messages');
-  const empty=document.getElementById('jrc-empty');
-  if(empty) empty.style.display='none';
-  const _idx = transits().map(t=>t.transit_id).indexOf(activeTransit.transit_id);
-  const _side = _idx % 2 === 0 ? 'left' : 'right';
-  const _locLabel = activeLocation?.name || (activeLocation ? `the ${activeLocation.terrain} of ${activeLocation.feeling}` : (activeTransit?.name||''));
-  jrcMaybeDivider(container, jrcDay(message.created_at), _locLabel);
-  container.appendChild(renderJournalMessage(message, _side, completedData.get(activeTransit.transit_id)||null));
-  if(msgEl) msgEl.value='';
-  removeJournalImage();
-  if(sendBtn) sendBtn.disabled=false;
-  showJournalStatus('saved ✓',true);
-  jrcScrollBottom();
-  if(msgEl) msgEl.focus();
-  return true;
-}
-
-async function saveJournalEntry(){
-  const msgEl=document.getElementById('jrc-msg');
-  const hasUnsent=!!((msgEl&&msgEl.value.trim())||journal.pendingImage);
-  if(hasUnsent){
-    setSave(true,'continue →');
-    const send = await HGModal.confirm(
-      'do you want to save this entry?', '',
-      { stacked:true, confirmLabel:'send message', cancelLabel:'continue without saving', cancelVariant:'link' }
-    );
-    if (send) await confirmSendAndContinue(); else confirmSkipUnsent();
-    return;
-  }
-  finishJournal();
-}
-function finishJournal(){
-  setSave(false);
-  stepMatrix();
-}
-async function confirmSendAndContinue(){ const ok=await sendJournalMessage(); if(ok) finishJournal(); else setSave(true,'continue →'); }
-function confirmSkipUnsent(){
-  const msgEl=document.getElementById('jrc-msg'); if(msgEl) msgEl.value='';
-  removeJournalImage(); finishJournal();
+function stepJournal(){
+  currentStep = 'journal';
+  setBubble('what did you discover in this landscape?');
+  const p=$('quad-popup-body');
+  p.className='content-panel active';
+  p.innerHTML=journalPanel.panelHtml();
+  journalPanel.enter();
 }
 
 // ── STEP: THE COSMIC MATRIX (native, no iframe) ───────────
@@ -1904,12 +1280,56 @@ function getMatrixEditor(){
     getUserId: () => currentUser?.id,
     status: (msg, color) => showStatus(msg, color),
     onChange: renderMatrix,
+    onQuadrantOpen: openQuadrant,
+    onOpenJournal: openJournalPopup,
   });
   return _matrixEditor;
 }
 
+// The 'bingo' key is repurposed here — the real bingo meter is hidden
+// (bingo is the standalone cosmic-bingo.html season page now), so this slot
+// is reused as the "what's transiting?" tile instead: since hasBingo never
+// goes true for cosmic_matrix rows (bingoScore is never populated from this
+// table — see MatrixRender.assemble), it always renders as an open prompt,
+// never "fills" — a permanent button to reopen the transit picker/switcher.
+const QUADRANT_PROMPTS = {
+  bingo: "what's transiting?", map: 'where are you?', library: "what's in your bag?", char: 'who are you?',
+};
+
+// Delegated click listener for the whole canvas (quadrant prompts, photo
+// add/remove, notes) — bound once to the stable #matrix-panel-host and left
+// in place for the page's lifetime (innerHTML swaps on every render, but the
+// host node itself never does), so "what's transiting?" is clickable even
+// on the very first render, before any transit is ever picked.
+let _matrixClickWired = false;
+function ensureMatrixClickWiring(panel){
+  if (_matrixClickWired) return;
+  MatrixRender.attachMatrix(panel, {
+    onRemovePhoto: url => getMatrixEditor().removeMatrixPhoto(url),
+    onQuadrantOpen: openQuadrant,
+  });
+  _matrixClickWired = true;
+}
+
+// Re-assemble + redraw the matrix in place — this is the landing view
+// itself now (see stepInitial), not a final "step". With no activeTransit
+// selected yet, "what's transiting?" (top-left) is the only unlocked
+// prompt — it's how you pick one; "where are you?" (the location/map
+// builder) stays locked until a transit is active, and library/char stay
+// locked until this transit's location is confirmed.
 let _matrixSeed = 'matrix';
 async function renderMatrix(){
+  const panel = $('matrix-panel-host');
+  ensureMatrixClickWiring(panel);
+
+  if (!activeTransit) {
+    showMatrixPanel(MatrixRender.buildHTML({}, _matrixSeed, {
+      showEditNotes: false, showFrame: true, editable: false,
+      quadrantPrompts: QUADRANT_PROMPTS, lockedQuadrants: ['map', 'library', 'char'],
+    }));
+    return;
+  }
+
   if (!activeMatrixEntryId){
     try {
       const { data: row } = await sb.from('cosmic_matrix').select('id')
@@ -1921,6 +1341,7 @@ async function renderMatrix(){
   data.mapName = activeLocation?.name
     || (activeLocation ? `${activeLocation.terrain} of ${activeLocation.feeling}` : null)
     || activeTransit?.name || 'this transit';
+  const hasLocation = !!(data.locationData || data.sidequestData);
 
   // Cosmic-only layout tweak: the shared renderer's default spot for the
   // location item is external-action (top-left) — for cosmic that quadrant
@@ -1934,65 +1355,119 @@ async function renderMatrix(){
   if (!data.matrixLayout) data.matrixLayout = {};
   if (!data.matrixLayout.map) data.matrixLayout.map = { x: 27, y: 71 };
 
-  showPanel(MatrixRender.buildHTML(data, _matrixSeed, {
-    showAddPhoto: false, showEditNotes: false, showFrame: true, editable: true,
+  _matrixSeed = `${activeMapId}|${activeTransit.transit_id}`;
+  showMatrixPanel(MatrixRender.buildHTML(data, _matrixSeed, {
+    showEditNotes: false, showFrame: true,
+    editable: !!activeMatrixEntryId, showJournalTool: !!activeMatrixEntryId,
+    // No 'bingo' key once a transit is active — the "what's transiting?"
+    // prompt tile should disappear the same way "where are you?" disappears
+    // once hasMap is true, replaced by the badge injected below instead.
+    quadrantPrompts: { map: QUADRANT_PROMPTS.map, library: QUADRANT_PROMPTS.library, char: QUADRANT_PROMPTS.char },
+    lockedQuadrants: hasLocation ? [] : ['library', 'char'],
   }));
-  const panel = $('content-panel');
   const editor = getMatrixEditor();
   editor.attachInteractions(panel);
-  MatrixRender.attachMatrix(panel, {
-    onRemovePhoto: url => editor.removeMatrixPhoto(url),
-  });
 
-  // Cosmic-only: this transit's planet glyphs go where location used to sit
-  // (external-action, top-left). matrix-render.js has no concept of
-  // "planets in this transit" (that's cosmic-specific transit_data), so
-  // this is layered on after the shared render instead of touching that
-  // shared file — non-draggable, just a small badge cluster.
+  // Cosmic-only: once a transit is active, its planet glyphs (or a fallback
+  // icon, so there's always something to click) take over the top-left spot
+  // that "what's transiting?" vacated — a small clickable badge, not a
+  // matrix-render.js quadrant item (that system has no concept of "planets
+  // in this transit"), so it's layered on after the shared render and wired
+  // with its own click handler straight to openTransitPopup (switch).
   const matrixEl = panel.querySelector('.adv-matrix');
-  if (matrixEl) matrixEl.insertAdjacentHTML('beforeend', buildTransitGlyphsHTML(activeTransit));
+  if (matrixEl) {
+    matrixEl.insertAdjacentHTML('beforeend', buildTransitBadgeHTML(activeTransit));
+    matrixEl.querySelector('.cosmic-transit-badge')?.addEventListener('click', openTransitPopup);
+  }
 }
 
-function buildTransitGlyphsHTML(transit){
+function buildTransitBadgeHTML(transit){
   const planets = Array.isArray(transit?.planets) ? transit.planets : [];
-  if (!planets.length) return '';
-  const imgs = planets.map(p =>
-    `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`
-  ).join('');
-  return `<div class="cosmic-transit-glyphs">${imgs}</div>`;
+  const inner = planets.length
+    ? planets.map(p => `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`).join('')
+    : '<span class="cosmic-transit-badge-fallback">⇄</span>';
+  return `<div class="cosmic-transit-badge" title="switch transits">${inner}</div>`;
 }
 
-async function stepMatrix(){
-  currentStep = 'matrix';
-  setBubble('transit tracked!');
-  showPanel('<div class="step-panel matrix-panel"><div class="matrix-date" style="position:static;margin-top:40px;text-align:center;">gathering this transit…</div></div>');
-  setSave(true, 'back to transits →');
-  _matrixSeed = `${activeMapId}|${activeTransit.transit_id}`;
-  await renderMatrix();
+// ── QUADRANT POPUP SHELL — modal overlay hosting whichever quadrant's
+// content is currently open. showPanel/showIframe (unchanged) render into
+// #quad-popup-body inside it. No back-navigation chrome — each quadrant's
+// content is self-contained; the popup's own × is the only way out. The
+// location quadrant uses its own separate #loc-overlay instead (see below).
+function openQuadrantPopup(title) {
+  setQuadPopupTitle(title);
+  document.getElementById('quad-popup-window').classList.remove('narrow-popup');
+  document.getElementById('quad-popup-overlay').classList.add('open');
 }
-
-// "back to transits →" on the matrix step — marks the transit complete and returns.
-function stepDone(){
-  justDoneKey = activeTransit.transit_id;
-  completedSet.add(activeTransit.transit_id);
+function setQuadPopupTitle(title) {
+  document.getElementById('quad-popup-title').textContent = title || '';
+}
+function closeQuadrantPopup() {
+  document.getElementById('quad-popup-overlay').classList.remove('open');
+  hidePanel();
   setSave(false);
-  showTransitSelector();
+  currentStep = null;
+}
+function handleQuadPopupOverlayClick(e) {
+  if (e.target === document.getElementById('quad-popup-overlay')) closeQuadrantPopup();
+}
+
+// Dispatches a quadrant click/dblclick (from the matrix canvas) to the
+// right popup. "bingo" (the "what's transiting?" tile) is the only one
+// that's never gated on activeTransit — it's how you get one in the first
+// place, and how you switch to a different one later. map/library/char are
+// all locked until a transit exists (library/char additionally wait on the
+// location being confirmed), so this should only ever fire for those once
+// they're unlocked — the guard is just a safety net.
+function openQuadrant(quadrant) {
+  if (quadrant === 'bingo') return openTransitPopup();
+  if (!activeTransit) return;
+  if (quadrant === 'map') return openLocationBuilder();
+  if (quadrant === 'char') return openCharPopup();
+  if (quadrant === 'library') return openLibraryPopup();
+}
+// Opens the recent-transits picker — auto-picks whichever template is
+// currently live (no season/sign picker — there's only ever one live season
+// at a time) the first time, then just reopens the already-loaded list on
+// later visits. Picking a transit here only activates it (see selectTransit)
+// — it never opens the location builder itself; that's a separate, explicit
+// click on "where are you?" once this tile unlocks it.
+async function openTransitPopup(){
+  openQuadrantPopup(QUADRANT_PROMPTS.bingo);
+  if (activeMapData) { showTransitSelector(); return; }
+  showPanel('<div class="loading-msg">reading the sky…</div>');
+  const tpls = await loadSeasonTemplates();
+  if (!tpls.length) { closeQuadrantPopup(); showNoSeason(); return; }
+  const current = tpls.find(isSeasonCurrent);
+  if (!current) { closeQuadrantPopup(); showNoSeason(); return; }
+  await openSeason(current);
+}
+function openCharPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.char);
+  showArchetypePicker();
+}
+function openLibraryPopup() {
+  openQuadrantPopup(QUADRANT_PROMPTS.library);
+  stepLibrary();
+}
+function openJournalPopup() {
+  if (!activeTransit) return;
+  openQuadrantPopup('journal');
+  stepJournal();
 }
 
 // ── SAVE & CONTINUE — matrix owns every write ───────────────
 async function saveAndContinue(){
   const btn = $('save-btn'); btn.disabled = true; btn.textContent='saving…';
 
-  if (currentStep === 'journal'){ await saveJournalEntry(); return; }
   if (currentStep === 'library'){ await saveLibrarySelection(); return; }
-  if (currentStep === 'matrix'){ stepDone(); return; }
 
   const iframe = $('game-iframe');
   if (!iframe){ btn.disabled=false; return; }
   iframe.contentWindow.postMessage({ type:'request_state' }, '*');
   clearTimeout(window._fb);
   window._fb = setTimeout(()=>{ if (btn.disabled){ btn.disabled=false;
-    btn.innerHTML='continue →'; HGModal.alert('oops','something went wrong — try again'); } }, 5000);
+    btn.innerHTML='add to matrix →'; HGModal.alert('oops','something went wrong — try again'); } }, 5000);
 }
 
 // ── MESSAGE HANDLERS — character builder iframe reports, matrix writes ──
@@ -2001,15 +1476,15 @@ window.addEventListener('message', async e=>{
 
   // character builder loaded
   if (msg.type==='iframe_ready' && msg.game==='character'){
-    if (currentStep==='character'){ const b=$('save-btn'); if(b){ b.disabled=false; b.innerHTML='continue →'; } }
+    if (currentStep==='character'){ const b=$('save-btn'); if(b){ b.disabled=false; b.innerHTML='add to matrix →'; } }
     return;
   }
 
   // character state → cosmic_matrix (idempotent on map_id, transit_id)
   if (msg.type==='char_state'){
     const charState = msg.state || {};
-    if (!charState.body){ HGModal.alert('oops','pick a body first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
-    if (!charState.name || !charState.name.trim()){ HGModal.alert('oops','name this archetype first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='continue →'; return; }
+    if (!charState.body){ HGModal.alert('oops','pick a body first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='add to matrix →'; return; }
+    if (!charState.name || !charState.name.trim()){ HGModal.alert('oops','name this archetype first!'); const b=$('save-btn'); b.disabled=false; b.innerHTML='add to matrix →'; return; }
     await saveCharacterAndAdvance(charState, { fork: true });
     return;
   }

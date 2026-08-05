@@ -96,6 +96,14 @@ html { background: transparent; }
   margin-bottom: 20px;
 }
 
+/* This page is only ever iframed inside a matrix quadrant popup (dream/
+   daily/cosmic) now, never shown standalone — so the outer "room" chrome
+   (full-height wall), which would leave dead vertical space, is stripped
+   unconditionally. */
+.room { min-height: 0; }
+.wall { padding: 0; }
+.main-panel { padding: 0; margin-bottom: 0; }
+
 .name-row { margin-bottom: 14px; }
 
 .section-label {

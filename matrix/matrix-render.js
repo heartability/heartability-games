@@ -307,9 +307,10 @@
               matrixLayout{} }
      journalText isn't drawn on the matrix (no preview item) — it's only read
      by callers to prefill the "✎ notes" editor (see showEditNotes below).
-     opts = { showAddPhoto=true, showEditNotes=false, editable=false }
+     opts = { showEditNotes=false, editable=false }
      editable=true additionally makes every item draggable/rotatable/
-     resizable (adv-draggable + handles), adds the +/★/Aa toolbar and the
+     resizable (adv-draggable + handles), adds the +/★/Aa toolbar (the only
+     way to add a photo now — there's no separate header button) and the
      explicit "save" button, and adds remove controls to stickers/text notes
      (photos already get one either way — that's existing archive behavior).
      Wire the actual interactions with createMatrixEditor(deps) — buildHTML
@@ -317,7 +318,6 @@
   function buildHTML(data, seedStr, opts){
     data = data || {};
     opts = opts || {};
-    const showAddPhoto  = opts.showAddPhoto !== false;
     const showEditNotes = !!opts.showEditNotes;
     const editable      = !!opts.editable;
     // Class + data-* attrs for a draggable item's wrapper div — '' in
@@ -340,18 +340,37 @@
     // layout, never writes it.
     const layout = data.matrixLayout || {};
 
+    // ── QUADRANT PROMPTS (opt-in) — when a quadrant has no data yet, render
+    // a clickable placeholder instead of the item, and never for callers
+    // that don't pass quadrantPrompts (e.g. archive.html's read-only view).
+    // opts.lockedQuadrants marks prompts that can't be opened yet (dream.html
+    // gates bingo/library/char behind the map/phase quadrant being filled
+    // first) — rendered dimmed, non-interactive.
+    const quadrantPrompts = opts.quadrantPrompts || null;
+    const lockedQuadrants = new Set(opts.lockedQuadrants || []);
+    function quadPromptTile(key, has, pos){
+      if (!quadrantPrompts || !quadrantPrompts[key] || has) return '';
+      const locked = lockedQuadrants.has(key);
+      return `<div class="adv-item adv-quad-prompt${locked ? ' locked' : ''}" data-quadrant="${key}" style="left:${pos.x}%;top:${pos.y}%;transform:translate(-50%,-50%);">
+          <div class="adv-quad-prompt-text">${esc(quadrantPrompts[key])}</div>
+          ${locked ? '<div class="adv-quad-prompt-lock">&#128274;</div>' : ''}
+        </div>`;
+    }
+
     // MAP → top-left (external + action): only the day's chosen destination.
     const dayLoc = data.sidequestData || data.locationData || {};
+    const hasMap = !!(dayLoc && dayLoc.terrain);
     const mapCap = (data.sidequestData && data.sidequestData.name) || data.mapName || 'my map';
     const mapLayout = layout.map || {};
     const mapLeft  = mapLayout.x != null ? mapLayout.x : (27+jit(2)).toFixed(1);
     const mapTop   = mapLayout.y != null ? mapLayout.y : (30+jit(2)).toFixed(1);
     const mapRot   = mapLayout.rot != null ? mapLayout.rot : rot(3);
     const mapScale = mapLayout.scale || 1;
-    const mapItem = `<div class="adv-item adv-map${dragClass}"${dragAttrs('map','map',mapRot,mapScale)} style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
+    const mapItem = (quadrantPrompts && !hasMap) ? '' : `<div class="adv-item adv-map${dragClass}" data-quadrant="map"${dragAttrs('map','map',mapRot,mapScale)} style="left:${mapLeft}%;top:${mapTop}%;transform:translate(-50%,-50%) rotate(${mapRot}deg) scale(${mapScale});">
         <div class="adv-map-svg">${buildSingleLocationSVG(dayLoc)}</div>
         <div class="adv-cap">${esc(mapCap)}</div>
         ${dragHandles('map','map')}</div>`;
+    const mapPromptTile = quadPromptTile('map', hasMap, {x:27, y:30});
 
     // BINGO (heart meter) → bottom-left (internal + action). Vertical striped
     // track with a pixel heart marker riding the fill line — matches the
@@ -367,15 +386,17 @@
     const bingoTop   = bingoLayout.y != null ? bingoLayout.y : (71+jit(2)).toFixed(1);
     const bingoRot   = bingoLayout.rot != null ? bingoLayout.rot : rot(3);
     const bingoScale = bingoLayout.scale || 1;
+    const hasBingo = hmScore > 0;
     const bingoInner = hmFull
       ? `<img class="hm-full-img" src="../assets/elements/heart-gold.png" alt="bingo complete">`
       : `<div class="hm-box">
           <div class="hm-track"><div class="hm-fill" style="height:${hmPct}%"></div></div>
           <img class="hm-heart" src="../assets/elements/heart-pink.png" alt="heart meter" style="bottom:${hmHeartPos}%">
         </div>`;
-    const bingoItem = `<div class="adv-item adv-bingo${dragClass}"${dragAttrs('bingo','bingo',bingoRot,bingoScale)} style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
+    const bingoItem = (quadrantPrompts && !hasBingo) ? '' : `<div class="adv-item adv-bingo${dragClass}" data-quadrant="bingo"${dragAttrs('bingo','bingo',bingoRot,bingoScale)} style="left:${bingoLeft}%;top:${bingoTop}%;transform:translate(-50%,-50%) rotate(${bingoRot}deg) scale(${bingoScale});">
         ${bingoInner}
         ${dragHandles('bingo','bingo')}</div>`;
+    const bingoPromptTile = quadPromptTile('bingo', hasBingo, {x:27, y:71});
 
     // CHARACTER (infinity mirror archetype) → bottom-right (internal + feeling).
     const charStack = buildCharStack(data.charState);
@@ -385,8 +406,9 @@
     const charTop   = charLayout.y != null ? charLayout.y : (71+jit(2)).toFixed(1);
     const charRot   = charLayout.rot != null ? charLayout.rot : rot(3);
     const charScale = charLayout.scale || 1;
-    const charItem = charStack ? `<div class="adv-item adv-char${dragClass}"${dragAttrs('char','char',charRot,charScale)} style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${esc(charName)}</div>` : ''}
+    const charItem = charStack ? `<div class="adv-item adv-char${dragClass}" data-quadrant="char"${dragAttrs('char','char',charRot,charScale)} style="left:${charLeft}%;top:${charTop}%;transform:translate(-50%,-50%) rotate(${charRot}deg) scale(${charScale});">${charStack}${charName ? `<div class="adv-cap">${esc(charName)}</div>` : ''}
         ${dragHandles('char','char')}</div>` : '';
+    const charPromptTile = quadPromptTile('char', !!charStack, {x:73, y:71});
 
     // LIBRARY BOOKS tagged to this entry → top-right (external + feeling).
     const bookLayout = layout.books || {};
@@ -399,7 +421,7 @@
       const bScale = saved.scale || 1;
       const cover = entry.cover_url_override || (entry.media && entry.media.cover_url);
       const title = (entry.media && entry.media.title) || 'untitled';
-      return `<div class="adv-item adv-book${dragClass}"${dragAttrs('book',entry.id,bRot,bScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
+      return `<div class="adv-item adv-book${dragClass}" data-quadrant="library"${dragAttrs('book',entry.id,bRot,bScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${bRot}deg) scale(${bScale});">
           ${cover ? `<img class="adv-book-cover" src="${esc(cover)}" alt="">` : '<div class="adv-book-noimg"></div>'}
           <div class="adv-cap">${esc(title)}</div>
           ${dragHandles('book', entry.id)}</div>`;
@@ -415,11 +437,13 @@
       const top   = saved.y != null ? saved.y : (slot.top+jit(1.5)).toFixed(1);
       const tRot  = saved.rot != null ? saved.rot : rot(4);
       const tScale = saved.scale || 1;
-      return `<div class="adv-item adv-tool${dragClass}"${dragAttrs('tool',tool.id,tRot,tScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
+      return `<div class="adv-item adv-tool${dragClass}" data-quadrant="library"${dragAttrs('tool',tool.id,tRot,tScale)} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
           ${tool.icon_url ? `<img class="adv-tool-icon" src="${esc(tool.icon_url)}" alt="">` : '<div class="adv-tool-noimg"></div>'}
           <div class="adv-cap">${esc(tool.title||'untitled')}</div>
           ${dragHandles('tool', tool.id)}</div>`;
     }).join('');
+    const hasBag = (data.libraryEntries||[]).length > 0 || (data.libraryTools||[]).length > 0;
+    const libraryPromptTile = quadPromptTile('library', hasBag, {x:73, y:30});
 
     // Photos — start out placed inside their assigned quadrant (2-col grid so
     // each photo stays visible), but once a photo has been dragged in the
@@ -493,18 +517,23 @@
     });
 
     // Header buttons (no inline onclick — host wires via attachMatrix).
-    const addBtn  = showAddPhoto  ? `<button class="matrix-photo-btn" type="button">+ photo</button>` : '';
     const noteBtn = showEditNotes ? `<button class="matrix-edit-notes" type="button">✎ notes</button>` : '';
     // Explicit "save" button — drag/rotate/resize already autosave per-gesture
     // (see createMatrixEditor), but this batches every item's current
     // on-screen position into one write, so rearranging a lot at once can't
     // lose anything to overlapping autosaves.
     const saveBtn = editable ? `<button class="matrix-save-btn" type="button">save</button>` : '';
-    // Add photo / sticker / text — centered below the matrix frame.
+    // Add photo / sticker / text / journal — centered below the matrix frame.
+    // Journal is opt-in (opts.showJournalTool) and can be shown disabled
+    // (opts.journalLocked) before there's an entry to attach it to.
+    const journalBtn = (editable && opts.showJournalTool)
+      ? `<button class="matrix-tool-btn" type="button" data-tool="notes" title="journal"${opts.journalLocked ? ' disabled' : ''}>&#9998;</button>`
+      : '';
     const toolbar = editable ? `<div class="matrix-toolbar">
         <button class="matrix-tool-btn" type="button" data-tool="photo" title="add photo">&#43;</button>
         <button class="matrix-tool-btn" type="button" data-tool="sticker" title="add sticker">&#9733;</button>
         <button class="matrix-tool-btn" type="button" data-tool="text" title="add text">Aa</button>
+        ${journalBtn}
       </div>` : '';
 
     const bgStyle = opts.bgImage ? ` style="background:url('${opts.bgImage}') center/cover no-repeat"` : '';
@@ -512,7 +541,7 @@
     return `<div class="step-panel matrix-panel">
       <div class="matrix-header">
         <div class="matrix-date">${esc(data.dateLabel||'')}</div>
-        ${addBtn}${noteBtn}${saveBtn}
+        ${noteBtn}${saveBtn}
       </div>
       <div class="matrix-frame${frameClass}">
         <div class="adv-matrix"${bgStyle}>
@@ -523,7 +552,7 @@
           <div class="adv-axlbl" style="left:96.5%;top:50%;transform:translate(-50%,-50%) translateZ(0);writing-mode:vertical-rl;">feeling</div>
           <div class="adv-axlbl" style="left:50%;top:96.5%;transform:translate(-50%,-50%) translateZ(0);">internal</div>
           <div class="adv-axlbl" style="left:3.5%;top:50%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;">action</div>
-          ${mapItem}${bingoItem}${charItem}${libraryItems}${toolItems}
+          ${mapItem}${mapPromptTile}${bingoItem}${bingoPromptTile}${charItem}${charPromptTile}${libraryItems}${toolItems}${libraryPromptTile}
           ${photos}
           ${stickers}
           ${texts}
@@ -616,157 +645,21 @@
 
   // ── EVENT WIRING ──────────────────────────────────────────
   // Delegated listeners on a stable root so they survive innerHTML rebuilds.
-  // handlers = { onAddPhoto, onRemovePhoto(url), onEditNotes }. Returns cleanup.
+  // handlers = { onRemovePhoto(url), onEditNotes, onQuadrantOpen(quadrant) }. Returns cleanup.
   function attachMatrix(rootEl, handlers){
     handlers = handlers || {};
     function onClick(e){
       const rm = e.target.closest('.adv-photo-remove');
       if (rm && rootEl.contains(rm)) { e.stopPropagation(); handlers.onRemovePhoto && handlers.onRemovePhoto(rm.dataset.url); return; }
-      const add = e.target.closest('.matrix-photo-btn');
-      if (add && rootEl.contains(add)) { handlers.onAddPhoto && handlers.onAddPhoto(); return; }
       const note = e.target.closest('.matrix-edit-notes');
       if (note && rootEl.contains(note)) { handlers.onEditNotes && handlers.onEditNotes(); return; }
+      const prompt = e.target.closest('.adv-quad-prompt');
+      if (prompt && rootEl.contains(prompt) && !prompt.classList.contains('locked')) {
+        handlers.onQuadrantOpen && handlers.onQuadrantOpen(prompt.dataset.quadrant); return;
+      }
     }
     rootEl.addEventListener('click', onClick);
     return () => rootEl.removeEventListener('click', onClick);
-  }
-
-  // ── PHOTO EDITOR ──────────────────────────────────────────
-  // deps = { sb, getEntryId(), getUserId(), onChange(), status(msg,color) }
-  // Owns its own modal (appended to <body> once). open() shows it; remove(url)
-  // drops a photo. Both write dream_matrix.matrix_images + matrix-photos bucket.
-  function createPhotoEditor(deps){
-    deps = deps || {};
-    const status = deps.status || function(){};
-    const table  = deps.table || 'dream_matrix';
-    let draft = { file:null, quadrant:null };
-
-    const overlay = document.createElement('div');
-    overlay.className = 'mr-photo-overlay';
-    overlay.innerHTML = `
-      <div class="mr-photo-card">
-        <div class="mr-photo-head">
-          <span class="mr-photo-title">✦ add a photo</span>
-          <button class="mr-photo-close" type="button">×</button>
-        </div>
-        <div class="mr-photo-sub">pick an image and choose where it lands on your matrix.</div>
-        <label class="mr-photo-drop">
-          <input type="file" accept="image/*" hidden class="mr-photo-file">
-          <div class="mr-photo-preview"><span class="mr-photo-hint">tap to choose an image</span></div>
-        </label>
-        <div class="mr-photo-quad-label">which quadrant?</div>
-        <div class="mr-photo-quad-grid">
-          <button class="mr-photo-quad" type="button" data-q="external-action"><b>map</b><span>external · action</span></button>
-          <button class="mr-photo-quad" type="button" data-q="external-feeling"><span>external · feeling</span></button>
-          <button class="mr-photo-quad" type="button" data-q="internal-action"><b>heart</b><span>internal · action</span></button>
-          <button class="mr-photo-quad" type="button" data-q="internal-feeling"><b>character</b><span>internal · feeling</span></button>
-        </div>
-        <div class="mr-photo-status"></div>
-        <button class="mr-photo-add" type="button" disabled>add to matrix</button>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    const fileEl    = overlay.querySelector('.mr-photo-file');
-    const previewEl = overlay.querySelector('.mr-photo-preview');
-    const statusEl  = overlay.querySelector('.mr-photo-status');
-    const addEl     = overlay.querySelector('.mr-photo-add');
-
-    function refreshAdd(){ addEl.disabled = !(draft.file && draft.quadrant); }
-    function reset(){
-      draft = { file:null, quadrant:null };
-      fileEl.value = '';
-      previewEl.innerHTML = '<span class="mr-photo-hint">tap to choose an image</span>';
-      overlay.querySelectorAll('.mr-photo-quad.selected').forEach(el => el.classList.remove('selected'));
-      statusEl.textContent = ''; statusEl.style.color = '';
-      addEl.textContent = 'add to matrix';
-      refreshAdd();
-    }
-    function open(){ reset(); overlay.classList.add('open'); }
-    function close(){ overlay.classList.remove('open'); }
-
-    overlay.querySelector('.mr-photo-close').addEventListener('click', close);
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-
-    fileEl.addEventListener('change', e => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')){
-        statusEl.style.color = '#E8478B'; statusEl.textContent = 'that file isn’t an image';
-        draft.file = null; refreshAdd(); return;
-      }
-      draft.file = file;
-      const reader = new FileReader();
-      reader.onload = ev => { previewEl.innerHTML = `<img src="${ev.target.result}" alt="">`; };
-      reader.readAsDataURL(file);
-      statusEl.textContent = '';
-      refreshAdd();
-    });
-
-    overlay.querySelectorAll('.mr-photo-quad').forEach(btn => {
-      btn.addEventListener('click', () => {
-        draft.quadrant = btn.dataset.q;
-        overlay.querySelectorAll('.mr-photo-quad').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        refreshAdd();
-      });
-    });
-
-    addEl.addEventListener('click', async () => {
-      if (!(draft.file && draft.quadrant)) return;
-      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
-      if (!userId){ statusEl.style.color = '#E8478B'; statusEl.textContent = 'sign in to save photos'; return; }
-      if (!entryId){ statusEl.style.color = '#E8478B'; statusEl.textContent = 'no entry selected'; return; }
-      addEl.disabled = true; addEl.textContent = 'uploading…';
-      statusEl.style.color = ''; statusEl.textContent = 'uploading…';
-      try {
-        const file = draft.file;
-        const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-        const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
-        const publicUrl = pub && pub.publicUrl;
-        if (!publicUrl) throw new Error('could not resolve image url');
-        // Append {url,quadrant} (read-modify-write).
-        const { data: row, error: readErr } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
-        if (readErr) throw readErr;
-        const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
-        const next = [...current, { url: publicUrl, quadrant: draft.quadrant }];
-        const { error: updErr } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
-        if (updErr) throw updErr;
-        close();
-        status('photo added ✓', '#6ab86a');
-        deps.onChange && deps.onChange();
-      } catch (err) {
-        console.error('[matrix-render] photo upload failed:', err);
-        statusEl.style.color = '#E8478B';
-        statusEl.textContent = (err && err.message) ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
-        addEl.disabled = false; addEl.textContent = 'add to matrix';
-      }
-    });
-
-    async function remove(url){
-      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
-      if (!url || !userId || !entryId) return;
-      try {
-        const { data: row } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
-        const imgs = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
-        const next = imgs.filter(i => !(i && i.url === url));
-        if (next.length === imgs.length) { deps.onChange && deps.onChange(); return; }
-        const { error } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
-        if (error) throw error;
-      } catch (err) {
-        console.error('[matrix-render] photo remove failed:', err);
-        status('couldn’t remove photo — try again', '#E8478B');
-        return;
-      }
-      await deletePhotoFiles(sb, [url]);
-      status('photo removed', '#7a86bb');
-      deps.onChange && deps.onChange();
-    }
-
-    function destroy(){ overlay.remove(); }
-    return { open, close, remove, destroy };
   }
 
   // ── JOURNAL EDITOR ────────────────────────────────────────
@@ -869,6 +762,12 @@
     const onChange = deps.onChange || function(){};
     const table = deps.table || 'dream_matrix';
 
+    // Set whenever a drag/rotate/resize gesture moves an .adv-draggable —
+    // per-gesture autosave (updateMatrixItem) already persists the change,
+    // but saveAllPositions is the batched "safe" checkpoint, so callers use
+    // this flag to warn before navigating away mid-rearrange.
+    let _dirty = false;
+
     // ── PERSISTENCE ──────────────────────────────────────────
     async function updateMatrixLayoutItem(kind, id, patch){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
@@ -954,6 +853,7 @@
           matrix_images: images, matrix_stickers: stickers, matrix_texts: texts, matrix_layout: layout,
         }).eq('id', entryId);
         if (error) throw error;
+        _dirty = false;
         status('scrapbook saved ✓', '#6ab86a');
       } catch(err){
         console.error('[matrix-render] save failed:', err);
@@ -976,6 +876,13 @@
           if (el !== item) el.classList.remove('selected');
         });
         if (item) item.classList.add('selected');
+      });
+
+      // DOUBLE-CLICK a placed quadrant item (map/bingo/char/book/tool) to
+      // reopen that quadrant's popup and redo the choice.
+      rootEl.addEventListener('dblclick', e => {
+        const item = e.target.closest('.adv-draggable[data-quadrant]');
+        if (item) deps.onQuadrantOpen && deps.onQuadrantOpen(item.dataset.quadrant);
       });
 
       // DRAG-TO-REPOSITION
@@ -1007,6 +914,7 @@
         el.classList.remove('dragging');
         dragState = null;
         if (lastX == null) return; // tapped without moving — nothing changed
+        _dirty = true;
         updateMatrixItem(kind, id, { x: lastX, y: lastY });
       });
 
@@ -1046,6 +954,7 @@
         rotateState = null;
         if (lastRot == null) return;
         el.dataset.rot = lastRot;
+        _dirty = true;
         updateMatrixItem(kind, id, { rot: lastRot });
       });
 
@@ -1084,6 +993,7 @@
         resizeState = null;
         if (lastScale == null) return;
         el.dataset.scale = lastScale;
+        _dirty = true;
         updateMatrixItem(kind, id, { scale: lastScale });
       });
 
@@ -1099,6 +1009,7 @@
           if (kind === 'photo') openPhotoUpload();
           else if (kind === 'sticker') openStickerPicker();
           else if (kind === 'text') openTextAdd();
+          else if (kind === 'notes') deps.onOpenJournal && deps.onOpenJournal();
           return;
         }
         const stickerBtn = e.target.closest('.adv-sticker-remove');
@@ -1550,6 +1461,7 @@
       attachInteractions, saveAllPositions,
       openPhotoUpload, openStickerPicker, openTextAdd,
       removeMatrixPhoto, removeMatrixSticker, removeMatrixText,
+      isDirty: () => _dirty,
       destroy,
     };
   }
@@ -1564,15 +1476,6 @@
   position:absolute; top:10px; left:50%; transform:translateX(-50%);
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(28px,3.8vw,46px); color:#3a4aaa; z-index:6;
 }
-.matrix-photo-btn {
-  position:absolute; top:8px; left:12px; z-index:6;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
-  color:var(--blue,#6e83d3); background:rgba(255,255,255,.72);
-  border:2px solid var(--blue,#6e83d3); box-shadow:2px 2px 0 var(--aqua,#83d2e6);
-  padding:5px 14px; cursor:pointer; transition:all .05s;
-}
-.matrix-photo-btn:hover  { background:var(--blue,#6e83d3); color:#fff; }
-.matrix-photo-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .matrix-edit-notes {
   position:absolute; top:8px; right:12px; z-index:6;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
@@ -1641,6 +1544,17 @@
 .adv-book-cover, .adv-book-noimg { width:100%; aspect-ratio:2/3; display:block; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); }
 .adv-book-cover { object-fit:cover; }
 .adv-book-noimg { background:#ccc; display:flex; align-items:center; justify-content:center; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:11px; color:#666; padding:4px; text-align:center; }
+.adv-quad-prompt {
+  width:clamp(120px,15vw,180px); box-sizing:border-box; cursor:pointer;
+  padding:16px 12px; background:rgba(255,255,255,.55);
+  border:2px dashed var(--blue,#6e83d3); border-radius:6px;
+  transition:background .12s, border-color .12s;
+}
+.adv-quad-prompt:hover { background:rgba(255,255,255,.85); border-style:solid; }
+.adv-quad-prompt-text { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(13px,1.6vw,18px); color:#3a4aaa; }
+.adv-quad-prompt.locked { cursor:default; opacity:.45; border-style:solid; border-color:#bbb; }
+.adv-quad-prompt.locked .adv-quad-prompt-text { color:#999; }
+.adv-quad-prompt-lock { margin-top:4px; font-size:14px; }
 .adv-tool { width:clamp(56px,7vw,80px); }
 .adv-tool-icon, .adv-tool-noimg { width:100%; aspect-ratio:1/1; display:block; object-fit:contain; background:#eef0f9; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); padding:6px; box-sizing:border-box; }
 .adv-tool-noimg { background:#ccc; }
@@ -1746,6 +1660,8 @@
 }
 .matrix-tool-btn:hover  { background:var(--blue,#6e83d3); color:#fff; box-shadow:0 3px 12px rgba(0,0,0,0.25); }
 .matrix-tool-btn:active { transform:scale(0.93); }
+.matrix-tool-btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
+.matrix-tool-btn:disabled:hover { background:#fff; color:var(--blue,#6e83d3); }
 
 /* Explicit save — top-right of the matrix header, next to the date.
    Drag/rotate/resize already autosave per-gesture, but this batches every
@@ -1973,7 +1889,6 @@
     assemble,
     buildHTML,
     attachMatrix,
-    createPhotoEditor,
     createJournalEditor,
     createMatrixEditor,
     buildMapSVG,

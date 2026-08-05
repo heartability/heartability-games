@@ -88,6 +88,14 @@ body {
   box-shadow: 6px 10px 40px rgba(0, 0, 0, 0.4);
 }
 
+/* This page is only ever iframed inside a matrix quadrant popup (dream/
+   daily/cosmic) now, never shown standalone — so the outer "room" chrome
+   (full-height wall + its own bordered/shadowed panel), which would
+   duplicate the host popup's own framing, is stripped unconditionally. */
+.room { min-height: 0; }
+.wall { padding: 0; }
+.rpg-panel { border: none; box-shadow: none; padding: 0; margin-bottom: 0; }
+
 /* Panel inner border decoration */
 .rpg-panel::before {
   content: "";

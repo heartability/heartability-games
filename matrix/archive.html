@@ -146,7 +146,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   padding:0 4px;
 }
 
-/* ── STANDARD ARCHIVE TAB SIZING (dream/completed, cosmic, archetype, journal) ──
+/* ── STANDARD ARCHIVE TAB SIZING (dream, cosmic, archetype, inventory, patterns) ──
    Gives every non-daily archive tab the same top offset and width so switching
    between them doesn't feel like the window jumps around. Daily keeps the base
    .page-wrap/.page-body values above untouched. */
@@ -479,7 +479,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   background:var(--cream); color:#999; border-color:#ccc;
 }
 
-/* ── MAP SELECTOR SCREEN (dream/completed) — sits in the same
+/* ── MAP SELECTOR SCREEN (dream — in-progress + completed maps together) — sits in the same
    .page-wrap/.page-body/.window scaffold as the other archive tabs below,
    just wrapped in a fixed full-screen layer so it can float over the daily view */
 #map-selector {
@@ -499,6 +499,8 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 .map-slot:hover { border-color:var(--purple); box-shadow:2px 2px 0 var(--purple); transform:translateY(-2px); }
 .map-slot.empty { border-style:dashed; border-color:#e0e0e0; cursor:default; background:transparent; }
 .map-slot.empty:hover { transform:none; box-shadow:none; border-color:#e0e0e0; }
+.map-slot.completed { border-color:#e8b400; }
+.map-slot.completed:hover { border-color:#e8b400; box-shadow:2px 2px 0 #e8b400; }
 .slot-name { font-size:15px; color:#333; line-height:1.2; word-break:break-word; font-weight:600; flex-shrink:0; }
 .slot-updated { font-size:12px; color:#bbb; flex-shrink:0; }
 .slot-preview { flex:1; min-height:0; overflow:hidden; background:#cdd3ec; border:1px solid var(--purple); }
@@ -653,8 +655,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
   <button class="tab-btn" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
   <button class="tab-btn" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
-  <button class="tab-btn" data-tab="journal" onclick="switchTab('journal')">journal</button>
-  <button class="tab-btn" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+  <button class="tab-btn" data-tab="patterns" onclick="switchTab('patterns')">patterns</button>
 </div>
 
 <div class="tab-bar-mobile" id="tab-bar-mobile">
@@ -667,8 +668,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     <button class="tab-bar-mobile-item" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
     <button class="tab-bar-mobile-item" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
     <button class="tab-bar-mobile-item" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
-    <button class="tab-bar-mobile-item" data-tab="journal" onclick="switchTab('journal')">journal</button>
-    <button class="tab-bar-mobile-item" data-tab="completed" onclick="switchTab('completed')">completed<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+    <button class="tab-bar-mobile-item" data-tab="patterns" onclick="switchTab('patterns')">patterns</button>
   </div>
 </div>
 
@@ -789,26 +789,18 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
         </div>
       </div>
 
-      <!-- DAILY PREVIEW WINDOW (daily tab only) — merges the map+graph area into
-           one full-width preview with a right-side menu (recent / energy /
-           weather / locations). Toggled by enterDailyView() / showMapSelectorForCurrentMode(). -->
+      <!-- DAILY PREVIEW WINDOW (daily tab only) — shows one day's full matrix.
+           enterDailyView() auto-opens the most recently logged day; clicking a
+           calendar day swaps this window to that day (openDailyDayInPreview).
+           The analytics menu that used to live here (recent / energy / weather /
+           locations) moved to the patterns tab below. -->
       <div class="window" id="daily-preview-window">
-        <div class="window-titlebar"><span id="dp-window-title">recent activity</span></div>
+        <div class="window-titlebar"><span id="dp-window-title">your day</span></div>
         <div class="dp-body">
-          <div class="dp-main" id="dp-main">
-            <div class="dp-view" id="dp-view-recent"></div>
+          <div class="dp-main" id="dp-main" style="width:100%;">
             <div class="dp-view" id="dp-view-day">
               <div id="dp-day-stage"></div>
             </div>
-            <div class="dp-view" id="dp-view-energy"></div>
-            <div class="dp-view" id="dp-view-weather"></div>
-            <div class="dp-view" id="dp-view-locations"></div>
-          </div>
-          <div class="dp-menu">
-            <button class="dp-menu-btn active" data-view="recent" onclick="setDailyPreviewView('recent')">recent history</button>
-            <button class="dp-menu-btn" data-view="energy" onclick="setDailyPreviewView('energy')">energy over time</button>
-            <button class="dp-menu-btn" data-view="weather" onclick="setDailyPreviewView('weather')">weather report</button>
-            <button class="dp-menu-btn" data-view="locations" onclick="setDailyPreviewView('locations')">commonly visited</button>
           </div>
         </div>
       </div>
@@ -916,6 +908,49 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
           <div class="day-list-empty" id="inv-tools-empty" style="display:none;">you haven't added any tools to your inventory yet — visit <a href="../rooms/salon.html" style="color:var(--purple);">the salon</a> to add one</div>
         </div>
       </div>
+      <!-- JOURNAL: chat-style feed combining daily / dream / cosmic entries — merged into the inventory tab -->
+      <div class="window" id="journal-window" style="margin-top:16px;">
+        <div class="window-titlebar">
+          <span>your journal</span>
+          <div class="jrn-filter-bar" id="jrn-filter-bar">
+            <button class="jrn-filter-btn active" data-source="daily" onclick="toggleJournalFilter('daily')">daily</button>
+            <button class="jrn-filter-btn active" data-source="dream" onclick="toggleJournalFilter('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+            <button class="jrn-filter-btn active" data-source="cosmic" onclick="toggleJournalFilter('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+          </div>
+        </div>
+        <div class="window-body" style="padding:0;">
+          <div class="jrn-messages" id="jrn-messages"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PATTERNS TAB: recent history / energy over time / weather report / commonly
+     visited — moved out of the daily preview window. Locked behind a coming-soon
+     gate for every user regardless of membership (see switchTab/showGate); the
+     markup and render functions below stay fully wired so shipping this later is
+     just a matter of removing the gate check. -->
+<div id="tab-patterns" style="display:none;">
+  <div class="page-wrap uniform-tab-wrap">
+    <div class="page-body uniform-tab-body">
+      <div class="window" id="patterns-window">
+        <div class="window-titlebar"><span id="pat-window-title">recent history</span></div>
+        <div class="dp-body">
+          <div class="dp-main" id="pat-main">
+            <div class="dp-view" id="dp-view-recent"></div>
+            <div class="dp-view" id="dp-view-energy"></div>
+            <div class="dp-view" id="dp-view-weather"></div>
+            <div class="dp-view" id="dp-view-locations"></div>
+          </div>
+          <div class="dp-menu">
+            <button class="dp-menu-btn active" data-view="recent" onclick="setDailyPreviewView('recent')">recent history</button>
+            <button class="dp-menu-btn" data-view="energy" onclick="setDailyPreviewView('energy')">energy over time</button>
+            <button class="dp-menu-btn" data-view="weather" onclick="setDailyPreviewView('weather')">weather report</button>
+            <button class="dp-menu-btn" data-view="locations" onclick="setDailyPreviewView('locations')">commonly visited</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -944,27 +979,6 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     </div>
     <div class="day-body" style="padding:18px 20px 22px;">
       <div class="loc-list" id="loc-history-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- JOURNAL TAB: chat-style feed combining daily / dream / cosmic entries -->
-<div id="tab-journal" style="display:none;">
-  <div class="page-wrap uniform-tab-wrap">
-    <div class="page-body uniform-tab-body">
-      <div class="window" id="journal-window">
-        <div class="window-titlebar">
-          <span>your journal</span>
-          <div class="jrn-filter-bar" id="jrn-filter-bar">
-            <button class="jrn-filter-btn active" data-source="daily" onclick="toggleJournalFilter('daily')">daily</button>
-            <button class="jrn-filter-btn active" data-source="dream" onclick="toggleJournalFilter('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
-            <button class="jrn-filter-btn active" data-source="cosmic" onclick="toggleJournalFilter('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
-          </div>
-        </div>
-        <div class="window-body" style="padding:0;">
-          <div class="jrn-messages" id="jrn-messages"></div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -1021,7 +1035,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
     <div class="member-gate-text" id="gate-text"></div>
     <div class="member-gate-btns">
       <button class="member-gate-btn ghost" type="button" onclick="hideGate()">back to archive</button>
-      <button class="member-gate-btn" type="button" onclick="window.location.href='../users/membership.html'">upgrade now</button>
+      <button class="member-gate-btn" id="gate-upgrade-btn" type="button" onclick="window.location.href='../users/membership.html'">upgrade now</button>
     </div>
   </div>
 </div>
@@ -1054,14 +1068,14 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ── STATE ─────────────────────────────────────────────────
 let currentUser   = null;
 let isPaid        = false;
-let activeTab     = null;               // 'dream' | 'cosmic' | 'daily' | 'archetype' | 'completed'
-const LOCKED_TABS = ['dream', 'cosmic', 'completed'];
+let activeTab     = null;               // 'dream' | 'cosmic' | 'daily' | 'archetype' | 'inventory' | 'patterns'
+const LOCKED_TABS = ['dream', 'cosmic']; // 'patterns' is locked for everyone (coming soon) — handled separately in switchTab
 
-// currentMode drives the shared map+graph+calendar system: 'dream' | 'completed' | 'daily'
+// currentMode drives the shared map+graph+calendar system: 'dream' | 'daily'
 let currentMode   = 'dream';
-let allGames      = [];     // for current mode ('dream'/'completed'): every dream_matrix map, deduped by map_id
+let allGames      = [];     // for the dream tab: every dream_matrix map (completed ones included, sorted after in-progress), deduped by map_id
 let activeGameId  = null;
-let allSaves      = [];     // every row for the active game (dream/completed) or every daily_matrix row (daily)
+let allSaves      = [];     // every row for the active game (dream) or every daily_matrix row (daily)
 let daysByKey     = {};     // 'YYYY-MM-DD' (local) -> [save, ...] sorted by created_at
 let viewYear      = new Date().getFullYear();
 let viewMonth     = new Date().getMonth();
@@ -1087,7 +1101,7 @@ const DP_WEATHER_COLORS = {
 let activeDayKey  = null;
 let activeSaveId  = null;
 let lastMatrixData = null;
-let photoEditor   = null;
+let matrixEditor  = null;        // full drag/rotate/resize + add-photo/sticker/text editor for the dream-entry view
 let journalEditor = null;        // dream_matrix notes
 let dailyJournalEditor = null;   // daily_matrix notes
 
@@ -1193,7 +1207,7 @@ function updatePlayLink(){
   el.style.display = '';
 }
 
-const TAB_LABELS = { daily:'daily', dream:'dream', cosmic:'cosmic', archetype:'archetypes', inventory:'inventory', journal:'journal', completed:'completed' };
+const TAB_LABELS = { daily:'daily', dream:'dream', cosmic:'cosmic', archetype:'archetypes', inventory:'inventory', patterns:'patterns' };
 function updateTabControls(tab){
   document.querySelectorAll('.tab-btn, .tab-bar-mobile-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.getElementById('tab-bar-mobile-label').textContent = TAB_LABELS[tab] || tab;
@@ -1202,6 +1216,13 @@ function updateTabControls(tab){
 function toggleTabMenu(){ document.getElementById('tab-bar-mobile-menu').classList.toggle('open'); }
 
 function switchTab(tab){
+  // patterns is locked for everyone (coming soon), regardless of membership —
+  // separate from the paid-member gate below.
+  if (tab === 'patterns'){
+    updateTabControls(tab);
+    showGate(tab, true);
+    return;
+  }
   if (LOCKED_TABS.includes(tab) && !isPaid){
     updateTabControls(tab);
     showGate(tab);
@@ -1212,13 +1233,13 @@ function switchTab(tab){
   updateTabControls(tab);
   updatePlayLink();
 
-  document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='completed'||tab==='daily') ? 'block' : 'none';
+  document.getElementById('shared-view').style.display   = (tab==='dream'||tab==='daily') ? 'block' : 'none';
   document.getElementById('tab-cosmic').style.display    = tab==='cosmic'    ? 'block' : 'none';
   document.getElementById('tab-archetype').style.display = tab==='archetype' ? 'block' : 'none';
   document.getElementById('tab-inventory').style.display  = tab==='inventory' ? 'block' : 'none';
-  document.getElementById('tab-journal').style.display    = tab==='journal'   ? 'block' : 'none';
+  document.getElementById('tab-patterns').style.display    = tab==='patterns'  ? 'block' : 'none';
 
-  if (tab==='dream' || tab==='completed'){
+  if (tab==='dream'){
     currentMode = tab;
     showMapSelectorForCurrentMode();
   } else if (tab==='daily'){
@@ -1230,18 +1251,20 @@ function switchTab(tab){
   } else if (tab==='inventory'){
     loadInventoryTab();
     loadInventoryToolsTab();
-  } else if (tab==='journal'){
     loadJournalTab();
+  } else if (tab==='patterns'){
+    loadPatternsTab();
   }
 }
-function showGate(tab){
+function showGate(tab, comingSoon){
   const copy = {
     dream:     { title:'dream matrix archive', text:'the dream matrix archive is for paid members. free members can still browse the daily tracker and their cast of archetypes.' },
     cosmic:    { title:'cosmic matrix archive', text:'the cosmic matrix archive is for paid members — one season, one ritual, one archive to look back on.' },
-    completed: { title:'completed maps',        text:'finished dream maps are archived here for paid members.' },
+    patterns:  { title:'patterns',              text:'deeper pattern tracking — recent history, energy over time, weather report, and commonly visited — is coming soon.' },
   }[tab] || { title:'members only', text:'this part of the archive is for paid members.' };
   document.getElementById('gate-title').textContent = copy.title;
   document.getElementById('gate-text').textContent = copy.text;
+  document.getElementById('gate-upgrade-btn').style.display = comingSoon ? 'none' : '';
   document.getElementById('gate-overlay').classList.add('open');
 }
 function hideGate(){
@@ -1537,12 +1560,17 @@ async function refreshMatrixView() {
   const game = allGames.find(g => g.id === activeGameId);
   lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, 'dream_matrix');
   const seed = `dream_matrix|${activeGameId||'x'}|${activeSaveId}`;
-  document.getElementById('matrix-stage').innerHTML = MatrixRender.buildHTML(lastMatrixData, seed,
-    { showAddPhoto:true, showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true });
+  const stage = document.getElementById('matrix-stage');
+  // editable:true brings in the full toolbar (add photo/sticker/text, plus
+  // drag/rotate/resize on every item) — replaces the old add-photo-only
+  // affordance (see matrixEditor setup below).
+  stage.innerHTML = MatrixRender.buildHTML(lastMatrixData, seed,
+    { showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true, editable:true });
+  matrixEditor.attachInteractions(stage);
 }
 
 // ── GAME LOADING + ENTRIES (dream / completed) ────────────
-async function loadGamesForMode(mode) {
+async function loadGamesForMode() {
   const { data } = await sb.from('dreams').select('*')
     .eq('user_id', currentUser.id)
     .in('map_type', ['spiral','square'])
@@ -1550,12 +1578,9 @@ async function loadGamesForMode(mode) {
   const { data: completedRows } = await sb.from('dream_matrix')
     .select('map_id').eq('user_id', currentUser.id).eq('map_completed', true);
   const completed = new Set((completedRows || []).map(r => r.map_id));
-  allGames = (data || []).filter(g => {
-    const isCompleted = completed.has(g.id);
-    if (mode === 'completed' && !isCompleted) return false;
-    if (mode === 'dream' && isCompleted) return false;
-    return true;
-  });
+  const games = (data || []).map(g => ({ ...g, _completed: completed.has(g.id) }));
+  // in-progress maps first, then completed ones (gold border) — each group keeps the updated_at sort above
+  allGames = games.filter(g => !g._completed).concat(games.filter(g => g._completed));
   const dd = document.getElementById('game-dropdown');
   dd.innerHTML = '';
   allGames.forEach(g => {
@@ -1592,7 +1617,7 @@ async function loadEntries() {
   renderGraph();
 }
 
-// ── MAP SELECTOR (dream / completed) ──────────────────────
+// ── MAP SELECTOR (dream — in-progress + completed maps together) ──
 async function showMapSelectorForCurrentMode(){
   viewingSelector = true;
   document.querySelector('.top-row').style.display = 'grid';
@@ -1600,9 +1625,9 @@ async function showMapSelectorForCurrentMode(){
   homeGraphWindow();
   document.getElementById('map-selector').style.display = 'block';
   document.getElementById('main-content').style.display = 'none';
-  document.getElementById('map-sel-title').textContent = currentMode === 'completed' ? 'completed maps' : 'your maps';
+  document.getElementById('map-sel-title').textContent = 'your maps';
   document.getElementById('map-grid').innerHTML = '<div class="arch-picker-loading">loading…</div>';
-  await loadGamesForMode(currentMode);
+  await loadGamesForMode();
   renderMapSelectorGrid();
 }
 function renderMapSelectorGrid() {
@@ -1616,7 +1641,7 @@ function renderMapSelectorGrid() {
       const updated=g.updated_at ? 'last updated '+new Date(g.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
       const safeName=(g.map_name||'untitled').replace(/'/g,"\\'");
       const slot=document.createElement('div');
-      slot.className='map-slot';
+      slot.className='map-slot' + (g._completed ? ' completed' : '');
       slot.onclick=()=>selectMapForArchive(g.id);
       slot.innerHTML=`<button class="slot-delete" title="delete map" onclick="event.stopPropagation();deleteMapFromArchive('${g.id}','${safeName}')">×</button>
         <div class="slot-name">${g.map_name||'untitled'}</div>
@@ -1627,8 +1652,7 @@ function renderMapSelectorGrid() {
       const empty=document.createElement('div'); empty.className='map-slot empty'; grid.appendChild(empty);
     }
   }
-  document.getElementById('map-sel-title').textContent =
-    (currentMode === 'completed' ? 'completed maps' : 'your maps') + (allGames.length ? '' : ' — none yet');
+  document.getElementById('map-sel-title').textContent = 'your maps' + (allGames.length ? '' : ' — none yet');
 }
 async function selectMapForArchive(gameId) {
   activeGameId=gameId; viewingSelector=false;
@@ -1660,8 +1684,14 @@ async function enterDailyView(){
   document.getElementById('daily-preview-window').style.display = 'block';
   await loadDailyEntries();
   renderCalendar();
-  // Default preview: last three locations tracked.
-  setDailyPreviewView('recent');
+  // Default preview: the most recently logged day's matrix (analytics views moved to the patterns tab).
+  const last = allSaves[allSaves.length - 1];
+  if (last) {
+    openDayPopup(last.entry_date);
+  } else {
+    document.getElementById('dp-window-title').textContent = 'your day';
+    document.getElementById('dp-day-stage').innerHTML = '<div class="daily-window-empty">no daily entries yet — start today\'s quest to begin your archive</div>';
+  }
 }
 async function loadDailyEntries(){
   const { data, error } = await sb.from('daily_matrix')
@@ -1686,6 +1716,13 @@ function homeGraphWindow(){
   if (gw && gc && gw.parentElement !== gc) gc.appendChild(gw);
 }
 
+// ── PATTERNS TAB (currently gated behind a coming-soon message — see
+// switchTab/showGate) ─────────────────────────────────────────────
+async function loadPatternsTab(){
+  await loadDailyEntries();
+  setDailyPreviewView('recent');
+}
+
 function showDpSubview(name){
   ['recent','day','energy','weather','locations'].forEach(n => {
     document.getElementById('dp-view-' + n).style.display = (n === name) ? 'block' : 'none';
@@ -1708,7 +1745,7 @@ function setDailyPreviewView(view){
 // dream/cosmic).
 function renderDpRecentView(){
   showDpSubview('recent');
-  document.getElementById('dp-window-title').textContent = 'recent history';
+  document.getElementById('pat-window-title').textContent = 'recent history';
   const wrap = document.getElementById('dp-view-recent');
   const recent = allSaves.slice(-3).reverse(); // most recent first
   if (!recent.length){
@@ -1734,7 +1771,7 @@ function dpLocRowHTML(s){
 
 function renderDpEnergyView(){
   showDpSubview('energy');
-  document.getElementById('dp-window-title').textContent = 'energy over time';
+  document.getElementById('pat-window-title').textContent = 'energy over time';
   const gw = document.getElementById('graph-window');
   const container = document.getElementById('dp-view-energy');
   if (gw.parentElement !== container) container.appendChild(gw);
@@ -1743,7 +1780,7 @@ function renderDpEnergyView(){
 
 function renderDpWeatherView(){
   showDpSubview('weather');
-  document.getElementById('dp-window-title').textContent = 'weather report';
+  document.getElementById('pat-window-title').textContent = 'weather report';
   const wrap = document.getElementById('dp-view-weather');
   const counts = { sunny:0, rainy:0, windy:0, snowy:0 };
   let total = 0;
@@ -1774,7 +1811,7 @@ function renderDpWeatherView(){
 // different emotional climates still counts as the same place.
 function renderDpLocationsView(){
   showDpSubview('locations');
-  document.getElementById('dp-window-title').textContent = 'commonly visited locations';
+  document.getElementById('pat-window-title').textContent = 'commonly visited locations';
   const wrap = document.getElementById('dp-view-locations');
   const groups = {};
   allSaves.forEach(s => {
@@ -1834,7 +1871,7 @@ async function renderDailyMatrixWindow(saveId){
   document.getElementById('dp-day-stage').innerHTML = '<div class="daily-window-empty">loading…</div>';
   const data = await MatrixRender.assemble(sb, saveId, null, 'daily_matrix');
   document.getElementById('dp-day-stage').innerHTML =
-    MatrixRender.buildHTML(data, `daily|${saveId}`, { showAddPhoto:false, showEditNotes:false, showFrame:false });
+    MatrixRender.buildHTML(data, `daily|${saveId}`, { showEditNotes:false, showFrame:false });
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
@@ -2247,9 +2284,8 @@ async function openArchetypeHistory(archetype, fromAll){
 }
 async function jumpToArchetypeRow(row){
   if (row.source === 'dream') {
-    const mode = row.raw.map_completed ? 'completed' : 'dream';
-    switchTab(mode);
-    await loadGamesForMode(mode);
+    switchTab('dream');
+    await loadGamesForMode();
     if (!allGames.find(g => g.id === row.raw.map_id)) return;
     await selectMapForArchive(row.raw.map_id);
     openDayPopup(localDayKey(row.raw.created_at));
@@ -2514,9 +2550,8 @@ async function removeInvToolSave(saveId){
 async function jumpToInventoryRow(row){
   closeInvEntryPopup();
   if (row.source === 'dream') {
-    const mode = row.raw.map_completed ? 'completed' : 'dream';
-    switchTab(mode);
-    await loadGamesForMode(mode);
+    switchTab('dream');
+    await loadGamesForMode();
     if (!allGames.find(g => g.id === row.raw.map_id)) return;
     await selectMapForArchive(row.raw.map_id);
     document.getElementById('day-overlay').classList.add('open');
@@ -2618,9 +2653,8 @@ function renderJournalFeed(){
 
 async function jumpToJournalEntry(e){
   if (e.source === 'dream'){
-    const mode = e.row.map_completed ? 'completed' : 'dream';
-    switchTab(mode);
-    await loadGamesForMode(mode);
+    switchTab('dream');
+    await loadGamesForMode();
     if (!allGames.find(g => g.id === e.row.map_id)) return;
     await selectMapForArchive(e.row.map_id);
     openDayPopup(localDayKey(e.row.created_at));
@@ -2741,8 +2775,8 @@ async function init() {
   document.querySelectorAll('.tab-lock').forEach(img => { img.style.display = isPaid ? 'none' : 'inline-block'; });
 
   // Editors + matrix event wiring (created once; delegation survives re-renders).
-  photoEditor = MatrixRender.createPhotoEditor({
-    sb, table:'dream_matrix', getEntryId: () => activeSaveId, getUserId: () => currentUser.id,
+  matrixEditor = MatrixRender.createMatrixEditor({
+    sb, table:'dream_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
   });
   journalEditor = MatrixRender.createJournalEditor({
@@ -2754,8 +2788,7 @@ async function init() {
     onChange: refreshMatrixView, status: statusRoute,
   });
   MatrixRender.attachMatrix(document.getElementById('matrix-stage'), {
-    onAddPhoto:    () => photoEditor.open(),
-    onRemovePhoto: (url) => photoEditor.remove(url),
+    onRemovePhoto: (url) => matrixEditor.removeMatrixPhoto(url),
     onEditNotes:   () => (currentMode==='daily' ? dailyJournalEditor : journalEditor).open(lastMatrixData ? lastMatrixData.journalText : ''),
   });
 
