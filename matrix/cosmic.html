@@ -171,7 +171,32 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .cosmic-transit-badge:hover{ background:rgba(255,255,255,.15); }
 .cosmic-transit-glyph{ width:26px; height:26px; object-fit:contain;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+.cosmic-transit-glyph-aspect{ width:19px; height:19px; opacity:.85; }
 .cosmic-transit-badge-fallback{ font-family:var(--font-hand); font-size:26px; color:#fff; }
+
+/* TRANSIT READING PANEL — scientific-label style breakdown of the active
+   transit (planets + aspect), opened when a transit is selected (see
+   selectTransit/openTransitReading). Slides in from the right, independent
+   of the quad-popup modal (closed whenever that opens — see
+   openQuadrantPopup) so it never sits behind it. */
+.reading-side-panel{ position:fixed; top:60px; right:14px; width:min(300px,88vw);
+  max-height:calc(100vh - 140px); overflow-y:auto; z-index:150;
+  background:var(--cream); border:2px solid var(--blue);
+  border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:var(--aqua); border-top-color:var(--aqua);
+  box-shadow:3px 3px 0 rgba(0,0,0,.25);
+  transform:translateX(calc(100% + 24px)); transition:transform .28s ease;
+  padding:20px 16px 22px; }
+.reading-side-panel.open{ transform:translateX(0); }
+.reading-side-close{ position:absolute; top:4px; right:10px; font-size:20px; color:#888; cursor:pointer; line-height:1; }
+.reading-side-close:hover{ color:var(--pink); }
+.reading-aspect-label{ font-family:var(--font-hand); font-size:19px; color:var(--blue); text-align:center; margin:6px 0 18px; }
+.reading-row{ display:flex; align-items:flex-start; justify-content:center; gap:10px; }
+.reading-item{ display:flex; flex-direction:column; align-items:center; width:88px; flex-shrink:0; }
+.reading-item-glyph{ width:28px; height:28px; object-fit:contain; }
+.reading-item-dash{ width:2px; height:14px; background:var(--blue); margin:4px 0; }
+.reading-item-text{ font-family:var(--font-game); font-size:12px; line-height:1.35; color:var(--ink); text-align:center; }
+.reading-item-aspect{ padding-top:5px; }
 /* The location quadrant is moved to bottom-left, and the "what's
    transiting?" tile takes over its old top-left spot (see renderMatrix) —
    the empty-state prompt tiles need the same repositioning, since matrix-
@@ -448,6 +473,13 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
       </div>
     </div>
   </div>
+</div>
+
+<!-- TRANSIT READING PANEL — scientific-label style breakdown of the active
+     transit's planets + aspect (see openTransitReading). -->
+<div class="reading-side-panel" id="reading-side-panel">
+  <span class="reading-side-close" onclick="closeTransitReading()">&#x2715;</span>
+  <div id="reading-side-body"></div>
 </div>
 
 <!-- MATRIX PAGE TOGGLE -->
@@ -967,6 +999,7 @@ function selectTransit(transitId){
   activeMatrixEntryId = null;
   closeQuadrantPopup();
   renderMatrix();
+  openTransitReading(t);
 }
 
 // ── LOCATION BUILDER — user builds their own experience of this transit
@@ -1389,11 +1422,76 @@ async function renderMatrix(){
 
 function buildTransitBadgeHTML(transit){
   const planets = Array.isArray(transit?.planets) ? transit.planets : [];
-  const inner = planets.length
-    ? planets.map(p => `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`).join('')
-    : '<span class="cosmic-transit-badge-fallback">⇄</span>';
-  return `<div class="cosmic-transit-badge" title="switch transits">${inner}</div>`;
+  const aspect = transitAspect(transit);
+  const planetImgs = planets.map(p => `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`);
+  const aspectImg = aspect
+    ? `<img src="../assets/elements/glyphs/${ASPECT_READINGS[aspect].glyph}.png" alt="${aspect}" class="cosmic-transit-glyph cosmic-transit-glyph-aspect" onerror="this.style.display='none'">`
+    : '';
+  // With exactly two planets, the aspect glyph reads naturally between them
+  // (planet — aspect — planet); otherwise just tack it on the end.
+  const inner = planetImgs.length === 2
+    ? planetImgs[0] + aspectImg + planetImgs[1]
+    : planetImgs.join('') + aspectImg;
+  return `<div class="cosmic-transit-badge" title="switch transits">${inner || '<span class="cosmic-transit-badge-fallback">⇄</span>'}</div>`;
 }
+
+// ── TRANSIT READING — "scientific label" style explainer for the active
+// transit's planets + aspect, opened when a transit is selected (see
+// selectTransit). Aspect type isn't its own field in transit_data (each
+// transit is just {transit_id, name, planets[], utc}), so it's read off an
+// optional explicit `aspect` field first, falling back to spotting the
+// aspect word inside `name` (season templates are authored as "<Planet>
+// <Aspect> <Planet>", e.g. "Saturn Square Venus", matching the reference
+// reading card) — works for existing data with no schema change needed.
+const PLANET_READINGS = {
+  sun: 'The sun wants to be seen (skills, performance, legacy)',
+  moon: 'The moon wants to feel (emotions, cycles, intuition)',
+  mercury: 'Mercury wants to find connections (reviewing, returning, realizing)',
+  venus: 'Venus wants to love (devotion, values, aesthetics)',
+  mars: 'Mars wants to take action (passion, effort, desire)',
+  saturn: 'Saturn wants to create structure (lists, rules, frameworks)',
+  jupiter: 'Jupiter wants to create space (learn, trust, expand)',
+  neptune: 'Neptune wants to explore the unknown (dream, dissociate, drown)',
+  uranus: 'Uranus wants to disrupt the room (spark, surprise, shock)',
+};
+const ASPECT_READINGS = {
+  sextile:     { glyph:'sextile',  label:'Sextiles create secret pathways' },
+  trine:       { glyph:'trine',    label:'Trines create harmony' },
+  square:      { glyph:'square',   label:'Squares create friction' },
+  opposition:  { glyph:'opposition', label:'Oppositions create tension' },
+  conjunction: { glyph:'conjunct', label:'Conjunctions create partnership' },
+};
+function transitAspect(t){
+  const explicit = String(t?.aspect || '').toLowerCase();
+  if (ASPECT_READINGS[explicit]) return explicit;
+  const name = String(t?.name || t?.transit_id || '').toLowerCase();
+  return Object.keys(ASPECT_READINGS).find(a => name.includes(a))
+    || (name.includes('conjunct') ? 'conjunction' : null);
+}
+function buildTransitReadingHTML(transit){
+  const planets = Array.isArray(transit?.planets) ? transit.planets : [];
+  const aspect = transitAspect(transit);
+  const aspectInfo = aspect ? ASPECT_READINGS[aspect] : null;
+  const heading = aspectInfo ? `<div class="reading-aspect-label">${escSvg(aspectInfo.label)}</div>` : '';
+  const planetItem = p => PLANET_READINGS[p] ? `<div class="reading-item">
+      <img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="reading-item-glyph" onerror="this.style.display='none'">
+      <div class="reading-item-dash"></div>
+      <div class="reading-item-text">${escSvg(PLANET_READINGS[p])}</div>
+    </div>` : '';
+  const aspectItem = aspectInfo ? `<div class="reading-item reading-item-aspect">
+      <img src="../assets/elements/glyphs/${aspectInfo.glyph}.png" alt="${aspect}" class="reading-item-glyph" onerror="this.style.display='none'">
+    </div>` : '';
+  const row = planets.length === 2
+    ? planetItem(planets[0]) + aspectItem + planetItem(planets[1])
+    : planets.map(planetItem).join('') + aspectItem;
+  return `${heading}<div class="reading-row">${row}</div>`;
+}
+function openTransitReading(transit){
+  if (!transit) return;
+  $('reading-side-body').innerHTML = buildTransitReadingHTML(transit);
+  $('reading-side-panel').classList.add('open');
+}
+function closeTransitReading(){ $('reading-side-panel').classList.remove('open'); }
 
 // ── QUADRANT POPUP SHELL — modal overlay hosting whichever quadrant's
 // content is currently open. showPanel/showIframe (unchanged) render into
@@ -1401,6 +1499,7 @@ function buildTransitBadgeHTML(transit){
 // content is self-contained; the popup's own × is the only way out. The
 // location quadrant uses its own separate #loc-overlay instead (see below).
 function openQuadrantPopup(title) {
+  closeTransitReading();
   setQuadPopupTitle(title);
   document.getElementById('quad-popup-window').classList.remove('narrow-popup');
   document.getElementById('quad-popup-overlay').classList.add('open');
