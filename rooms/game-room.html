@@ -272,20 +272,6 @@ body.game-mode .char-heart {
 .popup-close { cursor: pointer; color: #aaa; font-family: var(--font-hand); font-size: 18px; padding: 4px; line-height: 1; }
 .popup-close:hover { color: var(--blue); }
 
-/* MATRIX PICKER */
-.matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: center; justify-content: center; }
-.matrix-picker-overlay.open { display: flex; }
-.matrix-picker-popup { background: #dfe2ef; box-shadow: 0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: popIn 0.2s ease both; }
-.matrix-picker-titlebar { height: 38px; background: #cdd3ec; border-bottom: 2px solid #6e83d3; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-family: var(--font-hand); font-size: var(--modal-font-title,21px); color: #555; }
-.matrix-picker-body { display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; }
-.matrix-pick-btn { display: block; text-decoration: none; font-family: var(--font-hand); font-size: clamp(18px,2vw,23px); color: #fff; background: var(--blue); border: 2px solid #4a5bc4; box-shadow: 3px 3px 0 #3a4aaa; padding: 12px 20px; cursor: pointer; text-align: center; transition: background .1s; }
-.matrix-pick-btn:hover { background: #4a5bc4; }
-.matrix-pick-btn:active { box-shadow: none; transform: translate(3px,3px); }
-.matrix-pick-btn small { display: block; font-size: clamp(16px,1.2vw,17px); opacity: .75; margin-top: 2px; }
-.matrix-picker-footer { padding: 0 18px 16px; text-align: right; }
-.matrix-picker-footer a { font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: none; }
-.matrix-picker-footer a:hover { text-decoration: underline; }
-
 /* ── Game popup overlay ── */
 .game-popup-overlay {
   position: fixed; top: 44px; left: 0; right: 0; bottom: 0;
@@ -346,33 +332,6 @@ body.game-mode .char-heart {
   </div>
 </nav>
 
-<!-- MATRIX PICKER POPUP -->
-<div class="matrix-picker-overlay" id="matrix-picker-overlay">
-  <div class="matrix-picker-popup">
-    <div class="matrix-picker-titlebar">
-      <span>choose a matrix</span>
-      <span class="popup-close" onclick="closeMatrixPicker()">&#x2715;</span>
-    </div>
-    <div class="matrix-picker-body">
-      <a class="matrix-pick-btn" href="../matrix/daily.html">
-        daily matrix
-        <small>track your archetype and adventure of the day</small>
-      </a>
-      <a class="matrix-pick-btn" href="../matrix/dream.html">
-        dream matrix
-        <small>track the cycles of pursuing your dreams</small>
-      </a>
-      <a class="matrix-pick-btn" href="../matrix/cosmic.html">
-        cosmic matrix
-        <small>track the cosmic influences guiding your life</small>
-      </a>
-    </div>
-    <div class="matrix-picker-footer">
-      <a href="../matrix/archive.html">view archive</a>
-    </div>
-  </div>
-</div>
-
 <div class="room-scroll"><div class="scene room-stage">
 
   <!-- ABOUT POSTER -->
@@ -381,7 +340,7 @@ body.game-mode .char-heart {
   </div>
 
   <!-- MATRIX LINKS -->
-  <div class="art-matrix wall-art" id="art-matrix" role="button" tabindex="0" onclick="openMatrixPicker()">
+  <div class="art-matrix wall-art" id="art-matrix" role="button" tabindex="0" onclick="window.location.href='../matrix/daily.html'">
     <img src="../assets/elements/matrix.png" alt="Track today">
     <div class="cal-month" id="cal-month"></div>
     <div class="cal-day"   id="cal-day"></div>
@@ -628,14 +587,6 @@ function closeGame() {
 function handleGamePopupOverlayClick(e) {
   if (e.target === document.getElementById('game-popup-overlay')) closeGame();
 }
-
-// ── Login popup helpers ────────────────────────────────────
-function openMatrixPicker()  { document.getElementById('matrix-picker-overlay').classList.add('open'); }
-function closeMatrixPicker() { document.getElementById('matrix-picker-overlay').classList.remove('open'); }
-document.addEventListener('click', e => {
-  const overlay = document.getElementById('matrix-picker-overlay');
-  if (overlay?.classList.contains('open') && e.target === overlay) closeMatrixPicker();
-});
 
 </script>
 
