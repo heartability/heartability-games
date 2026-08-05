@@ -336,7 +336,7 @@ function renderPicker() {
     </div>
     <div class="theme-grid">
       ${cards}
-      <div class="theme-card a11y-card ${prefersReducedMotion() ? 'selected' : ''}" id="a11y-card" onclick="toggleA11yCard()" title="play as text only, no video motion">
+      <div class="theme-card a11y-card ${prefersReducedMotion() ? 'selected' : ''}" id="a11y-card" onclick="selectOnlyNumbers()" title="just a countdown, no video motion">
         <div class="theme-card-visual a11y-card-visual">Aa</div>
         <div class="theme-card-label">only numbers</div>
       </div>
@@ -344,13 +344,12 @@ function renderPicker() {
   `);
 }
 
-function toggleA11yCard() {
-  document.getElementById('a11y-card').classList.toggle('selected');
+function selectOnlyNumbers() {
+  renderSetup({ slug: null, title: 'Only numbers', theme: 'take a moment' }, true);
 }
 
 function selectTheme(slug) {
-  const textOnly = document.getElementById('a11y-card').classList.contains('selected');
-  renderSetup(THEMES.find(t => t.slug === slug), textOnly);
+  renderSetup(THEMES.find(t => t.slug === slug), false);
 }
 
 // ── STEP: setup / preview ────────────────────────────────
@@ -531,6 +530,15 @@ function tick() {
   } else {
     const overlay = document.getElementById('countdown-overlay');
     if (overlay) overlay.textContent = fmtClock(remaining);
+    // Watchdog: some networks/devices leave the browser paused on its own
+    // (buffering stall) well after canplay already fired once. Since this
+    // runs every 250ms anyway, just keep nudging play() back on whenever
+    // the timer should be actively running — cheap, and self-heals
+    // regardless of which event sequence caused the stall.
+    const video = document.getElementById('running-video');
+    if (video && video.paused && state.pausedRemainingMs === null && remaining > 0) {
+      video.play().catch(() => {});
+    }
   }
 
   if (remaining <= 0 && state.pausedRemainingMs === null) {
