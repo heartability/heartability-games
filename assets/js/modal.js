@@ -87,6 +87,19 @@
           { label: opts.okLabel || "ok", value: undefined, variant: "primary" }
         ]
       });
+    },
+    // Single-action popup: one primary button plus the titlebar × — for
+    // "here's a next step" prompts (e.g. "saved! want to review it?") where
+    // there's no real "cancel", just "do the thing" or "dismiss". Resolves
+    // true if the button was clicked, false for × / Escape / overlay dismiss.
+    action: function (title, message, opts) {
+      opts = opts || {};
+      return open(title, message, {
+        escValue: false,
+        items: [
+          { label: opts.label || "ok", value: true, variant: opts.variant || "primary" }
+        ]
+      });
     }
   };
 })();

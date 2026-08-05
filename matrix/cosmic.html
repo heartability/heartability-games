@@ -121,6 +121,11 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
   width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
 }
 .quad-popup-window .lib-titlebar { display: none; }
+/* Journal panel brings its own bordered/shadowed card too — same "box
+   nested in a box" fix as .lib-window above. */
+.quad-popup-window .jrc-window {
+  width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
+}
 /* The "recent transits" heading was styled for the dark cosmic-sky
    background (light/cyan text) — now that it renders inside the light
    popup, darken it for contrast. */
@@ -176,9 +181,10 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .adv-quad-prompt[data-quadrant="map"]{ left:27% !important; top:71% !important; }
 .adv-quad-prompt[data-quadrant="bingo"]{ left:27% !important; top:30% !important; }
 /* Shared renderer defaults these dark (#3a4aaa / #7a86bb) for dream/daily's
-   lighter matrix background — cosmic's is the dark sky, so flip to white. */
+   lighter matrix background — cosmic's is the dark sky, so flip to white.
+   Axis labels (external/internal/action/feeling) stay the shared dark blue
+   to match dream/daily. */
 .matrix-panel .matrix-date{ color:#fff; }
-.adv-matrix .adv-axlbl{ color:#fff; }
 .adv-matrix .adv-cap{ color:#fff; }
 .transits-empty{ text-align:center; color:#aaa; font-family:var(--font-hand); font-style:italic; padding:24px 0; }
 .transits-row{ display:flex; align-items:baseline; justify-content:space-between; gap:10px;

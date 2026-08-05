@@ -227,6 +227,11 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
 }
 .quad-popup-window .lib-titlebar { display: none; }
+/* Journal panel brings its own bordered/shadowed card too — same "box
+   nested in a box" fix as .lib-window above. */
+.quad-popup-window .jrc-window {
+  width: 100%; height: 100%; max-width: none; max-height: none; box-shadow: none; border: none;
+}
 
 /* dq-overlay (the location/dayquest builder) stays its own independent
    top-level modal — not nested inside the quad-popup shell — since it's

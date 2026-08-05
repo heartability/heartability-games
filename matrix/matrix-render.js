@@ -855,6 +855,10 @@
         if (error) throw error;
         _dirty = false;
         status('scrapbook saved ✓', '#6ab86a');
+        if (window.HGModal) {
+          HGModal.action('saved!', 'your matrix is saved! want to review your progress?', { label: 'archive →' })
+            .then(go => { if (go) window.location.href = 'archive.html'; });
+        }
       } catch(err){
         console.error('[matrix-render] save failed:', err);
         status('save failed — try again', '#E8478B');
@@ -1871,7 +1875,8 @@
 .mrm-text-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
 .mrm-text-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
 .mrm-text-preview-body {
-  position:absolute; overflow:hidden; text-align:left; word-break:break-word; white-space:pre-wrap;
+  position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
+  display:flex; align-items:center; justify-content:center;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
 }
 .mrm-stationery-plain-glyph { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:28px; color:#3a2e1e; }

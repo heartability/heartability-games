@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../assets/elements/favicon.png">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<script src="../assets/js/modal.js" defer></script>
+<link rel="stylesheet" href="../assets/css/nav.css">
+<title>Timelapse — Heartability</title>
+<meta name="description" content="Set a timer and watch a themed timelapse play out over the exact length of your session — a small act of intention-setting while you wait.">
+<meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
+<style>
+@font-face { font-family:"ZoesHandwriting"; src:url("../assets/fonts/ZoesHandwriting-Regular.ttf") format("truetype"); }
+@font-face { font-family:"PFPixelscript";  src:url("../assets/fonts/PFPixelscriptProRegular.ttf") format("truetype"); }
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  color-scheme: light;
+  --font-hand:  "ZoesHandwriting", cursive;
+  --font-pixel: "PFPixelscript", cursive;
+  --font-game:  "VT323", monospace;
+  --line-col:   #111;
+  --blue:       #6579e2;
+  --blue-dk:    #4a5bc4;
+  --blue-sh:    #3a4aaa;
+  --aqua:       #83d2e6;
+  --ink:        #000f5a;
+  --cream:      #cdd3ec;
+  --back-wall:  #f1ebe4;
+  --bw-top:    9%;  --bw-left:  15%;
+  --bw-width: 70%;  --bw-height:70%;
+}
+
+html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
+  background:url("../assets/elements/matrix-dream.png") center / cover no-repeat fixed;
+  font-family:var(--font-hand); color:var(--ink); }
+
+/* ── NAV BAR ── */
+.room-nav {
+  position:fixed; top:0; left:0; right:0; height:44px;
+  background:#6e83d3; border-bottom:2px solid var(--line-col);
+  z-index:200; display:flex; align-items:center;
+  justify-content:space-between; padding:0 clamp(12px,2vw,28px);
+  font-family:var(--font-hand); font-size:clamp(21px,1.6vw,25px); color:#fff;
+}
+.nav-title { position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; margin:0; font:inherit; }
+.nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; background:none; border:none; font:inherit; }
+.nav-btn:hover { background:rgba(0,0,0,.08); }
+
+/* ── Map dropdown ── */
+.map-wrap { position:relative; }
+.map-btn { display:flex; align-items:center; gap:4px; }
+.map-dropdown {
+  position:absolute; top:calc(100% + 4px); right:0; min-width:170px;
+  background:#6e83d3; border:2px solid var(--line-col);
+  box-shadow:3px 4px 0 rgba(0,0,0,.12);
+  z-index:201; display:none; flex-direction:column; overflow:hidden;
+}
+.map-dropdown.open { display:flex; }
+.map-item {
+  display:block;
+  font-family:var(--font-hand); font-size:clamp(15px,1.3vw,18px); color:#fff;
+  padding:9px 14px; cursor:pointer; border:none; background:none;
+  text-align:left; white-space:nowrap; transition:background .12s;
+  text-decoration:none;
+}
+.map-item:hover { background:rgba(0,0,0,.07); }
+.map-item.current { color:rgba(255,255,255,.55); cursor:default; }
+.map-item.current:hover { background:none; }
+
+/* ── CONTENT PANEL — same fixed back-wall position every matrix page uses ── */
+.content-panel {
+  position:fixed; top:var(--bw-top); left:var(--bw-left);
+  width:var(--bw-width); height:var(--bw-height); z-index:10;
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  overflow-y:auto; padding:20px;
+}
+.content-panel.active { display:flex; }
+
+/* ── PICKER STEP ── */
+.picker-head { text-align:center; margin-bottom:18px; }
+.picker-head h2 { font-size:clamp(24px,2.4vw,32px); font-weight:normal; color:var(--ink); }
+.picker-head p { font-size:clamp(14px,1.2vw,16px); color:#555; margin-top:4px; }
+
+.theme-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+  gap:14px; width:100%; max-width:780px;
+}
+.theme-card {
+  border:2px solid var(--blue); background:var(--cream);
+  cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:6px;
+  transition:border-color .15s, box-shadow .12s, transform .1s;
+  aspect-ratio:4/5;
+}
+.theme-card:hover { box-shadow:3px 3px 0 var(--blue-sh); transform:translateY(-2px); }
+.theme-card.selected { border-color:var(--blue-dk); box-shadow:3px 3px 0 var(--blue-sh); }
+.theme-card-visual {
+  flex:1; background-size:cover; background-position:center;
+  background-color:var(--blue); display:flex; align-items:center; justify-content:center;
+  color:#fff; font-family:var(--font-hand); font-size:13px; text-align:center; padding:6px;
+}
+.theme-card-label {
+  font-family:var(--font-hand); font-size:clamp(14px,1.2vw,16px); text-align:center; color:var(--ink);
+}
+
+.a11y-toggle {
+  margin-top:16px; display:flex; align-items:center; gap:6px;
+  font-size:14px; color:#555; cursor:pointer;
+}
+
+/* ── SETUP / PREVIEW STEP ── */
+.setup-panel { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:520px; }
+.setup-preview {
+  width:100%; aspect-ratio:16/9; background:#000; overflow:hidden;
+  border:3px solid var(--blue); position:relative;
+}
+.setup-preview video, .setup-preview .no-video-fallback { width:100%; height:100%; object-fit:cover; }
+.no-video-fallback {
+  display:flex; align-items:center; justify-content:center;
+  background:var(--blue); color:#fff; font-family:var(--font-hand); font-size:18px;
+}
+.setup-theme-label { font-size:clamp(18px,1.8vw,24px); color:var(--ink); }
+
+.timer-fields { display:flex; align-items:center; gap:8px; }
+.timer-fields input {
+  width:64px; font-family:var(--font-game); font-size:28px; text-align:center;
+  border:2px solid var(--blue); background:#fff; padding:4px;
+}
+.timer-fields span { font-family:var(--font-game); font-size:28px; }
+.timer-hint { font-size:12px; color:#888; }
+
+.sound-toggle { display:flex; align-items:center; gap:6px; font-size:14px; color:#555; cursor:pointer; }
+
+.btn-row { display:flex; gap:10px; }
+.pixel-btn {
+  font-family:var(--font-hand); font-size:16px; color:#fff; cursor:pointer;
+  background:var(--blue); border:2px solid var(--blue-dk); box-shadow:3px 3px 0 var(--blue-sh);
+  padding:8px 18px;
+}
+.pixel-btn:active { box-shadow:none; transform:translate(3px,3px); }
+.pixel-btn.secondary { background:#8892b8; border-color:#6c7599; box-shadow:3px 3px 0 #565e82; }
+.pixel-btn:disabled { opacity:.5; cursor:default; box-shadow:none; }
+
+/* ── RUNNING STEP ── */
+.running-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; position:relative; }
+.running-video, .running-numeral { width:100%; height:100%; object-fit:cover; }
+.running-numeral {
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;
+  background:var(--blue); color:#fff;
+}
+.running-numeral .theme-word { font-family:var(--font-hand); font-size:clamp(18px,2vw,26px); opacity:.85; }
+.running-numeral .big-clock { font-family:var(--font-game); font-size:clamp(48px,8vw,96px); }
+.countdown-overlay {
+  position:absolute; top:14px; right:16px; font-family:var(--font-game);
+  font-size:clamp(20px,2vw,28px); color:rgba(255,255,255,.75); text-shadow:1px 1px 2px rgba(0,0,0,.4);
+  pointer-events:none;
+}
+.running-controls {
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px;
+}
+
+/* ── COMPLETION STEP ── */
+.completion-panel {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  background:var(--cream); border:3px solid var(--blue); padding:28px 32px;
+}
+.completion-panel h3 { font-size:clamp(20px,2vw,26px); font-weight:normal; color:var(--ink); }
+
+@media (max-width:768px) {
+  :root { --bw-top:52px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 52px); }
+  .content-panel { padding:14px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="room-nav">
+  <div id="gear-slot"></div>
+  <h1 class="nav-title">timelapse</h1>
+  <div class="map-wrap" id="map-wrap">
+    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
+    <div class="map-dropdown" id="map-dropdown">
+      <a class="map-item" href="../rooms/bed.html">bedroom</a>
+      <a class="map-item" href="../rooms/game-room.html">game room</a>
+      <a class="map-item" href="../rooms/patio.html">patio</a>
+      <a class="map-item" href="../rooms/library.html">library</a>
+      <a class="map-item" href="../rooms/salon.html">salon</a>
+      <span class="map-item current">timelapse</span>
+    </div>
+  </div>
+</nav>
+
+<div class="content-panel active" id="content-panel">
+  <!-- filled dynamically -->
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/nav.js" defer></script>
+<script>
+// ── SUPABASE (nav-only — this page has no gated content or per-user data) ──
+const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const VIDEO_BUCKET = 'timelapse-videos';
+const STATE_KEY = 'timelapseState';
+const MIN_SECONDS = 10;
+const MAX_SECONDS = 3 * 60 * 60;
+const MIN_RATE = 0.25;
+const MAX_RATE = 4;
+
+const THEMES = [
+  { slug: 'ice',       title: 'Ice cube melting',       theme: 'High adrenaline' },
+  { slug: 'hourglass', title: 'Hourglass',              theme: 'Patience' },
+  { slug: 'tide',      title: 'High tide',              theme: 'Starting over' },
+  { slug: 'seed',      title: 'Seed pops through soil', theme: 'New beginning' },
+  { slug: 'flower',    title: 'Flower blooming',        theme: 'Becoming' },
+  { slug: 'candle',    title: 'Candle burning',         theme: 'Ritual time' },
+  { slug: 'fog',       title: 'Fog clearing',           theme: 'Clarity' },
+  { slug: 'sunset',    title: 'Sunset',                 theme: 'Wind down' },
+  { slug: 'sunrise',   title: 'Sunrise',                theme: 'Rise again' },
+  { slug: 'rainbow',   title: 'Rain becomes rainbow',   theme: 'Acceptance' },
+  { slug: 'spider',    title: "Spider's web forming",   theme: 'Creative focus' },
+];
+
+function videoUrl(slug) {
+  return sb.storage.from(VIDEO_BUCKET).getPublicUrl(`${slug}.mp4`).data.publicUrl;
+}
+function posterUrl(slug) {
+  return `../assets/elements/timelapse/${slug}.png`;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function saveState(state) {
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function clearState() {
+  try { localStorage.removeItem(STATE_KEY); } catch (e) {}
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function fmtClock(ms) {
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [523.25, 783.99].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = now + i * 0.18;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.15, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.9);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 1);
+    });
+  } catch (e) {}
+}
+
+const panel = document.getElementById('content-panel');
+let tickIntervalId = null;
+let leavingConfirmed = false;
+
+function render(html) { panel.innerHTML = html; }
+
+// ── STEP: picker ──────────────────────────────────────────
+function renderPicker() {
+  const cards = THEMES.map(t => `
+    <div class="theme-card" data-slug="${t.slug}" onclick="selectTheme('${t.slug}')" title="${t.title}">
+      <div class="theme-card-visual" style="background-image:url('${posterUrl(t.slug)}')"></div>
+      <div class="theme-card-label">${t.theme}</div>
+    </div>`).join('');
+
+  render(`
+    <div class="picker-head">
+      <h2>choose a theme</h2>
+      <p>set a timer, and watch it play out over the exact length of your session</p>
+    </div>
+    <div class="theme-grid">${cards}</div>
+    <label class="a11y-toggle">
+      <input type="checkbox" id="a11y-checkbox" ${prefersReducedMotion() ? 'checked' : ''}>
+      text-only mode (no video motion)
+    </label>
+  `);
+}
+
+function selectTheme(slug) {
+  const textOnly = document.getElementById('a11y-checkbox').checked;
+  renderSetup(THEMES.find(t => t.slug === slug), textOnly);
+}
+
+// ── STEP: setup / preview ────────────────────────────────
+function renderSetup(themeObj, textOnly) {
+  render(`
+    <div class="setup-panel">
+      <div class="setup-preview" id="setup-preview">
+        ${textOnly
+          ? `<div class="no-video-fallback">${themeObj.theme}</div>`
+          : `<video id="preview-video" muted autoplay loop playsinline preload="auto" src="${videoUrl(themeObj.slug)}"></video>`}
+      </div>
+      <div class="setup-theme-label">${themeObj.theme}</div>
+      <div class="timer-fields">
+        <input type="number" id="min-input" min="0" max="180" value="5" aria-label="minutes">
+        <span>:</span>
+        <input type="number" id="sec-input" min="0" max="59" value="0" aria-label="seconds">
+      </div>
+      <div class="timer-hint">10 seconds minimum, 3 hours maximum</div>
+      <label class="sound-toggle">
+        <input type="checkbox" id="sound-checkbox">
+        🔔 play a soft chime when the timer ends
+      </label>
+      <div class="btn-row">
+        <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
+        <button class="pixel-btn" id="start-btn" onclick="startTimer('${themeObj.slug}', ${textOnly})" ${textOnly ? '' : 'disabled'}>start</button>
+      </div>
+    </div>
+  `);
+
+  if (!textOnly) {
+    const video = document.getElementById('preview-video');
+    const startBtn = document.getElementById('start-btn');
+    video.addEventListener('loadedmetadata', () => { startBtn.disabled = false; }, { once: true });
+  }
+}
+
+function readTimerSeconds() {
+  const min = parseInt(document.getElementById('min-input').value, 10) || 0;
+  const sec = parseInt(document.getElementById('sec-input').value, 10) || 0;
+  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, min * 60 + sec));
+}
+
+// ── STEP: running ─────────────────────────────────────────
+function startTimer(slug, textOnly) {
+  const timerSeconds = readTimerSeconds();
+  const themeObj = THEMES.find(t => t.slug === slug);
+  const playSound = !!document.getElementById('sound-checkbox').checked;
+
+  let playbackRate = 1;
+  let loop = false;
+
+  if (!textOnly) {
+    const video = document.getElementById('preview-video');
+    const nativeDuration = video.duration || timerSeconds;
+    const rawRate = nativeDuration / timerSeconds;
+    if (rawRate > MAX_RATE) { playbackRate = MAX_RATE; loop = true; }
+    else if (rawRate < MIN_RATE) { playbackRate = 1; loop = true; }
+    else { playbackRate = rawRate; loop = false; }
+  }
+
+  const state = {
+    slug, timerSeconds, playbackRate, loop, textOnly, playSound,
+    startedAt: Date.now(),
+    pausedRemainingMs: null,
+  };
+  saveState(state);
+  renderRunning(themeObj, state);
+}
+
+function renderRunning(themeObj, state) {
+  render(`
+    <div class="running-panel">
+      ${state.textOnly
+        ? `<div class="running-numeral"><div class="theme-word">${themeObj.theme}</div><div class="big-clock" id="big-clock">--:--</div></div>`
+        : `<video class="running-video" id="running-video" src="${videoUrl(state.slug)}" muted playsinline ${state.loop ? 'loop' : ''}></video>
+           <div class="countdown-overlay" id="countdown-overlay"></div>`}
+      <div class="running-controls">
+        <button class="pixel-btn secondary" id="pause-btn" onclick="togglePause()">pause</button>
+      </div>
+    </div>
+  `);
+
+  if (!state.textOnly) {
+    const video = document.getElementById('running-video');
+    video.playbackRate = state.playbackRate;
+    const remaining = currentRemaining(state);
+    if (remaining > 0) {
+      video.currentTime = Math.max(0, video.duration ? video.duration - remaining / 1000 * state.playbackRate : 0);
+      video.play().catch(() => {});
+    }
+  }
+
+  window.addEventListener('beforeunload', beforeUnloadGuard);
+  startTickLoop();
+}
+
+function currentRemaining(state) {
+  if (state.pausedRemainingMs !== null) return state.pausedRemainingMs;
+  return state.timerSeconds * 1000 - (Date.now() - state.startedAt);
+}
+
+function beforeUnloadGuard(e) {
+  const state = loadState();
+  if (state && state.pausedRemainingMs === null && currentRemaining(state) > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+}
+
+function togglePause() {
+  const state = loadState();
+  if (!state) return;
+  const video = document.getElementById('running-video');
+  if (state.pausedRemainingMs === null) {
+    state.pausedRemainingMs = Math.max(0, currentRemaining(state));
+    if (video) video.pause();
+    document.getElementById('pause-btn').textContent = 'resume';
+  } else {
+    state.startedAt = Date.now() - (state.timerSeconds * 1000 - state.pausedRemainingMs);
+    state.pausedRemainingMs = null;
+    if (video) video.play().catch(() => {});
+    document.getElementById('pause-btn').textContent = 'pause';
+  }
+  saveState(state);
+}
+
+function startTickLoop() {
+  if (tickIntervalId) clearInterval(tickIntervalId);
+  tick();
+  tickIntervalId = setInterval(tick, 250);
+}
+
+function tick() {
+  const state = loadState();
+  if (!state) return;
+  const remaining = currentRemaining(state);
+
+  if (state.textOnly) {
+    const clockEl = document.getElementById('big-clock');
+    if (clockEl) clockEl.textContent = fmtClock(remaining);
+  } else {
+    const overlay = document.getElementById('countdown-overlay');
+    if (overlay) overlay.textContent = fmtClock(remaining);
+  }
+
+  if (remaining <= 0 && state.pausedRemainingMs === null) {
+    completeTimer(state);
+  }
+}
+
+function completeTimer(state) {
+  clearInterval(tickIntervalId);
+  window.removeEventListener('beforeunload', beforeUnloadGuard);
+  const video = document.getElementById('running-video');
+  if (video) {
+    video.loop = false;
+    video.pause();
+    if (video.duration) video.currentTime = video.duration;
+  }
+  if (state.playSound) playChime();
+  clearState();
+
+  const controls = document.querySelector('.running-controls');
+  if (controls) controls.remove();
+
+  const themeObj = THEMES.find(t => t.slug === state.slug);
+  const panelEl = document.querySelector('.running-panel') || panel;
+  const completion = document.createElement('div');
+  completion.className = 'completion-panel';
+  completion.style.position = 'absolute';
+  completion.style.top = '50%';
+  completion.style.left = '50%';
+  completion.style.transform = 'translate(-50%, -50%)';
+  completion.innerHTML = `
+    <h3>${themeObj.theme} — complete</h3>
+    <div class="btn-row">
+      <button class="pixel-btn" onclick="renderSetup(THEMES.find(t=>t.slug==='${state.slug}'), ${state.textOnly})">restart</button>
+      <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
+    </div>
+  `;
+  panelEl.appendChild(completion);
+}
+
+// ── Map dropdown ──────────────────────────────────────────
+function toggleMap() { document.getElementById('map-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const mw = document.getElementById('map-wrap');
+  if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
+});
+document.querySelectorAll('.map-item[href]').forEach(link => {
+  link.addEventListener('click', async (e) => {
+    const state = loadState();
+    if (state && state.pausedRemainingMs === null && currentRemaining(state) > 0) {
+      e.preventDefault();
+      const ok = await HGModal.confirm('leave timelapse?', 'your timer is still running — progress will keep counting down in the background if you leave.');
+      if (ok) window.location.href = e.currentTarget.href;
+    }
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────
+async function resolveUsername(user) {
+  try {
+    const { data: profile } = await sb.from('user-profiles').select('username').eq('id', user.id).single();
+    return profile?.username || user.email.split('@')[0];
+  } catch (e) { return user.email.split('@')[0]; }
+}
+
+function init() {
+  const existing = loadState();
+  if (existing) {
+    const themeObj = THEMES.find(t => t.slug === existing.slug);
+    if (themeObj) {
+      const remaining = currentRemaining(existing);
+      if (remaining <= 0 && existing.pausedRemainingMs === null) {
+        clearState();
+        renderPicker();
+      } else {
+        renderRunning(themeObj, existing);
+        return;
+      }
+      return;
+    }
+  }
+  renderPicker();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  HeartabilityNav.init({
+    mount: '#gear-slot',
+    assetsBase: '../assets',
+    authMode: 'dynamic',
+    sb: sb,
+    profileHref: '../users/account-settings.html',
+    music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
+  });
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      resolveUsername(session.user).then(username => {
+        HeartabilityNav.setAuthState({ loggedIn: true, username });
+      });
+    } else if (event === 'SIGNED_OUT') {
+      HeartabilityNav.setAuthState({ loggedIn: false });
+    }
+  });
+
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (session) {
+      const username = await resolveUsername(session.user);
+      HeartabilityNav.setAuthState({ loggedIn: true, username });
+    }
+  });
+
+  init();
+});
+</script>
+</body>
+</html>
