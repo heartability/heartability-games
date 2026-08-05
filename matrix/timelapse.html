@@ -167,12 +167,30 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
   display:flex; gap:10px; z-index:20;
 }
 .running-close-btn {
-  position:absolute; top:14px; right:16px; z-index:20;
+  position:absolute; top:14px; right:16px; z-index:30;
   width:32px; height:32px; display:flex; align-items:center; justify-content:center;
   background:rgba(0,0,0,.35); color:#fff; font-size:18px; line-height:1;
   border:none; border-radius:50%; cursor:pointer;
 }
 .running-close-btn:hover { background:rgba(0,0,0,.55); }
+
+/* ── ROTATE HINT — on a narrow phone screen the timer is meant to be
+   watched in landscape (propped up like a little clock), so hide the
+   video/clock behind a rotate prompt until the device is actually turned.
+   Pure CSS/media-query driven — reacts live to orientation change, no JS. ── */
+.rotate-hint {
+  display:none; position:absolute; inset:0; z-index:25;
+  background:var(--blue); color:#fff; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; font-family:var(--font-hand); font-size:18px; text-align:center; padding:20px;
+}
+.rotate-hint-icon { font-size:44px; display:inline-block; animation:rotate-hint-spin 2.4s ease-in-out infinite; }
+@keyframes rotate-hint-spin {
+  0%, 40%, 100% { transform:rotate(0deg); }
+  70%, 90% { transform:rotate(90deg); }
+}
+@media (max-width:768px) and (orientation:portrait) {
+  .rotate-hint { display:flex; }
+}
 
 /* ── COMPLETION STEP ── */
 .completion-panel {
@@ -320,7 +338,7 @@ function renderPicker() {
       ${cards}
       <div class="theme-card a11y-card ${prefersReducedMotion() ? 'selected' : ''}" id="a11y-card" onclick="toggleA11yCard()" title="play as text only, no video motion">
         <div class="theme-card-visual a11y-card-visual">Aa</div>
-        <div class="theme-card-label">text-only mode</div>
+        <div class="theme-card-label">only numbers</div>
       </div>
     </div>
   `);
@@ -403,9 +421,13 @@ function renderRunning(themeObj, state) {
   render(`
     <div class="running-panel">
       <button class="running-close-btn" onclick="exitToPicker()" aria-label="close" title="close">&#x2715;</button>
+      <div class="rotate-hint">
+        <span class="rotate-hint-icon">📱</span>
+        <div>turn your phone sideways<br>to watch</div>
+      </div>
       ${state.textOnly
         ? `<div class="running-numeral"><div class="theme-word">${themeObj.theme}</div><div class="big-clock" id="big-clock">--:--</div></div>`
-        : `<video class="running-video" id="running-video" src="${videoUrl(state.slug)}" muted playsinline></video>
+        : `<video class="running-video" id="running-video" src="${videoUrl(state.slug)}" muted playsinline preload="auto"></video>
            <div class="countdown-overlay" id="countdown-overlay"></div>`}
       <div class="running-controls">
         <button class="pixel-btn secondary" id="pause-btn" onclick="togglePause()">pause</button>
@@ -418,11 +440,31 @@ function renderRunning(themeObj, state) {
   if (!state.textOnly) {
     const video = document.getElementById('running-video');
     try { video.playbackRate = state.playbackRate; } catch (e) {}
-    const remaining = currentRemaining(state);
-    if (remaining > 0) {
-      video.currentTime = Math.max(0, video.duration ? video.duration - remaining / 1000 * state.playbackRate : 0);
-      video.play().catch(() => {});
-    }
+
+    const seekToOffset = () => {
+      const remaining = currentRemaining(loadState() || state);
+      if (remaining <= 0 || !video.duration) return;
+      // Only seek if resuming meaningfully into the clip (paused/reloaded
+      // mid-session) — seeking on a fresh start (target ≈ 0, already the
+      // video's position) was interrupting the browser's initial buffering.
+      const target = Math.max(0, video.duration - (remaining / 1000) * state.playbackRate);
+      if (Math.abs(video.currentTime - target) > 0.35) video.currentTime = target;
+    };
+    const resumeIfShouldPlay = () => {
+      const s = loadState();
+      if (s && s.pausedRemainingMs === null && currentRemaining(s) > 0) {
+        video.play().catch(() => {});
+      }
+    };
+
+    if (video.readyState >= 1) seekToOffset();
+    else video.addEventListener('loadedmetadata', seekToOffset, { once: true });
+
+    // Calling play() before enough data is buffered can make the browser
+    // silently pause itself (readyState stuck at HAVE_METADATA) and never
+    // resume on its own — retry whenever it actually reports ready.
+    video.addEventListener('canplay', resumeIfShouldPlay);
+    resumeIfShouldPlay();
   }
 
   window.addEventListener('beforeunload', beforeUnloadGuard);
