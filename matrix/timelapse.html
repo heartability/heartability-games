@@ -30,11 +30,9 @@
   --ink:        #000f5a;
   --cream:      #cdd3ec;
   --back-wall:  #f1ebe4;
-  --bw-top:    9%;  --bw-left:  15%;
-  --bw-width: 70%;  --bw-height:70%;
 }
 
-html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
+html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto; user-select:none;
   background:url("../assets/elements/matrix-dream.png") center / cover no-repeat fixed;
   font-family:var(--font-hand); color:var(--ink); }
 
@@ -71,16 +69,17 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .map-item.current { color:rgba(255,255,255,.55); cursor:default; }
 .map-item.current:hover { background:none; }
 
-/* ── CONTENT PANEL — same fixed back-wall position every matrix page uses ── */
+/* ── CONTENT PANEL — normal document flow so the whole page grows/scrolls
+   instead of clipping into its own internal scrollbar; fullbleed (running
+   step) overrides back to a fixed, viewport-covering box. ── */
 .content-panel {
-  position:fixed; top:var(--bw-top); left:var(--bw-left);
-  width:var(--bw-width); height:var(--bw-height); z-index:10;
-  display:none; flex-direction:column; align-items:center; justify-content:center;
-  overflow-y:auto; padding:20px;
+  position:relative; margin:64px auto 60px; width:min(92vw, 940px);
+  z-index:10; display:none; flex-direction:column; align-items:center;
+  padding:20px;
 }
 .content-panel.active { display:flex; }
 .content-panel.fullbleed {
-  top:44px; left:0; width:100vw; height:calc(100dvh - 44px);
+  position:fixed; margin:0; top:44px; left:0; width:100vw; height:calc(100dvh - 44px);
   padding:0; z-index:15;
 }
 
@@ -90,9 +89,10 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .picker-head p { font-size:clamp(14px,1.2vw,16px); color:#555; margin-top:4px; }
 
 .theme-grid {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
-  gap:14px; width:100%; max-width:780px;
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  gap:14px; width:100%; max-width:800px;
 }
+@media (max-width:640px) { .theme-grid { grid-template-columns:repeat(2, 1fr); } }
 .theme-card {
   border:2px solid var(--blue); background:var(--cream);
   cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:6px;
@@ -110,10 +110,9 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   font-family:var(--font-hand); font-size:clamp(14px,1.2vw,16px); text-align:center; color:var(--ink);
 }
 
-.a11y-toggle {
-  margin-top:16px; display:flex; align-items:center; gap:6px;
-  font-size:14px; color:#555; cursor:pointer;
-}
+.a11y-card { border-style:dashed; }
+.a11y-card.selected { border-style:solid; }
+.a11y-card-visual { font-family:var(--font-hand); font-size:34px; font-weight:600; }
 
 /* ── SETUP / PREVIEW STEP ── */
 .setup-panel { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:520px; }
@@ -183,9 +182,8 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .completion-panel h3 { font-size:clamp(20px,2vw,26px); font-weight:normal; color:var(--ink); }
 
 @media (max-width:768px) {
-  :root { --bw-top:52px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 52px); }
-  .content-panel { padding:14px; }
-  .content-panel.fullbleed { top:52px; height:calc(100dvh - 52px); padding:0; }
+  .content-panel { padding:14px; margin-top:56px; }
+  .content-panel.fullbleed { top:52px; height:calc(100dvh - 52px); padding:0; margin:0; }
 }
 </style>
 </head>
@@ -227,17 +225,17 @@ const MIN_SECONDS = 10;
 const MAX_SECONDS = 3 * 60 * 60;
 
 const THEMES = [
-  { slug: 'ice',       title: 'Ice cube melting',       theme: 'High adrenaline' },
-  { slug: 'hourglass', title: 'Hourglass',              theme: 'Patience' },
-  { slug: 'tide',      title: 'High tide',              theme: 'Starting over' },
-  { slug: 'seed',      title: 'Seed pops through soil', theme: 'New beginning' },
-  { slug: 'flower',    title: 'Flower blooming',        theme: 'Becoming' },
-  { slug: 'candle',    title: 'Candle burning',         theme: 'Ritual time' },
-  { slug: 'fog',       title: 'Fog clearing',           theme: 'Clarity' },
-  { slug: 'sunset',    title: 'Sunset',                 theme: 'Wind down' },
-  { slug: 'sunrise',   title: 'Sunrise',                theme: 'Rise again' },
   { slug: 'rainbow',   title: 'Rain becomes rainbow',   theme: 'Acceptance' },
+  { slug: 'flower',    title: 'Flower blooming',        theme: 'Becoming' },
+  { slug: 'fog',       title: 'Fog clearing',           theme: 'Clarity' },
   { slug: 'spider',    title: "Spider's web forming",   theme: 'Creative focus' },
+  { slug: 'ice',       title: 'Ice cube melting',       theme: 'High adrenaline' },
+  { slug: 'seed',      title: 'Seed pops through soil', theme: 'New beginning' },
+  { slug: 'hourglass', title: 'Hourglass',              theme: 'Patience' },
+  { slug: 'candle',    title: 'Candle burning',         theme: 'Ritual time' },
+  { slug: 'sunrise',   title: 'Sunrise',                theme: 'Rise again' },
+  { slug: 'tide',      title: 'High tide',              theme: 'Starting over' },
+  { slug: 'sunset',    title: 'Sunset',                 theme: 'Wind down' },
 ];
 
 function videoUrl(slug) {
@@ -318,16 +316,22 @@ function renderPicker() {
       <h2>choose a theme</h2>
       <p>set a timer, and watch it play out over the exact length of your session</p>
     </div>
-    <div class="theme-grid">${cards}</div>
-    <label class="a11y-toggle">
-      <input type="checkbox" id="a11y-checkbox" ${prefersReducedMotion() ? 'checked' : ''}>
-      text-only mode (no video motion)
-    </label>
+    <div class="theme-grid">
+      ${cards}
+      <div class="theme-card a11y-card ${prefersReducedMotion() ? 'selected' : ''}" id="a11y-card" onclick="toggleA11yCard()" title="play as text only, no video motion">
+        <div class="theme-card-visual a11y-card-visual">Aa</div>
+        <div class="theme-card-label">text-only mode</div>
+      </div>
+    </div>
   `);
 }
 
+function toggleA11yCard() {
+  document.getElementById('a11y-card').classList.toggle('selected');
+}
+
 function selectTheme(slug) {
-  const textOnly = document.getElementById('a11y-checkbox').checked;
+  const textOnly = document.getElementById('a11y-card').classList.contains('selected');
   renderSetup(THEMES.find(t => t.slug === slug), textOnly);
 }
 
