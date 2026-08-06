@@ -139,7 +139,9 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
 .timer-fields span { font-family:var(--font-game); font-size:28px; }
 .timer-hint { font-size:12px; color:#888; }
 
-.sound-toggle { display:flex; align-items:center; gap:6px; font-size:14px; color:#555; cursor:pointer; }
+.sound-picker { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px; font-size:14px; color:#555; }
+.sound-picker-label { color:#555; }
+.sound-option { display:flex; align-items:center; gap:4px; cursor:pointer; }
 
 .btn-row { display:flex; gap:10px; }
 .pixel-btn {
@@ -298,23 +300,18 @@ function fmtClock(ms) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function playChime() {
+const SOUND_OPTIONS = [
+  { id: 'none',  label: 'no sound' },
+  { id: 'bells', label: 'bells', file: 'bells_web.wav' },
+  { id: 'gong',  label: 'gong',  file: 'gong_web.wav' },
+  { id: 'omni',  label: 'omni',  file: 'omni_web.wav' },
+];
+
+function playCompletionSound(soundId) {
+  const opt = SOUND_OPTIONS.find(o => o.id === soundId);
+  if (!opt || !opt.file) return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = ctx.currentTime;
-    [523.25, 783.99].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const start = now + i * 0.18;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.15, start + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.9);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + 1);
-    });
+    new Audio(`../assets/sounds/${opt.file}`).play().catch(() => {});
   } catch (e) {}
 }
 
@@ -380,10 +377,14 @@ function renderSetup(themeObj, textOnly) {
         <input type="number" id="sec-input" min="0" max="59" value="0" aria-label="seconds">
       </div>
       <div class="timer-hint">10 seconds minimum, 3 hours maximum</div>
-      <label class="sound-toggle">
-        <input type="checkbox" id="sound-checkbox">
-        🔔 play a soft chime when the timer ends
-      </label>
+      <div class="sound-picker">
+        <span class="sound-picker-label">🔔 sound when it ends:</span>
+        ${SOUND_OPTIONS.map((opt, i) => `
+          <label class="sound-option">
+            <input type="radio" name="sound-choice" value="${opt.id}" ${i === 0 ? 'checked' : ''} ${opt.file ? `onclick="playCompletionSound('${opt.id}')"` : ''}>
+            ${opt.label}
+          </label>`).join('')}
+      </div>
       <div class="btn-row">
         <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
         <button class="pixel-btn" id="start-btn" onclick="startTimer('${themeObj.slug}', ${textOnly})" ${textOnly ? '' : 'disabled'}>start</button>
@@ -408,14 +409,23 @@ function readTimerSeconds() {
 function startTimer(slug, textOnly) {
   const timerSeconds = readTimerSeconds();
   const themeObj = findTheme(slug);
-  const playSound = !!document.getElementById('sound-checkbox').checked;
+  const sound = document.querySelector('input[name="sound-choice"]:checked')?.value || 'none';
 
   let playbackRate = 1;
+  let scrubMode = false;
+  let nativeDuration = null;
 
   if (!textOnly) {
     const video = document.getElementById('preview-video');
-    const nativeDuration = video.duration || timerSeconds;
-    playbackRate = nativeDuration / timerSeconds;
+    nativeDuration = video.duration || timerSeconds;
+    const rawRate = nativeDuration / timerSeconds;
+    // Chrome clamps HTMLMediaElement.playbackRate to ~0.0625x–16x and
+    // silently plays at its own floor/ceiling outside that range instead
+    // of the requested rate — that's what made short clips on long timers
+    // finish early. Past that range, drive currentTime by hand each tick
+    // instead of asking the browser for a native speed it won't honor.
+    scrubMode = rawRate < 1 / 16 || rawRate > 16;
+    playbackRate = scrubMode ? 1 : rawRate;
     // Stop the preview's own fetch/decode before handing off to the running
     // video — on a slow connection, two elements pulling the same clip at
     // once can starve the one that actually matters.
@@ -425,7 +435,7 @@ function startTimer(slug, textOnly) {
   }
 
   const state = {
-    slug, timerSeconds, playbackRate, textOnly, playSound,
+    slug, timerSeconds, playbackRate, scrubMode, nativeDuration, textOnly, sound,
     startedAt: Date.now(),
     pausedRemainingMs: null,
   };
@@ -455,32 +465,42 @@ function renderRunning(themeObj, state) {
 
   if (!state.textOnly) {
     const video = document.getElementById('running-video');
-    try { video.playbackRate = state.playbackRate; } catch (e) {}
 
-    const seekToOffset = () => {
-      const remaining = currentRemaining(loadState() || state);
-      if (remaining <= 0 || !video.duration) return;
-      // Only seek if resuming meaningfully into the clip (paused/reloaded
-      // mid-session) — seeking on a fresh start (target ≈ 0, already the
-      // video's position) was interrupting the browser's initial buffering.
-      const target = Math.max(0, video.duration - (remaining / 1000) * state.playbackRate);
-      if (Math.abs(video.currentTime - target) > 0.35) video.currentTime = target;
-    };
-    const resumeIfShouldPlay = () => {
-      const s = loadState();
-      if (s && s.pausedRemainingMs === null && currentRemaining(s) > 0) {
-        video.play().catch(() => {});
-      }
-    };
+    if (state.scrubMode) {
+      // Requested rate is outside what Chrome will actually honor — keep
+      // the video paused for the whole session and step currentTime by
+      // hand (see tick()) so progress still tracks the timer exactly.
+      const initScrub = () => updateScrubFrame(loadState() || state);
+      if (video.readyState >= 1) initScrub();
+      else video.addEventListener('loadedmetadata', initScrub, { once: true });
+    } else {
+      try { video.playbackRate = state.playbackRate; } catch (e) {}
 
-    if (video.readyState >= 1) seekToOffset();
-    else video.addEventListener('loadedmetadata', seekToOffset, { once: true });
+      const seekToOffset = () => {
+        const remaining = currentRemaining(loadState() || state);
+        if (remaining <= 0 || !video.duration) return;
+        // Only seek if resuming meaningfully into the clip (paused/reloaded
+        // mid-session) — seeking on a fresh start (target ≈ 0, already the
+        // video's position) was interrupting the browser's initial buffering.
+        const target = Math.max(0, video.duration - (remaining / 1000) * state.playbackRate);
+        if (Math.abs(video.currentTime - target) > 0.35) video.currentTime = target;
+      };
+      const resumeIfShouldPlay = () => {
+        const s = loadState();
+        if (s && s.pausedRemainingMs === null && currentRemaining(s) > 0) {
+          video.play().catch(() => {});
+        }
+      };
 
-    // Calling play() before enough data is buffered can make the browser
-    // silently pause itself (readyState stuck at HAVE_METADATA) and never
-    // resume on its own — retry whenever it actually reports ready.
-    video.addEventListener('canplay', resumeIfShouldPlay);
-    resumeIfShouldPlay();
+      if (video.readyState >= 1) seekToOffset();
+      else video.addEventListener('loadedmetadata', seekToOffset, { once: true });
+
+      // Calling play() before enough data is buffered can make the browser
+      // silently pause itself (readyState stuck at HAVE_METADATA) and never
+      // resume on its own — retry whenever it actually reports ready.
+      video.addEventListener('canplay', resumeIfShouldPlay);
+      resumeIfShouldPlay();
+    }
   }
 
   window.addEventListener('beforeunload', beforeUnloadGuard);
@@ -506,6 +526,20 @@ function currentRemaining(state) {
   return state.timerSeconds * 1000 - (Date.now() - state.startedAt);
 }
 
+// Manually maps elapsed timer time onto a point in the clip, so a clip
+// stretched or compressed past Chrome's ~0.0625x–16x playbackRate range
+// still spans the full timer instead of finishing early/late.
+function updateScrubFrame(state) {
+  const video = document.getElementById('running-video');
+  if (!video) return;
+  const dur = video.duration || state.nativeDuration;
+  if (!dur) return;
+  const elapsed = state.timerSeconds * 1000 - currentRemaining(state);
+  const progress = Math.min(1, Math.max(0, elapsed / (state.timerSeconds * 1000)));
+  const target = progress * dur;
+  if (Math.abs(video.currentTime - target) > 0.02) video.currentTime = target;
+}
+
 function beforeUnloadGuard(e) {
   if (isTimerActive(loadState())) {
     e.preventDefault();
@@ -519,12 +553,15 @@ function togglePause() {
   const video = document.getElementById('running-video');
   if (state.pausedRemainingMs === null) {
     state.pausedRemainingMs = Math.max(0, currentRemaining(state));
-    if (video) video.pause();
+    if (video && !state.scrubMode) video.pause();
     document.getElementById('pause-btn').textContent = 'resume';
   } else {
     state.startedAt = Date.now() - (state.timerSeconds * 1000 - state.pausedRemainingMs);
     state.pausedRemainingMs = null;
-    if (video) video.play().catch(() => {});
+    if (video) {
+      if (state.scrubMode) updateScrubFrame(state);
+      else video.play().catch(() => {});
+    }
     document.getElementById('pause-btn').textContent = 'pause';
   }
   saveState(state);
@@ -547,18 +584,19 @@ function tick() {
   } else {
     const overlay = document.getElementById('countdown-overlay');
     if (overlay) overlay.textContent = fmtClock(remaining);
-    // Watchdog: some networks/devices leave the browser paused on its own
-    // (buffering stall) well after canplay already fired once. Since this
-    // runs every 250ms anyway, just keep nudging play() back on whenever
-    // the timer should be actively running — cheap, and self-heals
-    // regardless of which event sequence caused the stall.
-    // Exclude video.ended: a very slow requested rate (short clip, long
-    // timer) can fall below what the browser plays smoothly and finish
-    // for real well before the timer does — calling play() again on an
-    // already-ended video restarts it from 0, which looks like looping.
-    // Once truly ended, just hold on the final frame until time's up.
     const video = document.getElementById('running-video');
-    if (video && video.paused && !video.ended && state.pausedRemainingMs === null && remaining > 0) {
+    if (video && state.scrubMode) {
+      // Requested rate is outside Chrome's honored playbackRate range —
+      // step the frame by hand so the clip still spans the full timer.
+      if (state.pausedRemainingMs === null) updateScrubFrame(state);
+    } else if (video && video.paused && !video.ended && state.pausedRemainingMs === null && remaining > 0) {
+      // Watchdog: some networks/devices leave the browser paused on its own
+      // (buffering stall) well after canplay already fired once. Since this
+      // runs every 250ms anyway, just keep nudging play() back on whenever
+      // the timer should be actively running — cheap, and self-heals
+      // regardless of which event sequence caused the stall. video.ended is
+      // excluded because within the normal playbackRate range the clip
+      // finishing before the timer means it's genuinely done.
       video.play().catch(() => {});
     }
   }
@@ -577,7 +615,7 @@ function completeTimer(state) {
     video.pause();
     if (video.duration) video.currentTime = video.duration;
   }
-  if (state.playSound) playChime();
+  playCompletionSound(state.sound);
   clearState();
 
   const controls = document.querySelector('.running-controls');
