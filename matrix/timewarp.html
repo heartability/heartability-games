@@ -121,6 +121,10 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
   border:3px solid var(--blue); position:relative;
 }
 .setup-preview video, .setup-preview .no-video-fallback { width:100%; height:100%; object-fit:cover; }
+/* Forces the video onto its own GPU compositing layer — works around a
+   known Chromium-family bug (seen in Arc) where a <video> paints solid
+   black instead of its decoded frames. Harmless no-op where unaffected. */
+.setup-preview video, .running-video { transform:translateZ(0); backface-visibility:hidden; }
 .no-video-fallback {
   display:flex; align-items:center; justify-content:center;
   background:var(--blue); color:#fff; font-family:var(--font-hand); font-size:18px;
@@ -548,8 +552,13 @@ function tick() {
     // runs every 250ms anyway, just keep nudging play() back on whenever
     // the timer should be actively running — cheap, and self-heals
     // regardless of which event sequence caused the stall.
+    // Exclude video.ended: a very slow requested rate (short clip, long
+    // timer) can fall below what the browser plays smoothly and finish
+    // for real well before the timer does — calling play() again on an
+    // already-ended video restarts it from 0, which looks like looping.
+    // Once truly ended, just hold on the final frame until time's up.
     const video = document.getElementById('running-video');
-    if (video && video.paused && state.pausedRemainingMs === null && remaining > 0) {
+    if (video && video.paused && !video.ended && state.pausedRemainingMs === null && remaining > 0) {
       video.play().catch(() => {});
     }
   }
