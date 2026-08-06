@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
-<title>Timelapse — Heartability</title>
+<title>Timewarp — Heartability</title>
 <meta name="description" content="Set a timer and watch a themed timelapse play out over the exact length of your session — a small act of intention-setting while you wait.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
 <style>
@@ -209,7 +209,7 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
 
 <nav class="room-nav">
   <div id="gear-slot"></div>
-  <h1 class="nav-title">timelapse</h1>
+  <h1 class="nav-title">timewarp</h1>
   <div class="map-wrap" id="map-wrap">
     <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
     <div class="map-dropdown" id="map-dropdown">
@@ -218,7 +218,9 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
       <a class="map-item" href="../rooms/patio.html">patio</a>
       <a class="map-item" href="../rooms/library.html">library</a>
       <a class="map-item" href="../rooms/salon.html">salon</a>
-      <span class="map-item current">timelapse</span>
+      <span class="map-item current">timewarp</span>
+      <a class="map-item" href="daily.html">matrix</a>
+      <a class="map-item" href="archive.html">archive</a>
     </div>
   </div>
 </nav>
@@ -255,6 +257,11 @@ const THEMES = [
   { slug: 'tide',      title: 'High tide',              theme: 'Starting over' },
   { slug: 'sunset',    title: 'Sunset',                 theme: 'Wind down' },
 ];
+
+const ONLY_NUMBERS_THEME = { slug: 'only-numbers', title: 'Only numbers', theme: 'take a moment' };
+function findTheme(slug) {
+  return THEMES.find(t => t.slug === slug) || ONLY_NUMBERS_THEME;
+}
 
 function videoUrl(slug) {
   return sb.storage.from(VIDEO_BUCKET).getPublicUrl(`${slug}.mp4`).data.publicUrl;
@@ -345,7 +352,7 @@ function renderPicker() {
 }
 
 function selectOnlyNumbers() {
-  renderSetup({ slug: null, title: 'Only numbers', theme: 'take a moment' }, true);
+  renderSetup(ONLY_NUMBERS_THEME, true);
 }
 
 function selectTheme(slug) {
@@ -396,7 +403,7 @@ function readTimerSeconds() {
 // ── STEP: running ─────────────────────────────────────────
 function startTimer(slug, textOnly) {
   const timerSeconds = readTimerSeconds();
-  const themeObj = THEMES.find(t => t.slug === slug);
+  const themeObj = findTheme(slug);
   const playSound = !!document.getElementById('sound-checkbox').checked;
 
   let playbackRate = 1;
@@ -405,6 +412,12 @@ function startTimer(slug, textOnly) {
     const video = document.getElementById('preview-video');
     const nativeDuration = video.duration || timerSeconds;
     playbackRate = nativeDuration / timerSeconds;
+    // Stop the preview's own fetch/decode before handing off to the running
+    // video — on a slow connection, two elements pulling the same clip at
+    // once can starve the one that actually matters.
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
   }
 
   const state = {
@@ -474,7 +487,7 @@ function renderRunning(themeObj, state) {
 async function exitToPicker() {
   const state = loadState();
   if (hasUnfinishedTimer(state)) {
-    const ok = await HGModal.confirm('leave timelapse?', "your timelapse session hasn't finished — leaving will end it.");
+    const ok = await HGModal.confirm('leave timewarp?', "your timewarp session hasn't finished — leaving will end it.");
     if (!ok) return false;
   }
   clearInterval(tickIntervalId);
@@ -561,7 +574,7 @@ function completeTimer(state) {
   const controls = document.querySelector('.running-controls');
   if (controls) controls.remove();
 
-  const themeObj = THEMES.find(t => t.slug === state.slug);
+  const themeObj = findTheme(state.slug);
   const panelEl = document.querySelector('.running-panel') || panel;
   const completion = document.createElement('div');
   completion.className = 'completion-panel';
@@ -572,7 +585,7 @@ function completeTimer(state) {
   completion.innerHTML = `
     <h3>${themeObj.theme} — complete</h3>
     <div class="btn-row">
-      <button class="pixel-btn" onclick="renderSetup(THEMES.find(t=>t.slug==='${state.slug}'), ${state.textOnly})">restart</button>
+      <button class="pixel-btn" onclick="renderSetup(findTheme('${state.slug}'), ${state.textOnly})">restart</button>
       <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
     </div>
   `;
@@ -589,7 +602,7 @@ document.querySelectorAll('.map-item[href]').forEach(link => {
   link.addEventListener('click', async (e) => {
     if (!isTimerActive(loadState())) return;
     e.preventDefault();
-    const ok = await HGModal.confirm('leave timelapse?', 'your timer is still running — progress will keep counting down in the background if you leave.');
+    const ok = await HGModal.confirm('leave timewarp?', 'your timer is still running — progress will keep counting down in the background if you leave.');
     if (ok) window.location.href = e.currentTarget.href;
   });
 });
@@ -615,8 +628,8 @@ async function resolveUsername(user) {
 function init() {
   const existing = loadState();
   if (existing) {
-    const themeObj = THEMES.find(t => t.slug === existing.slug);
-    if (themeObj) {
+    const themeObj = findTheme(existing.slug);
+    {
       const remaining = currentRemaining(existing);
       if (remaining <= 0 && existing.pausedRemainingMs === null) {
         clearState();
