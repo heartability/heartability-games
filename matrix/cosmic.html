@@ -1422,27 +1422,31 @@ async function renderMatrix(){
 
 function buildTransitBadgeHTML(transit){
   const planets = Array.isArray(transit?.planets) ? transit.planets : [];
-  const aspect = transitAspect(transit);
+  const type = transitType(transit);
   const planetImgs = planets.map(p => `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`);
-  const aspectImg = aspect
-    ? `<img src="../assets/elements/glyphs/${ASPECT_READINGS[aspect].glyph}.png" alt="${aspect}" class="cosmic-transit-glyph cosmic-transit-glyph-aspect" onerror="this.style.display='none'">`
+  const typeImg = type
+    ? `<img src="../assets/elements/glyphs/${TRANSIT_TYPE_READINGS[type].glyph}.png" alt="${type}" class="cosmic-transit-glyph cosmic-transit-glyph-aspect" onerror="this.style.display='none'">`
     : '';
-  // With exactly two planets, the aspect glyph reads naturally between them
-  // (planet — aspect — planet); otherwise just tack it on the end.
+  // With exactly two planets (an aspect between them), the type glyph reads
+  // naturally between them (planet — aspect — planet); otherwise (e.g. a
+  // single-planet retrograde/direct transit) just tack it on the end.
   const inner = planetImgs.length === 2
-    ? planetImgs[0] + aspectImg + planetImgs[1]
-    : planetImgs.join('') + aspectImg;
+    ? planetImgs[0] + typeImg + planetImgs[1]
+    : planetImgs.join('') + typeImg;
   return `<div class="cosmic-transit-badge" title="switch transits">${inner || '<span class="cosmic-transit-badge-fallback">⇄</span>'}</div>`;
 }
 
 // ── TRANSIT READING — "scientific label" style explainer for the active
-// transit's planets + aspect, opened when a transit is selected (see
-// selectTransit). Aspect type isn't its own field in transit_data (each
-// transit is just {transit_id, name, planets[], utc}), so it's read off an
-// optional explicit `aspect` field first, falling back to spotting the
-// aspect word inside `name` (season templates are authored as "<Planet>
-// <Aspect> <Planet>", e.g. "Saturn Square Venus", matching the reference
-// reading card) — works for existing data with no schema change needed.
+// transit's planets + type (an aspect between two planets, e.g. "Saturn
+// Square Venus", or a single planet's motion, e.g. "Mercury Retrograde"),
+// opened when a transit is selected (see selectTransit). Type isn't its own
+// field in transit_data (each transit is just {transit_id, name, planets[],
+// utc}), so it's read off an optional explicit `aspect`/`motion`/`type`
+// field first, falling back to spotting the type word inside `name`
+// (season templates are authored as "<Planet> <Aspect> <Planet>" or
+// "<Planet> <Motion>", e.g. "Saturn Square Venus" / "Mercury Retrograde",
+// matching the reference reading card) — works for existing data with no
+// schema change needed.
 const PLANET_READINGS = {
   sun: 'The sun wants to be seen (skills, performance, legacy)',
   moon: 'The moon wants to feel (emotions, cycles, intuition)',
@@ -1461,29 +1465,34 @@ const ASPECT_READINGS = {
   opposition:  { glyph:'opposition', label:'Oppositions create tension' },
   conjunction: { glyph:'conjunct', label:'Conjunctions create partnership' },
 };
-function transitAspect(t){
-  const explicit = String(t?.aspect || '').toLowerCase();
-  if (ASPECT_READINGS[explicit]) return explicit;
+const MOTION_READINGS = {
+  retrograde: { glyph:'retrograde', label:'Retrograde! Time for review…' },
+  direct:     { glyph:'direct',     label:'Going direct again!' },
+};
+const TRANSIT_TYPE_READINGS = { ...ASPECT_READINGS, ...MOTION_READINGS };
+function transitType(t){
+  const explicit = String(t?.aspect || t?.motion || t?.type || '').toLowerCase();
+  if (TRANSIT_TYPE_READINGS[explicit]) return explicit;
   const name = String(t?.name || t?.transit_id || '').toLowerCase();
-  return Object.keys(ASPECT_READINGS).find(a => name.includes(a))
+  return Object.keys(TRANSIT_TYPE_READINGS).find(a => name.includes(a))
     || (name.includes('conjunct') ? 'conjunction' : null);
 }
 function buildTransitReadingHTML(transit){
   const planets = Array.isArray(transit?.planets) ? transit.planets : [];
-  const aspect = transitAspect(transit);
-  const aspectInfo = aspect ? ASPECT_READINGS[aspect] : null;
-  const heading = aspectInfo ? `<div class="reading-aspect-label">${escSvg(aspectInfo.label)}</div>` : '';
+  const type = transitType(transit);
+  const typeInfo = type ? TRANSIT_TYPE_READINGS[type] : null;
+  const heading = typeInfo ? `<div class="reading-aspect-label">${escSvg(typeInfo.label)}</div>` : '';
   const planetItem = p => PLANET_READINGS[p] ? `<div class="reading-item">
       <img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="reading-item-glyph" onerror="this.style.display='none'">
       <div class="reading-item-dash"></div>
       <div class="reading-item-text">${escSvg(PLANET_READINGS[p])}</div>
     </div>` : '';
-  const aspectItem = aspectInfo ? `<div class="reading-item reading-item-aspect">
-      <img src="../assets/elements/glyphs/${aspectInfo.glyph}.png" alt="${aspect}" class="reading-item-glyph" onerror="this.style.display='none'">
+  const typeItem = typeInfo ? `<div class="reading-item reading-item-aspect">
+      <img src="../assets/elements/glyphs/${typeInfo.glyph}.png" alt="${type}" class="reading-item-glyph" onerror="this.style.display='none'">
     </div>` : '';
   const row = planets.length === 2
-    ? planetItem(planets[0]) + aspectItem + planetItem(planets[1])
-    : planets.map(planetItem).join('') + aspectItem;
+    ? planetItem(planets[0]) + typeItem + planetItem(planets[1])
+    : planets.map(planetItem).join('') + typeItem;
   return `${heading}<div class="reading-row">${row}</div>`;
 }
 function openTransitReading(transit){
