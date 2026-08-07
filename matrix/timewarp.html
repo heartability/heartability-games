@@ -798,6 +798,8 @@ function completeTimer(state) {
   if (controls) controls.remove();
   const rotateHint = document.querySelector('.rotate-hint');
   if (rotateHint) rotateHint.remove();
+  const countdownOverlay = document.getElementById('countdown-overlay');
+  if (countdownOverlay) countdownOverlay.remove();
 
   const themeObj = findTheme(state.slug);
   lastCompletedSession = { slug: state.slug, timerSeconds: state.timerSeconds, goal: state.goal || null };

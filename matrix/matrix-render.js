@@ -85,12 +85,8 @@
   const PHOTO_FRAME_BASE = '../assets/elements/stickers/frames/';
   const PHOTO_FRAME_MASK_BASE = '../assets/elements/stickers/frames/masks/';
   const PHOTO_FRAMES = [
-    { key: 'polaroid',                   label: 'polaroid',    file: 'frame-polaroid.png',                   mask: 'frame-polaroid-mask.png' },
-    { key: 'gold-beaded-square',         label: 'gold beaded', file: 'frame-gold-beaded-square.png',         mask: 'frame-gold-beaded-square-mask.png' },
-    { key: 'gold-heart-shell',           label: 'heart shell', file: 'frame-gold-heart-shell.png',           mask: 'frame-gold-heart-shell-mask.png' },
-    { key: 'green-gold-ornate-rectangle',label: 'ornate gold', file: 'frame-green-gold-ornate-rectangle.png',mask: 'frame-green-gold-ornate-rectangle-mask.png' },
-    { key: 'lace-heart-floral-red',      label: 'lace heart',  file: 'frame-lace-heart-floral-red.png',      mask: 'frame-lace-heart-floral-red-mask.png' },
-    { key: 'scallop-black-rectangle',    label: 'scallop',     file: 'frame-scallop-black-rectangle.png',    mask: 'frame-scallop-black-rectangle-mask.png' },
+    { key: 'polaroid',           label: 'polaroid',    file: 'frame-polaroid.png',           mask: 'frame-polaroid-mask.png' },
+    { key: 'gold-beaded-square', label: 'gold beaded', file: 'frame-gold-beaded-square.png', mask: 'frame-gold-beaded-square-mask.png' },
   ];
   const PHOTO_FRAME_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.file]));
   const PHOTO_FRAME_MASK_FILE = Object.fromEntries(PHOTO_FRAMES.map(f => [f.key, f.mask]));
@@ -106,15 +102,11 @@
   // Each frame's transparent "window" as %-of-box (l/t/w/h), measured from the
   // frame PNG's actual alpha hole so the photo lines up with the art instead of
   // assuming a uniform border. Used to inset the photo off the frame's edge —
-  // the #dfe2ef matte (see .adv-photo-inner) shows in the gap — so the frame's
+  // the #fff matte (see .adv-photo-inner) shows in the gap — so the frame's
   // own border art no longer overlaps/crops the image underneath it.
   const PHOTO_FRAME_WINDOW = {
-    'polaroid':                    { l: 9.3,  t: 9.3,  w: 81.2, h: 67.0 },
-    'gold-beaded-square':          { l: 20.8, t: 21.6, w: 58.1, h: 57.0 },
-    'gold-heart-shell':            { l: 7.1,  t: 21.1, w: 86.7, h: 71.9 },
-    'green-gold-ornate-rectangle': { l: 20.5, t: 15.1, w: 57.7, h: 67.7 },
-    'lace-heart-floral-red':       { l: 15.0, t: 18.5, w: 71.1, h: 60.8 },
-    'scallop-black-rectangle':     { l: 11.7, t: 7.6,  w: 77.0, h: 84.8 },
+    'polaroid':           { l: 9.3,  t: 9.3,  w: 81.2, h: 67.0 },
+    'gold-beaded-square': { l: 20.8, t: 21.6, w: 58.1, h: 57.0 },
   };
   const PHOTO_MATTE_MARGIN = 4; // percentage points of breathing room inset from the window on each side
   // Inline CSS that positions/sizes the photo <img> inside a frame's window,
@@ -589,6 +581,13 @@
   // ── ASSEMBLE: load a matrix row by id → render model ──
   // gameData = { map_name, map_type, map_data } for the row's parent game (dream only).
   // table defaults to 'dream_matrix'; pass 'daily_matrix' for daily entries (no map/zones).
+  // dateLabel doubles as the matrix header title (see .matrix-date in
+  // buildHTML) and means something different per table: daily shows the
+  // entry's calendar date, dream shows the selected map's title (mapName —
+  // already available from gameData, no row fetch needed), cosmic has no
+  // transit name to draw on here (it isn't stored on the cosmic_matrix row,
+  // only transit_id is) so cosmic.html sets dateLabel itself after calling
+  // assemble(), the same way it already overrides mapName.
   async function assemble(sb, entryId, gameData, table){
     table = table || 'dream_matrix';
     const g = gameData || {};
@@ -602,6 +601,7 @@
       matrixStickers: [], matrixTexts: [], libraryEntries: [], libraryTools: [],
       matrixLayout: {}, // drag/rotate/resize overrides for map/bingo/char/book/tool — see buildHTML
     };
+    if (table === 'dream_matrix') d.dateLabel = d.mapName;
     if (!sb || !entryId) return d;
     try {
       const { data: row } = await sb.from(table).select('*').eq('id', entryId).maybeSingle();
@@ -620,13 +620,16 @@
         d.matrixLayout   = row.matrix_layout || {};
         // dateLabel reflects the SAVE's local day, not "today". Daily rows are
         // dated by entry_date (a plain YYYY-MM-DD), so prefer it when present.
-        if (row.entry_date) {
-          const [y,m,dd] = String(row.entry_date).split('-').map(Number);
-          if (y && m && dd) d.dateLabel = new Date(y, m-1, dd)
-            .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-        } else if (row.created_at) {
-          d.dateLabel = new Date(row.created_at)
-            .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        // Dream/cosmic don't use a calendar date as their title (see above).
+        if (table === 'daily_matrix') {
+          if (row.entry_date) {
+            const [y,m,dd] = String(row.entry_date).split('-').map(Number);
+            if (y && m && dd) d.dateLabel = new Date(y, m-1, dd)
+              .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+          } else if (row.created_at) {
+            d.dateLabel = new Date(row.created_at)
+              .toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+          }
         }
         const libIds  = Array.isArray(row.library_entry_ids) ? row.library_entry_ids : [];
         const saveIds = Array.isArray(row.library_save_ids) ? row.library_save_ids : [];
@@ -779,6 +782,24 @@
   // instead. book entries bucket under layout.books, tools under layout.tools.
   const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book', 'tool']);
   const LAYOUT_BUCKET = { book: 'books', tool: 'tools' };
+
+  // ── BACKGROUND REMOVAL (client-side, via @imgly/background-removal WASM) ──
+  // Loaded lazily from CDN only when the user taps "cut out subject" — no
+  // server, no API key, no build step to wire up. Must go through esm.sh
+  // (not jsDelivr's raw dist file) because the package's own ESM build has a
+  // bare `import ... from 'onnxruntime-web'` specifier that only esm.sh
+  // rewrites into a resolvable URL; plain browser import() can't resolve
+  // bare specifiers on its own. The library's own default publicPath pulls
+  // its ONNX model (~40-80MB) from IMG.LY's asset CDN on first use — that
+  // download is the slow part (10-20s+), cached by the browser after that.
+  // Module import itself is cached so repeat use in one session doesn't
+  // re-fetch it.
+  const BG_REMOVAL_CDN = 'https://esm.sh/@imgly/background-removal@1.7.0';
+  let _bgRemovalModulePromise = null;
+  function loadBackgroundRemoval(){
+    if (!_bgRemovalModulePromise) _bgRemovalModulePromise = import(BG_REMOVAL_CDN);
+    return _bgRemovalModulePromise;
+  }
 
   function createMatrixEditor(deps){
     deps = deps || {};
@@ -1062,6 +1083,7 @@
         <div class="mrm-photo-drop">
           <div class="mrm-photo-preview"><span class="mrm-photo-hint">tap to choose an image</span></div>
         </div>
+        <button class="mrm-photo-cutout" type="button" disabled>✂ cut out subject</button>
         <div class="mr-matrix-label">which frame?</div>
         <div class="mrm-photo-frame-grid"></div>
         <div class="mr-matrix-status"></div>
@@ -1074,6 +1096,7 @@
     const photoFrameGridEl = photoOverlay.querySelector('.mrm-photo-frame-grid');
     const photoStatusEl = photoOverlay.querySelector('.mr-matrix-status');
     const photoAddBtn = photoOverlay.querySelector('.mr-matrix-add');
+    const photoCutoutBtn = photoOverlay.querySelector('.mrm-photo-cutout');
 
     function renderPhotoFrameGrid(){
       const noneSelected = photoDraft.frame === NO_FRAME_KEY ? ' selected' : '';
@@ -1108,7 +1131,10 @@
         updatePhotoPreviewFit();
       }
     }
-    function refreshPhotoAdd(){ photoAddBtn.disabled = !photoDraft.file; }
+    function refreshPhotoAdd(){
+      photoAddBtn.disabled = !photoDraft.file;
+      photoCutoutBtn.disabled = !photoDraft.file;
+    }
     function clearPhotoDraft(){
       photoDraft.file = null; photoDraft.dataUrl = null;
       photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
@@ -1116,6 +1142,7 @@
       photoPreviewEl.classList.remove('no-frame');
       photoPreviewEl.style.cssText = '';
       photoPreviewEl.innerHTML = '<span class="mrm-photo-hint">tap to choose an image</span>';
+      photoCutoutBtn.textContent = '✂ cut out subject';
       refreshPhotoAdd();
     }
     function openPhotoUpload(){
@@ -1127,6 +1154,7 @@
       renderPhotoFrameGrid();
       photoStatusEl.textContent = ''; photoStatusEl.style.color = '';
       photoAddBtn.textContent = 'add to matrix';
+      photoCutoutBtn.textContent = '✂ cut out subject';
       refreshPhotoAdd();
       photoOverlay.classList.add('open');
     }
@@ -1150,6 +1178,38 @@
       photoStatusEl.textContent = '';
       refreshPhotoAdd();
     });
+    async function cutOutSubject(){
+      if (!photoDraft.file) return;
+      photoCutoutBtn.disabled = true; photoAddBtn.disabled = true;
+      photoStatusEl.style.color = '#7a86bb';
+      photoStatusEl.textContent = 'cutting out subject… (first time can take a bit while it downloads)';
+      try {
+        const { removeBackground } = await loadBackgroundRemoval();
+        const blob = await removeBackground(photoDraft.file);
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = ev => resolve(ev.target.result);
+          reader.onerror = () => reject(new Error('could not read cutout image'));
+          reader.readAsDataURL(blob);
+        });
+        photoDraft.file = new File([blob], 'cutout.png', { type: 'image/png' });
+        photoDraft.dataUrl = dataUrl;
+        photoDraft.frame = NO_FRAME_KEY; // cutouts show cleanest with no rectangular frame
+        renderPhotoFrameGrid();
+        renderPhotoPreviewContents();
+        photoCutoutBtn.textContent = '✂ cut out again';
+        photoStatusEl.style.color = '#6ab86a';
+        photoStatusEl.textContent = 'subject cut out ✓';
+      } catch(err) {
+        console.error('[matrix-render] background removal failed:', err);
+        photoStatusEl.style.color = '#E8478B';
+        photoStatusEl.textContent = 'couldn’t cut out subject — try again';
+      } finally {
+        photoAddBtn.disabled = !photoDraft.file;
+        photoCutoutBtn.disabled = !photoDraft.file;
+      }
+    }
+    photoCutoutBtn.addEventListener('click', cutOutSubject);
     photoFrameGridEl.addEventListener('click', e => {
       const btn = e.target.closest('.mrm-frame-thumb');
       if (!btn) return;
@@ -1584,8 +1644,8 @@
 .adv-quad-prompt.locked .adv-quad-prompt-text { color:#999; }
 .adv-quad-prompt-lock { margin-top:4px; font-size:14px; }
 .adv-tool { width:clamp(56px,7vw,80px); }
-.adv-tool-icon, .adv-tool-noimg { width:100%; aspect-ratio:1/1; display:block; object-fit:contain; background:#eef0f9; border:2px solid #fff; box-shadow:2px 3px 6px rgba(0,0,0,.25); padding:6px; box-sizing:border-box; }
-.adv-tool-noimg { background:#ccc; }
+.adv-tool-icon { width:100%; aspect-ratio:1/1; display:block; object-fit:contain; }
+.adv-tool-noimg { width:100%; aspect-ratio:1/1; display:block; background:#ccc; box-sizing:border-box; }
 .adv-photo { position:absolute; z-index:3; width:clamp(74px,9vw,118px); }
 /* Fixed-ratio box (matches the standard polaroid frame's own proportions) —
    the photo fills it edge-to-edge via object-fit:cover, so it always fills
@@ -1593,7 +1653,7 @@
    cover, and anything outside the box is clipped rather than overflowing. */
 .adv-photo-inner {
   position:relative; display:block; width:100%; aspect-ratio:602/691;
-  background:#dfe2ef; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
+  background:#fff; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
 /* Positioned per-frame via photoMatteStyle() to sit inside the frame's window
    with a margin — the .adv-photo-inner background shows through as a matte. */
@@ -1809,9 +1869,18 @@
 
 /* add-photo: drop zone + crop/pan/zoom/rotate preview */
 .mrm-photo-drop { display:block; cursor:pointer; }
+.mrm-photo-cutout {
+  display:block; width:100%; margin-bottom:14px; padding:8px 14px;
+  background:#fff; border:2px solid var(--blue,#6e83d3);
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:var(--blue,#6e83d3);
+  cursor:pointer; transition:all .05s;
+}
+.mrm-photo-cutout:hover  { background:#eef0f9; }
+.mrm-photo-cutout:active { transform:translate(1px,1px); }
+.mrm-photo-cutout:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
 .mrm-photo-preview {
   position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
-  aspect-ratio:602/691; background:#dfe2ef;
+  aspect-ratio:602/691; background:#fff;
   border:2px dashed var(--blue,#6e83d3); display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }

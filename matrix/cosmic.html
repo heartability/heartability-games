@@ -1315,6 +1315,9 @@ async function renderMatrix(){
   data.mapName = activeLocation?.name
     || (activeLocation ? `${activeLocation.terrain} of ${activeLocation.feeling}` : null)
     || activeTransit?.name || 'this transit';
+  // Header title (matrix-date slot) — the selected transit's own name, not
+  // the location description mapName carries (see assemble()'s doc comment).
+  data.dateLabel = activeTransit?.name || 'this transit';
   const hasLocation = !!(data.locationData || data.sidequestData);
 
   // Cosmic-only layout tweak: the shared renderer's default spot for the
