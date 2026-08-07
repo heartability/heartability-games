@@ -24,7 +24,7 @@
 .lib-panel { padding:8px; overflow:hidden; justify-content:center; align-items:center; }
 .lib-window {
   width:100%; max-width:640px; height:100%; max-height:600px;
-  background:#dfe2ef; border:2px solid var(--blue,#6e83d3); display:flex; flex-direction:column; overflow:hidden;
+  background:#dfe2ef; border:2px solid var(--blue,#6e83d3); display:flex; flex-direction:column; overflow:hidden; min-height:0;
 }
 .lib-titlebar { flex-shrink:0; background:#cdd3ec; border-bottom:2px solid #bbb; padding:10px 16px; font-family:var(--font-hand); font-size:clamp(18px,1.6vw,22px); color:#333; text-align:center; }
 .lib-tabs { flex-shrink:0; display:flex; border-bottom:2px solid #bbb; }
@@ -59,7 +59,7 @@
 .lib-overlay.open { display:flex; }
 .lib-overlay-window {
   width:min(94vw,640px); height:min(86dvh,700px); background:#dfe2ef; border:2px solid var(--blue,#6e83d3);
-  display:flex; flex-direction:column; overflow:hidden; flex-shrink:0;
+  display:flex; flex-direction:column; overflow:hidden; flex-shrink:0; min-height:0;
 }
 .lib-overlay-titlebar { flex-shrink:0; position:sticky; top:0; background:#cdd3ec; border-bottom:2px solid #bbb; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-hand); font-size:16px; color:#333; z-index:1; }
 /* iOS Safari sizes vh against the toolbar-hidden viewport, so a fixed
@@ -73,7 +73,7 @@
 .lib-overlay-close { cursor:pointer; font-size:22px; color:#aaa; padding:2px 6px; }
 .lib-overlay-close:hover { color:#E8478B; }
 .lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }
-.inv-tool-search-body { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:14px 16px; gap:10px; }
+.inv-tool-search-body { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:14px 16px; gap:10px; min-height:0; }
 .inv-tool-search-filters { flex-shrink:0; display:flex; gap:8px; }
 .inv-tool-search-filters input, .inv-tool-search-filters select {
   font-family:var(--font-hand); font-size:14px; padding:6px 8px; border:2px solid #bbb; background:#fff; color:#333;

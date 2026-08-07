@@ -202,8 +202,54 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
 .completion-panel {
   display:flex; flex-direction:column; align-items:center; gap:16px;
   background:var(--cream); border:3px solid var(--blue); padding:28px 32px;
+  max-width:88vw;
 }
-.completion-panel h3 { font-size:clamp(20px,2vw,26px); font-weight:normal; color:var(--ink); }
+.completion-panel h3 { font-size:clamp(20px,2vw,26px); font-weight:normal; color:var(--ink); text-align:center; }
+.completion-goal { font-size:14px; color:#555; text-align:center; max-width:360px; }
+.completion-hint { font-size:12px; color:#888; text-align:center; }
+
+/* ── GOAL FIELD (setup step) ── */
+.goal-field { width:100%; display:flex; flex-direction:column; gap:4px; }
+.goal-label { font-size:13px; color:#666; }
+.goal-optional { color:#999; font-weight:normal; }
+.goal-field input {
+  font-family:var(--font-hand); font-size:16px; color:var(--ink);
+  border:2px solid var(--blue); background:#fff; padding:8px 10px;
+}
+
+/* ── MATRIX PICKER OVERLAY ── */
+.tw-picker-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2000;
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.tw-picker-overlay.open { display:flex; }
+.tw-picker {
+  background:var(--cream); box-shadow:0 0 0 4px var(--blue), 4px 8px 28px rgba(0,0,0,.35);
+  width:min(92vw, 460px); max-height:80vh; display:flex; flex-direction:column; overflow:hidden;
+}
+.tw-picker-head {
+  min-height:44px; background:#c3cae6; border-bottom:2px solid var(--blue);
+  display:flex; align-items:center; justify-content:space-between; padding:8px 16px;
+  font-family:var(--font-hand); font-size:clamp(18px,1.8vw,21px); color:#333;
+}
+.tw-picker-close {
+  cursor:pointer; color:#888; font-size:20px; background:none; border:none;
+  font-family:var(--font-hand); line-height:1; padding:2px;
+}
+.tw-picker-close:hover { color:var(--blue-dk); }
+.tw-picker-body { padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+.tw-picker-section-title {
+  font-family:var(--font-hand); font-size:13px; color:#777;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+.tw-picker-item {
+  display:block; width:100%; text-align:left; margin-top:6px;
+  font-family:var(--font-hand); font-size:15px; color:var(--ink);
+  background:#fff; border:1.5px solid var(--blue); padding:9px 12px; cursor:pointer;
+}
+.tw-picker-item:hover { background:#eef0fa; }
+.tw-picker-empty { font-size:13px; color:#999; font-style:italic; margin-top:6px; }
+.tw-picker-status { font-size:14px; color:#888; text-align:center; padding:24px 0; }
 
 @media (max-width:768px) {
   .content-panel { padding:14px; margin-top:56px; }
@@ -236,6 +282,16 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
 </div>
 
 <div id="toast"></div>
+
+<div class="tw-picker-overlay" id="tw-picker-overlay">
+  <div class="tw-picker">
+    <div class="tw-picker-head">
+      <span>add this session to...</span>
+      <button type="button" class="tw-picker-close" onclick="closeMatrixPicker()" aria-label="close">&#x2715;</button>
+    </div>
+    <div class="tw-picker-body" id="tw-picker-body"></div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
@@ -317,6 +373,25 @@ function playCompletionSound(soundId) {
 
 const panel = document.getElementById('content-panel');
 let tickIntervalId = null;
+let currentUser = null;
+let lastCompletedSession = null;
+
+function esc(s) { return (s || '').toString().replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function humanize(s) {
+  if (!s) return '—';
+  return s.toString().replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+function localTodayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function fmtDurationLabel(seconds) {
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.round(seconds / 60)} min`;
+}
 
 function render(html) { panel.innerHTML = html; }
 function setFullbleed(on) { panel.classList.toggle('fullbleed', on); }
@@ -371,6 +446,10 @@ function renderSetup(themeObj, textOnly) {
           : `<video id="preview-video" muted autoplay loop playsinline preload="auto" src="${videoUrl(themeObj.slug)}"></video>`}
       </div>
       <div class="setup-theme-label">${themeObj.theme}</div>
+      <div class="goal-field">
+        <label for="goal-input" class="goal-label">session goal <span class="goal-optional">(optional)</span></label>
+        <input type="text" id="goal-input" maxlength="140" placeholder="what are you working toward?">
+      </div>
       <div class="timer-fields">
         <input type="number" id="min-input" min="0" max="180" value="5" aria-label="minutes">
         <span>:</span>
@@ -410,6 +489,7 @@ function startTimer(slug, textOnly) {
   const timerSeconds = readTimerSeconds();
   const themeObj = findTheme(slug);
   const sound = document.querySelector('input[name="sound-choice"]:checked')?.value || 'none';
+  const goal = (document.getElementById('goal-input')?.value || '').trim().slice(0, 140);
 
   let playbackRate = 1;
   let scrubMode = false;
@@ -435,7 +515,7 @@ function startTimer(slug, textOnly) {
   }
 
   const state = {
-    slug, timerSeconds, playbackRate, scrubMode, nativeDuration, textOnly, sound,
+    slug, timerSeconds, playbackRate, scrubMode, nativeDuration, textOnly, sound, goal,
     startedAt: Date.now(),
     pausedRemainingMs: null,
   };
@@ -622,6 +702,8 @@ function completeTimer(state) {
   if (controls) controls.remove();
 
   const themeObj = findTheme(state.slug);
+  lastCompletedSession = { slug: state.slug, timerSeconds: state.timerSeconds, goal: state.goal || null };
+
   const panelEl = document.querySelector('.running-panel') || panel;
   const completion = document.createElement('div');
   completion.className = 'completion-panel';
@@ -629,14 +711,132 @@ function completeTimer(state) {
   completion.style.top = '50%';
   completion.style.left = '50%';
   completion.style.transform = 'translate(-50%, -50%)';
+  const goalHtml = state.goal ? `<p class="completion-goal">goal: "${esc(state.goal)}"</p>` : '';
+  const saveHtml = currentUser
+    ? `<button class="pixel-btn" onclick="openMatrixPicker(lastCompletedSession)">save to a matrix</button>`
+    : `<p class="completion-hint">log in to save this session to a matrix</p>`;
   completion.innerHTML = `
     <h3>${themeObj.theme} — complete</h3>
+    ${goalHtml}
+    ${saveHtml}
     <div class="btn-row">
-      <button class="pixel-btn" onclick="renderSetup(findTheme('${state.slug}'), ${state.textOnly})">restart</button>
+      <button class="pixel-btn secondary" onclick="renderSetup(findTheme('${state.slug}'), ${state.textOnly})">restart</button>
       <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
     </div>
   `;
   panelEl.appendChild(completion);
+}
+
+// ── SAVE SESSION TO A MATRIX ─────────────────────────────
+async function loadMatrixOptions() {
+  const today = localTodayStr();
+  const [dailyRes, dreamRes, dreamsRes, cosmicRes] = await Promise.all([
+    sb.from('daily_matrix').select('id').eq('user_id', currentUser.id).eq('entry_date', today).maybeSingle(),
+    sb.from('dream_matrix').select('id, map_id, map_phase, updated_at').eq('user_id', currentUser.id).order('updated_at', { ascending: false }).limit(8),
+    sb.from('dreams').select('id, map_name').eq('user_id', currentUser.id),
+    sb.from('cosmic_matrix').select('id, transit_id, updated_at').eq('user_id', currentUser.id).order('updated_at', { ascending: false }).limit(8),
+  ]);
+
+  const mapNames = {};
+  (dreamsRes.data || []).forEach(m => { mapNames[m.id] = m.map_name || 'untitled dream'; });
+
+  const dreams = (dreamRes.data || []).map(row => ({
+    id: row.id,
+    label: `${mapNames[row.map_id] || 'dream'} — ${humanize(row.map_phase)}`,
+  }));
+  const cosmic = (cosmicRes.data || []).map(row => ({
+    id: row.id,
+    label: humanize(row.transit_id),
+  }));
+
+  return { dailyId: dailyRes.data?.id || null, dreams, cosmic };
+}
+
+function buildSessionMessageText(session) {
+  const theme = findTheme(session.slug);
+  const goalPart = session.goal ? `"${session.goal}" — ` : '';
+  return `⏳ timewarp: ${goalPart}${fmtDurationLabel(session.timerSeconds)}, ${theme.theme.toLowerCase()}`;
+}
+
+async function attachSessionToMatrix(session, target) {
+  const message = { id: crypto.randomUUID(), text: buildSessionMessageText(session), created_at: new Date().toISOString() };
+  let rowId = target.id;
+
+  if (target.table === 'daily_matrix' && !rowId) {
+    rowId = crypto.randomUUID();
+    const { error } = await sb.from('daily_matrix').upsert({
+      id: rowId, user_id: currentUser.id, entry_date: localTodayStr(),
+      journal_messages: [message], updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  } else {
+    const { data: current, error: readErr } = await sb.from(target.table)
+      .select('journal_messages').eq('id', rowId).maybeSingle();
+    if (readErr) throw readErr;
+    const messages = (Array.isArray(current?.journal_messages) ? current.journal_messages : []).concat([message]);
+    const { error } = await sb.from(target.table)
+      .update({ journal_messages: messages, updated_at: new Date().toISOString() })
+      .eq('id', rowId);
+    if (error) throw error;
+  }
+
+  const { error: logErr } = await sb.from('timewarp_sessions').insert({
+    user_id: currentUser.id,
+    goal_text: session.goal || null,
+    theme_slug: session.slug,
+    theme_title: findTheme(session.slug).theme,
+    duration_seconds: session.timerSeconds,
+    matrix_table: target.table,
+    matrix_row_id: rowId,
+  });
+  if (logErr) throw logErr;
+}
+
+function openMatrixPicker(session) {
+  if (!currentUser) return;
+  document.getElementById('tw-picker-overlay').classList.add('open');
+  const body = document.getElementById('tw-picker-body');
+  body.innerHTML = `<div class="tw-picker-status">loading your entries…</div>`;
+  loadMatrixOptions().then(opts => renderPickerOptions(session, opts)).catch(err => {
+    console.error('[timewarp picker]', err);
+    body.innerHTML = `<div class="tw-picker-status">couldn't load your entries — try again</div>`;
+  });
+}
+
+function closeMatrixPicker() {
+  document.getElementById('tw-picker-overlay').classList.remove('open');
+}
+
+function renderPickerOptions(session, opts) {
+  const body = document.getElementById('tw-picker-body');
+  const dailyItem = `<button type="button" class="tw-picker-item" onclick="chooseMatrixTarget('daily_matrix', ${opts.dailyId ? `'${opts.dailyId}'` : 'null'})">today's daily entry${opts.dailyId ? '' : ' (new)'}</button>`;
+  const dreamItems = opts.dreams.length
+    ? opts.dreams.map(d => `<button type="button" class="tw-picker-item" onclick="chooseMatrixTarget('dream_matrix', '${d.id}')">${esc(d.label)}</button>`).join('')
+    : `<div class="tw-picker-empty">no dream entries yet</div>`;
+  const cosmicItems = opts.cosmic.length
+    ? opts.cosmic.map(c => `<button type="button" class="tw-picker-item" onclick="chooseMatrixTarget('cosmic_matrix', '${c.id}')">${esc(c.label)}</button>`).join('')
+    : `<div class="tw-picker-empty">no cosmic entries yet</div>`;
+
+  body.innerHTML = `
+    <div><div class="tw-picker-section-title">daily</div>${dailyItem}</div>
+    <div><div class="tw-picker-section-title">dream</div>${dreamItems}</div>
+    <div><div class="tw-picker-section-title">cosmic</div>${cosmicItems}</div>
+  `;
+  body.dataset.session = JSON.stringify(session);
+}
+
+async function chooseMatrixTarget(table, id) {
+  const body = document.getElementById('tw-picker-body');
+  const session = JSON.parse(body.dataset.session || '{}');
+  body.innerHTML = `<div class="tw-picker-status">saving…</div>`;
+  try {
+    await attachSessionToMatrix(session, { table, id });
+    closeMatrixPicker();
+    await HGModal.alert('saved', 'this session was added to your journal ✓');
+  } catch (err) {
+    console.error('[timewarp save]', err);
+    body.innerHTML = `<div class="tw-picker-status">something went wrong — try again</div>`;
+  }
 }
 
 // ── Map dropdown ──────────────────────────────────────────
@@ -703,16 +903,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
       resolveUsername(session.user).then(username => {
         HeartabilityNav.setAuthState({ loggedIn: true, username });
       });
     } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
       HeartabilityNav.setAuthState({ loggedIn: false });
     }
   });
 
   sb.auth.getSession().then(async ({ data: { session } }) => {
     if (session) {
+      currentUser = session.user;
       const username = await resolveUsername(session.user);
       HeartabilityNav.setAuthState({ loggedIn: true, username });
     }
