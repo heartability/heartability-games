@@ -536,6 +536,10 @@ function ratingsLine(r) {
   return parts.join(' · ');
 }
 
+function sortByTitle(arr, titleOf) {
+  return [...arr].sort((a, b) => (titleOf(a) || '').localeCompare(titleOf(b) || '', undefined, { sensitivity: 'base' }));
+}
+
 function cardHtml(c) {
   const avg = cardAvgRating(c);
   return `<div class="lib-card" onclick="openDetail('${c.media_id}')">
@@ -547,7 +551,7 @@ function cardHtml(c) {
 
 function buildPublicGridHtml() {
   const rows = publicCache[libState.category] || [];
-  const cards = mergeCatalog(groupByMedia(rows), catalogCache[libState.category] || []);
+  const cards = sortByTitle(mergeCatalog(groupByMedia(rows), catalogCache[libState.category] || []), c => c.title);
   const facets = computeFacets(cards);
   const shown = filteredCards(cards);
   const filterHtml = `<div class="lib-filters">
@@ -591,8 +595,8 @@ function buildPrivateGridHtml() {
   }
   const types = CATEGORY_META[libState.category].types;
   const reviewRows = (privateAllCache || []).filter(r => types.includes(r.media?.media_type));
-  const reviewCards = groupByMedia(reviewRows);
-  const saveRows = (privateSavesCache || []).filter(r => types.includes(r.media?.media_type));
+  const reviewCards = sortByTitle(groupByMedia(reviewRows), c => c.title);
+  const saveRows = sortByTitle((privateSavesCache || []).filter(r => types.includes(r.media?.media_type)), r => r.media?.title);
 
   if (!reviewCards.length && !saveRows.length) {
     return `<div class="lib-empty">you haven't added anything here yet — <a href="../matrix/media.html">fill out the form</a>.</div>`;
