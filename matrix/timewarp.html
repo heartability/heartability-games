@@ -331,7 +331,7 @@ function videoUrl(slug) {
   return sb.storage.from(VIDEO_BUCKET).getPublicUrl(`${slug}.mp4`).data.publicUrl;
 }
 function posterUrl(slug) {
-  return `../assets/elements/timelapse/${slug}.png`;
+  return `../assets/elements/timelapse/${slug}.jpg`;
 }
 
 function loadState() {
@@ -458,11 +458,6 @@ function localTodayStr() {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
-function fmtDurationLabel(seconds) {
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.round(seconds / 60)} min`;
-}
-
 function render(html) { panel.innerHTML = html; }
 function setFullbleed(on) { panel.classList.toggle('fullbleed', on); }
 function setCentered(on) { panel.classList.toggle('centered', on); }
@@ -852,30 +847,33 @@ async function loadMatrixOptions() {
   return { dailyId: dailyRes.data?.id || null, dreams, cosmic };
 }
 
-function buildSessionMessageText(session) {
-  const theme = findTheme(session.slug);
-  const goalPart = session.goal ? `"${session.goal}" — ` : '';
-  return `⏳ timewarp: ${goalPart}${fmtDurationLabel(session.timerSeconds)}, ${theme.theme.toLowerCase()}`;
+function buildPostitEntry(session) {
+  const text = session.goal || findTheme(session.slug).theme;
+  return {
+    id: crypto.randomUUID(), text, postit: true,
+    x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1),
+    rot: +((Math.random()*2-1)*8).toFixed(1),
+  };
 }
 
 async function attachSessionToMatrix(session, target) {
-  const message = { id: crypto.randomUUID(), text: buildSessionMessageText(session), created_at: new Date().toISOString() };
+  const note = buildPostitEntry(session);
   let rowId = target.id;
 
   if (target.table === 'daily_matrix' && !rowId) {
     rowId = crypto.randomUUID();
     const { error } = await sb.from('daily_matrix').upsert({
       id: rowId, user_id: currentUser.id, entry_date: localTodayStr(),
-      journal_messages: [message], updated_at: new Date().toISOString(),
+      matrix_texts: [note], updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
     if (error) throw error;
   } else {
     const { data: current, error: readErr } = await sb.from(target.table)
-      .select('journal_messages').eq('id', rowId).maybeSingle();
+      .select('matrix_texts').eq('id', rowId).maybeSingle();
     if (readErr) throw readErr;
-    const messages = (Array.isArray(current?.journal_messages) ? current.journal_messages : []).concat([message]);
+    const texts = (Array.isArray(current?.matrix_texts) ? current.matrix_texts : []).concat([note]);
     const { error } = await sb.from(target.table)
-      .update({ journal_messages: messages, updated_at: new Date().toISOString() })
+      .update({ matrix_texts: texts, updated_at: new Date().toISOString() })
       .eq('id', rowId);
     if (error) throw error;
   }
@@ -932,7 +930,7 @@ async function chooseMatrixTarget(table, id) {
   try {
     await attachSessionToMatrix(session, { table, id });
     closeMatrixPicker();
-    await HGModal.alert('saved', 'this session was added to your journal ✓');
+    await HGModal.alert('saved', 'a post-it for this session was added to your matrix ✓');
   } catch (err) {
     console.error('[timewarp save]', err);
     body.innerHTML = `<div class="tw-picker-status">something went wrong — try again</div>`;

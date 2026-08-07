@@ -520,7 +520,10 @@
       const tRot = t.rot || 0, tScale = t.scale || 1;
       const removeBtn = editable ? `<button class="mx-note-remove" type="button" data-id="${esc(t.id)}" title="remove text" aria-label="remove text">✕</button>` : '';
       const noteHandles = dragHandles('text', t.id);
-      if (t.stationery && STATIONERY_FILE[t.stationery]) {
+      if (t.postit) {
+        texts += `<div class="mx-note postit${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}
+            ${noteHandles}${removeBtn}</div>`;
+      } else if (t.stationery && STATIONERY_FILE[t.stationery]) {
         const box = STATIONERY_BOX[t.stationery];
         texts += `<div class="mx-note stationery${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
             <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
@@ -1687,6 +1690,12 @@
   text-align:center; line-height:1.2; word-break:break-word;
 }
 .mx-note.stationery { max-width:none; width:clamp(150px,17vw,260px); text-align:center; }
+.mx-note.postit {
+  max-width:none; width:clamp(90px,10vw,130px); aspect-ratio:1/1; box-sizing:border-box;
+  background:#dfe2ef; box-shadow:2px 3px 6px rgba(0,0,0,.18);
+  display:flex; align-items:center; justify-content:center; padding:10px;
+  font-size:clamp(14px,1.6vw,18px);
+}
 .mx-note-stationery-img { width:100%; height:auto; display:block; pointer-events:none; }
 .mx-note-stationery-body {
   position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
