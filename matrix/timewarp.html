@@ -82,6 +82,7 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
   position:fixed; margin:0; top:44px; left:0; width:100vw; height:calc(100dvh - 44px);
   padding:0; z-index:15;
 }
+.content-panel.centered { justify-content:center; min-height:calc(100dvh - 124px); }
 
 /* ── PICKER STEP ── */
 .picker-head { text-align:center; margin-bottom:18px; }
@@ -129,14 +130,15 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
   display:flex; align-items:center; justify-content:center;
   background:var(--blue); color:#fff; font-family:var(--font-hand); font-size:18px;
 }
-.setup-theme-label { font-size:clamp(18px,1.8vw,24px); color:var(--ink); }
+.setup-theme-label { font-size:clamp(18px,1.8vw,24px); color:var(--ink); margin:0 auto; text-align:center; }
 
-.timer-fields { display:flex; align-items:center; gap:8px; }
+.timer-fields { display:flex; align-items:center; justify-content:center; gap:8px; }
 .timer-fields input {
   width:64px; font-family:var(--font-game); font-size:28px; text-align:center;
   border:2px solid var(--blue); background:#fff; padding:4px;
 }
 .timer-fields span { font-family:var(--font-game); font-size:28px; }
+.timer-fields input#timer-input { width:110px; }
 .timer-hint { font-size:12px; color:#888; }
 
 .sound-picker { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px; font-size:14px; color:#555; }
@@ -209,7 +211,7 @@ html, body { width:100vw; min-height:100dvh; overflow-x:hidden; overflow-y:auto;
 .completion-hint { font-size:12px; color:#888; text-align:center; }
 
 /* ── GOAL FIELD (setup step) ── */
-.goal-field { width:100%; display:flex; flex-direction:column; gap:4px; }
+.goal-field { width:100%; max-width:400px; margin:0 auto; display:flex; flex-direction:column; gap:4px; }
 .goal-label { font-size:13px; color:#666; }
 .goal-optional { color:#999; font-weight:normal; }
 .goal-field input {
@@ -363,11 +365,26 @@ const SOUND_OPTIONS = [
   { id: 'omni',  label: 'omni',  file: 'omni_web.wav' },
 ];
 
+let activePreviewAudio = null;
+
+function stopPreviewAudio() {
+  if (activePreviewAudio) {
+    activePreviewAudio.pause();
+    activePreviewAudio = null;
+  }
+}
+
 function playCompletionSound(soundId) {
+  stopPreviewAudio();
   const opt = SOUND_OPTIONS.find(o => o.id === soundId);
   if (!opt || !opt.file) return;
   try {
-    new Audio(`../assets/sounds/${opt.file}`).play().catch(() => {});
+    const audio = new Audio(`../assets/sounds/${opt.file}`);
+    activePreviewAudio = audio;
+    audio.addEventListener('ended', () => {
+      if (activePreviewAudio === audio) activePreviewAudio = null;
+    });
+    audio.play().catch(() => {});
   } catch (e) {}
 }
 
@@ -395,6 +412,7 @@ function fmtDurationLabel(seconds) {
 
 function render(html) { panel.innerHTML = html; }
 function setFullbleed(on) { panel.classList.toggle('fullbleed', on); }
+function setCentered(on) { panel.classList.toggle('centered', on); }
 
 function hasUnfinishedTimer(state) {
   return !!state && currentRemaining(state) > 0;
@@ -406,6 +424,7 @@ function isTimerActive(state) {
 // ── STEP: picker ──────────────────────────────────────────
 function renderPicker() {
   setFullbleed(false);
+  setCentered(false);
   const cards = THEMES.map(t => `
     <div class="theme-card" data-slug="${t.slug}" onclick="selectTheme('${t.slug}')" title="${t.title}">
       <div class="theme-card-visual" style="background-image:url('${posterUrl(t.slug)}')"></div>
@@ -438,25 +457,20 @@ function selectTheme(slug) {
 // ── STEP: setup / preview ────────────────────────────────
 function renderSetup(themeObj, textOnly) {
   setFullbleed(false);
+  setCentered(true);
   render(`
     <div class="setup-panel">
+      <div class="setup-theme-label" id="setup-title">${themeObj.theme}</div>
       <div class="setup-preview" id="setup-preview">
         ${textOnly
           ? `<div class="no-video-fallback">${themeObj.theme}</div>`
           : `<video id="preview-video" muted autoplay loop playsinline preload="auto" src="${videoUrl(themeObj.slug)}"></video>`}
       </div>
-      <div class="setup-theme-label">${themeObj.theme}</div>
-      <div class="goal-field">
+      <div class="goal-field" id="goal-field">
         <label for="goal-input" class="goal-label">session goal <span class="goal-optional">(optional)</span></label>
         <input type="text" id="goal-input" maxlength="140" placeholder="what are you working toward?">
       </div>
-      <div class="timer-fields">
-        <input type="number" id="min-input" min="0" max="180" value="5" aria-label="minutes">
-        <span>:</span>
-        <input type="number" id="sec-input" min="0" max="59" value="0" aria-label="seconds">
-      </div>
-      <div class="timer-hint">10 seconds minimum, 3 hours maximum</div>
-      <div class="sound-picker">
+      <div class="sound-picker" id="sound-picker">
         <span class="sound-picker-label">🔔 sound when it ends:</span>
         ${SOUND_OPTIONS.map((opt, i) => `
           <label class="sound-option">
@@ -464,12 +478,24 @@ function renderSetup(themeObj, textOnly) {
             ${opt.label}
           </label>`).join('')}
       </div>
+      <div class="timer-fields">
+        <input type="text" id="timer-input" inputmode="numeric" value="5:00" aria-label="timer duration, minutes and seconds" placeholder="mm:ss">
+      </div>
+      <div class="timer-hint">10 seconds minimum, 3 hours maximum</div>
       <div class="btn-row">
         <button class="pixel-btn secondary" onclick="renderPicker()">choose another</button>
         <button class="pixel-btn" id="start-btn" onclick="startTimer('${themeObj.slug}', ${textOnly})" ${textOnly ? '' : 'disabled'}>start</button>
       </div>
     </div>
   `);
+
+  matchWidthsToSoundPicker();
+
+  const timerInput = document.getElementById('timer-input');
+  timerInput.addEventListener('blur', () => {
+    const secs = readTimerSeconds();
+    timerInput.value = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  });
 
   if (!textOnly) {
     const video = document.getElementById('preview-video');
@@ -478,14 +504,26 @@ function renderSetup(themeObj, textOnly) {
   }
 }
 
+function matchWidthsToSoundPicker() {
+  const sound = document.getElementById('sound-picker');
+  if (!sound) return;
+  const width = `${sound.getBoundingClientRect().width}px`;
+  const title = document.getElementById('setup-title');
+  const goalField = document.getElementById('goal-field');
+  if (title) title.style.width = width;
+  if (goalField) goalField.style.width = width;
+}
+
 function readTimerSeconds() {
-  const min = parseInt(document.getElementById('min-input').value, 10) || 0;
-  const sec = parseInt(document.getElementById('sec-input').value, 10) || 0;
-  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, min * 60 + sec));
+  const raw = (document.getElementById('timer-input').value || '').trim();
+  const parts = raw.split(':').map(p => parseInt(p, 10) || 0);
+  const totalSec = parts.length >= 2 ? parts[0] * 60 + parts[1] : parts[0] * 60;
+  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, totalSec));
 }
 
 // ── STEP: running ─────────────────────────────────────────
 function startTimer(slug, textOnly) {
+  stopPreviewAudio();
   const timerSeconds = readTimerSeconds();
   const themeObj = findTheme(slug);
   const sound = document.querySelector('input[name="sound-choice"]:checked')?.value || 'none';
@@ -542,6 +580,7 @@ function renderRunning(themeObj, state) {
   `);
 
   setFullbleed(true);
+  setCentered(false);
 
   if (!state.textOnly) {
     const video = document.getElementById('running-video');
