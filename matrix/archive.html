@@ -1112,11 +1112,10 @@ let dailyJournalEditor = null;   // daily_matrix notes
 let allArchetypes = [];
 let archCameFromAll = false;
 
-// planetary bodies for the cosmic tab. Each transit in a season's
-// transit_data.transits[] carries its own real `planets[]` array (a
-// season/sign can hold transits from several planets, and a two-body
-// transit like "Sun Square Neptune" is tagged under both), so browsing by
-// planet is a cross-season filter over transits, not a per-season property.
+// planetary bodies for the cosmic tab. Each row in cosmic_transits carries
+// its own real `planet`/`planet_b` columns (a two-body aspect like "Sun
+// square Neptune" is tagged under both), so browsing by planet is a filter
+// over cosmic_transits, not a per-season property.
 // No static "coming soon" gate — like signs, a planet unlocks purely from
 // having matching transit data (see hasEntries in renderCosmicBrowseGrid).
 const COSMIC_PLANETS = [
@@ -1135,13 +1134,18 @@ const COSMIC_SIGNS = [
   'aries','taurus','gemini','cancer','leo','virgo',
   'libra','scorpio','sagittarius','capricorn','aquarius','pisces',
 ];
-let allCosmicSeasons    = [];      // every cosmic_bingo row w/ a season, current user
+let allCosmicTransits   = [];      // every cosmic_transits row (global reference data), all time
+let cosmicTransitsById  = new Map(); // transit_id -> cosmic_transits row
+let allCosmicMatrixRows = new Map(); // transit_id -> this user's cosmic_matrix row, if any
+let cosmicSeasonWindows = [];      // derived [{sign, year, startMs, endMs}] from sun-ingress rows —
+                                    // there's no stored "season" anymore, so date ranges between
+                                    // consecutive Sun ingresses stand in for the old cosmic_bingo rows
 let cosmicBrowseMode    = 'sign';  // 'sign' | 'planet' — which axis the browse grid groups by
 let cosmicStep          = 'browse'; // 'browse' | 'results' | 'detail'
 let cosmicSelectedValue = null;    // the chosen sign id or planet id
-let cosmicResultSeasons = [];      // seasons matching the current browse selection
-let activeCosmicSeason  = null;
-let activeCosmicPhases  = [];  // template phases merged with the user's cosmic_matrix rows
+let cosmicResultSeasons = [];      // sign mode: season windows matching the selection; planet mode: matching transit rows
+let activeCosmicSeason  = null;    // the season window {sign,year,startMs,endMs} behind the open detail view (or null when opened via direct transit jump)
+let activeCosmicPhases  = [];  // this window's cosmic_transits rows merged with the user's cosmic_matrix rows
 
 // ── SINGLE SOURCE OF TRUTH: which local day a row belongs to ──
 // en-CA renders as YYYY-MM-DD, evaluated in the browser's local timezone.
@@ -1878,25 +1882,53 @@ async function renderDailyMatrixWindow(saveId){
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
-// season slug is like "cancer-2026" — the leading word is the zodiac sign.
-function seasonSignId(season){ return (season||'').toLowerCase().split(/[^a-z]/)[0]; }
 const GLYPH_FILENAME_OVERRIDES = { sagittarius: 'sagitarrius' }; // typo baked into the asset filename
 function glyphSrc(kind, id){ // kind: 'sign' | 'planet'
   if (!id) return null;
+  id = id.toLowerCase();
   const file = kind === 'sign' ? (GLYPH_FILENAME_OVERRIDES[id] || id) : id;
   return `../assets/elements/glyphs/${file}.png`;
 }
 function capitalize(w){ return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }
-function seasonFullTitle(seasonRow){
-  const season = seasonRow.transit_data?.season || '';
-  const signId = seasonSignId(season);
-  const year = (season.match(/(\d{4})/) || [])[1];
-  return year ? `${capitalize(signId)} ${year}` : capitalize(signId);
+function seasonWindowTitle(w){ return `${capitalize(w.sign)} ${w.year}`; }
+
+// Seasons no longer exist as stored rows (cosmic_bingo is retired) — a
+// "season" is now just the date range between one Sun ingress and the next,
+// derived straight from cosmic_transits. The window before the earliest
+// known Sun ingress (whose own start boundary predates our data) is left
+// open-ended on the left so early-in-year transits still land somewhere.
+function buildCosmicSeasonWindows(transits){
+  const sunIngresses = transits
+    .filter(t => t.transit_type === 'ingress' && t.planet === 'sun')
+    .slice().sort((a,b) => Date.parse(a.exact_utc) - Date.parse(b.exact_utc));
+  if (!sunIngresses.length) return [];
+  const windows = sunIngresses.map((t, i) => {
+    const startMs = Date.parse(t.exact_utc);
+    const endMs = i + 1 < sunIngresses.length ? Date.parse(sunIngresses[i+1].exact_utc) : Infinity;
+    return { sign: t.sign.toLowerCase(), year: new Date(startMs).getUTCFullYear(), startMs, endMs };
+  });
+  const first = sunIngresses[0];
+  const firstStartMs = Date.parse(first.exact_utc);
+  const signIdx = COSMIC_SIGNS.indexOf(first.sign.toLowerCase());
+  const prevSign = COSMIC_SIGNS[(signIdx - 1 + COSMIC_SIGNS.length) % COSMIC_SIGNS.length];
+  windows.unshift({ sign: prevSign, year: new Date(firstStartMs).getUTCFullYear(), startMs: -Infinity, endMs: firstStartMs });
+  return windows;
+}
+function seasonWindowFor(ms){
+  return cosmicSeasonWindows.find(w => ms >= w.startMs && ms < w.endMs) || null;
 }
 
 async function loadCosmicTab(){
-  const { data: bingoRows } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
-  allCosmicSeasons = (bingoRows || []).filter(r => r.transit_data && r.transit_data.season);
+  const [transitsRes, matrixRes] = await Promise.all([
+    sb.from('cosmic_transits').select('*').order('exact_utc', { ascending: true }),
+    sb.from('cosmic_matrix')
+      .select('transit_id, character_data, location_data, journal_messages, updated_at')
+      .eq('user_id', currentUser.id),
+  ]);
+  allCosmicTransits = transitsRes.data || [];
+  cosmicTransitsById = new Map(allCosmicTransits.map(t => [t.transit_id, t]));
+  allCosmicMatrixRows = new Map((matrixRes.data || []).map(r => [r.transit_id, r]));
+  cosmicSeasonWindows = buildCosmicSeasonWindows(allCosmicTransits);
   renderCosmicBrowseGrid();
   showCosmicBrowse();
 }
@@ -1926,7 +1958,10 @@ function renderCosmicBrowseGrid(){
   let slots;
   if (cosmicBrowseMode === 'sign') {
     slots = COSMIC_SIGNS.map(signId => {
-      const hasEntries = allCosmicSeasons.some(s => seasonSignId(s.transit_data.season) === signId);
+      const hasEntries = [...allCosmicMatrixRows.keys()].some(tid => {
+        const t = cosmicTransitsById.get(tid);
+        return t && (t.sign?.toLowerCase() === signId || t.sign_b?.toLowerCase() === signId);
+      });
       return buildGlyphSlot({
         name: signId, locked: !hasEntries, lockedLabel: 'no entries yet',
         src: glyphSrc('sign', signId),
@@ -1935,7 +1970,10 @@ function renderCosmicBrowseGrid(){
     });
   } else {
     slots = COSMIC_PLANETS.map(p => {
-      const hasEntries = allCosmicSeasons.some(s => (s.transit_data?.transits||[]).some(t => (t.planets||[]).includes(p.id)));
+      const hasEntries = [...allCosmicMatrixRows.keys()].some(tid => {
+        const t = cosmicTransitsById.get(tid);
+        return t && (t.planet === p.id || t.planet_b === p.id);
+      });
       return buildGlyphSlot({
         name: p.name, locked: !hasEntries, lockedLabel: 'no entries yet',
         src: glyphSrc('planet', p.id),
@@ -1960,42 +1998,32 @@ function buildGlyphSlot({ name, locked, lockedLabel, src, onClick }){
   return slot;
 }
 
-// ── RESULTS: sign mode lists seasons; planet mode is cross-season ──────────
-async function enterCosmicResults(value){
+// ── RESULTS: sign mode lists seasons (derived date windows); planet mode is
+// cross-season — everything's already loaded in memory from loadCosmicTab(),
+// no DB round trip needed here anymore. ──────────────────────────────────
+function enterCosmicResults(value){
   cosmicSelectedValue = value;
   document.getElementById('cosmic-window-title').textContent = capitalize(value);
   showCosmicResults();
-
-  const grid = document.getElementById('cosmic-grid');
-  grid.innerHTML = '<div class="arch-picker-loading">loading…</div>';
-  document.getElementById('cosmic-empty').style.display = 'none';
-
   if (cosmicBrowseMode === 'sign') return enterCosmicSignResults(value);
   return enterCosmicPlanetResults(value);
 }
 
-async function enterCosmicSignResults(signId){
-  cosmicResultSeasons = allCosmicSeasons.filter(s => seasonSignId(s.transit_data.season) === signId);
+function enterCosmicSignResults(signId){
+  cosmicResultSeasons = cosmicSeasonWindows.filter(w => w.sign === signId);
   const grid = document.getElementById('cosmic-grid');
-
-  let doneByMap = {};
-  if (cosmicResultSeasons.length) {
-    const mapIds = cosmicResultSeasons.map(s => s.map_id);
-    const { data: transitRows } = await sb.from('cosmic_matrix')
-      .select('map_id, character_data')
-      .eq('user_id', currentUser.id)
-      .in('map_id', mapIds);
-    (transitRows || []).forEach(r => { if (r.character_data) doneByMap[r.map_id] = (doneByMap[r.map_id] || 0) + 1; });
-  }
-
   grid.innerHTML = '';
-  cosmicResultSeasons.forEach(s => {
-    const total = (s.transit_data.transits || []).length;
-    const done  = doneByMap[s.map_id] || 0;
+  cosmicResultSeasons.forEach(w => {
+    const inWindow = allCosmicTransits.filter(t => {
+      const ms = Date.parse(t.exact_utc);
+      return ms >= w.startMs && ms < w.endMs;
+    });
+    const total = inWindow.length;
+    const done = inWindow.filter(t => allCosmicMatrixRows.get(t.transit_id)?.character_data).length;
     const slot = document.createElement('div');
     slot.className = 'map-slot';
-    slot.onclick = () => openCosmicSeasonDetail(s);
-    slot.innerHTML = `<div class="slot-name">${escapeHtml(seasonFullTitle(s))}</div>
+    slot.onclick = () => openCosmicSeasonDetail(w);
+    slot.innerHTML = `<div class="slot-name">${escapeHtml(seasonWindowTitle(w))}</div>
       <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;">
         <img src="${glyphSrc('sign', signId)}" alt="${escapeHtml(signId)}" style="width:60%;height:60%;object-fit:contain;">
       </div>
@@ -2005,44 +2033,28 @@ async function enterCosmicSignResults(signId){
   document.getElementById('cosmic-empty').style.display = cosmicResultSeasons.length ? 'none' : 'block';
 }
 
-// Planet browsing is cross-season: a planet isn't a per-season property (a
-// season/sign can hold transits from several planets), so this flattens
-// every season's matching transits into one chronological list instead of
-// showing season cards. A two-body transit (e.g. "Sun Square Neptune") is
-// tagged with both planets in transit.planets[], so it surfaces under either.
-async function enterCosmicPlanetResults(planetId){
-  const matches = [];
-  allCosmicSeasons.forEach(s => {
-    (s.transit_data?.transits || []).forEach(t => {
-      if ((t.planets||[]).includes(planetId)) matches.push({ season: s, transit: t });
-    });
-  });
-  matches.sort((a,b) => Date.parse(a.transit.utc) - Date.parse(b.transit.utc));
+// Planet browsing is cross-season: a planet isn't a per-season property, so
+// this flattens every matching cosmic_transits row into one chronological
+// list instead of showing season cards. A two-body aspect (e.g. "Sun square
+// Neptune") is tagged under both planet/planet_b, so it surfaces under either.
+function enterCosmicPlanetResults(planetId){
+  const matches = allCosmicTransits
+    .filter(t => t.planet === planetId || t.planet_b === planetId)
+    .slice().sort((a,b) => Date.parse(a.exact_utc) - Date.parse(b.exact_utc));
   cosmicResultSeasons = matches;
 
   const grid = document.getElementById('cosmic-grid');
-  let doneByTransit = {};
-  if (matches.length) {
-    const mapIds = [...new Set(matches.map(m => m.season.map_id))];
-    const { data: transitRows } = await sb.from('cosmic_matrix')
-      .select('map_id, transit_id, character_data')
-      .eq('user_id', currentUser.id)
-      .in('map_id', mapIds);
-    (transitRows || []).forEach(r => { if (r.character_data) doneByTransit[r.map_id+'|'+r.transit_id] = true; });
-  }
-
   grid.innerHTML = '';
-  matches.forEach(({ season, transit }) => {
-    const done = !!doneByTransit[season.map_id+'|'+transit.transit_id];
-    const signId = seasonSignId(season.transit_data.season);
+  matches.forEach(t => {
+    const done = !!allCosmicMatrixRows.get(t.transit_id)?.character_data;
     const slot = document.createElement('div');
     slot.className = 'map-slot';
-    slot.onclick = () => openCosmicSeasonDetail(season, transit.transit_id);
-    slot.innerHTML = `<div class="slot-name">${escapeHtml(transit.name || transit.transit_id)}</div>
+    slot.onclick = () => openCosmicSeasonDetail(seasonWindowFor(Date.parse(t.exact_utc)), t.transit_id);
+    slot.innerHTML = `<div class="slot-name">${escapeHtml(t.name || t.transit_id)}</div>
       <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;">
-        <img src="${glyphSrc('sign', signId)}" alt="${escapeHtml(signId)}" style="width:60%;height:60%;object-fit:contain;">
+        <img src="${glyphSrc('sign', t.sign)}" alt="${escapeHtml(t.sign||'')}" style="width:60%;height:60%;object-fit:contain;">
       </div>
-      <div class="slot-updated">${done ? 'complete' : (Date.parse(transit.utc) > Date.now() ? 'upcoming' : 'unfinished')}</div>`;
+      <div class="slot-updated">${done ? 'complete' : (Date.parse(t.exact_utc) > Date.now() ? 'upcoming' : 'unfinished')}</div>`;
     grid.appendChild(slot);
   });
   document.getElementById('cosmic-empty').style.display = matches.length ? 'none' : 'block';
@@ -2083,29 +2095,28 @@ function cosmicGoBack(){
   }
 }
 
-async function openCosmicSeasonDetail(seasonRow, focusTransitId){
-  activeCosmicSeason = seasonRow;
-  document.getElementById('cosmic-window-title').textContent = seasonFullTitle(seasonRow);
+// seasonWindow can be null (e.g. jumping straight to a single transit from
+// the journal/inventory/archetype tabs when its date falls outside any known
+// window) — in that case the detail list falls back to just that one transit.
+async function openCosmicSeasonDetail(seasonWindow, focusTransitId){
+  activeCosmicSeason = seasonWindow;
+  document.getElementById('cosmic-window-title').textContent = seasonWindow ? seasonWindowTitle(seasonWindow) : 'this transit';
   showCosmicDetail();
 
   const list = document.getElementById('cosmic-phase-list');
   list.innerHTML = '<div class="day-list-empty">gathering this season…</div>';
 
-  const { data: transitRows } = await sb.from('cosmic_matrix')
-    .select('transit_id, character_data, location_data, journal_messages, updated_at')
-    .eq('map_id', seasonRow.map_id).eq('user_id', currentUser.id);
-  const byTransit = {};
-  (transitRows || []).forEach(r => { byTransit[r.transit_id] = r; });
+  const windowTransits = seasonWindow
+    ? allCosmicTransits.filter(t => { const ms = Date.parse(t.exact_utc); return ms >= seasonWindow.startMs && ms < seasonWindow.endMs; })
+    : (focusTransitId && cosmicTransitsById.has(focusTransitId) ? [cosmicTransitsById.get(focusTransitId)] : []);
 
-  const templateTransits = (seasonRow.transit_data.transits || []).slice()
-    .sort((a,b) => Date.parse(a.utc) - Date.parse(b.utc));
   const nowMs = Date.now();
-  activeCosmicPhases = templateTransits.map(t => {
-    const row = byTransit[t.transit_id] || null;
+  activeCosmicPhases = windowTransits.slice().sort((a,b) => Date.parse(a.exact_utc) - Date.parse(b.exact_utc)).map(t => {
+    const row = allCosmicMatrixRows.get(t.transit_id) || null;
     const done = !!(row && row.character_data);
-    const opensMs = Date.parse(t.utc);
+    const opensMs = Date.parse(t.exact_utc);
     const state = done ? 'lived' : (opensMs && opensMs > nowMs ? 'locked' : 'skipped');
-    return Object.assign({}, t, { done, state, row });
+    return { transit_id: t.transit_id, name: t.name, utc: t.exact_utc, done, state, row };
   });
 
   list.innerHTML = '';
@@ -2254,7 +2265,7 @@ async function openArchetypeHistory(archetype, fromAll){
       .select('id, entry_date, location_data, created_at')
       .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
     sb.from('cosmic_matrix')
-      .select('map_id, transit_id, location_data, updated_at')
+      .select('transit_id, location_data, updated_at')
       .eq('archetype_id', archetype.id).eq('user_id', currentUser.id),
   ]);
 
@@ -2299,9 +2310,8 @@ async function jumpToArchetypeRow(row){
   } else if (row.source === 'cosmic') {
     switchTab('cosmic');
     await loadCosmicTab();
-    const seasonRow = allCosmicSeasons.find(s => s.map_id === row.raw.map_id);
-    if (!seasonRow) return;
-    await openCosmicSeasonDetail(seasonRow, row.raw.transit_id);
+    const t = cosmicTransitsById.get(row.raw.transit_id);
+    await openCosmicSeasonDetail(t ? seasonWindowFor(Date.parse(t.exact_utc)) : null, row.raw.transit_id);
   }
 }
 
@@ -2397,7 +2407,7 @@ async function openInventoryEntryPopup(item){
       .select('id, entry_date, location_data, created_at')
       .eq('user_id', currentUser.id).contains(idCol, [item.id]),
     sb.from('cosmic_matrix')
-      .select('map_id, transit_id, location_data, updated_at')
+      .select('transit_id, location_data, updated_at')
       .eq('user_id', currentUser.id).contains(idCol, [item.id]),
   ]);
 
@@ -2516,7 +2526,7 @@ async function openToolEntryPopup(row){
       .select('id, entry_date, location_data, created_at')
       .eq('user_id', currentUser.id).contains('library_tool_ids', [row.tool_id]),
     sb.from('cosmic_matrix')
-      .select('map_id, transit_id, location_data, updated_at')
+      .select('transit_id, location_data, updated_at')
       .eq('user_id', currentUser.id).contains('library_tool_ids', [row.tool_id]),
   ]);
 
@@ -2566,9 +2576,8 @@ async function jumpToInventoryRow(row){
   } else if (row.source === 'cosmic') {
     switchTab('cosmic');
     await loadCosmicTab();
-    const seasonRow = allCosmicSeasons.find(s => s.map_id === row.raw.map_id);
-    if (!seasonRow) return;
-    await openCosmicSeasonDetail(seasonRow, row.raw.transit_id);
+    const t = cosmicTransitsById.get(row.raw.transit_id);
+    await openCosmicSeasonDetail(t ? seasonWindowFor(Date.parse(t.exact_utc)) : null, row.raw.transit_id);
   }
 }
 
@@ -2596,7 +2605,7 @@ async function loadJournalTab(){
       .select('id, entry_date, location_data, character_data, journal_messages, created_at')
       .eq('user_id', currentUser.id),
     sb.from('cosmic_matrix')
-      .select('map_id, transit_id, location_data, character_data, journal_messages, updated_at')
+      .select('transit_id, location_data, character_data, journal_messages, updated_at')
       .eq('user_id', currentUser.id),
   ]);
 
@@ -2668,9 +2677,8 @@ async function jumpToJournalEntry(e){
   } else if (e.source === 'cosmic'){
     switchTab('cosmic');
     await loadCosmicTab();
-    const seasonRow = allCosmicSeasons.find(s => s.map_id === e.row.map_id);
-    if (!seasonRow) return;
-    await openCosmicSeasonDetail(seasonRow, e.row.transit_id);
+    const t = cosmicTransitsById.get(e.row.transit_id);
+    await openCosmicSeasonDetail(t ? seasonWindowFor(Date.parse(t.exact_utc)) : null, e.row.transit_id);
   }
 }
 
@@ -2752,12 +2760,12 @@ async function maybeOpenDeepLinkedEntry() {
     return true;
   }
   if (kind === 'cosmic' && isPaid) {
-    const [mapId, transitId] = rest;
+    const [transitId] = rest;
     switchTab('cosmic');
     await loadCosmicTab();
-    const season = allCosmicSeasons.find(s => s.map_id === mapId);
-    if (season) {
-      await openCosmicSeasonDetail(season, transitId);
+    const t = cosmicTransitsById.get(transitId);
+    if (t) {
+      await openCosmicSeasonDetail(seasonWindowFor(Date.parse(t.exact_utc)), transitId);
     }
     return true;
   }
