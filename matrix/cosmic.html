@@ -572,14 +572,15 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 <script>
 /* ============================================================
    COSMIC MATRIX — orchestration spine
-   Paid-gated. Sole writer of cosmic_matrix. cosmic_bingo (the season's
-   board) is now owned by the standalone cosmic-bingo.html page.
-   Flow per transit: location (user-built) → character → library → journal
-   → matrix render.
-   No `games` table — cosmic_bingo is the season anchor (1 row per user per
-   season, holds the cloned transit_data); cosmic_matrix's per-transit rows
-   just carry that same map_id. Entry identity is (map_id, transit_id):
-   upsert on that key → no dup rows.
+   Paid-gated. Sole writer of cosmic_matrix. No more zodiac-season gating or
+   cosmic_bingo linkage — cosmic_transits is a flat, ever-growing calendar of
+   individual transits (ingresses/stations/aspects/lunations), computed via
+   Swiss Ephemeris and populated straight into Supabase (no app code writes
+   to it). Flow per transit: location (user-built) → character → library →
+   journal → matrix render.
+   No `games` table, no per-season anchor row — cosmic_matrix's per-transit
+   rows are addressed directly by (user_id, transit_id): upsert on that key
+   → no dup rows.
    ============================================================ */
 
 // ── SUPABASE (same project as adventure-matrix) ─────────────
@@ -593,17 +594,14 @@ const UPGRADE_URL = '../users/membership.html';     // TODO: confirm your pricin
 
 // ── STATE ───────────────────────────────────────────────────
 let currentUser    = null;
-let activeTemplate = null;   // cosmic_templates row
-let activeMapId    = null;   // cosmic_bingo.map_id — groups this season's rows
-let activeMapData  = null;   // the season's transit_data (season + transits[])
-let activeTransit  = null;   // the selected transit object {transit_id, planet, name, utc}
+let allTransits    = [];     // every cosmic_transits row (global reference data), fetched once
+let activeTransit  = null;   // the selected cosmic_transits row {transit_id, planet, planet_b, transit_type, sign, sign_b, name, exact_utc}
 let activeLocation = null;   // user-built {name,terrain,feeling,tint,cat} for activeTransit
-let activeMatrixEntryId = null;   // cosmic_matrix row id for (activeMapId, activeTransit.transit_id) — resolved lazily in renderMatrix()
+let activeMatrixEntryId = null;   // cosmic_matrix row id for (currentUser.id, activeTransit.transit_id) — resolved lazily in renderMatrix()
 let currentStep    = null;   // 'location' | 'character' | 'library' | 'journal' — whichever popup is open
 let completedSet   = new Set();   // transit_id keys that have a character row
 let completedData  = new Map();   // transit_id → character_data
 let justDoneKey    = null;
-let _seasonTpls    = null;   // cosmic_templates rows, fetched once on load
 
 // ── HELPERS ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -672,7 +670,7 @@ function showIframe(src){ const p=$('quad-popup-body'); p.className='content-pan
   p.innerHTML=`<iframe class="game-iframe" id="game-iframe" src="${src}"></iframe>`;
   autoSizeIframe($('game-iframe')); }
 
-function transits(){ return (activeMapData?.transits || []).slice().sort((a,b)=>Date.parse(a.utc)-Date.parse(b.utc)); }
+function transits(){ return allTransits.slice().sort((a,b)=>Date.parse(a.exact_utc)-Date.parse(b.exact_utc)); }
 function transitByKey(k){ return transits().find(t=>t.transit_id===k); }
 function nowMs(){ return Date.now(); }
 // "today" is a UTC calendar day — a transit dated today counts as active
@@ -682,9 +680,9 @@ function todayRangeUTC(){
   const start = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
   return [start, start + 86400000];
 }
-function isActiveTransit(t){ return Date.parse(t.utc) < todayRangeUTC()[1]; }
+function isActiveTransit(t){ return Date.parse(t.exact_utc) < todayRangeUTC()[1]; }
 function fmtTransitTime(t){
-  const d=new Date(t.utc);
+  const d=new Date(t.exact_utc);
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' +
          d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 }
@@ -717,8 +715,9 @@ async function init(){
 // trackable. The matrix underneath stays locked (map/library/char) until a
 // transit + location are picked, same as before. ──
 async function stepInitial(){
-  const tpls = await loadSeasonTemplates();
-  if (!tpls.length){ return showNoSeason(); }
+  const list = await loadAllTransits();
+  if (!list.length){ return showNoTransits(); }
+  await loadProgress();
   await renderMatrix();
   if (!activeTransit) openTransitPopup();
 }
@@ -737,7 +736,7 @@ function showLoginGate(){
   setBubble('the sky is waiting for you.');
   showGate(`<div class="gate">
     <div class="gate-title">the cosmic matrix</div>
-    <div class="gate-text">log in to walk the season's moon phases.</div>
+    <div class="gate-text">log in to track the sky's transits.</div>
     <button class="gate-btn" onclick="openLoginModal()">log in →</button>
   </div>`);
 }
@@ -787,94 +786,30 @@ function showUpgradeGate(){
   setBubble('this ritual is for members.');
   showGate(`<div class="gate">
     <div class="gate-title">a members' ritual</div>
-    <div class="gate-text">the cosmic matrix guides you through each astrological season — one location per moon phase. it's part of membership.</div>
+    <div class="gate-text">the cosmic matrix guides you through the sky's transits — one location per transit. it's part of membership.</div>
     <button class="gate-btn" onclick="window.location.href='${UPGRADE_URL}'">become a member →</button>
   </div>`);
 }
-function showNoSeason(){
-  setBubble('no season is open right now.');
+function showNoTransits(){
+  setBubble('the sky is quiet right now.');
   showGate(`<div class="gate">
-    <div class="gate-title">between seasons</div>
-    <div class="gate-text">there's no published cosmic season at the moment. check back when the next one begins.</div>
+    <div class="gate-title">no transits yet</div>
+    <div class="gate-text">there's no transit data loaded at the moment. check back soon.</div>
     <button class="gate-btn" onclick="window.location.href='${LOGIN_URL}'">back to the castle →</button>
   </div>`);
 }
 
-// ── SEASON LOAD + CLONE-ON-FIRST-OPEN ───────────────────────
-// Fetches available season templates once and caches them in _seasonTpls.
-// The ?season= test hook (dev/direct link) silently pre-loads that one
-// season so the location popup goes straight to its transit selector
-// instead of auto-picking whichever template is currently live.
-async function loadSeasonTemplates(){
-  if (_seasonTpls) return _seasonTpls;
-  const param = new URLSearchParams(location.search).get('season');
-  let query = sb.from('cosmic_templates').select('*');
-  query = param ? query.eq('season', param) : query.eq('is_published', true);
-  let tpls=[];
-  try { const { data } = await query; tpls = data || []; } catch(e){}
-  _seasonTpls = tpls;
-  if (param && tpls.length) await openSeason(tpls[0], { silent: true });
-  return tpls;
-}
-
-// A template only counts as the "live" season if today falls inside its own
-// [season_start_utc, season_end_utc) window — a published template whose
-// season has already ended (or hasn't started yet) shouldn't present as the
-// open, current experience just because it exists in the DB. Templates
-// without boundary fields fail open (always current) rather than vanishing.
-function isSeasonCurrent(tpl){
-  const td = tpl?.transit_data || {};
-  const startMs = Date.parse(td.season_start_utc);
-  const endMs = Date.parse(td.season_end_utc);
-  if (isNaN(startMs) || isNaN(endMs)) return true;
-  const now = Date.now();
-  return now >= startMs && now < endMs;
-}
-async function openSeason(tpl, opts){
-  activeTemplate = tpl;
-  activeMapData  = tpl.transit_data;
-  await ensureCosmicSeason(tpl);
-  if (!activeMapId){ if (!opts?.silent) HGModal.alert('oops','could not open this season — try again'); return; }
-  await loadProgress();
-  if (!opts?.silent) showTransitSelector();
-}
-
-// Clone the season template into the user's cosmic_bingo row exactly once.
-// cosmic_bingo is the season anchor (1 row per user per season): it holds
-// the map_id every cosmic_matrix transit row groups under, plus the
-// transit_data clone (the bingo board itself is owned by cosmic-bingo.html).
-async function ensureCosmicSeason(tpl){
-  const season = tpl.transit_data?.season || tpl.season;
-  let row=null;
+// ── TRANSIT LOAD ─────────────────────────────────────────────
+// Fetches the whole cosmic_transits calendar once and caches it in
+// allTransits — it's global reference data (not per-user, not per-season),
+// so there's no clone-on-open step and no map_id to mint.
+async function loadAllTransits(){
+  if (allTransits.length) return allTransits;
   try {
-    const { data } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
-    row = (data||[]).find(r => r.transit_data?.season === season) || null;
-  } catch(e){}
-
-  if (!row){
-    try {
-      const { data, error } = await sb.from('cosmic_bingo').insert({
-        map_id: crypto.randomUUID(),
-        user_id: currentUser.id,
-        transit_data: tpl.transit_data,     // carries season + transits; transit_data->>'season' powers the unique index
-        bingo_data: { marked:null },
-      }).select().single();
-      if (error) throw error;
-      row = data;
-    } catch(err){
-      // Surface the real reason (constraint, RLS, etc.) — don't hide it.
-      console.error('[cosmic clone] cosmic_bingo insert failed:', err?.message || err, err);
-      // A unique-index race is the one benign case: re-fetch the row that won.
-      try {
-        const { data } = await sb.from('cosmic_bingo').select('*').eq('user_id', currentUser.id);
-        row = (data||[]).find(r => r.transit_data?.season === season) || null;
-      } catch(e){}
-    }
-  }
-  if (row){
-    activeMapId   = row.map_id;
-    activeMapData = row.transit_data || activeMapData;
-  }
+    const { data } = await sb.from('cosmic_transits').select('*').order('exact_utc', { ascending: true });
+    allTransits = data || [];
+  } catch(e){ console.error('[cosmic transits] load failed', e); }
+  return allTransits;
 }
 
 // Which transits are already lived (have a character row).
@@ -884,7 +819,7 @@ async function loadProgress(){
   try {
     const { data } = await sb.from('cosmic_matrix')
       .select('transit_id, character_data')
-      .eq('map_id', activeMapId).eq('user_id', currentUser.id);
+      .eq('user_id', currentUser.id);
     (data||[]).forEach(r=>{
       if (r.character_data){
         completedSet.add(r.transit_id);
@@ -1091,10 +1026,10 @@ async function confirmLocation(){
   const btn = $('loc-confirm'); if (btn){ btn.disabled = true; btn.innerHTML='saving…'; }
   try {
     const { error } = await sb.from('cosmic_matrix').upsert({
-      map_id: activeMapId, user_id: currentUser.id, transit_id: activeTransit.transit_id,
+      user_id: currentUser.id, transit_id: activeTransit.transit_id,
       location_data: activeLocation,
       updated_at: new Date().toISOString(),
-    }, { onConflict:'map_id,transit_id' });
+    }, { onConflict:'user_id,transit_id' });
     if (error) throw error;
     showStatus('location saved ✓','#6ab86a');
     closeLocationBuilder();
@@ -1115,7 +1050,7 @@ function stepCharacter(){
 
 function openCharacterBuilder(){
   setQuadPopupTitle('build a character');
-  showIframe(`../games/infinity-mirror.html?game_id=${activeMapId}&transit=${activeTransit.transit_id}&loop=true&mode=cloud`);
+  showIframe(`../games/infinity-mirror.html?transit=${activeTransit.transit_id}&loop=true&mode=cloud`);
   setSave(true,'loading…'); $('save-btn').disabled = true;
 }
 
@@ -1197,11 +1132,11 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }){
     }
 
     const { error } = await sb.from('cosmic_matrix').upsert({
-      map_id: activeMapId, user_id: currentUser.id, transit_id: activeTransit.transit_id,
+      user_id: currentUser.id, transit_id: activeTransit.transit_id,
       character_data: charState,
       archetype_id: finalArchetypeId,
       updated_at: new Date().toISOString(),
-    }, { onConflict:'map_id,transit_id' });
+    }, { onConflict:'user_id,transit_id' });
     if (error) throw error;
     completedData.set(activeTransit.transit_id, charState);
     completedSet.add(activeTransit.transit_id);
@@ -1222,10 +1157,10 @@ const inventoryPanel = MatrixInventory.createPanel({
   getCurrentUser: () => currentUser,
   persist: async (fields) => {
     const { error } = await sb.from('cosmic_matrix').upsert({
-      map_id: activeMapId, user_id: currentUser.id, transit_id: activeTransit.transit_id,
+      user_id: currentUser.id, transit_id: activeTransit.transit_id,
       updated_at: new Date().toISOString(),
       ...fields,
-    }, { onConflict:'map_id,transit_id' });
+    }, { onConflict:'user_id,transit_id' });
     if (error) throw error;
   },
   onContinue: () => { closeQuadrantPopup(); renderMatrix(); },
@@ -1254,9 +1189,9 @@ async function saveLibrarySelection(){
 // Panel logic lives in the shared matrix-journal.js module (also used by
 // dream.html/daily.html). Messages persist on every send — there's no
 // separate "done" step; closing the popup (×) is all that's needed.
-// Row order alternation is keyed off this season's transit order (not
-// position among filtered/loaded rows) so a given transit always lands on
-// the same side across sessions; character_data isn't selected per-row
+// Row order alternation is keyed off the global transit calendar's order
+// (not position among filtered/loaded rows) so a given transit always lands
+// on the same side across sessions; character_data isn't selected per-row
 // (cosmic_matrix doesn't need it re-fetched) — completedData already holds
 // it from the transit picker's own query.
 const journalPanel = MatrixJournal.createPanel({
@@ -1268,10 +1203,10 @@ const journalPanel = MatrixJournal.createPanel({
   emptyText: 'you have no messages',
   allowPhoto: true,
   photoBucket: MATRIX_PHOTO_BUCKET,
-  buildPhotoPath: (file, ext) => `${currentUser.id}/${activeMapId}/${activeTransit.transit_id}/journal-${crypto.randomUUID()}.${ext}`,
-  isReady: () => !!(activeMapId && activeTransit),
-  identityColumns: ['map_id', 'transit_id'],
-  buildUpsertBase: () => ({ map_id: activeMapId, user_id: currentUser.id, transit_id: activeTransit.transit_id }),
+  buildPhotoPath: (file, ext) => `${currentUser.id}/${activeTransit.transit_id}/journal-${crypto.randomUUID()}.${ext}`,
+  isReady: () => !!activeTransit,
+  identityColumns: ['user_id', 'transit_id'],
+  buildUpsertBase: () => ({ user_id: currentUser.id, transit_id: activeTransit.transit_id }),
   rowMatchesActive: row => row.transit_id === activeTransit.transit_id,
   sideForRow: row => {
     const idx = transits().map(t => t.transit_id).indexOf(row.transit_id);
@@ -1287,7 +1222,7 @@ const journalPanel = MatrixJournal.createPanel({
   loadHistoryRows: async () => {
     const { data } = await sb.from('cosmic_matrix')
       .select('transit_id, journal_messages, matrix_images, location_data, updated_at')
-      .eq('map_id', activeMapId).eq('user_id', currentUser.id)
+      .eq('user_id', currentUser.id)
       .order('updated_at', { ascending: true });
     return data || [];
   },
@@ -1372,11 +1307,11 @@ async function renderMatrix(){
   if (!activeMatrixEntryId){
     try {
       const { data: row } = await sb.from('cosmic_matrix').select('id')
-        .eq('map_id', activeMapId).eq('transit_id', activeTransit.transit_id).maybeSingle();
+        .eq('user_id', currentUser.id).eq('transit_id', activeTransit.transit_id).maybeSingle();
       activeMatrixEntryId = row?.id || null;
     } catch(e){ console.error('[cosmic matrix] row lookup failed', e); }
   }
-  const data = await MatrixRender.assemble(sb, activeMatrixEntryId, activeMapData, 'cosmic_matrix');
+  const data = await MatrixRender.assemble(sb, activeMatrixEntryId, null, 'cosmic_matrix');
   data.mapName = activeLocation?.name
     || (activeLocation ? `${activeLocation.terrain} of ${activeLocation.feeling}` : null)
     || activeTransit?.name || 'this transit';
@@ -1394,7 +1329,7 @@ async function renderMatrix(){
   if (!data.matrixLayout) data.matrixLayout = {};
   if (!data.matrixLayout.map) data.matrixLayout.map = { x: 27, y: 71 };
 
-  _matrixSeed = `${activeMapId}|${activeTransit.transit_id}`;
+  _matrixSeed = `${currentUser.id}|${activeTransit.transit_id}`;
   showMatrixPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showEditNotes: false, showFrame: true,
     editable: !!activeMatrixEntryId, showJournalTool: !!activeMatrixEntryId,
@@ -1421,7 +1356,7 @@ async function renderMatrix(){
 }
 
 function buildTransitBadgeHTML(transit){
-  const planets = Array.isArray(transit?.planets) ? transit.planets : [];
+  const planets = planetsOf(transit);
   const type = transitType(transit);
   const planetImgs = planets.map(p => `<img src="../assets/elements/glyphs/${p}.png" alt="${p}" class="cosmic-transit-glyph" onerror="this.style.display='none'">`);
   const typeImg = type
@@ -1438,25 +1373,24 @@ function buildTransitBadgeHTML(transit){
 
 // ── TRANSIT READING — "scientific label" style explainer for the active
 // transit's planets + type (an aspect between two planets, e.g. "Saturn
-// Square Venus", or a single planet's motion, e.g. "Mercury Retrograde"),
-// opened when a transit is selected (see selectTransit). Type isn't its own
-// field in transit_data (each transit is just {transit_id, name, planets[],
-// utc}), so it's read off an optional explicit `aspect`/`motion`/`type`
-// field first, falling back to spotting the type word inside `name`
-// (season templates are authored as "<Planet> <Aspect> <Planet>" or
-// "<Planet> <Motion>", e.g. "Saturn Square Venus" / "Mercury Retrograde",
-// matching the reference reading card) — works for existing data with no
-// schema change needed.
+// square Venus", or a single planet's motion, e.g. "Mercury retrograde"),
+// opened when a transit is selected (see selectTransit). cosmic_transits
+// carries the type as a real column now (transit_type: 'ingress' |
+// 'station_retrograde' | 'station_direct' | 'new_moon' | 'full_moon' |
+// 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition') — no more
+// guessing it out of the name string.
+function planetsOf(t){ return [t?.planet, t?.planet_b].filter(Boolean); }
 const PLANET_READINGS = {
   sun: 'The sun wants to be seen (skills, performance, legacy)',
   moon: 'The moon wants to feel (emotions, cycles, intuition)',
   mercury: 'Mercury wants to find connections (reviewing, returning, realizing)',
   venus: 'Venus wants to love (devotion, values, aesthetics)',
   mars: 'Mars wants to take action (passion, effort, desire)',
-  saturn: 'Saturn wants to create structure (lists, rules, frameworks)',
   jupiter: 'Jupiter wants to create space (learn, trust, expand)',
-  neptune: 'Neptune wants to explore the unknown (dream, dissociate, drown)',
+  saturn: 'Saturn wants to create structure (lists, rules, frameworks)',
   uranus: 'Uranus wants to disrupt the room (spark, surprise, shock)',
+  neptune: 'Neptune wants to explore the unknown (dream, dissociate, drown)',
+  pluto: 'Pluto wants to transform (power, endings, rebirth)',
 };
 const ASPECT_READINGS = {
   sextile:     { glyph:'sextile',  label:'Sextiles create secret pathways' },
@@ -1470,15 +1404,16 @@ const MOTION_READINGS = {
   direct:     { glyph:'direct',     label:'Going direct again!' },
 };
 const TRANSIT_TYPE_READINGS = { ...ASPECT_READINGS, ...MOTION_READINGS };
-function transitType(t){
-  const explicit = String(t?.aspect || t?.motion || t?.type || '').toLowerCase();
-  if (TRANSIT_TYPE_READINGS[explicit]) return explicit;
-  const name = String(t?.name || t?.transit_id || '').toLowerCase();
-  return Object.keys(TRANSIT_TYPE_READINGS).find(a => name.includes(a))
-    || (name.includes('conjunct') ? 'conjunction' : null);
-}
+// Maps cosmic_transits.transit_type onto a TRANSIT_TYPE_READINGS key — plain
+// ingresses/lunations have no aspect/motion reading card, so they map to null.
+const TRANSIT_TYPE_TO_READING = {
+  station_retrograde: 'retrograde', station_direct: 'direct',
+  conjunction: 'conjunction', sextile: 'sextile', square: 'square',
+  trine: 'trine', opposition: 'opposition',
+};
+function transitType(t){ return TRANSIT_TYPE_TO_READING[t?.transit_type] || null; }
 function buildTransitReadingHTML(transit){
-  const planets = Array.isArray(transit?.planets) ? transit.planets : [];
+  const planets = planetsOf(transit);
   const type = transitType(transit);
   const typeInfo = type ? TRANSIT_TYPE_READINGS[type] : null;
   const heading = typeInfo ? `<div class="reading-aspect-label">${escSvg(typeInfo.label)}</div>` : '';
@@ -1540,21 +1475,19 @@ function openQuadrant(quadrant) {
   if (quadrant === 'char') return openCharPopup();
   if (quadrant === 'library') return openLibraryPopup();
 }
-// Opens the recent-transits picker — auto-picks whichever template is
-// currently live (no season/sign picker — there's only ever one live season
-// at a time) the first time, then just reopens the already-loaded list on
+// Opens the recent-transits picker — loads the whole cosmic_transits
+// calendar the first time (no season/sign picker — it's just one flat,
+// ever-growing list now), then just reopens the already-loaded list on
 // later visits. Picking a transit here only activates it (see selectTransit)
 // — it never opens the location builder itself; that's a separate, explicit
 // click on "where are you?" once this tile unlocks it.
 async function openTransitPopup(){
   openQuadrantPopup(QUADRANT_PROMPTS.bingo);
-  if (activeMapData) { showTransitSelector(); return; }
+  if (allTransits.length) { showTransitSelector(); return; }
   showPanel('<div class="loading-msg">reading the sky…</div>');
-  const tpls = await loadSeasonTemplates();
-  if (!tpls.length) { closeQuadrantPopup(); showNoSeason(); return; }
-  const current = tpls.find(isSeasonCurrent);
-  if (!current) { closeQuadrantPopup(); showNoSeason(); return; }
-  await openSeason(current);
+  const list = await loadAllTransits();
+  if (!list.length) { closeQuadrantPopup(); showNoTransits(); return; }
+  showTransitSelector();
 }
 function openCharPopup() {
   openQuadrantPopup(QUADRANT_PROMPTS.char);

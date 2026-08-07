@@ -319,8 +319,8 @@ html, body {
 .wall-picker-item { cursor: pointer; border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .wall-picker-thumb { position: relative; width: 100%; aspect-ratio: 1; }
 .wall-picker-thumb img.wpt-plain { width: 100%; height: 100%; object-fit: contain; }
-.wall-picker-thumb .wpt-inner { position: relative; width: 100%; height: 100%; background: #fff; overflow: hidden; box-shadow: 1px 2px 4px rgba(0,0,0,0.18); }
-.wall-picker-thumb .wpt-inner img.wpt-img { width: 100%; height: 100%; object-fit: cover; }
+.wall-picker-thumb .wpt-inner { position: relative; width: 100%; height: 100%; background: #dfe2ef; overflow: hidden; box-shadow: 1px 2px 4px rgba(0,0,0,0.18); }
+.wall-picker-thumb .wpt-inner img.wpt-img { position: absolute; object-fit: cover; }
 .wall-picker-thumb .wpt-frame { position: absolute; inset: 0; width: 100%; height: 100%; }
 .wall-picker-item:hover .wall-picker-thumb { outline: 2px solid var(--purple); }
 .wall-picker-label { font-family: var(--font-hand); font-size: 12px; color: #777; text-align: center; }
@@ -472,7 +472,7 @@ html, body {
     } else {
       const frameFile = MatrixRender.PHOTO_FRAME_FILE[p.frame] || MatrixRender.PHOTO_FRAME_FILE.polaroid;
       el.innerHTML = `<div class="adv-photo-inner" style="${MatrixRender.photoFrameMaskStyle(p.frame)}">
-          <img class="adv-photo-img" src="${escAttr(p.photo_url)}" alt="" style="object-position:${p.img_pos_x}% ${p.img_pos_y}%;transform:rotate(${p.img_rot}deg) scale(${p.img_scale});" onerror="this.parentElement.parentElement.style.display='none'">
+          <img class="adv-photo-img" src="${escAttr(p.photo_url)}" alt="" style="${MatrixRender.photoMatteStyle(p.frame)}object-position:${p.img_pos_x}% ${p.img_pos_y}%;transform:rotate(${p.img_rot}deg) scale(${p.img_scale});" onerror="this.parentElement.parentElement.style.display='none'">
           <img class="adv-photo-frame" src="${MatrixRender.PHOTO_FRAME_BASE}${frameFile}" alt="">
         </div>${resizeHandle}${removeBtn}`;
     }
@@ -485,8 +485,8 @@ html, body {
       url = `../matrix/archive.html?openEntry=dream:${photo.source_id}:${photo.source_map_id}`;
     } else if (photo.source_table === 'daily_matrix' && photo.source_id) {
       url = `../matrix/archive.html?openEntry=daily:${photo.source_id}`;
-    } else if (photo.source_table === 'cosmic_matrix' && photo.source_map_id && photo.source_map_phase) {
-      url = `../matrix/archive.html?openEntry=cosmic:${photo.source_map_id}:${photo.source_map_phase}`;
+    } else if (photo.source_table === 'cosmic_matrix' && photo.source_map_phase) {
+      url = `../matrix/archive.html?openEntry=cosmic:${photo.source_map_phase}`;
     } else {
       return;
     }
@@ -588,7 +588,7 @@ html, body {
     } else {
       const frameFile = MatrixRender.PHOTO_FRAME_FILE[img.frame] || MatrixRender.PHOTO_FRAME_FILE.polaroid;
       thumb.innerHTML = `<div class="wpt-inner" style="${MatrixRender.photoFrameMaskStyle(img.frame)}">
-          <img class="wpt-img" src="${escAttr(img.url)}" alt="" style="object-position:${img.imgPosX != null ? img.imgPosX : 50}% ${img.imgPosY != null ? img.imgPosY : 50}%;">
+          <img class="wpt-img" src="${escAttr(img.url)}" alt="" style="${MatrixRender.photoMatteStyle(img.frame)}object-position:${img.imgPosX != null ? img.imgPosX : 50}% ${img.imgPosY != null ? img.imgPosY : 50}%;">
           <img class="wpt-frame" src="${MatrixRender.PHOTO_FRAME_BASE}${frameFile}" alt="">
         </div>`;
     }
@@ -644,7 +644,7 @@ html, body {
     const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
       sb.from('dream_matrix').select('id, map_id, matrix_images').eq('user_id', currentUserId),
       sb.from('daily_matrix').select('id, matrix_images').eq('user_id', currentUserId),
-      sb.from('cosmic_matrix').select('map_id, transit_id, matrix_images').eq('user_id', currentUserId),
+      sb.from('cosmic_matrix').select('transit_id, matrix_images').eq('user_id', currentUserId),
     ]);
 
     const items = [];
@@ -655,7 +655,7 @@ html, body {
       if (img && img.url) items.push({ img, sourceTable: 'daily_matrix', sourceId: row.id, sourceMapId: null, sourceMapPhase: null });
     }));
     (cosmicRes.data || []).forEach(row => (row.matrix_images || []).forEach(img => {
-      if (img && img.url) items.push({ img, sourceTable: 'cosmic_matrix', sourceId: null, sourceMapId: row.map_id, sourceMapPhase: row.transit_id });
+      if (img && img.url) items.push({ img, sourceTable: 'cosmic_matrix', sourceId: null, sourceMapId: null, sourceMapPhase: row.transit_id });
     }));
 
     if (!items.length) {

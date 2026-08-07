@@ -351,6 +351,59 @@ function prefersReducedMotion() {
   return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+// ── IMMERSIVE FULLSCREEN — on a narrow phone screen, ask the browser to
+// go fullscreen + landscape instead of just prompting the user to rotate
+// by hand. Must be called synchronously from the "start" click handler's
+// call stack (no prior await) or browsers reject it as not user-initiated.
+// Falls through silently on failure — the CSS .rotate-hint (media-query
+// driven) is left in place as the fallback when none of this works. ──
+function isMobileNarrow() {
+  return window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+}
+function lockLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+  } catch (e) {}
+}
+function tryImmersiveFullscreen(panelEl, videoEl) {
+  if (!isMobileNarrow()) return;
+  try {
+    // iOS Safari: the native fullscreen video player auto-rotates to
+    // landscape for a landscape clip and hides the browser chrome —
+    // there's no separate orientation-lock API on iOS, this is the trick.
+    if (videoEl && typeof videoEl.webkitEnterFullscreen === 'function' && !videoEl.webkitDisplayingFullscreen) {
+      videoEl.webkitEnterFullscreen();
+      return;
+    }
+  } catch (e) {}
+  // Standards-track path (Android Chrome, etc.) — fullscreen the whole
+  // running panel (not just the video) so the pause/close/countdown
+  // controls stay usable while fullscreen, then lock the orientation.
+  const target = panelEl || document.documentElement;
+  const requestFs = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
+  if (!requestFs) return;
+  try {
+    const result = requestFs.call(target);
+    if (result && result.then) result.then(lockLandscape).catch(() => {});
+    else lockLandscape();
+  } catch (e) {}
+}
+function exitImmersiveFullscreen() {
+  try {
+    const video = document.getElementById('running-video');
+    if (video && video.webkitDisplayingFullscreen && typeof video.webkitExitFullscreen === 'function') {
+      video.webkitExitFullscreen();
+    }
+  } catch (e) {}
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+  } catch (e) {}
+  try {
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+  } catch (e) {}
+}
+
 function fmtClock(ms) {
   const totalSec = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(totalSec / 60);
@@ -582,6 +635,8 @@ function renderRunning(themeObj, state) {
   setFullbleed(true);
   setCentered(false);
 
+  tryImmersiveFullscreen(document.querySelector('.running-panel'), state.textOnly ? null : document.getElementById('running-video'));
+
   if (!state.textOnly) {
     const video = document.getElementById('running-video');
 
@@ -635,6 +690,7 @@ async function exitToPicker() {
   }
   clearInterval(tickIntervalId);
   window.removeEventListener('beforeunload', beforeUnloadGuard);
+  exitImmersiveFullscreen();
   clearState();
   renderPicker();
   return true;
@@ -728,6 +784,7 @@ function tick() {
 function completeTimer(state) {
   clearInterval(tickIntervalId);
   window.removeEventListener('beforeunload', beforeUnloadGuard);
+  exitImmersiveFullscreen();
   const video = document.getElementById('running-video');
   if (video) {
     video.loop = false;
@@ -739,6 +796,8 @@ function completeTimer(state) {
 
   const controls = document.querySelector('.running-controls');
   if (controls) controls.remove();
+  const rotateHint = document.querySelector('.rotate-hint');
+  if (rotateHint) rotateHint.remove();
 
   const themeObj = findTheme(state.slug);
   lastCompletedSession = { slug: state.slug, timerSeconds: state.timerSeconds, goal: state.goal || null };

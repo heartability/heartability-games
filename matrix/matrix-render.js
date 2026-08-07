@@ -103,6 +103,30 @@
       + `mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;`
       + `mask-position:center;-webkit-mask-position:center;`;
   }
+  // Each frame's transparent "window" as %-of-box (l/t/w/h), measured from the
+  // frame PNG's actual alpha hole so the photo lines up with the art instead of
+  // assuming a uniform border. Used to inset the photo off the frame's edge —
+  // the #dfe2ef matte (see .adv-photo-inner) shows in the gap — so the frame's
+  // own border art no longer overlaps/crops the image underneath it.
+  const PHOTO_FRAME_WINDOW = {
+    'polaroid':                    { l: 9.3,  t: 9.3,  w: 81.2, h: 67.0 },
+    'gold-beaded-square':          { l: 20.8, t: 21.6, w: 58.1, h: 57.0 },
+    'gold-heart-shell':            { l: 7.1,  t: 21.1, w: 86.7, h: 71.9 },
+    'green-gold-ornate-rectangle': { l: 20.5, t: 15.1, w: 57.7, h: 67.7 },
+    'lace-heart-floral-red':       { l: 15.0, t: 18.5, w: 71.1, h: 60.8 },
+    'scallop-black-rectangle':     { l: 11.7, t: 7.6,  w: 77.0, h: 84.8 },
+  };
+  const PHOTO_MATTE_MARGIN = 4; // percentage points of breathing room inset from the window on each side
+  // Inline CSS that positions/sizes the photo <img> inside a frame's window,
+  // shrunk by PHOTO_MATTE_MARGIN so the matte color is visible as a border
+  // between the photo's edge and where the frame art begins.
+  function photoMatteStyle(frameKey){
+    const win = PHOTO_FRAME_WINDOW[frameKey] || PHOTO_FRAME_WINDOW.polaroid;
+    const m = PHOTO_MATTE_MARGIN;
+    const l = win.l + m, t = win.t + m;
+    const w = Math.max(10, win.w - 2 * m), h = Math.max(10, win.h - 2 * m);
+    return `left:${l}%;top:${t}%;width:${w}%;height:${h}%;`;
+  }
   const NO_FRAME_KEY = 'none'; // clean cutout PNGs: no overlay, no white mat, no cropping
 
   // ── PURE HELPERS ──────────────────────────────────────────
@@ -480,7 +504,7 @@
         const imgRot = img.imgRot || 0;
         photos += `<div class="adv-photo${photoAttrs} style="left:${left}%;top:${top}%;transform:translate(-50%,-50%) rotate(${pRot}deg) scale(${scale});">
             <div class="adv-photo-inner" style="${photoFrameMaskStyle(img.frame)}">
-              <img class="adv-photo-img" src="${img.url}" alt="" style="object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
+              <img class="adv-photo-img" src="${img.url}" alt="" style="${photoMatteStyle(img.frame)}object-position:${imgPosX}% ${imgPosY}%;transform:rotate(${imgRot}deg) scale(${imgScale});" onerror="this.parentElement.parentElement.style.display='none'">
               <img class="adv-photo-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
             </div>
             ${photoHandles}${removeBtn}</div>`;
@@ -1076,7 +1100,7 @@
         photoPreviewEl.classList.remove('no-frame');
         photoPreviewEl.style.cssText = photoFrameMaskStyle(photoDraft.frame);
         const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
-        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img" src="${photoDraft.dataUrl}" alt="">
+        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img" src="${photoDraft.dataUrl}" alt="" style="${photoMatteStyle(photoDraft.frame)}">
            <img class="mrm-photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
            <button class="mrm-photo-rotate" type="button" title="rotate" aria-label="rotate photo">↻</button>
            <button class="mrm-photo-stretch" type="button" title="stretch" aria-label="stretch photo">⤢</button>
@@ -1569,9 +1593,11 @@
    cover, and anything outside the box is clipped rather than overflowing. */
 .adv-photo-inner {
   position:relative; display:block; width:100%; aspect-ratio:602/691;
-  background:#fff; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
+  background:#dfe2ef; overflow:hidden; box-shadow:2px 3px 7px rgba(0,0,0,.18);
 }
-.adv-photo-img { width:100%; height:100%; display:block; pointer-events:none; object-fit:cover; }
+/* Positioned per-frame via photoMatteStyle() to sit inside the frame's window
+   with a margin — the .adv-photo-inner background shows through as a matte. */
+.adv-photo-img { position:absolute; display:block; pointer-events:none; object-fit:cover; }
 /* Frame overlay — stretched to exactly match the photo box, so its border
    sits on top and crops whatever falls outside its window. */
 .adv-photo-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
@@ -1785,15 +1811,18 @@
 .mrm-photo-drop { display:block; cursor:pointer; }
 .mrm-photo-preview {
   position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
-  aspect-ratio:602/691; background:#fff;
+  aspect-ratio:602/691; background:#dfe2ef;
   border:2px dashed var(--blue,#6e83d3); display:flex; align-items:center; justify-content:center;
   overflow:hidden; margin-bottom:14px; transition:border-color .12s;
 }
 .mrm-photo-drop:hover .mrm-photo-preview { border-color:var(--blue,#6e83d3); }
+/* Framed case: positioned via inline style (photoMatteStyle) to sit inside
+   the frame's window so the matte background shows as a border around it. */
 .mrm-photo-preview-img {
-  width:100%; height:100%; object-fit:cover; object-position:50% 50%; display:block;
+  position:absolute; object-fit:cover; object-position:50% 50%; display:block;
   cursor:grab; touch-action:none;
 }
+.mrm-photo-preview-img.plain { position:static; }
 .mrm-photo-preview-img:active { cursor:grabbing; }
 .mrm-photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .mrm-photo-rotate, .mrm-photo-stretch, .mrm-photo-clear {
@@ -1908,6 +1937,8 @@
     PHOTO_FRAME_FILE,
     PHOTO_FRAME_MASK_FILE,
     photoFrameMaskStyle,
+    PHOTO_FRAME_WINDOW,
+    photoMatteStyle,
     NO_FRAME_KEY,
   };
 })();
