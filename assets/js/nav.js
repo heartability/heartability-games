@@ -7,9 +7,11 @@
    inside it. Load assets/css/nav.css alongside this file. */
 
 window.HeartabilityNav = (function () {
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAEMGtLq6PNPzXkxz';
   let cfg = null;
   let musicPlaying = false;
   let signupCapFull = null;
+  let turnstileWidgetId = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -76,6 +78,7 @@ window.HeartabilityNav = (function () {
                 <div class="popup-label">password</div>
                 <input class="popup-input" type="password" id="hn-signup-password" placeholder="at least 6 characters" required minlength="6">
               </div>
+              <div id="hn-signup-turnstile"></div>
               <div class="popup-msg" id="hn-signup-msg"></div>
               <button type="submit" class="popup-btn" id="hn-signup-btn">create account</button>
             </form>
@@ -91,6 +94,19 @@ window.HeartabilityNav = (function () {
           </div>
         </div>
       </div>`;
+  }
+
+  function loadTurnstile(cb) {
+    if (window.turnstile) { cb(); return; }
+    const existing = document.getElementById('hn-turnstile-script');
+    if (existing) { existing.addEventListener('load', cb); return; }
+    const script = document.createElement('script');
+    script.id = 'hn-turnstile-script';
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    script.addEventListener('load', cb);
+    document.head.appendChild(script);
   }
 
   function outsideClick(e) {
@@ -125,6 +141,13 @@ window.HeartabilityNav = (function () {
     }
   }
 
+  function ensureTurnstileRendered() {
+    if (turnstileWidgetId !== null) return;
+    loadTurnstile(() => {
+      turnstileWidgetId = turnstile.render('#hn-signup-turnstile', { sitekey: TURNSTILE_SITE_KEY, size: 'flexible' });
+    });
+  }
+
   function toggleGear() { $('hn-gear-dropdown').classList.toggle('open'); }
 
   function openLoginPopup() {
@@ -157,6 +180,7 @@ window.HeartabilityNav = (function () {
     if (tab === 'signup') {
       const full = await checkSignupCapacity();
       $(full ? 'hn-form-waitlist' : 'hn-form-signup').classList.add('active');
+      if (!full) ensureTurnstileRendered();
     } else {
       $('hn-form-' + tab).classList.add('active');
     }
@@ -219,8 +243,15 @@ window.HeartabilityNav = (function () {
     const username = $('hn-signup-username').value.trim();
     const email = $('hn-signup-email').value.trim();
     const password = $('hn-signup-password').value;
-    const { data, error } = await cfg.sb.auth.signUp({ email, password, options: { data: { username } } });
+    const captchaToken = turnstileWidgetId !== null ? turnstile.getResponse(turnstileWidgetId) : undefined;
+    if (!captchaToken) {
+      showMsg('hn-signup-msg', 'please complete the checkbox verification.', 'error');
+      btn.disabled = false; btn.textContent = 'create account';
+      return;
+    }
+    const { data, error } = await cfg.sb.auth.signUp({ email, password, options: { data: { username }, captchaToken } });
     if (error) {
+      if (turnstileWidgetId !== null) turnstile.reset(turnstileWidgetId);
       if (isCapError(error)) {
         signupCapFull = true;
         $('hn-form-signup').classList.remove('active');
