@@ -64,6 +64,7 @@
   flex: 1; padding: 8px; font-family: var(--font-hand); font-size: var(--modal-font-subheading, 18px);
   text-align: center; cursor: pointer; color: #888; background: none; border: none;
   border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s;
+  text-decoration: none; display: block;
 }
 .popup-tab.active { color: #6e83d3; border-bottom-color: #6e83d3; }
 .login-popup-body { padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 12px; }

@@ -401,6 +401,10 @@ input:focus { border-color: var(--purple); }
     }
     btn.disabled = false; btn.textContent = 'join waitlist';
   }
+
+  if (new URLSearchParams(window.location.search).get('tab') === 'signup') {
+    switchTab('signup', document.querySelector('.tab-row .tab:nth-child(2)'));
+  }
 </script>
 
 </body>
