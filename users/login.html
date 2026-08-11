@@ -6,7 +6,13 @@
   <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
   <link rel="stylesheet" href="../assets/css/modal.css">
   <script src="../assets/js/modal.js" defer></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+    window.onTurnstileLoad = function () {
+      window.turnstileReady = true;
+      if (window.onTurnstileReadyCallback) window.onTurnstileReadyCallback();
+    };
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
   <title>Login — Heartability</title>
   <meta name="description" content="Log in to Heartability to access your matrix, profile, and saved progress.">
   <meta name="robots" content="noindex,follow">
@@ -255,7 +261,7 @@ input:focus { border-color: var(--purple); }
           <label>password</label>
           <input type="password" id="signup-password" placeholder="at least 6 characters" required minlength="6" />
         </div>
-        <div class="cf-turnstile" id="signup-turnstile" data-sitekey="0x4AAAAAAEMGtLq6PNPzXkxz" data-size="flexible"></div>
+        <div id="signup-turnstile"></div>
         <div class="msg" id="signup-msg"></div>
         <button type="submit" class="btn-submit" id="signup-btn">create account!</button>
       </form>
@@ -290,6 +296,15 @@ input:focus { border-color: var(--purple); }
   });
 
   let signupCapFull = null;
+  let turnstileWidgetId = null;
+
+  function ensureTurnstileRendered() {
+    if (turnstileWidgetId !== null || !window.turnstileReady) return;
+    const container = document.getElementById('signup-turnstile');
+    if (!container || container.offsetParent === null) return;
+    turnstileWidgetId = turnstile.render('#signup-turnstile', { sitekey: '0x4AAAAAAEMGtLq6PNPzXkxz', size: 'flexible' });
+  }
+  window.onTurnstileReadyCallback = ensureTurnstileRendered;
 
   async function checkSignupCapacity() {
     if (signupCapFull !== null) return signupCapFull;
@@ -312,6 +327,7 @@ input:focus { border-color: var(--purple); }
     if (tab === 'signup') {
       const full = await checkSignupCapacity();
       document.getElementById(full ? 'form-waitlist' : 'form-signup').classList.add('active');
+      if (!full) ensureTurnstileRendered();
     } else {
       document.getElementById('form-' + tab).classList.add('active');
     }
@@ -363,7 +379,7 @@ input:focus { border-color: var(--purple); }
     const username = document.getElementById('signup-username').value.trim();
     const email    = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
-    const captchaToken = window.turnstile ? turnstile.getResponse('signup-turnstile') : undefined;
+    const captchaToken = turnstileWidgetId !== null ? turnstile.getResponse(turnstileWidgetId) : undefined;
     if (!captchaToken) {
       showMsg('signup-msg', 'please complete the checkbox verification.', 'error');
       btn.disabled = false; btn.textContent = 'create account!';
@@ -371,7 +387,7 @@ input:focus { border-color: var(--purple); }
     }
     const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username }, captchaToken } });
     if (error) {
-      if (window.turnstile) turnstile.reset('signup-turnstile');
+      if (turnstileWidgetId !== null) turnstile.reset(turnstileWidgetId);
       if (isCapError(error)) {
         signupCapFull = true;
         document.getElementById('form-signup').classList.remove('active');
