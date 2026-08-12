@@ -559,8 +559,8 @@
     const frameClass = opts.showFrame ? ' framed' : '';
     return `<div class="step-panel matrix-panel">
       <div class="matrix-header">
+        <div class="matrix-header-btns">${noteBtn}${saveBtn}</div>
         <div class="matrix-date">${esc(data.dateLabel||'')}</div>
-        ${noteBtn}${saveBtn}
       </div>
       <div class="matrix-frame${frameClass}">
         <div class="adv-matrix"${bgStyle}>
@@ -1563,19 +1563,25 @@
     const css = `
 .matrix-panel { padding:0; overflow:hidden; justify-content:flex-start; align-items:stretch; position:relative; }
 .matrix-panel.step-panel { width:100%; height:100%; display:flex; flex-direction:column; font-family:var(--font-hand,"ZoesHandwriting",cursive); }
+/* Header is a two-row column: buttons (notes/save) right-aligned on top,
+   title/date centered underneath — the title sits on its own full-width
+   row so a long one (e.g. a dream map's title) can wrap without the fixed-
+   height old layout clipping the second line, and stays centered whether
+   it wraps or not. */
+.matrix-header { position:relative; flex-shrink:0; display:flex; flex-direction:column; padding-top:6px; }
+.matrix-header-btns { display:flex; justify-content:flex-end; align-items:center; gap:8px; min-height:30px; padding:0 12px; }
+.matrix-header-btns:empty { display:none; }
 .matrix-date {
-  position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(28px,3.8vw,46px); color:#3a4aaa; z-index:6;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(28px,3.8vw,46px); color:#3a4aaa;
+  text-align:center; line-height:1.1; padding:2px 12px 4px;
 }
 .matrix-edit-notes {
-  position:absolute; top:8px; right:12px; z-index:6;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(12px,1.3vw,15px);
   color:#fff; background:var(--blue,#6e83d3); border:2px solid #4a5bc4;
   box-shadow:2px 2px 0 #3a4aaa; padding:5px 14px; cursor:pointer; transition:all .05s;
 }
 .matrix-edit-notes:hover { background:#4a5bc4; }
 .matrix-edit-notes:active { box-shadow:none; transform:translate(2px,2px); }
-.matrix-header { position:relative; height:34px; flex-shrink:0; }
 .matrix-frame {
   width:76%; height:76%; margin:auto; align-self:center;
   position:relative; overflow:visible;
@@ -1681,7 +1687,7 @@
 }
 .adv-photo:hover .adv-photo-remove, .adv-photo.selected .adv-photo-remove { opacity:1; }
 .adv-photo-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-photo-remove { opacity:1; } }
+@media (hover: none) { .adv-photo.selected .adv-photo-remove { opacity:1; } }
 .adv-sticker { position:absolute; z-index:4; width:clamp(56px,7vw,86px); }
 .adv-sticker img { width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
 .mx-note {
@@ -1728,7 +1734,7 @@
 /* Touch has no hover state to reveal the handles with, so show them
    unconditionally there (same pattern as the remove buttons below) — and
    size them up, since a 20px target is hard to land a fingertip on. */
-@media (hover: none) { .adv-rotate-handle, .adv-resize-handle { opacity:1; } }
+@media (hover: none) { .adv-draggable.selected .adv-rotate-handle, .adv-draggable.selected .adv-resize-handle { opacity:1; } }
 @media (pointer: coarse) {
   .adv-rotate-handle, .adv-resize-handle { width:32px; height:32px; font-size:17px; }
   .adv-rotate-handle { top:-15px; left:-15px; }
@@ -1745,7 +1751,7 @@
 .adv-sticker:hover .adv-sticker-remove, .adv-sticker.selected .adv-sticker-remove,
 .mx-note:hover .mx-note-remove, .mx-note.selected .mx-note-remove { opacity:1; }
 .adv-sticker-remove:hover, .mx-note-remove:hover { color:#E8478B; border-color:#E8478B; }
-@media (hover: none) { .adv-sticker-remove, .mx-note-remove { opacity:1; } }
+@media (hover: none) { .adv-sticker.selected .adv-sticker-remove, .mx-note.selected .mx-note-remove { opacity:1; } }
 
 /* Matrix toolbar — add photo / sticker / text, centered below the matrix */
 .matrix-toolbar { display:flex; gap:10px; justify-content:center; align-self:center; margin-top:14px; flex-shrink:0; }
@@ -1762,12 +1768,11 @@
 .matrix-tool-btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
 .matrix-tool-btn:disabled:hover { background:#fff; color:var(--blue,#6e83d3); }
 
-/* Explicit save — top-right of the matrix header, next to the date.
+/* Explicit save — top-right of the matrix header, above the date.
    Drag/rotate/resize already autosave per-gesture, but this batches every
    item's current on-screen position into one write, so rearranging a lot at
    once can't lose anything to overlapping autosaves. */
 .matrix-save-btn {
-  position:absolute; top:6px; right:8px; z-index:7;
   font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#fff;
   background:var(--blue,#6e83d3); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
   padding:5px 14px; cursor:pointer; transition:all .05s;
