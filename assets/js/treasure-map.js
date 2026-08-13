@@ -16,58 +16,75 @@
 (function () {
   'use strict';
 
-  const TERRAIN_IMGS = {
-    pond:      "../assets/elements/maps/pond.png",
-    waterfall: "../assets/elements/maps/waterfall.png",
-    spring:    "../assets/elements/maps/spring.png",
-    river:     "../assets/elements/maps/river.png",
-    ocean:     "../assets/elements/maps/ocean.png",
-    glacier:   "../assets/elements/maps/glacier.png",
-    marsh:     "../assets/elements/maps/marsh.png",
-    dunes:     "../assets/elements/maps/dunes.png",
-    mountains: "../assets/elements/maps/mountains.png",
-    cave:      "../assets/elements/maps/cave.png",
-    cliff:     "../assets/elements/maps/cliff.png",
-    maze:      "../assets/elements/maps/maze.png",
-    plateau:   "../assets/elements/maps/plateau.png",
-    valley:    "../assets/elements/maps/valley.png",
-    meadow:    "../assets/elements/maps/meadow.png",
-    jungle:    "../assets/elements/maps/jungle.png",
-    island:    "../assets/elements/maps/island.png",
-    forest:    "../assets/elements/maps/forest.png",
-  };
-
   const TERRAIN_CATEGORIES = [
-    { id: "water",      label: "water"      },
-    { id: "barriers",   label: "barriers"   },
-    { id: "landscapes", label: "landscapes" },
+    { id: "air",   label: "air"   },
+    { id: "fire",  label: "fire"  },
+    { id: "water", label: "water" },
+    { id: "earth", label: "earth" },
   ];
 
   const TERRAIN = [
+    { id: "fog",        label: "fog",        cat: "air" },
+    { id: "lightning",  label: "lightning",  cat: "air" },
+    { id: "maze",       label: "maze",       cat: "air" },
+    { id: "nebula",     label: "nebula",     cat: "air" },
+    { id: "rainbow",    label: "rainbow",    cat: "air" },
+    { id: "tornado",    label: "tornado",    cat: "air" },
+    { id: "tumbleweed", label: "tumbleweed", cat: "air" },
+    { id: "windtunnel", label: "windtunnel", cat: "air" },
+
+    { id: "campfire",  label: "campfire",  cat: "fire" },
+    { id: "desert",    label: "desert",    cat: "fire" },
+    { id: "dunes",     label: "dunes",     cat: "fire" },
+    { id: "hell",      label: "hell",      cat: "fire" },
+    { id: "mesa",      label: "mesa",      cat: "fire" },
+    { id: "supernova", label: "supernova", cat: "fire" },
+    { id: "volcano",   label: "volcano",   cat: "fire" },
+    { id: "wildfire",  label: "wildfire",  cat: "fire" },
+
+    { id: "blizzard",  label: "blizzard",  cat: "water" },
+    { id: "comet",     label: "comet",     cat: "water" },
+    { id: "hurricane", label: "hurricane", cat: "water" },
+    { id: "island",    label: "island",    cat: "water" },
     { id: "pond",      label: "pond",      cat: "water" },
-    { id: "waterfall", label: "waterfall", cat: "water" },
-    { id: "spring",    label: "spring",    cat: "water" },
     { id: "river",     label: "river",     cat: "water" },
-    { id: "ocean",     label: "ocean",     cat: "water" },
-    { id: "glacier",   label: "glacier",   cat: "water" },
+    { id: "tidepool",  label: "tidepool",  cat: "water" },
+    { id: "waterfall", label: "waterfall", cat: "water" },
 
-    { id: "marsh",     label: "marsh",     cat: "barriers" },
-    { id: "dunes",     label: "dunes",     cat: "barriers" },
-    { id: "mountains", label: "mountains", cat: "barriers" },
-    { id: "cave",      label: "cave",      cat: "barriers" },
-    { id: "cliff",     label: "cliff",     cat: "barriers" },
-    { id: "maze",      label: "maze",      cat: "barriers" },
-
-    { id: "plateau",   label: "plateau",   cat: "landscapes" },
-    { id: "valley",    label: "valley",    cat: "landscapes" },
-    { id: "meadow",    label: "meadow",    cat: "landscapes" },
-    { id: "jungle",    label: "jungle",    cat: "landscapes" },
-    { id: "island",    label: "island",    cat: "landscapes" },
-    { id: "forest",    label: "forest",    cat: "landscapes" },
+    { id: "cave",       label: "cave",       cat: "earth" },
+    { id: "cliff",      label: "cliff",      cat: "earth" },
+    { id: "crater",     label: "crater",     cat: "earth" },
+    { id: "crystal",    label: "crystal",    cat: "earth" },
+    { id: "earthquake", label: "earthquake", cat: "earth" },
+    { id: "jungle",     label: "jungle",     cat: "earth" },
+    { id: "meadow",     label: "meadow",     cat: "earth" },
+    { id: "mountains",  label: "mountains",  cat: "earth" },
   ];
 
+  const TERRAIN_IMGS = {};
+  TERRAIN.forEach(t => {
+    TERRAIN_IMGS[t.id] = `../assets/elements/maps/${t.cat}/${t.id}.png`;
+  });
+
+  // Retired terrain ids. Not shown in any picker (excluded from TERRAIN /
+  // TERRAIN_ORDER / TERRAIN_CATEGORIES), but kept resolvable here so old
+  // saved maps that still reference them don't render a broken image.
+  const OLD_TERRAIN = [
+    { id: "forest",  label: "forest",  img: "../assets/elements/maps/old/forest.png" },
+    { id: "glacier", label: "glacier", img: "../assets/elements/maps/old/glacier.png" },
+    { id: "marsh",   label: "marsh",   img: "../assets/elements/maps/old/marsh.png" },
+    { id: "ocean",   label: "ocean",   img: "../assets/elements/maps/old/ocean.png" },
+    { id: "spring",  label: "spring",  img: "../assets/elements/maps/old/spring.png" },
+    { id: "valley",  label: "valley",  img: "../assets/elements/maps/old/valley.png" },
+    // plateau.png no longer exists; alias old saves to the closest new terrain.
+    { id: "plateau", label: "plateau", img: "../assets/elements/maps/fire/mesa.png" },
+  ];
+  OLD_TERRAIN.forEach(t => { TERRAIN_IMGS[t.id] = t.img; });
+
   const TERRAIN_ORDER = TERRAIN.map(t => t.id);
-  const TERRAIN_LABELS = Object.fromEntries(TERRAIN.map(t => [t.id, t.label]));
+  const TERRAIN_LABELS = Object.fromEntries(
+    TERRAIN.concat(OLD_TERRAIN).map(t => [t.id, t.label])
+  );
 
   // Canonical emotional-climate list. This is the full set — pages that
   // showed a trimmed subset before this file existed now get everything.
