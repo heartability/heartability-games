@@ -50,30 +50,17 @@ body {
 .bg {
   position: fixed;
   inset: 0;
-  background: url("assets/elements/home-sky.png") no-repeat center center / cover;
+  background: #cfe8ff;
+  overflow: hidden;
   z-index: 0;
 }
 
-/* ── WELCOME BANNER — anchored L ── */
-.welcome-banner {
-  position: fixed;
-  top: 10vh;
-  left: 2vw;
-  width: 33%;
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* ── HEARTABILITY BANNER — full-width, anchored R ── */
-.heartability-banner {
-  position: fixed;
-  bottom: 10vh;
-  right: 2vw;
-  width: 39%;
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
+.bg video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ── CASTLE — centered, clickable ── */
@@ -90,8 +77,9 @@ body {
 }
 .castle-img {
   display: block;
-  width: clamp(320px, 55vw, 1100px);
+  width: clamp(340px, 62vw, 1150px);
   height: auto;
+  opacity: 0;
 }
 
 /* ── HEART CHARACTER ── */
@@ -172,15 +160,8 @@ body {
     background-position: center top;
   }
 
-  .heartability-banner { display: none; }
-
-  .welcome-banner {
-    width: 100%;
-    top: 20%;
-  }
-
   .castle-img {
-    width: clamp(220px, 80vw, 480px);
+    width: clamp(240px, 88vw, 520px);
   }
 
   .heart-guide-wrap {
@@ -214,20 +195,29 @@ body {
 </head>
 <body>
 
-<div class="bg" aria-hidden="true"></div>
+<div class="bg" aria-hidden="true">
+  <script>
+    (function () {
+      var isMobile = window.matchMedia('(max-width: 768px)').matches;
+      if (isMobile) {
+        document.write(
+          '<video autoplay loop muted playsinline>' +
+          '<source src="assets/elements/homepage-m.webm" type="video/webm">' +
+          '<source src="assets/elements/homepage-m.mp4" type="video/mp4">' +
+          '</video>'
+        );
+      } else {
+        document.write(
+          '<video autoplay loop muted playsinline>' +
+          '<source src="assets/elements/homepage.webm" type="video/webm">' +
+          '<source src="assets/elements/homepage.mp4" type="video/mp4">' +
+          '</video>'
+        );
+      }
+    }());
+  </script>
+</div>
 <h1 class="sr-only">Heartability</h1>
-
-<!-- Welcome banner: stretches full width L→R; mobile version via <picture> -->
-<picture>
-  <source media="(max-width: 768px)" srcset="assets/elements/welcome-home-m.png">
-  <img class="welcome-banner"
-       src="assets/elements/welcome-home.png"
-       alt="">
-</picture>
-
-<img class="heartability-banner"
-     src="assets/elements/heartability.png"
-     alt="">
 
 <picture>
   <source media="(max-width: 768px)" srcset="assets/elements/explore-dreams-m.png">
