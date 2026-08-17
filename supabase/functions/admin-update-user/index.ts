@@ -54,13 +54,22 @@ Deno.serve(async (req) => {
     switch (action) {
       case "comp_membership": {
         const tier = body.tier;
-        const months = Number.isFinite(body.months) ? body.months : 12;
-        if (tier !== "dream" && tier !== "founding") return jsonError(400, "tier must be 'dream' or 'founding'.");
+        if (tier !== "dream" && tier !== "founding" && tier !== "lifetime") {
+          return jsonError(400, "tier must be 'dream', 'founding', or 'lifetime'.");
+        }
 
-        const expiresAt = new Date();
-        expiresAt.setMonth(expiresAt.getMonth() + months);
+        // founding and lifetime are permanent (no Stripe subscription backs
+        // them, so there's nothing to expire) — dream comps are a temporary
+        // gift and keep the months-based expiry.
+        let expiresAt: string | null = null;
+        if (tier === "dream") {
+          const months = Number.isFinite(body.months) ? body.months : 12;
+          const d = new Date();
+          d.setMonth(d.getMonth() + months);
+          expiresAt = d.toISOString();
+        }
 
-        const after = { membership_status: tier, membership_tier: tier, membership_expires_at: expiresAt.toISOString() };
+        const after = { membership_status: tier, membership_tier: tier, membership_expires_at: expiresAt };
         const { error } = await supabase.from("user-profiles").update(after).eq("id", userId);
         if (error) throw error;
 

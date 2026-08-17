@@ -455,6 +455,16 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .dq-section-label { font-size:22px; color:#7a86bb; letter-spacing:.4px; margin:0 0 8px; }
 
 /* terrain palette */
+.dq-cat-tabs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.dq-cat-btn {
+  padding:4px 10px; background:#dfe2ef;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+  font-family:var(--font-hand); font-size:13px; letter-spacing:.5px;
+  color:#3a4aaa; cursor:pointer; user-select:none; transition:filter .1s;
+}
+.dq-cat-btn:hover { filter:brightness(1.06); }
+.dq-cat-btn.active { border-color:#3a4aaa; outline:2px solid #3a4aaa; outline-offset:1px; background:#e0f0f0; }
 .dq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
 .dq-terrain {
   display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -703,6 +713,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
         </div>
         <div class="dq-terrain-col">
           <div class="dq-section-label">terrain</div>
+          <div class="dq-cat-tabs" id="dq-cat-tabs"></div>
           <div class="dq-palette" id="dq-palette"></div>
         </div>
         <div class="dq-climate-col">
@@ -1467,11 +1478,14 @@ let dqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
 function buildDayquestPalette() {
   // terrain thumbnails
   const pal = document.getElementById('dq-palette');
-  pal.innerHTML = TERRAIN_ORDER.map(id => `
-    <div class="dq-terrain" id="dq-terrain-${id}" onclick="dayquestPickTerrain('${id}')">
-      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
-      <span>${id}</span>
+  pal.innerHTML = TreasureMap.TERRAIN.map(t => `
+    <div class="dq-terrain" id="dq-terrain-${t.id}" data-cat="${t.cat}" onclick="dayquestPickTerrain('${t.id}')">
+      <img src="${TERRAIN_IMGS[t.id]}" alt="${t.id}">
+      <span>${t.id}</span>
     </div>`).join('');
+  TreasureMap.renderTerrainCatTabs(
+    document.getElementById('dq-cat-tabs'), pal, { btnClass: 'dq-cat-btn' }
+  );
   // climate groups with feeling chips
   const cl = document.getElementById('dq-climates');
   cl.innerHTML = WEATHER_CATS.map(cat => `

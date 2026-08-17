@@ -12,7 +12,6 @@
     books:  ['book', 'essay', 'other'],
     movies: ['movie', 'tv'],
   };
-  const TOOL_TYPES = ['nutrition', 'connection', 'cleanliness', 'rest', 'relaxation'];
 
   function esc(s) { return (s || '').toString().replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
@@ -55,6 +54,7 @@
 }
 .lib-add-btn:hover { background:#4a5bc4; }
 .lib-add-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.lib-footer-msg { font-family:var(--font-hand); font-size:14px; color:#7a86bb; font-style:italic; text-align:center; }
 .lib-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900; display:none; align-items:center; justify-content:center; padding:18px; overflow-y:auto; }
 .lib-overlay.open { display:flex; }
 .lib-overlay-window {
@@ -73,18 +73,6 @@
 .lib-overlay-close { cursor:pointer; font-size:22px; color:#aaa; padding:2px 6px; }
 .lib-overlay-close:hover { color:#E8478B; }
 .lib-overlay iframe { flex:1; border:none; width:100%; background:#6e83d3; }
-.inv-tool-search-body { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:14px 16px; gap:10px; min-height:0; }
-.inv-tool-search-filters { flex-shrink:0; display:flex; gap:8px; }
-.inv-tool-search-filters input, .inv-tool-search-filters select {
-  font-family:var(--font-hand); font-size:14px; padding:6px 8px; border:2px solid #bbb; background:#fff; color:#333;
-}
-.inv-tool-search-filters input { flex:1; }
-.inv-search-results { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
-.inv-search-row { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#cdd3ec; border:2px solid var(--blue,#6e83d3); padding:8px 12px; font-family:var(--font-hand); }
-.inv-search-row-title { font-size:15px; color:#222; }
-.inv-search-row-type { font-size:11px; color:var(--blue,#6e83d3); text-transform:uppercase; margin-left:6px; }
-.inv-search-add-btn { flex-shrink:0; padding:5px 12px; background:var(--blue,#6e83d3); border:2px solid #4a5bc4; color:#fff; font-family:var(--font-hand); font-size:13px; cursor:pointer; }
-.inv-search-add-btn:hover { background:#4a5bc4; }
 `;
     document.head.appendChild(style);
   }
@@ -95,14 +83,12 @@
     let mediaSubmissions = [];
     let mediaSaves = [];
     let toolSaves = [];
-    let allApprovedTools = null; // lazy cache, cleared each time the search overlay opens fresh
     let selectedMediaIds = new Set(); // media_submissions.id / media_saves.id, shared by books+movies
     let selectedToolSaveIds = new Set(); // tool_saves.id
     let activeTab = 'books';
 
     function panelHtml() {
       return `<div class="step-panel lib-panel">
-        <div class="step-header"><span class="step-back" id="inv-back-btn">← back</span><span></span><span></span></div>
         <div class="lib-window">
           <div class="lib-titlebar">the inventory</div>
           <div class="lib-tabs">
@@ -126,27 +112,13 @@
           </div>
           <div class="lib-footer">
             <button type="button" class="lib-add-btn" id="inv-footer-btn">+ add an entry</button>
+            <div class="lib-footer-msg" id="inv-footer-msg" style="display:none;">explore the castle to find more items</div>
           </div>
         </div>
         <div class="lib-overlay" id="inv-media-overlay">
           <div class="lib-overlay-window">
             <div class="lib-overlay-titlebar"><span>add to your library</span><span class="lib-overlay-close" id="inv-media-close">&#x2715;</span></div>
             <iframe id="inv-media-iframe" src="about:blank"></iframe>
-          </div>
-        </div>
-        <div class="lib-overlay" id="inv-tool-search-overlay">
-          <div class="lib-overlay-window">
-            <div class="lib-overlay-titlebar"><span>search for more tools</span><span class="lib-overlay-close" id="inv-tool-search-close">&#x2715;</span></div>
-            <div class="inv-tool-search-body">
-              <div class="inv-tool-search-filters">
-                <input type="text" id="inv-tool-search-input" placeholder="search tools...">
-                <select id="inv-tool-search-type">
-                  <option value="">any type</option>
-                  ${TOOL_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-              </div>
-              <div class="inv-search-results" id="inv-tool-search-results"></div>
-            </div>
           </div>
         </div>
       </div>`;
@@ -234,49 +206,6 @@
       renderToolsPane();
     }
 
-    // ── tool search overlay ──
-    async function ensureApprovedToolsLoaded() {
-      if (allApprovedTools) return;
-      const { data, error } = await sb.from('tools').select('*').eq('status', 'approved').order('title');
-      if (error) { console.error('[inventory] approved tools fetch failed:', error); allApprovedTools = []; return; }
-      allApprovedTools = data || [];
-    }
-    function renderToolSearchResults() {
-      const resultsEl = $('inv-tool-search-results');
-      if (!resultsEl) return;
-      const savedToolIds = new Set(toolSaves.map(r => r.tool_id));
-      const q = ($('inv-tool-search-input').value || '').trim().toLowerCase();
-      const typeFilter = $('inv-tool-search-type').value;
-      const results = (allApprovedTools || []).filter(t =>
-        !savedToolIds.has(t.id) &&
-        (!typeFilter || t.tool_type === typeFilter) &&
-        (!q || (t.title || '').toLowerCase().includes(q))
-      );
-      resultsEl.innerHTML = results.length ? results.map(t => `
-        <div class="inv-search-row">
-          <span class="inv-search-row-title">${esc(t.title)}<span class="inv-search-row-type">${esc(t.tool_type)}</span></span>
-          <button type="button" class="inv-search-add-btn" data-id="${t.id}">+ add</button>
-        </div>`).join('') : '<div class="lib-empty">no matches</div>';
-      resultsEl.querySelectorAll('.inv-search-add-btn').forEach(btn => {
-        btn.addEventListener('click', () => addToolToInventory(btn.dataset.id));
-      });
-    }
-    async function addToolToInventory(toolId) {
-      const user = deps.getCurrentUser();
-      const { error } = await sb.from('tool_saves').insert({ user_id: user.id, tool_id: toolId });
-      if (error) { console.error('[inventory] add tool failed:', error); return; }
-      await loadToolSaves();
-      renderToolSearchResults();
-    }
-    async function openToolSearch() {
-      await ensureApprovedToolsLoaded();
-      renderToolSearchResults();
-      $('inv-tool-search-overlay').classList.add('open');
-    }
-    function closeToolSearch() {
-      $('inv-tool-search-overlay').classList.remove('open');
-    }
-
     // ── media add-entry overlay ──
     function openMediaAddEntry() {
       $('inv-media-iframe').src = '../matrix/media.html?embed=1';
@@ -288,12 +217,14 @@
     }
 
     function updateFooterButton() {
-      const btn = $('inv-footer-btn');
-      if (!btn) return;
+      const btn = $('inv-footer-btn'), msg = $('inv-footer-msg');
+      if (!btn || !msg) return;
       if (activeTab === 'tools') {
-        btn.textContent = '+ search for more tools';
-        btn.onclick = openToolSearch;
+        btn.style.display = 'none';
+        msg.style.display = 'block';
       } else {
+        btn.style.display = '';
+        msg.style.display = 'none';
         btn.textContent = '+ add an entry';
         btn.onclick = openMediaAddEntry;
       }
@@ -314,12 +245,7 @@
       document.querySelectorAll('.lib-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
       });
-      const backBtn = $('inv-back-btn');
-      if (backBtn && deps.backStep) backBtn.addEventListener('click', deps.backStep);
       $('inv-media-close').addEventListener('click', closeMediaAddEntry);
-      $('inv-tool-search-close').addEventListener('click', closeToolSearch);
-      $('inv-tool-search-input').addEventListener('input', renderToolSearchResults);
-      $('inv-tool-search-type').addEventListener('change', renderToolSearchResults);
       updateFooterButton();
       loadMedia();
       loadToolSaves();

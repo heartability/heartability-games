@@ -364,6 +364,7 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script>
 /* ============================================================
    COSMIC BINGO — standalone season board.
@@ -580,7 +581,7 @@ sb.auth.getSession().then(async ({ data: { session } }) => {
   try {
     const { data: profile } = await sb.from('user-profiles')
       .select('username, membership_status').eq('id', currentUser.id).maybeSingle();
-    paid = !!profile?.membership_status && profile.membership_status !== 'free';
+    paid = HeartabilityMembership.isPaid(profile?.membership_status);
     HeartabilityNav.init({
       mount: '#gear-slot', assetsBase: '../assets', authMode: 'dynamic', sb,
       profileHref: '../users/account-settings.html',

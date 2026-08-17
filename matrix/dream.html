@@ -634,6 +634,16 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .sq-section-label { font-size:14px; color:#7a86bb; letter-spacing:.4px; margin:0 0 6px; }
 
 /* terrain palette */
+.sq-cat-tabs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.sq-cat-btn {
+  padding:4px 10px; background:#dfe2ef;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+  font-family:var(--font-hand); font-size:13px; letter-spacing:.5px;
+  color:#3a4aaa; cursor:pointer; user-select:none; transition:filter .1s;
+}
+.sq-cat-btn:hover { filter:brightness(1.06); }
+.sq-cat-btn.active { border-color:#3a4aaa; outline:2px solid #3a4aaa; outline-offset:1px; background:#e0f0f0; }
 .sq-palette { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
 .sq-terrain {
   display:flex; flex-direction:column; align-items:center; gap:2px;
@@ -958,6 +968,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
       </div>
       <div class="sq-controls-col">
         <div class="sq-section-label">terrain</div>
+        <div class="sq-cat-tabs" id="sq-cat-tabs"></div>
         <div class="sq-palette" id="sq-palette"></div>
         <div class="sq-section-label">emotional climate</div>
         <div class="sq-climates" id="sq-climates"></div>
@@ -985,6 +996,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
       </div>
       <div class="sq-controls-col">
         <div class="sq-section-label">terrain</div>
+        <div class="sq-cat-tabs" id="dct-cat-tabs"></div>
         <div class="sq-palette" id="dct-palette"></div>
         <div class="sq-section-label">emotional climate</div>
         <div class="sq-climates" id="dct-climates"></div>
@@ -1034,6 +1046,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <script src="./matrix-inventory.js"></script>
 <script src="./matrix-journal.js"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -1166,7 +1179,7 @@ sb.auth.onAuthStateChange((event, session) => {
         const { data: profile } = await sb.from('user-profiles')
           .select('username, membership_status').eq('id', currentUser.id).single();
         HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
-        isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+        isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
       } catch(e) {}
       if (!isPaid) { showMemberGate(); return; }
       document.getElementById('member-gate-overlay').classList.remove('open');
@@ -2200,11 +2213,14 @@ let sqDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
 function buildSidequestPalette() {
   // terrain thumbnails
   const pal = document.getElementById('sq-palette');
-  pal.innerHTML = TERRAIN_ORDER.map(id => `
-    <div class="sq-terrain" id="sq-terrain-${id}" onclick="sidequestPickTerrain('${id}')">
-      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
-      <span>${id}</span>
+  pal.innerHTML = TreasureMap.TERRAIN.map(t => `
+    <div class="sq-terrain" id="sq-terrain-${t.id}" data-cat="${t.cat}" onclick="sidequestPickTerrain('${t.id}')">
+      <img src="${TERRAIN_IMGS[t.id]}" alt="${t.id}">
+      <span>${t.id}</span>
     </div>`).join('');
+  TreasureMap.renderTerrainCatTabs(
+    document.getElementById('sq-cat-tabs'), pal, { btnClass: 'sq-cat-btn' }
+  );
   // climate groups with feeling chips
   const cl = document.getElementById('sq-climates');
   cl.innerHTML = WEATHER_CATS.map(cat => `
@@ -2297,11 +2313,14 @@ let dctDraft = { name:'', terrain:null, feeling:null, tint:null, cat:null };
 
 function buildDctPalette() {
   const pal = document.getElementById('dct-palette');
-  pal.innerHTML = TERRAIN_ORDER.map(id => `
-    <div class="sq-terrain" id="dct-terrain-${id}" onclick="dctPickTerrain('${id}')">
-      <img src="${TERRAIN_IMGS[id]}" alt="${id}">
-      <span>${id}</span>
+  pal.innerHTML = TreasureMap.TERRAIN.map(t => `
+    <div class="sq-terrain" id="dct-terrain-${t.id}" data-cat="${t.cat}" onclick="dctPickTerrain('${t.id}')">
+      <img src="${TERRAIN_IMGS[t.id]}" alt="${t.id}">
+      <span>${t.id}</span>
     </div>`).join('');
+  TreasureMap.renderTerrainCatTabs(
+    document.getElementById('dct-cat-tabs'), pal, { btnClass: 'sq-cat-btn' }
+  );
   const cl = document.getElementById('dct-climates');
   cl.innerHTML = WEATHER_CATS.map(cat => `
     <div class="sq-climate ${cat.id}">
@@ -2425,7 +2444,7 @@ async function init() {
     const { data: profile } = await sb.from('user-profiles')
       .select('username, membership_status').eq('id', currentUser.id).single();
     HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
-    isPaid = (profile?.membership_status === 'dream' || profile?.membership_status === 'founding');
+    isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
   } catch(e) {}
   if (!isPaid) { showMemberGate(); return; }
   stepInitial();

@@ -1077,6 +1077,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./matrix-render.js"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
 const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -2800,7 +2801,7 @@ async function init() {
       .select('username, membership_status').eq('id', currentUser.id).maybeSingle();
     profile = data;
   } catch(e){}
-  isPaid = !!(profile && profile.membership_status && profile.membership_status !== 'free');
+  isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
   document.querySelectorAll('.tab-lock').forEach(img => { img.style.display = isPaid ? 'none' : 'inline-block'; });
 
   // Editors + matrix event wiring (created once; delegation survives re-renders).

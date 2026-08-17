@@ -366,6 +366,7 @@ html, body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script>
 (function () {
   const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
@@ -414,18 +415,24 @@ html, body {
     const upgradeBtn   = document.getElementById('btn-upgrade-settings');
     const paymentsRow  = document.getElementById('row-manage-payments');
 
+    membershipEl.textContent = HeartabilityMembership.label(status);
+
     if (status === 'founding') {
-      membershipEl.textContent = 'founding member';
       membershipEl.style.color = 'var(--purple-dark)';
       upgradeBtn.style.display  = 'none';
       paymentsRow.style.display = 'flex';
     } else if (status === 'dream') {
-      membershipEl.textContent = 'dream member';
       membershipEl.style.color = 'var(--purple)';
       upgradeBtn.style.display  = 'none';
       paymentsRow.style.display = 'flex';
+    } else if (status === 'lifetime') {
+      // Comp'd — no Stripe customer behind this, so there's nothing for the
+      // Customer Portal to manage. Keep the upgrade button visible: a
+      // lifetime member can still choose to become a paying member.
+      membershipEl.style.color = 'var(--purple)';
+      upgradeBtn.style.display  = 'inline-block';
+      paymentsRow.style.display = 'none';
     } else {
-      membershipEl.textContent = 'free member';
       membershipEl.style.color = '#aaa';
       upgradeBtn.style.display  = 'inline-block';
       paymentsRow.style.display = 'none';

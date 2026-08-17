@@ -377,7 +377,7 @@ html, body {
       pricingTableLoaded = true;
     } catch (err) {
       console.error(err);
-      slot.textContent = 'something went wrong — please try again';
+      slot.textContent = err.message || 'something went wrong — please try again';
     }
   };
 

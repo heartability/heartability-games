@@ -99,6 +99,36 @@
       feelings: ["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","self-confrontation"] },
   ];
 
+  // Builds the air/fire/water/earth (+ "view all") tab row into `tabsEl` and
+  // wires it to show/hide `[data-cat]` children of `paletteEl`. Every terrain
+  // picker on the site (the treasure-map game, and the location builders in
+  // cosmic/daily/dream.html) shares this instead of reimplementing the same
+  // tab-and-filter logic once per page.
+  function renderTerrainCatTabs(tabsEl, paletteEl, opts) {
+    opts = opts || {};
+    const btnClass = opts.btnClass || "terrain-cat-btn";
+    let active = opts.initialCat || "all";
+    const cats = TERRAIN_CATEGORIES.concat([{ id: "all", label: "view all" }]);
+
+    function applyFilter() {
+      paletteEl.querySelectorAll("[data-cat]").forEach(el => {
+        el.style.display = (active === "all" || el.dataset.cat === active) ? "flex" : "none";
+      });
+    }
+    function renderTabs() {
+      tabsEl.innerHTML = "";
+      cats.forEach(cat => {
+        const btn = document.createElement("div");
+        btn.className = btnClass + (cat.id === active ? " active" : "");
+        btn.textContent = cat.label;
+        btn.addEventListener("click", () => { active = cat.id; renderTabs(); applyFilter(); });
+        tabsEl.appendChild(btn);
+      });
+    }
+    renderTabs();
+    applyFilter();
+  }
+
   window.TreasureMap = {
     TERRAIN_IMGS,
     TERRAIN_CATEGORIES,
@@ -106,5 +136,6 @@
     TERRAIN_ORDER,
     TERRAIN_LABELS,
     WEATHER_CATS,
+    renderTerrainCatTabs,
   };
 })();

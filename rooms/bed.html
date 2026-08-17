@@ -426,6 +426,7 @@ html, body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script src="../matrix/matrix-render.js" defer></script>
 <script>
 (function () {
@@ -689,7 +690,7 @@ html, body {
       .eq('id', user.id)
       .single();
 
-    isPaid = !!(profile && profile.membership_status && profile.membership_status !== 'free');
+    isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
     const username = profile?.username || 'explorer';
     document.getElementById('display-username').textContent = username;
 

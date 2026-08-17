@@ -54,6 +54,25 @@ serve(async (req) => {
       await sb.from('user-profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id)
+    } else {
+      // Guard against a second paid subscription for a customer who already
+      // has one active (e.g. two tabs open, or re-visiting the page after
+      // already subscribing) — Stripe itself won't stop this.
+      const existing = await stripe.subscriptions.list({
+        customer: customerId,
+        limit: 10,
+      })
+      const hasLiveSubscription = existing.data.some(sub =>
+        ['active', 'trialing', 'past_due'].includes(sub.status)
+      )
+
+      if (hasLiveSubscription) {
+        return new Response(JSON.stringify({
+          error: 'You already have an active membership — manage or cancel it from Account Settings.'
+        }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
     }
 
     const customerSession = await stripe.customerSessions.create({
