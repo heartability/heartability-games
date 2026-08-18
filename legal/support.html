@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
   <link rel="stylesheet" href="../assets/css/modal.css">
+  <link rel="stylesheet" href="../assets/css/room-nav.css">
   <script src="../assets/js/modal.js" defer></script>
+  <script src="../assets/js/room-nav.js" defer></script>
   <title>Support — Heartability</title>
   <meta name="description" content="Get help with Heartability — contact support or browse policies.">
   <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
@@ -61,27 +63,6 @@ html, body {
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 .nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 
-/* ── Map dropdown ── */
-.map-wrap { position: relative; }
-.map-btn {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
-}
-.map-dropdown {
-  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
-  background: #6e83d3; border: 2px solid var(--line-col);
-  box-shadow: 3px 4px 0 rgba(0,0,0,.12);
-  z-index: 201; display: none; flex-direction: column; overflow: hidden;
-}
-.map-dropdown.open { display: flex; }
-.map-item {
-  display: block;
-  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
-  padding: 9px 14px; cursor: pointer; border: none; background: none;
-  text-align: left; white-space: nowrap; transition: background .12s;
-  text-decoration: none;
-}
-.map-item:hover { background: rgba(0,0,0,.07); }
 
 .page-wrap {
   min-height: 100dvh;
@@ -347,19 +328,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: n
 <nav class="room-nav">
   <a class="nav-btn" href="../users/account-settings.html">← back</a>
   <h1 class="nav-title">support</h1>
-  <div class="map-wrap" id="map-wrap">
-    <button class="nav-btn map-btn" id="map-btn" onclick="toggleMap()">map ▾</button>
-    <div class="map-dropdown" id="map-dropdown">
-      <a class="map-item" href="../rooms/bed.html">bedroom</a>
-      <a class="map-item" href="../rooms/game-room.html">game room</a>
-      <a class="map-item" href="../rooms/patio.html">patio</a>
-      <a class="map-item" href="../rooms/library.html">library</a>
-      <a class="map-item" href="../rooms/salon.html">salon</a>
-      <a class="map-item" href="../matrix/timewarp.html">timewarp</a>
-      <a class="map-item" href="../matrix/daily.html">matrix</a>
-      <a class="map-item" href="../matrix/archive.html">archive</a>
-    </div>
-  </div>
+  <div id="map-slot"></div>
 </nav>
 
 <div class="page-wrap">
@@ -467,15 +436,8 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: n
 </footer>
 
 <script>
-  // ── Map menu ──────────────────────────────────────────────
-  window.toggleMap = function () {
-    document.getElementById('map-dropdown').classList.toggle('open');
-  };
-  document.addEventListener('click', e => {
-    const wrap = document.getElementById('map-wrap');
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById('map-dropdown').classList.remove('open');
-    }
+  document.addEventListener('DOMContentLoaded', () => {
+    HeartabilityRoomNav.init({ mount: '#map-slot' });
   });
 
   window.copyEmail = function () {

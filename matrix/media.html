@@ -343,13 +343,11 @@ body.embedded .wall { padding-top: 16px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/supabase-init.js"></script>
+<script src="../assets/js/dom-utils.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script src="../assets/js/three-act-map.js"></script>
 <script>
-// ── SUPABASE ─────────────────────────────────────────────────────────────
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const MEDIA_COVER_BUCKET = 'media-covers';
 let currentUser = null;
 
@@ -373,7 +371,6 @@ const readingMap = ThreeActMap.create({
   terrainTabsId: 'terrainCatTabs', terrainPaletteId: 'terrainPalette', weatherId: 'weatherCategories',
 });
 
-function _escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseYear(v) { const n = parseInt(String(v || '').trim(), 10); return Number.isFinite(n) ? n : null; }
 
 async function _fetchJSON(url, timeoutMs) {

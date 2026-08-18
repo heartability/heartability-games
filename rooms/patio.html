@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
+<link rel="stylesheet" href="../assets/css/room-nav.css">
 <title>The Patio — Heartability</title>
 <meta name="description" content="Visit the Patio, a calming space in Heartability to pause and reflect between games before heading back to the castle.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
@@ -66,29 +67,6 @@ html, body {
 .nav-btn:hover { background: rgba(0,0,0,0.08); }
 .nav-title { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; margin: 0; font: inherit; }
 
-/* ── Map dropdown ── */
-.map-wrap { position: relative; }
-.map-btn {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; font-family: inherit; font-size: inherit; color: inherit;
-}
-.map-dropdown {
-  position: absolute; top: calc(100% + 4px); right: 0; min-width: 170px;
-  background: #6e83d3; border: 2px solid #111;
-  box-shadow: 3px 4px 0 rgba(0,0,0,0.12);
-  z-index: 201; display: none; flex-direction: column; overflow: hidden;
-}
-.map-dropdown.open { display: flex; }
-.map-item {
-  display: block;
-  font-family: var(--font-hand); font-size: clamp(15px, 1.3vw, 18px); color: #fff;
-  padding: 9px 14px; cursor: pointer; border: none; background: none;
-  text-align: left; white-space: nowrap; transition: background 0.12s;
-  text-decoration: none;
-}
-.map-item:hover { background: rgba(0,0,0,0.07); }
-.map-item.current { color: rgba(255,255,255,0.55); cursor: default; }
-.map-item.current:hover { background: none; }
 
 /* ── PATIO ELEMENTS ── */
 .garden-el {
@@ -205,19 +183,7 @@ html, body {
 <nav class="room-nav">
   <div id="gear-slot"></div>
   <h1 class="nav-title">patio</h1>
-  <div class="map-wrap" id="map-wrap">
-    <button class="nav-btn map-btn" id="map-btn">map ▾</button>
-    <div class="map-dropdown" id="map-dropdown">
-      <a class="map-item" href="../rooms/bed.html">bedroom</a>
-      <a class="map-item" href="../rooms/game-room.html">game room</a>
-      <span class="map-item current">patio</span>
-      <a class="map-item" href="../rooms/library.html">library</a>
-      <a class="map-item" href="../rooms/salon.html">salon</a>
-      <a class="map-item" href="../matrix/timewarp.html">timewarp</a>
-      <a class="map-item" href="../matrix/daily.html">matrix</a>
-      <a class="map-item" href="../matrix/archive.html">archive</a>
-    </div>
-  </div>
+  <div id="map-slot"></div>
 </nav>
 
 <div class="room-scroll">
@@ -299,13 +265,11 @@ html, body {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/supabase-init.js"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/room-nav.js" defer></script>
 <script>
 (function () {
-
-  const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ── Heart guide bubble ── */
   const heart  = document.getElementById('char-heart');
@@ -413,15 +377,6 @@ html, body {
     closeWishModal();
   });
 
-  /* ── Map ── */
-  document.getElementById('map-btn').addEventListener('click', () => {
-    document.getElementById('map-dropdown').classList.toggle('open');
-  });
-  document.addEventListener('click', e => {
-    const mw = document.getElementById('map-wrap');
-    if (mw && !mw.contains(e.target)) document.getElementById('map-dropdown').classList.remove('open');
-  });
-
   /* ── Gear / login / music (assets/js/nav.js, loaded deferred) ── */
   async function resolveUsername(user) {
     try {
@@ -439,6 +394,7 @@ html, body {
       profileHref: '../users/account-settings.html',
       music: { src: 'https://dn720704.ca.archive.org/0/items/HildegardVonBingenCanticlesOfEcstasy/Hildegard%20von%20Bingen%20-%20Canticles%20Of%20Ecstasy.mp3' },
     });
+    HeartabilityRoomNav.init({ mount: '#map-slot', currentRoom: 'patio' });
 
     sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {

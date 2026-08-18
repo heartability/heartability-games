@@ -576,6 +576,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/supabase-init.js"></script>
 <script src="./matrix-render.js"></script>
 <script src="./matrix-inventory.js"></script>
 <script src="./matrix-journal.js"></script>
@@ -595,10 +596,6 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
    → no dup rows.
    ============================================================ */
 
-// ── SUPABASE (same project as adventure-matrix) ─────────────
-const SUPABASE_URL      = 'https://rrdfltqnrnvmqemyrfaj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZGZsdHFucm52bXFlbXlyZmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTYxMjIsImV4cCI6MjA5MjUzMjEyMn0.u2nYIEepQQYr357GlMNPg0-1zermCbWenkjjfaGGZD4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MATRIX_PHOTO_BUCKET = 'matrix-photos';
 const LOGIN_URL   = '../rooms/game-room.html';      // where auth lives
