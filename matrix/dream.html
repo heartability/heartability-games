@@ -424,7 +424,11 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     --bw-top:    44px;
     --bw-left:   0%;
     --bw-width:  100%;
-    --bw-height: calc(100dvh - 44px);
+    /* Reserve space for the fixed .matrix-toggle bar (daily/dream/cosmic
+       links) at the bottom so flow content — e.g. matrix-toolbar — never
+       renders underneath it (was invisible there: toggle text is white on
+       the toolbar's white circle buttons, z-index alone didn't save it). */
+    --bw-height: calc(100dvh - 44px - 52px);
   }
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
   /* step-panel centered its content vertically (justify-content:center) —

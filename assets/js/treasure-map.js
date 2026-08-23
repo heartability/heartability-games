@@ -90,13 +90,13 @@
   // showed a trimmed subset before this file existed now get everything.
   const WEATHER_CATS = [
     { id: "sunny", label: "sunny", desc: "bright / happy / intense", cls: "sunny", tint: "#f2e6a8",
-      feelings: ["trust","peace","joy","hope","confidence","truth","stability","acceptance","pressure","confrontation","temptation","reclamation","redemption","reunion"] },
+      feelings: ["trust","peace","joy","hope","confidence","truth","stability","acceptance","pressure","challenge","temptation","reclamation","redemption","reunion"] },
     { id: "rainy", label: "rainy", desc: "sad / heavy / grief", cls: "rainy", tint: "#c9b3e7",
       feelings: ["shadows","worry","fear","depression","regret","confusion","boredom","loneliness","grief","sadness","betrayal","reckoning","surrender"] },
     { id: "windy", label: "windy", desc: "change / transition / evolution", cls: "windy", tint: "#b6e6cf",
       feelings: ["surprise","curiosity","inspiration","excitement","courage","progress","chaos","disruption","departure","initiation","crossroads","unraveling","rebirth","release"] },
     { id: "snowy", label: "snowy", desc: "cold / stuck / isolating", cls: "snowy", tint: "#a0d7e6",
-      feelings: ["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","self-confrontation"] },
+      feelings: ["anger","avoidance","bitterness","apathy","shock","stillness","quiet","melancholy","isolation","abandonment","exile","descent","confrontation"] },
   ];
 
   // Builds the air/fire/water/earth (+ "view all") tab row into `tabsEl` and

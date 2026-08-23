@@ -277,7 +277,13 @@ body.game-mode .char-heart {
   background: none; border: none; font-family: var(--font-hand); padding: 2px 4px;
 }
 .game-popup-howto:hover { text-decoration: underline; }
-.game-popup iframe { flex: 1; width: 100%; border: none; display: block; box-sizing: border-box; padding-top: 14px; }
+/* The iframed game pages (bingo/infinity-mirror/treasure-map) strip their
+   own outer chrome/padding, expecting whatever host embeds them to supply
+   it (see e.g. games/treasure-map.html's "only ever iframed" comment) — the
+   matrix quad-popup does via its .panel-scroll-region padding, so match
+   that here too instead of letting their content butt against this popup's
+   edges. */
+.game-popup iframe { flex: 1; width: 100%; border: none; display: block; box-sizing: border-box; padding: 14px 20px 20px; }
 
 
 /* Portrait/vertical viewports are handled by the room slider
