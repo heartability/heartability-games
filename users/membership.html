@@ -329,15 +329,43 @@ html, body {
       banner.textContent = 'welcome to heartability! your membership is now active';
       banner.className = 'banner success';
     } else if (params.get('cancelled') === 'true') {
-      banner.textContent = "no worries — you can join whenever you're ready";
+      banner.textContent = "come back when you are ready!";
       banner.className = 'banner cancelled';
     }
 
     const { data: { session } } = await sb.auth.getSession();
     currentSession = session;
 
+    if (params.get('newsignup') === '1' && session) {
+      await checkPromoBonus(session.user.id);
+    }
+
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').style.display  = 'flex';
+  }
+
+  // The free-year promo grant happens in an async DB webhook (auth-webhook)
+  // right after signup, so it may not have landed yet by the time this page
+  // loads. Poll briefly rather than trusting a client-passed flag — the
+  // popup should only show once membership_status has actually flipped.
+  async function checkPromoBonus(userId) {
+    for (let i = 0; i < 6; i++) {
+      const { data: profile } = await sb
+        .from('user-profiles')
+        .select('promo_free_year')
+        .eq('id', userId)
+        .single();
+      if (profile?.promo_free_year) {
+        const go = await HGModal.action(
+          "you are one of the first 100 to join!",
+          "you just got a full year of dream membership 100% free. it's already active on your account.",
+          { label: "let's go" }
+        );
+        if (go) window.location.href = '../rooms/bed.html';
+        return;
+      }
+      await new Promise(r => setTimeout(r, 700));
+    }
   }
 
   let pricingTableLoaded = false;

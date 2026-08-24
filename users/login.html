@@ -396,7 +396,7 @@ input:focus { border-color: var(--purple); }
       return;
     }
     showMsg('signup-msg', 'account created! taking you to membership options...', 'success');
-    setTimeout(() => window.location.href = 'membership.html', 1000);
+    setTimeout(() => window.location.href = 'membership.html?newsignup=1', 1000);
   }
 
   async function handleWaitlistSignup() {

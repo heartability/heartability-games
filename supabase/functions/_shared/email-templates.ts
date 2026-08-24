@@ -2,32 +2,39 @@
 // stripe-webhook (on checkout completion) and admin-update-user's
 // resend_welcome_email action.
 
-export function welcomeEmailText(): string {
-  return `Welcome to the Dream Membership!
+export function welcomeEmailText(username?: string): string {
+  const name = username || 'there'
+  return `Hey ${name},
 
-You chose to listen to your heart today, and that means something. It's the first step to making your dreams come true. If you keep listening to that voice, your whole life will change. Anything is possible…you just have to imagine it.
+You did it! A dream membership is an investment in yourself. You are telling your subconscious that you are ready to take your crazy little ideas a little more seriously. I promise if you take the time to track your emotional progress, not productivity, chasing your dreams will change your life. I'm not saying it will be easy, I'm not even saying it will come true. But something will come true, because we live in a world of cause and effect. If you happen to fail, at least with Heartability you can look back on your journey and understand the steps you took to get there. Once you see where things went wrong, you can try again, or enter a new portal — start a new dream. The point is, with Heartability, there is always a way forward.
 
-Your benefits:
-The Dream Matrix (heartability.com/matrix/dream) - track your goals over time
-The Cosmic Matrix (heartability.com/matrix/cosmic) - track how astrology influences your life.
+When you start to consider giving up, visit your Treasure Map and remember how far you have already come and how many things have already changed. If it doesn't look the way you imagined, that just means this isn't the end of your journey. You have to keep going. Maybe you need to dream a new dream. You don't fail until you give up, and until then, you just have to keep trying…and tracking your progress on Heartability.
 
-Investing in your dreams and taking the time to track your progress, not productivity, will change your life. It won't be easy, but when you start to consider giving up, visit the archive (heartability.com/matrix/archive). Remember how far you have already come. How many things have already changed. The world is infinite, and so are you.
+TLDR… You can do ANYTHING. Here's how:
 
-Visit the Shipping Room (heartability.com/rooms/shipping) to learn more about future updates, including more rooms in the castle, a customized 2d side scrolling video game world rendered from your personal maps, collective media libraries of inspiration, and so much more. Your support makes that possible. Thank you for believing in yourself and for believing in Heartability — may we both be winners. ꩜
+1. Visit the Dream Matrix and create a map for a dream you have been trying to chase but it feels like you keep getting lost.
+2. Every time you take a step toward your dream, make an entry.
+3. When you feel like you have failed, look back at your matrix and reflect on where you could move differently.
+4. If you notice an energy that feels out of this world messing with you ("oh, of course the full moon is this week"), visit the Cosmic Matrix and track your relationship with the planets and uncover their influence on your life.
 
-Talk soon <3
+That's all for now, until next time.
 
-Zoe Tinnes, Founder of Heartability`;
+Zoe Tinnes, Founder of Heartability
+
+Got questions? Respond to this email or use the contact form https://www.heartability.com/legal/support.`;
 }
 
-export function welcomeEmailHtml(): string {
-  return `<p>Welcome to the Dream Membership!</p>
-<p>You chose to listen to your heart today, and that means something. It's the first step to making your dreams come true. If you keep listening to that voice, your whole life will change. Anything is possible…you just have to imagine it.</p>
-<p>Your benefits:<br>
-<a href="https://heartability.com/matrix/dream">The Dream Matrix</a> - track your goals over time<br>
-<a href="https://heartability.com/matrix/cosmic">The Cosmic Matrix</a> - track how astrology influences your life.</p>
-<p>Investing in your dreams and taking the time to track your progress, not productivity, will change your life. It won't be easy, but when you start to consider giving up, visit the <a href="https://heartability.com/matrix/archive">archive</a>. Remember how far you have already come. How many things have already changed. The world is infinite, and so are you.</p>
-<p>Visit the <a href="https://heartability.com/rooms/shipping">Shipping Room</a> to learn more about future updates, including more rooms in the castle, a customized 2d side scrolling video game world rendered from your personal maps, collective media libraries of inspiration, and so much more. Your support makes that possible. Thank you for believing in yourself and for believing in Heartability — may we both be winners. ꩜</p>
-<p>Talk soon &lt;3</p>
-<p>Zoe Tinnes, Founder of Heartability</p>`;
+export function welcomeEmailHtml(username?: string): string {
+  const name = username || 'there'
+  return `<p>Hey ${name},</p>
+<p>You did it! A dream membership is an investment in yourself. You are telling your subconscious that you are ready to take your crazy little ideas a little more seriously. I promise if you take the time to track your emotional progress, not productivity, chasing your dreams will change your life. I'm not saying it will be easy, I'm not even saying it will come true. But something will come true, because we live in a world of cause and effect. If you happen to fail, at least with Heartability you can look back on your journey and understand the steps you took to get there. Once you see where things went wrong, you can try again, or enter a new portal — start a new dream. The point is, with Heartability, there is always a way forward.</p>
+<p>When you start to consider giving up, visit your <a href="https://heartability.com/rooms/game-room">Treasure Map</a> and remember how far you have already come and how many things have already changed. If it doesn't look the way you imagined, that just means this isn't the end of your journey. You have to keep going. Maybe you need to dream a new dream. You don't fail until you give up, and until then, you just have to keep trying…and tracking your progress on Heartability.</p>
+<p>TLDR… You can do ANYTHING. Here's how:<br>
+1. Visit the <a href="https://heartability.com/matrix/dream">Dream Matrix</a> and create a map for a dream you have been trying to chase but it feels like you keep getting lost.<br>
+2. Every time you take a step toward your dream, make an entry.<br>
+3. When you feel like you have failed, look back at your matrix and reflect on where you could move differently.<br>
+4. If you notice an energy that feels out of this world messing with you ("oh, of course the full moon is this week"), visit the <a href="https://heartability.com/matrix/cosmic">Cosmic Matrix</a> and track your relationship with the planets and uncover their influence on your life.</p>
+<p>That's all for now, until next time.</p>
+<p>Zoe Tinnes, Founder of Heartability</p>
+<p>Got questions? Respond to this email or use the <a href="https://www.heartability.com/legal/support">contact form</a>.</p>`;
 }

@@ -166,10 +166,12 @@ Deno.serve(async (req) => {
         const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
         if (authError || !authData?.user?.email) return jsonError(404, "User email not found.");
 
+        const { data: profile } = await supabase.from("user-profiles").select("username").eq("id", userId).single();
+
         await sendEmail({
           to: authData.user.email,
-          subject: "Welcome to the Dream Membership!",
-          html: welcomeEmailHtml(),
+          subject: "Welcome to the life of your dreams!",
+          html: welcomeEmailHtml(profile?.username),
         });
 
         await logAdminAction(supabase, {

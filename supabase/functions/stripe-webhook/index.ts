@@ -112,11 +112,11 @@ serve(async (req) => {
       expiresAt = d.toISOString()
     }
 
-    const { error } = await sb.from('user-profiles').update({
+    const { data: updatedProfile, error } = await sb.from('user-profiles').update({
       membership_status:     tier,
       membership_tier:       tier,
       membership_expires_at: expiresAt,
-    }).eq('id', userId)
+    }).eq('id', userId).select('username').single()
 
     if (error) console.error('Error updating membership:', error)
     else console.log(`Membership activated: ${userId} → ${tier}`)
@@ -133,9 +133,9 @@ serve(async (req) => {
         body: JSON.stringify({
           from: 'Zoe at Heartability <hello@heartability.com>',
           to: email,
-          subject: 'Welcome to the Dream Membership!',
-          text: welcomeEmailText(),
-          html: welcomeEmailHtml(),
+          subject: 'Welcome to the life of your dreams!',
+          text: welcomeEmailText(updatedProfile?.username),
+          html: welcomeEmailHtml(updatedProfile?.username),
         }),
       })
 
