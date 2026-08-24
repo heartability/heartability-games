@@ -13,9 +13,9 @@ serve(async (_req) => {
     Deno.env.get('SB_SERVICE_ROLE_KEY') ?? ''
   )
 
-  const { data: users, error } = await sb
+  const { data: profiles, error } = await sb
     .from('user-profiles')
-    .select('id, email, username')
+    .select('id, username')
     .eq('promo_free_year', true)
     .eq('promo_email_sent', false)
 
@@ -24,12 +24,18 @@ serve(async (_req) => {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 
-  console.log(`Found ${users?.length ?? 0} existing users to notify about the free-year promo`)
+  console.log(`Found ${profiles?.length ?? 0} existing users to notify about the free-year promo`)
 
   let sent = 0
-  for (const user of users ?? []) {
-    if (!user.email) continue
-    const username = user.username || 'there'
+  for (const profile of profiles ?? []) {
+    // user-profiles has no email column — email lives in Supabase Auth.
+    const { data: authData, error: authError } = await sb.auth.admin.getUserById(profile.id)
+    if (authError || !authData?.user?.email) {
+      console.error(`Could not resolve email for user ${profile.id}:`, authError)
+      continue
+    }
+    const user = { id: profile.id, email: authData.user.email }
+    const username = profile.username || 'there'
 
     const announcementText = `Hey ${username},
 
