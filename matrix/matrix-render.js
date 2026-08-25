@@ -1058,7 +1058,10 @@
         const tool = e.target.closest('.matrix-tool-btn');
         if (tool) {
           const kind = tool.dataset.tool;
-          if (kind === 'photo') openPhotoUpload();
+          if (kind === 'photo') {
+            if (deps.onPhotoBlocked && deps.onPhotoBlocked()) return;
+            openPhotoUpload();
+          }
           else if (kind === 'sticker') openStickerPicker();
           else if (kind === 'text') openTextAdd();
           else if (kind === 'notes') deps.onOpenJournal && deps.onOpenJournal();

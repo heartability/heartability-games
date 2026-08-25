@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const [signupsRes, ticketsRes, bugsRes, allProfilesRes, openTicketsRes, openBugsRes] = await Promise.all([
       supabase
         .from("user-profiles")
-        .select("username, created_at, membership_status")
+        .select("username, created_at, membership_status, promo_free_year, billing_interval")
         .gte("created_at", cutoff)
         .order("created_at", { ascending: true }),
       supabase
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         .select("email, category, description, created_at")
         .gte("created_at", cutoff)
         .order("created_at", { ascending: true }),
-      supabase.from("user-profiles").select("membership_status"),
+      supabase.from("user-profiles").select("membership_status, promo_free_year, billing_interval"),
       supabase.from("support_tickets").select("id", { count: "exact", head: true }).in("status", ["open", "pending"]),
       supabase.from("bug_reports").select("id", { count: "exact", head: true }).in("status", ["new", "investigating"]),
     ]);
@@ -86,12 +86,35 @@ Deno.serve(async (req) => {
     const tickets = ticketsRes.data ?? [];
     const bugs = bugsRes.data ?? [];
 
-    const membershipCounts: Record<string, number> = { free: 0, dream: 0, founding: 0, other: 0 };
+    // "dream" is one membership_status but three different origins we want
+    // to track separately: the first-100 free-year promo (promo_free_year),
+    // a real Stripe subscription (billing_interval set by stripe-webhook at
+    // checkout), or an admin comp / unrecognized-price fallback (neither
+    // flag set) — see [[project_membership_tier_rework_2026_08]].
+    const membershipCounts = {
+      free: 0,
+      lifetime: 0,
+      founding: 0,
+      dreamPromo: 0,
+      dreamMonthly: 0,
+      dreamYearly: 0,
+      dreamComp: 0,
+      other: 0,
+    };
     for (const p of allProfilesRes.data ?? []) {
       const status = p.membership_status || "free";
-      if (status in membershipCounts) membershipCounts[status]++;
-      else membershipCounts.other++;
+      if (status === "dream") {
+        if (p.promo_free_year) membershipCounts.dreamPromo++;
+        else if (p.billing_interval === "monthly") membershipCounts.dreamMonthly++;
+        else if (p.billing_interval === "yearly") membershipCounts.dreamYearly++;
+        else membershipCounts.dreamComp++;
+      } else if (status in membershipCounts) {
+        membershipCounts[status as keyof typeof membershipCounts]++;
+      } else {
+        membershipCounts.other++;
+      }
     }
+    const realDreamSubs = membershipCounts.dreamMonthly + membershipCounts.dreamYearly;
     const totalUsers = (allProfilesRes.data ?? []).length;
     const openTickets = openTicketsRes.count ?? 0;
     const openBugs = openBugsRes.count ?? 0;
@@ -101,9 +124,17 @@ Deno.serve(async (req) => {
         ? `<h3 style="margin:20px 0 8px;">${title} (${rows.length})</h3><ul style="margin:0;padding-left:18px;">${rows.join("")}</ul>`
         : `<h3 style="margin:20px 0 8px;">${title} (0)</h3><p style="margin:0;color:#888;">None since the last digest.</p>`;
 
+    const describeSignupTier = (s: (typeof signups)[number]) => {
+      const status = s.membership_status ?? "free";
+      if (status !== "dream") return status;
+      if (s.promo_free_year) return "dream (promo)";
+      if (s.billing_interval === "monthly") return "dream (monthly)";
+      if (s.billing_interval === "yearly") return "dream (yearly)";
+      return "dream (comp)";
+    };
     const signupRows = signups.map(
       (s) =>
-        `<li>${escapeHtml(s.username ?? "unnamed user")} — ${escapeHtml(s.membership_status ?? "free")} — ${fmtTime(s.created_at)}</li>`
+        `<li>${escapeHtml(s.username ?? "unnamed user")} — ${escapeHtml(describeSignupTier(s))} — ${fmtTime(s.created_at)}</li>`
     );
     const ticketRows = tickets.map(
       (t) =>
@@ -128,7 +159,13 @@ Deno.serve(async (req) => {
       <p style="color:#555;">Covering the last ${lookbackHours} hours.</p>
       <h3 style="margin:20px 0 8px;">Snapshot</h3>
       <ul style="margin:0;padding-left:18px;">
-        <li>${totalUsers} total users (free: ${membershipCounts.free}, dream: ${membershipCounts.dream}, founding: ${membershipCounts.founding})</li>
+        <li>${totalUsers} total users</li>
+        <li>free: ${membershipCounts.free}</li>
+        <li>lifetime: ${membershipCounts.lifetime}, founding: ${membershipCounts.founding}</li>
+        <li>dream — promo (first 100): ${membershipCounts.dreamPromo}</li>
+        <li>dream — real subscribers: ${realDreamSubs} (monthly: ${membershipCounts.dreamMonthly}, yearly: ${membershipCounts.dreamYearly})</li>
+        ${membershipCounts.dreamComp ? `<li>dream — comp/other: ${membershipCounts.dreamComp}</li>` : ""}
+        ${membershipCounts.other ? `<li>other/unrecognized status: ${membershipCounts.other}</li>` : ""}
         <li>${openTickets} open support tickets</li>
         <li>${openBugs} open bug reports</li>
       </ul>

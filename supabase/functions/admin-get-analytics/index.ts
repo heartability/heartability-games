@@ -33,7 +33,7 @@ async function computeAnalytics() {
   // ── Signups & membership ──────────────────────────────────
   const { data: profiles, error: profilesError } = await supabase
     .from("user-profiles")
-    .select("created_at, membership_status");
+    .select("created_at, membership_status, promo_free_year, billing_interval");
   if (profilesError) throw profilesError;
 
   const signupsByDay: Record<string, number> = {};
@@ -44,11 +44,32 @@ async function computeAnalytics() {
     }
   }
 
-  const membershipCounts: Record<string, number> = { free: 0, dream: 0, founding: 0, lifetime: 0, other: 0 };
+  // "dream" is one membership_status but three different origins we track
+  // separately: the first-100 free-year promo, a real Stripe subscription
+  // (monthly/yearly), or an admin comp / unrecognized-price fallback — see
+  // [[project_membership_tier_rework_2026_08]].
+  const membershipCounts = {
+    free: 0,
+    lifetime: 0,
+    founding: 0,
+    dreamPromo: 0,
+    dreamMonthly: 0,
+    dreamYearly: 0,
+    dreamComp: 0,
+    other: 0,
+  };
   for (const p of profiles ?? []) {
     const status = p.membership_status || "free";
-    if (status in membershipCounts) membershipCounts[status]++;
-    else membershipCounts.other++;
+    if (status === "dream") {
+      if (p.promo_free_year) membershipCounts.dreamPromo++;
+      else if (p.billing_interval === "monthly") membershipCounts.dreamMonthly++;
+      else if (p.billing_interval === "yearly") membershipCounts.dreamYearly++;
+      else membershipCounts.dreamComp++;
+    } else if (status in membershipCounts) {
+      membershipCounts[status as keyof typeof membershipCounts]++;
+    } else {
+      membershipCounts.other++;
+    }
   }
 
   const userCount = (profiles ?? []).length;

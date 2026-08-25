@@ -655,6 +655,18 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
      by MatrixRender.createMatrixEditor() (matrix-render.js) — no static markup
      needed here. -->
 
+<!-- MEMBER GATE — photo uploads only; stickers/text stay free -->
+<div class="member-gate-overlay" id="member-gate-overlay">
+  <div class="member-gate">
+    <div class="member-gate-title">photo uploads</div>
+    <div class="member-gate-text">adding photos to your matrix is for paid members. stickers and text are still free for everyone.</div>
+    <div class="member-gate-btns">
+      <button class="member-gate-btn" onclick="window.location.href='../users/membership.html'">upgrade now</button>
+      <button class="member-gate-btn ghost" onclick="closeMemberGate()">maybe later</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN MODAL — direct form, no iframe -->
 <div class="login-modal-overlay" id="login-modal">
   <div class="login-modal-window">
@@ -741,8 +753,10 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <script src="./matrix-inventory.js"></script>
 <script src="./matrix-journal.js"></script>
 <script src="../assets/js/nav.js" defer></script>
+<script src="../assets/js/membership.js" defer></script>
 <script>
 let currentUser = null;
+let isPaidUser = false;
 
 // ── MATRIX PHOTO UPLOADS ──────────────────────────────────
 // Same bucket + path convention as the dream matrix (userId/entryId/uuid.ext),
@@ -803,6 +817,14 @@ function closeLoginModal() {
   document.getElementById('login-modal').classList.remove('open');
 }
 
+// ── MEMBER GATE — photo uploads only; stickers/text stay free ──
+function showMemberGate() {
+  document.getElementById('member-gate-overlay').classList.add('open');
+}
+function closeMemberGate() {
+  document.getElementById('member-gate-overlay').classList.remove('open');
+}
+
 function lmSwitchTab(tab, btn) {
   document.querySelectorAll('.lm-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.lm-form').forEach(f => f.classList.remove('active'));
@@ -850,8 +872,11 @@ sb.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_IN' && session && !currentUser) {
     currentUser = session.user;
     closeLoginModal();
-    sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
-      .then(({ data: p }) => HeartabilityNav.setAuthState({ loggedIn: true, username: p?.username || currentUser.email }))
+    sb.from('user-profiles').select('username, membership_status').eq('id', currentUser.id).single()
+      .then(({ data: p }) => {
+        HeartabilityNav.setAuthState({ loggedIn: true, username: p?.username || currentUser.email });
+        isPaidUser = HeartabilityMembership.isPaid(p?.membership_status);
+      })
       .catch(() => HeartabilityNav.setAuthState({ loggedIn: true, username: currentUser.email }));
     stepInitial();
   } else if (event === 'SIGNED_OUT') {
@@ -1311,6 +1336,11 @@ function getMatrixEditor(){
     onChange: renderMatrix,
     onQuadrantOpen: openQuadrant,
     onOpenJournal: openJournalPopup,
+    onPhotoBlocked: () => {
+      if (isPaidUser) return false;
+      showMemberGate();
+      return true;
+    },
   });
   return _matrixEditor;
 }
@@ -1598,8 +1628,11 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
-    sb.from('user-profiles').select('username').eq('id', currentUser.id).single()
-      .then(({ data: p }) => HeartabilityNav.setAuthState({ loggedIn: true, username: p?.username || currentUser.email }))
+    sb.from('user-profiles').select('username, membership_status').eq('id', currentUser.id).single()
+      .then(({ data: p }) => {
+        HeartabilityNav.setAuthState({ loggedIn: true, username: p?.username || currentUser.email });
+        isPaidUser = HeartabilityMembership.isPaid(p?.membership_status);
+      })
       .catch(() => HeartabilityNav.setAuthState({ loggedIn: true, username: currentUser.email }));
     stepInitial();
   } else {

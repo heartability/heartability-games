@@ -7,15 +7,17 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2023-10-16',
 })
 
-// Stripe Price ID -> membership tier. Checkout sessions started from the
-// hosted Pricing Table carry no metadata at all, so this is the only
-// reliable way to know what was actually purchased — never trust
+// Stripe Price ID -> membership tier (+ billing interval for dream, so the
+// signup digest/analytics can report real monthly vs. yearly subscribers
+// separately from the first-100 free-year promo). Checkout sessions started
+// from the hosted Pricing Table carry no metadata at all, so this is the
+// only reliable way to know what was actually purchased — never trust
 // session.metadata?.tier as the primary source (see checkout.session.completed
 // below).
-const PRICE_TIER_MAP: Record<string, 'dream' | 'founding'> = {
-  'price_1TX47YA6JE5MLfPsIZAXk3QY': 'dream',    // dream — monthly
-  'price_1Tga4bA6JE5MLfPsJ5pzjRgo': 'dream',    // dream — yearly
-  'price_1TgaQqA6JE5MLfPs5oPFirei': 'founding', // founding — one-time $1k, lifetime
+const PRICE_MAP: Record<string, { tier: 'dream' | 'founding'; interval?: 'monthly' | 'yearly' }> = {
+  'price_1TX47YA6JE5MLfPsIZAXk3QY': { tier: 'dream', interval: 'monthly' },
+  'price_1Tga4bA6JE5MLfPsJ5pzjRgo': { tier: 'dream', interval: 'yearly' },
+  'price_1TgaQqA6JE5MLfPs5oPFirei': { tier: 'founding' }, // one-time $1k, lifetime
 }
 
 serve(async (req) => {
@@ -67,12 +69,14 @@ serve(async (req) => {
     // someone (this already happened once: every Pricing Table purchase was
     // defaulting to 'dream', including a real founding purchase).
     let tier: 'dream' | 'founding' = session.metadata?.tier as 'dream' | 'founding'
+    let billingInterval: 'monthly' | 'yearly' | null = null
     try {
       const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 })
       const priceId = lineItems.data[0]?.price?.id
-      const mappedTier = priceId ? PRICE_TIER_MAP[priceId] : undefined
-      if (mappedTier) {
-        tier = mappedTier
+      const mapped = priceId ? PRICE_MAP[priceId] : undefined
+      if (mapped) {
+        tier = mapped.tier
+        billingInterval = mapped.interval ?? null
       } else {
         console.error(`Unrecognized price ID on checkout session ${session.id}: ${priceId}. Falling back to metadata/default.`)
         tier = tier ?? 'dream'
@@ -116,6 +120,8 @@ serve(async (req) => {
       membership_status:     tier,
       membership_tier:       tier,
       membership_expires_at: expiresAt,
+      billing_interval:      billingInterval,
+      promo_free_year:       false, // a real purchase always supersedes the free-year promo grant
     }).eq('id', userId).select('username').single()
 
     if (error) console.error('Error updating membership:', error)
@@ -156,6 +162,7 @@ serve(async (req) => {
       membership_status:     'free',
       membership_tier:       null,
       membership_expires_at: null,
+      billing_interval:      null,
     }).eq('stripe_customer_id', customerId)
 
     if (error) console.error('Error resetting membership:', error)
