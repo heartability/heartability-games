@@ -6,13 +6,12 @@
 <link rel="icon" type="image/png" href="../assets/elements/favicon.png">
 <link rel="stylesheet" href="../assets/css/modal.css">
 <script src="../assets/js/modal.js" defer></script>
-<link rel="stylesheet" href="../assets/css/detail-view.css">
 <link rel="stylesheet" href="../assets/css/room-slider.css">
 <script src="../assets/js/room-slider.js" defer></script>
 <link rel="stylesheet" href="../assets/css/nav.css">
 <link rel="stylesheet" href="../assets/css/room-nav.css">
 <title>The Salon — Heartability</title>
-<meta name="description" content="Browse the Heartability tools library — a collective archive of coping tools, tagged by type, with places people use them.">
+<meta name="description" content="Drop into the Heartability conversation pit and chat with others.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
 <style>
 
@@ -123,7 +122,6 @@ html, body {
 .room-icon:hover { transform: translateY(-5px); }
 .room-icon:active { transform: translateY(-2px); }
 
-#icon-organizer  { left: 50%; top: 18cqh; width: clamp(440px, 37cqw, 900px); transform: translateX(-50%); }
 #icon-couch  { left: 50%; bottom: 0cqh; width: clamp(440px, 70cqw, 1200px); transform: translateX(-50%); }
 .room-icon img { width: 100%; height: auto; display: block; }
 
@@ -172,53 +170,12 @@ html, body {
 }
 @media (orientation: portrait) {
   .char-heart { width: clamp(70px, 10cqw, 180px); }
-  #icon-organizer { width: clamp(140px, 30cqw, 315px); }
   #icon-couch { width: clamp(250px, 45cqw, 600px); }
 }
 .char-heart img {
   display: block;
   width: 100%; height: auto;
   animation: idle-pulse 3.6s ease-in-out 1s infinite;
-}
-
-/* ── TOOLS MODAL ── */
-.hg-modal-body.tl-body { overflow-y: auto; flex: 1; padding-left: clamp(24px, 4vw, 64px); padding-right: clamp(24px, 4vw, 64px); }
-.tl-add-top { margin-left: auto; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; white-space: nowrap; }
-.tl-top-row { display: flex; align-items: center; margin-bottom: 14px; }
-.tl-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-.tl-filters select {
-  font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 5px 8px;
-  border: 2px solid #bbb; background: #fff; color: #333;
-}
-.tl-loading, .tl-empty { font-family: var(--font-hand); font-size: 16px; color: #888; padding: 20px 0; text-align: center; }
-.tl-empty a { color: var(--blue); }
-.tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-.tl-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 12px; }
-.tl-card-type { font-family: var(--font-hand); font-size: 12px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.4px; }
-.tl-card-title { font-family: var(--font-hand); font-size: var(--tl-font-card-title); color: #222; line-height: 1.25; }
-.tl-card-meta { font-family: var(--font-hand); font-size: var(--tl-font-small); color: #666; }
-.tl-card-icon, .tl-card-icon-noimg { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #eef0f9; border: 1.5px solid var(--blue); display: block; }
-.tl-card-icon-noimg { display: flex; align-items: center; justify-content: center; font-family: var(--font-hand); font-size: 20px; color: #aab; }
-.tl-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 6px; }
-.tl-detail-fact a { color: var(--blue); }
-.tl-comments { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
-.tl-comment { background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 14px; }
-.tl-comment-author { font-family: var(--font-hand); font-size: 15px; color: var(--blue); margin-bottom: 4px; }
-.tl-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
-.tl-comment-rating { font-family: var(--font-hand); font-size: 13px; color: #e8b400; }
-.tl-add-comment { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.tl-add-comment textarea { font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 8px 10px; border: 2px solid #bbb; resize: vertical; min-height: 60px; }
-.tl-add-comment select { font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 5px 8px; border: 2px solid #bbb; background: #fff; align-self: flex-start; }
-.tl-save-btn {
-  align-self: flex-start; padding: 7px 16px; background: var(--blue); border: 2px solid #4a5bc4;
-  box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand); font-size: var(--tl-font-btn); color: #fff; cursor: pointer;
-}
-.tl-save-btn:hover { background: #4a5bc4; }
-.tl-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
-.link-btn { background: none; border: none; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 12px; display: inline-block; text-align: left; align-self: flex-start; }
-
-@media (max-width: 480px) {
-  .tl-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
 /* ── CHAT MODAL ── */
@@ -253,9 +210,6 @@ html, body {
   <div class="room-back-wall" aria-hidden="true"></div>
 
   <!-- ROOM ICONS -->
-  <div class="room-icon" id="icon-organizer" onclick="openTools()">
-    <img src="../assets/elements/organizer.png" alt="organizer (tools)">
-  </div>
   <div class="room-icon" id="icon-couch" onclick="openChat()">
     <img src="../assets/elements/couch.png" alt="couch (chat)">
   </div>
@@ -267,17 +221,6 @@ html, body {
   </div>
 
 </div></div>
-
-<!-- TOOLS MODAL -->
-<div class="hg-modal-overlay" id="tools-overlay">
-  <div class="hg-modal" style="width:96vw; max-height:86vh; display:flex; flex-direction:column;">
-    <div class="hg-modal-titlebar">
-      <span>tools</span>
-      <span class="hg-modal-close" id="tools-close">&#x2715;</span>
-    </div>
-    <div class="hg-modal-body tl-body" id="tools-modal-body"></div>
-  </div>
-</div>
 
 <!-- CHAT MODAL -->
 <div class="hg-modal-overlay" id="chat-overlay">
@@ -298,236 +241,6 @@ html, body {
 <script>
 let currentUser = null;
 
-const TOOL_TYPES = ['nutrition', 'connection', 'cleanliness', 'rest', 'relaxation'];
-
-let toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
-let toolsCache = null;      // approved tools (array) or null before first fetch
-let toolCommentsCache = {}; // toolId -> comments array
-let savedToolIds = new Set(); // tool ids the current user has added to their personal inventory (tool_saves)
-
-async function fetchSavedToolIds() {
-  if (!currentUser) { savedToolIds = new Set(); return; }
-  const { data, error } = await sb.from('tool_saves').select('tool_id').eq('user_id', currentUser.id);
-  if (error) { console.error('[salon] tool_saves fetch failed:', error); savedToolIds = new Set(); return; }
-  savedToolIds = new Set((data || []).map(r => r.tool_id));
-}
-
-async function toggleInventorySave(toolId) {
-  if (!currentUser) return;
-  if (savedToolIds.has(toolId)) {
-    const { error } = await sb.from('tool_saves').delete().eq('user_id', currentUser.id).eq('tool_id', toolId);
-    if (error) { console.error('[salon] remove from inventory failed:', error); return; }
-    savedToolIds.delete(toolId);
-  } else {
-    const { error } = await sb.from('tool_saves').insert({ user_id: currentUser.id, tool_id: toolId });
-    if (error) { console.error('[salon] add to inventory failed:', error); return; }
-    savedToolIds.add(toolId);
-  }
-  render();
-}
-
-async function fetchTools() {
-  const { data, error } = await sb.from('tools').select('*')
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false });
-  if (error) { console.error('[salon] tools fetch failed:', error); toolsCache = []; return; }
-  toolsCache = data || [];
-}
-
-async function fetchComments(toolId) {
-  const { data, error } = await sb.from('tool_comments').select('*')
-    .eq('tool_id', toolId)
-    .order('created_at', { ascending: false });
-  if (error) { console.error('[salon] comments fetch failed:', error); toolCommentsCache[toolId] = []; return; }
-  toolCommentsCache[toolId] = data || [];
-}
-
-function cardAvgRating(comments) {
-  const vals = (comments || []).map(c => c.rating).filter(Boolean);
-  if (!vals.length) return null;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
-}
-function toolHasTerrain(tool, terrain) { return (tool.landscapes || []).some(z => z.terrain === terrain); }
-function computeTerrainFacets(tools) {
-  const terrains = new Set();
-  tools.forEach(t => (t.landscapes || []).forEach(z => { if (z.terrain) terrains.add(z.terrain); }));
-  return [...terrains].sort();
-}
-function filteredTools(tools) {
-  return tools.filter(t => {
-    if (toolsState.filterType && t.tool_type !== toolsState.filterType) return false;
-    if (toolsState.filterTerrain && !toolHasTerrain(t, toolsState.filterTerrain)) return false;
-    return true;
-  });
-}
-
-function toolCardHtml(t) {
-  return `<div class="tl-card" onclick="openToolDetail('${t.id}')">
-    <div class="tl-card-type">${_escapeHtml(t.tool_type)}</div>
-    <div class="tl-card-title">${_escapeHtml(t.title)}</div>
-    ${t.icon_url ? `<img class="tl-card-icon" src="${_escapeHtml(t.icon_url)}" alt="">` : '<div class="tl-card-icon-noimg">?</div>'}
-    <div class="tl-card-meta">${(t.landscapes || []).length} ${(t.landscapes || []).length === 1 ? 'landscape' : 'landscapes'}</div>
-  </div>`;
-}
-
-function buildGridHtml() {
-  const tools = toolsCache || [];
-  const terrains = computeTerrainFacets(tools);
-  const shown = filteredTools(tools);
-  const filterHtml = `<div class="tl-filters">
-    <select onchange="setTypeFilter(this.value)">
-      <option value="">any type</option>
-      ${TOOL_TYPES.map(t => `<option value="${t}" ${toolsState.filterType === t ? 'selected' : ''}>${t}</option>`).join('')}
-    </select>
-    <select onchange="setTerrainFilter(this.value)">
-      <option value="">any landscape</option>
-      ${terrains.map(t => `<option value="${t}" ${toolsState.filterTerrain === t ? 'selected' : ''}>${t}</option>`).join('')}
-    </select>
-  </div>`;
-  if (!tools.length) return filterHtml + `<div class="tl-empty">no tools yet — be the first to <a href="../matrix/tools.html">add one</a>.</div>`;
-  if (!shown.length) return filterHtml + `<div class="tl-empty">nothing matches those filters.</div>`;
-  return filterHtml + `<div class="tl-grid">${shown.map(toolCardHtml).join('')}</div>`;
-}
-
-function ratingOptionsHtml(selected) {
-  return `<option value="">no rating</option>` +
-    [5,4,3,2,1].map(n => `<option value="${n}" ${String(selected) === String(n) ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('');
-}
-
-function buildDetailHtml() {
-  const id = toolsState.detailToolId;
-  const backBtn = `<button type="button" class="link-btn" onclick="backToGrid()">← back to list</button>`;
-  const tool = (toolsCache || []).find(t => t.id === id);
-  if (!tool) return backBtn + '<div class="tl-empty">not found.</div>';
-
-  const comments = toolCommentsCache[id] || [];
-  const avg = cardAvgRating(comments);
-  const ratedCount = comments.filter(c => c.rating).length;
-  const landscapes = tool.landscapes || [];
-  const terrains = [...new Set(landscapes.map(z => z.terrain).filter(Boolean))];
-  const feelings = [...new Set(landscapes.map(z => z.feeling).filter(Boolean))];
-
-  const chipsOrEmpty = (values) => values.length
-    ? `<div class="detail-tag-chips">${values.map(v => `<span class="detail-tag-chip">${_escapeHtml(v)}</span>`).join('')}</div>`
-    : `<div class="detail-tag-empty">none yet</div>`;
-
-  const tagsPanelHtml = `<div class="detail-tags-panel">
-    <div><div class="detail-tag-col-label">terrains</div>${chipsOrEmpty(terrains)}</div>
-    <div><div class="detail-tag-col-label">emotions</div>${chipsOrEmpty(feelings)}</div>
-    <div><div class="detail-tag-col-label">category of care</div><div class="detail-tag-chips"><span class="detail-tag-chip">${_escapeHtml(tool.tool_type)}</span></div></div>
-  </div>`;
-
-  const commentsHtml = comments.length
-    ? comments.map(c => `<div class="tl-comment">
-        <div class="tl-comment-author">${c.username ? _escapeHtml(c.username) : 'anonymous'}</div>
-        <div class="tl-comment-text">${_escapeHtml(c.comment_text)}</div>
-        ${c.rating ? `<div class="tl-comment-rating">${'★'.repeat(c.rating)}</div>` : ''}
-      </div>`).join('')
-    : `<div class="tl-empty">no comments yet.</div>`;
-
-  const addCommentHtml = currentUser
-    ? `<div class="tl-add-comment">
-        <div class="tl-detail-fact" style="margin-bottom:0;">how do you use this?</div>
-        <textarea id="new-comment-text" maxlength="1000" placeholder="share how you use this tool..."></textarea>
-        <select id="new-comment-rating">${ratingOptionsHtml('')}</select>
-        <button type="button" class="tl-save-btn" onclick="submitComment('${id}')">post comment</button>
-      </div>`
-    : `<div class="tl-detail-fact">want to leave a comment? <a href="../users/login.html">log in</a></div>`;
-
-  const inventoryBtnHtml = currentUser
-    ? `<button type="button" class="tl-save-btn" onclick="toggleInventorySave('${id}')">${savedToolIds.has(id) ? '− remove from my inventory' : '+ add to my inventory'}</button>`
-    : `<div class="tl-detail-fact">want to add this to your inventory? <a href="../users/login.html">log in</a></div>`;
-
-  const posterHtml = tool.icon_url
-    ? `<img class="detail-poster aspect-square" src="${_escapeHtml(tool.icon_url)}" alt="">`
-    : `<div class="detail-poster-noimg">?</div>`;
-
-  const ratingsPanelHtml = `<div class="detail-ratings-panel">
-    <div class="detail-ratings-label">ratings</div>
-    <div class="detail-rating-num">${avg ? avg.toFixed(1) : '—'}</div>
-    <div class="detail-rating-stars">${avg ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg)) : 'no ratings yet'}</div>
-    <div class="detail-rating-count">${ratedCount} ${ratedCount === 1 ? 'rating' : 'ratings'}</div>
-  </div>`;
-
-  return backBtn + `<div class="detail-layout">
-    <div>${posterHtml}</div>
-    <div class="detail-main">
-      <div class="detail-title">${_escapeHtml(tool.title)}</div>
-      <div class="detail-subtitle-row">
-        <span class="detail-badge">${_escapeHtml(tool.tool_type)}</span>
-        ${tool.author_name ? `<span class="detail-fact">added by ${_escapeHtml(tool.author_name)}</span>` : ''}
-      </div>
-      <div class="detail-summary">${_escapeHtml(tool.summary)}</div>
-      ${tool.favorite_brands ? `<div class="detail-fact">favorite brands: ${_escapeHtml(tool.favorite_brands)}</div>` : ''}
-      ${tagsPanelHtml}
-      <div class="tl-comments">${commentsHtml}</div>
-      ${addCommentHtml}
-    </div>
-    <div class="detail-sidebar">
-      ${ratingsPanelHtml}
-      ${inventoryBtnHtml}
-    </div>
-  </div>`;
-}
-
-function buildBodyHtml() {
-  const addLink = currentUser
-    ? `<a class="tl-add-top" href="../matrix/tools.html">+ add a tool</a>`
-    : `<a class="tl-add-top" href="../users/login.html">log in to add a tool</a>`;
-  const topRow = `<div class="tl-top-row">${addLink}</div>`;
-  if (toolsState.detailToolId) return topRow + buildDetailHtml();
-  return topRow + buildGridHtml();
-}
-
-function renderModalBody(html) { document.getElementById('tools-modal-body').innerHTML = html; }
-function render() { renderModalBody(buildBodyHtml()); }
-
-function setTypeFilter(v) { toolsState.filterType = v || null; render(); }
-function setTerrainFilter(v) { toolsState.filterTerrain = v || null; render(); }
-
-async function openToolDetail(toolId) {
-  toolsState.detailToolId = toolId;
-  document.querySelector('#tools-overlay .hg-modal').classList.add('detail-mode');
-  renderModalBody('<div class="tl-loading">loading…</div>');
-  if (!toolCommentsCache[toolId]) await fetchComments(toolId);
-  render();
-}
-function backToGrid() {
-  toolsState.detailToolId = null;
-  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
-  render();
-}
-
-async function submitComment(toolId) {
-  if (!currentUser) return;
-  const textEl = document.getElementById('new-comment-text');
-  const ratingEl = document.getElementById('new-comment-rating');
-  const comment_text = (textEl.value || '').trim();
-  if (!comment_text) return;
-  const rating = ratingEl.value ? Number(ratingEl.value) : null;
-  const username = await resolveUsername(currentUser);
-  const { error } = await sb.from('tool_comments').insert({ tool_id: toolId, user_id: currentUser.id, username, comment_text, rating });
-  if (error) { console.error('[salon] comment insert failed:', error); return; }
-  await fetchComments(toolId);
-  render();
-}
-
-async function openTools() {
-  toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
-  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
-  document.getElementById('tools-overlay').classList.add('open');
-  renderModalBody('<div class="tl-loading">loading…</div>');
-  if (!toolsCache) await fetchTools();
-  await fetchSavedToolIds();
-  render();
-}
-function closeTools() { document.getElementById('tools-overlay').classList.remove('open'); }
-
-document.getElementById('tools-close').addEventListener('click', closeTools);
-document.getElementById('tools-overlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('tools-overlay')) closeTools();
-});
-
 // ── CHAT MODAL ──
 function openChat() {
   const body = document.getElementById('chat-modal-body');
@@ -545,14 +258,12 @@ document.getElementById('chat-overlay').addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  closeTools();
   closeChat();
 });
 
 // ── Thought bubble ──
 const bubble = document.getElementById('thought-bubble');
 const bubbleMessages = {
-  'icon-organizer': "explore our collection of self care tools",
   'icon-couch': "jump in the conversation pit",
 };
 document.querySelectorAll('.room-icon').forEach(icon => {
@@ -584,12 +295,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       resolveUsername(session.user).then(username => HeartabilityNav.setAuthState({ loggedIn: true, username }));
-      fetchSavedToolIds().then(render);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
-      savedToolIds = new Set();
       HeartabilityNav.setAuthState({ loggedIn: false });
-      render();
     }
   });
 

@@ -1862,12 +1862,9 @@ async function renderDailyMatrixWindow(saveId){
 }
 
 // ── COSMIC TAB ────────────────────────────────────────────
-const GLYPH_FILENAME_OVERRIDES = { sagittarius: 'sagitarrius' }; // typo baked into the asset filename
-function glyphSrc(kind, id){ // kind: 'sign' | 'planet'
+function glyphSrc(id){
   if (!id) return null;
-  id = id.toLowerCase();
-  const file = kind === 'sign' ? (GLYPH_FILENAME_OVERRIDES[id] || id) : id;
-  return `../assets/elements/glyphs/${file}.png`;
+  return `../assets/elements/glyphs/${id.toLowerCase()}.png`;
 }
 function capitalize(w){ return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }
 function seasonWindowTitle(w){ return `${capitalize(w.sign)} ${w.year}`; }
@@ -1944,7 +1941,7 @@ function renderCosmicBrowseGrid(){
       });
       return buildGlyphSlot({
         name: signId, locked: !hasEntries, lockedLabel: 'no entries yet',
-        src: glyphSrc('sign', signId),
+        src: glyphSrc(signId),
         onClick: () => enterCosmicResults(signId),
       });
     });
@@ -1956,7 +1953,7 @@ function renderCosmicBrowseGrid(){
       });
       return buildGlyphSlot({
         name: p.name, locked: !hasEntries, lockedLabel: 'no entries yet',
-        src: glyphSrc('planet', p.id),
+        src: glyphSrc(p.id),
         onClick: () => enterCosmicResults(p.id),
       });
     });
@@ -2005,7 +2002,7 @@ function enterCosmicSignResults(signId){
     slot.onclick = () => openCosmicSeasonDetail(w);
     slot.innerHTML = `<div class="slot-name">${escapeHtml(seasonWindowTitle(w))}</div>
       <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;">
-        <img src="${glyphSrc('sign', signId)}" alt="${escapeHtml(signId)}" style="width:60%;height:60%;object-fit:contain;">
+        <img src="${glyphSrc(signId)}" alt="${escapeHtml(signId)}" style="width:60%;height:60%;object-fit:contain;">
       </div>
       <div class="slot-updated">${total && done>=total ? 'completed' : 'in progress'}</div>`;
     grid.appendChild(slot);
@@ -2032,7 +2029,7 @@ function enterCosmicPlanetResults(planetId){
     slot.onclick = () => openCosmicSeasonDetail(seasonWindowFor(Date.parse(t.exact_utc)), t.transit_id);
     slot.innerHTML = `<div class="slot-name">${escapeHtml(t.name || t.transit_id)}</div>
       <div class="slot-preview" style="display:flex;align-items:center;justify-content:center;">
-        <img src="${glyphSrc('sign', t.sign)}" alt="${escapeHtml(t.sign||'')}" style="width:60%;height:60%;object-fit:contain;">
+        <img src="${glyphSrc(t.sign)}" alt="${escapeHtml(t.sign||'')}" style="width:60%;height:60%;object-fit:contain;">
       </div>
       <div class="slot-updated">${done ? 'complete' : (Date.parse(t.exact_utc) > Date.now() ? 'upcoming' : 'unfinished')}</div>`;
     grid.appendChild(slot);

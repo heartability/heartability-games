@@ -510,6 +510,10 @@ const SQUARE_ZONE_POSITIONS = [
 ];
 const SQUARE_LABELS = ['1', '2', '3', '4'];
 
+// Fixed per-zone tilt so the star markers read as hand-placed rather than
+// uniformly upright, without jittering on every re-render.
+const STAR_ROTATIONS = [-11, 16, -7, 9];
+
 // ── MODE ──────────────────────────────────────────────────────────────────
 let currentMode = 'spiral';
 
@@ -677,12 +681,22 @@ function renderZoneCircles() {
       circle.setAttribute('fill', 'transparent');
       circle.setAttribute('stroke', 'transparent');
     } else {
-      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
-      circle.setAttribute('stroke', isActive ? '#6e83d3' : '#6e83d3');
+      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'transparent');
+      circle.setAttribute('stroke', isActive ? '#6e83d3' : 'transparent');
     }
     circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
     circle.style.cursor = 'pointer';
     zoneGroup.appendChild(circle);
+    if (!hasTerrain) {
+      const star = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+      star.setAttribute('x', pos.x - R); star.setAttribute('y', pos.y - R);
+      star.setAttribute('width', R * 2); star.setAttribute('height', R * 2);
+      star.setAttribute('href', '../assets/elements/star.png');
+      star.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      star.setAttribute('transform', `rotate(${STAR_ROTATIONS[i % STAR_ROTATIONS.length]} ${pos.x} ${pos.y})`);
+      star.style.pointerEvents = 'none';
+      zoneGroup.appendChild(star);
+    }
     if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
@@ -699,14 +713,14 @@ function renderZoneCircles() {
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
-    if (!hasTerrain || isActive) {
+    if (!hasTerrain) {
       const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       numEl.setAttribute('x', pos.x);
-      numEl.setAttribute('y', pos.y + (hasTerrain ? R - 10 : 5));
+      numEl.setAttribute('y', pos.y + 5);
       numEl.setAttribute('text-anchor', 'middle'); numEl.setAttribute('dominant-baseline', 'middle');
-      numEl.setAttribute('fill', isActive ? '#6e83d3' : '#3a4aaa');
+      numEl.setAttribute('fill', '#dfe2ef');
       numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
-      numEl.setAttribute('font-size', hasTerrain ? '15' : '26');
+      numEl.setAttribute('font-size', '26');
       numEl.style.pointerEvents = 'none'; numEl.textContent = i + 1;
       zoneGroup.appendChild(numEl);
     }
@@ -775,11 +789,21 @@ function renderSquareZones() {
       circle.setAttribute('fill', 'transparent');
       circle.setAttribute('stroke', 'transparent');
     } else {
-      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'rgba(200,196,180,0.82)');
-      circle.setAttribute('stroke', isActive ? '#6e83d3' : '#6e83d3');
+      circle.setAttribute('fill', isActive ? 'rgba(101,121,226,0.18)' : 'transparent');
+      circle.setAttribute('stroke', isActive ? '#6e83d3' : 'transparent');
     }
     circle.setAttribute('stroke-width', isActive ? '2.5' : '1.5');
     zoneGroup.appendChild(circle);
+    if (!hasTerrain) {
+      const star = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+      star.setAttribute('x', pos.x - R); star.setAttribute('y', pos.y - R);
+      star.setAttribute('width', R * 2); star.setAttribute('height', R * 2);
+      star.setAttribute('href', '../assets/elements/star.png');
+      star.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      star.setAttribute('transform', `rotate(${STAR_ROTATIONS[i % STAR_ROTATIONS.length]} ${pos.x} ${pos.y})`);
+      star.style.pointerEvents = 'none';
+      zoneGroup.appendChild(star);
+    }
     if (zone.terrain && TERRAIN_IMGS[zone.terrain]) {
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       img.setAttribute('x', pos.x - R); img.setAttribute('y', pos.y - R);
@@ -796,14 +820,14 @@ function renderSquareZones() {
       terrainLabelEl.style.pointerEvents = 'none'; terrainLabelEl.textContent = (TERRAIN_LABELS[zone.terrain] || zone.terrain) + ' of';
       zoneGroup.appendChild(terrainLabelEl);
     }
-    if (!hasTerrain || isActive) {
+    if (!hasTerrain) {
       const numEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       numEl.setAttribute('x', pos.x);
-      numEl.setAttribute('y', pos.y + (hasTerrain ? R - 10 : 5));
+      numEl.setAttribute('y', pos.y + 5);
       numEl.setAttribute('text-anchor', 'middle'); numEl.setAttribute('dominant-baseline', 'middle');
-      numEl.setAttribute('fill', isActive ? '#6e83d3' : '#3a4aaa');
+      numEl.setAttribute('fill', '#dfe2ef');
       numEl.setAttribute('font-family', '"ZoesHandwriting", cursive');
-      numEl.setAttribute('font-size', hasTerrain ? '15' : '26');
+      numEl.setAttribute('font-size', '26');
       numEl.style.pointerEvents = 'none';
       numEl.textContent = SQUARE_LABELS[i];
       zoneGroup.appendChild(numEl);

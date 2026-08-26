@@ -38,6 +38,14 @@
   .detail-layout { grid-template-columns: 1fr; }
 }
 
+/* Two-column variant — used by the tools detail view (poster+ratings
+   stacked on the left, everything else on the right). */
+.detail-layout.tools-layout { grid-template-columns: 300px 1fr; }
+.detail-layout.tools-layout .detail-left { display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 900px) {
+  .detail-layout.tools-layout { grid-template-columns: 1fr; }
+}
+
 .detail-poster, .detail-poster-noimg {
   width: 100%;
   display: block;

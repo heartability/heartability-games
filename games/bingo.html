@@ -229,23 +229,41 @@ body {
   min-width: 0;
 }
 
-.meter-stages {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
+.meter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
 }
 
-.meter-stage {
+.meter-box {
+  background: #cdd3ec;
+  border: 2px solid var(--panel-border-dark);
+  border-right-color: var(--panel-border-light);
+  border-bottom-color: var(--panel-border-light);
+  padding: 6px 10px 8px;
+}
+
+.meter-box-label {
   font-family: var(--font-game);
-  font-size: 12px;
-  color: #7a86bb;
-  letter-spacing: 0.5px;
+  font-size: 13px;
+  color: var(--text-mid);
+  letter-spacing: 1px;
   text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
-.meter-stage.active {
-  color: var(--text-dark);
-  font-size: 13px;
+.meter-box .meter-track { height: 16px; }
+
+.meter-box-overall { border-color: var(--gold); }
+
+.meter-box-overall .meter-fill {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--gold) 0px,
+    var(--gold) 18px,
+    #e8d38a 18px,
+    #e8d38a 20px
+  );
 }
 
 /* BINGO ALERT */
@@ -383,14 +401,32 @@ body {
       <div class="bingo-grid" id="bingoGrid"></div>
 
       <div class="meter-section">
-        <div class="meter-label">heart meter</div>
-        <div class="meter-track">
-          <div class="meter-fill" id="meterFill" style="width:0%"></div>
-        </div>
-        <div class="meter-stages">
-          <div class="meter-stage" id="stage0">hard</div>
-          <div class="meter-stage" id="stage1">medium</div>
-          <div class="meter-stage" id="stage3">easy</div>
+        <div class="meter-label">self-care meters</div>
+        <div class="meter-grid">
+          <div class="meter-box">
+            <div class="meter-box-label">nutrition</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_nutrition" style="width:0%"></div></div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-box-label">sleep</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_sleep" style="width:0%"></div></div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-box-label">rest</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_rest" style="width:0%"></div></div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-box-label">restoration</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_restoration" style="width:0%"></div></div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-box-label">connection</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_connection" style="width:0%"></div></div>
+          </div>
+          <div class="meter-box meter-box-overall">
+            <div class="meter-box-label">overall</div>
+            <div class="meter-track"><div class="meter-fill" id="meterFill_overall" style="width:0%"></div></div>
+          </div>
         </div>
       </div>
 
@@ -416,32 +452,38 @@ const _params   = new URLSearchParams(window.location.search);
 const GAME_ID   = _params.get('game_id');
 const LOOP_MODE = _params.get('loop') === 'true';
 
+const CATEGORIES = ["nutrition", "sleep", "rest", "restoration", "connection"];
+
 const SQUARES = [
-  "you feel full",
-  "your stomach hasn't rumbled today",
-  "your fridge is stocked",
-  "you had fresh food today",
-  "you ate something good today",
-  "your sheets are clean",
-  "you have a quiet place to rest",
-  "close your eyes for one minute",
-  "think of a relaxing smell",
-  "take a deep breath",
-  "your body feels comfy",
-  "you laughed today",
-  "you felt fresh air today",
-  "drink a glass of water",
-  "your body feels clean",
-  "you meditated today",
-  "your environment is clean",
-  "you smell good",
-  "you brushed your teeth today",
-  "you feel like you are on the right path",
-  "you asked for help today",
-  "look at something nostalgic",
-  "think of someone you love",
-  "eat something ancestral"
+  { text: "you feel full", category: "nutrition" },
+  { text: "your stomach hasn't rumbled today", category: "nutrition" },
+  { text: "your fridge is stocked", category: "nutrition" },
+  { text: "you had fresh food today", category: "nutrition" },
+  { text: "you ate something good today", category: "nutrition" },
+  { text: "your sheets are clean", category: "sleep" },
+  { text: "you have a quiet place to rest", category: "sleep" },
+  { text: "close your eyes for one minute", category: "sleep" },
+  { text: "think of a relaxing smell", category: "rest" },
+  { text: "take a deep breath", category: "rest" },
+  { text: "your body feels comfy", category: "rest" },
+  { text: "you laughed today", category: "connection" },
+  { text: "you felt fresh air today", category: "rest" },
+  { text: "drink a glass of water", category: "nutrition" },
+  { text: "your body feels clean", category: "restoration" },
+  { text: "you meditated today", category: "rest" },
+  { text: "your environment is clean", category: "restoration" },
+  { text: "you smell good", category: "restoration" },
+  { text: "you brushed your teeth today", category: "restoration" },
+  { text: "you feel like you are on the right path", category: "connection" },
+  { text: "you asked for help today", category: "connection" },
+  { text: "look at something nostalgic", category: "connection" },
+  { text: "think of someone you love", category: "connection" },
+  { text: "eat something ancestral", category: "nutrition" }
 ];
+
+const CATEGORY_TOTALS = {};
+CATEGORIES.forEach(c => CATEGORY_TOTALS[c] = 0);
+SQUARES.forEach(sq => CATEGORY_TOTALS[sq.category]++);
 
 const READINGS = [
   { min:0, max:9, title:"hard mode", text:"Your resources are limited, be easy on yourself right now." },
@@ -483,7 +525,7 @@ function buildGrid() {
 
     const txt = document.createElement("div");
     txt.className = "cell-text";
-    txt.textContent = i===12 ? "you are here" : shuffledSquares[i<12?i:i-1];
+    txt.textContent = i===12 ? "you are here" : shuffledSquares[i<12?i:i-1].text;
     cell.appendChild(txt);
 
     const heart = document.createElement("div");
@@ -506,6 +548,23 @@ function buildGrid() {
   document.addEventListener("mouseup", () => dragging=false);
 }
 
+function updateMeters() {
+  const counts = {};
+  CATEGORIES.forEach(c => counts[c] = 0);
+  for(let i=0; i<25; i++) {
+    if(i===12 || !marked[i]) continue;
+    const sq = shuffledSquares[i<12?i:i-1];
+    counts[sq.category]++;
+  }
+  let total = 0;
+  CATEGORIES.forEach(c => {
+    const pct = CATEGORY_TOTALS[c] ? (counts[c]/CATEGORY_TOTALS[c])*100 : 0;
+    total += pct;
+    document.getElementById("meterFill_"+c).style.width = pct + "%";
+  });
+  document.getElementById("meterFill_overall").style.width = (total/CATEGORIES.length) + "%";
+}
+
 function update() {
   document.querySelectorAll(".cell").forEach((cell,i) => {
     cell.classList.toggle("marked", marked[i]||i===12);
@@ -525,10 +584,9 @@ function update() {
 
   const score = marked.filter((v,i) => v && i!==12).length;
   document.getElementById("bingoAlert").classList.toggle("show", hasBingo);
+  updateMeters();
 
   if (hasBingo) {
-    document.getElementById("meterFill").style.width = "100%";
-    document.querySelectorAll(".meter-stage").forEach((el,i) => el.classList.toggle("active", i===2));
     document.getElementById("readingHeader").style.display = "none";
     document.getElementById("readingText").textContent = "sometimes everything just aligns";
     document.getElementById("readingText").classList.add("centered");
@@ -538,12 +596,6 @@ function update() {
 
   document.getElementById("readingHeader").style.display = "";
   document.getElementById("readingText").classList.remove("centered");
-
-  const pct = (score/24)*100;
-  document.getElementById("meterFill").style.width = pct + "%";
-
-  const si = Math.min(Math.floor(score/5),4);
-  document.querySelectorAll(".meter-stage").forEach((el,i) => el.classList.toggle("active",i===si));
 
   const r = READINGS.find(x => score>=x.min && score<=x.max);
   if(r && score>0) {

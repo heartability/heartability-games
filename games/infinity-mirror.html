@@ -170,6 +170,7 @@ html { background: transparent; }
 }
 
 .part-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -201,12 +202,12 @@ html { background: transparent; }
   pointer-events: none;
 }
 .part-btn .part-name {
-  font-family: var(--font-game);
-  font-size: 13px;
-  color: var(--text-dark);
-  text-align: center;
-  pointer-events: none;
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 .part-btn.none-btn img { opacity: 0.3; }
 

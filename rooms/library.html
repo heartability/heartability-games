@@ -126,6 +126,7 @@ html, body {
 
 #icon-bookshelf { bottom: 10cqh; left: 18cqw; width: clamp(90px, 38cqw, 480px) }
 #icon-projector { bottom: 10cqh; right: 18cqw; width: clamp(90px, 24cqw, 350px)}
+#icon-tools { top: 13cqh; right: 6cqw; width: clamp(200px, 24cqw, 380px); }
 .room-icon img { width: 100%; height: auto; display: block; }
 
 .room-icon-label { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); color: #444; text-align: center; }
@@ -175,6 +176,7 @@ html, body {
   .char-heart { width: clamp(70px, 10cqw, 180px); }
   #icon-bookshelf { width: clamp(140px, 30cqw, 315px); }
   #icon-projector { width: clamp(120px, 24cqw, 290px); }
+  #icon-tools { width: clamp(120px, 20cqw, 220px); }
 }
 .char-heart img {
   display: block;
@@ -299,6 +301,87 @@ html, body {
 .lib-arc-editor .windy .feeling-chip { background: #cdf0e0; border-color: #046957; color: #046957; }
 .lib-arc-editor .snowy .feeling-chip { background: #c3e8f0; border-color: #033f50; color: #033f50; }
 
+/* ── TOOLS MODAL ── */
+.hg-modal-body.tl-body { overflow-y: auto; flex: 1; padding-left: clamp(24px, 4vw, 64px); padding-right: clamp(24px, 4vw, 64px); }
+.tl-add-top { margin-left: auto; font-family: var(--font-hand); font-size: var(--tl-font-nav-link); color: var(--blue); text-decoration: underline; cursor: pointer; white-space: nowrap; }
+.tl-top-row { display: flex; align-items: center; margin-bottom: 14px; }
+.tl-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.tl-filters select {
+  font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 5px 8px;
+  border: 2px solid #bbb; background: #fff; color: #333;
+}
+.tl-loading, .tl-empty { font-family: var(--font-hand); font-size: 16px; color: #888; padding: 20px 0; text-align: center; }
+.tl-empty a { color: var(--blue); }
+.tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.tl-card { cursor: pointer; display: flex; flex-direction: column; gap: 4px; background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 12px; }
+.tl-card-type { font-family: var(--font-hand); font-size: 12px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.4px; }
+.tl-card-title { font-family: var(--font-hand); font-size: var(--tl-font-card-title); color: #222; line-height: 1.25; }
+.tl-card-meta { font-family: var(--font-hand); font-size: var(--tl-font-small); color: #666; }
+.tl-card-icon, .tl-card-icon-noimg { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #eef0f9; border: 1.5px solid var(--blue); display: block; }
+.tl-card-icon-noimg { display: flex; align-items: center; justify-content: center; font-family: var(--font-hand); font-size: 20px; color: #aab; }
+.tl-detail-fact { font-family: var(--font-hand); font-size: 15px; color: #555; margin-bottom: 6px; }
+.tl-detail-fact a { color: var(--blue); }
+.tl-comment-author { font-family: var(--font-hand); font-size: 15px; color: var(--blue); margin-bottom: 4px; }
+.tl-comment-text { font-family: var(--font-hand); font-size: 16px; color: #222; margin-bottom: 6px; }
+.tl-save-btn {
+  align-self: flex-start; padding: 7px 16px; background: var(--blue); border: 2px solid #4a5bc4;
+  box-shadow: 2px 2px 0 #3a4aaa; font-family: var(--font-hand); font-size: var(--tl-font-btn); color: #fff; cursor: pointer;
+}
+.tl-save-btn:hover { background: #4a5bc4; }
+.tl-save-btn:active { box-shadow: none; transform: translate(2px,2px); }
+
+/* ── tool recommendations (upvote/downvote community links) ── */
+.tl-rec-section-label {
+  font-family: var(--font-hand); font-size: 12px; color: var(--blue);
+  text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 10px;
+}
+.tl-recs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.tl-rec { background: #cdd3ec; border: 2px solid var(--blue); padding: 10px 14px; }
+.tl-rec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.tl-rec-title { font-family: var(--font-hand); font-size: 17px; color: var(--blue); text-decoration: underline; word-break: break-word; }
+.tl-rec-votes { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tl-rec-score { font-family: var(--font-hand); font-size: 15px; color: #333; min-width: 18px; text-align: center; }
+.tl-rec-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tl-add-rec { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.tl-add-rec input[type="text"], .tl-add-rec input[type="url"], .tl-add-rec textarea {
+  font-family: var(--font-hand); font-size: var(--tl-font-control); padding: 8px 10px; border: 2px solid #bbb;
+}
+.tl-add-rec textarea { resize: vertical; min-height: 60px; }
+.tl-tagpick-group { border: 1.5px solid #ccc; background: #f7f8fc; padding: 8px 10px; }
+.tl-tagpick-label { font-family: var(--font-hand); font-size: 13px; color: var(--blue); margin-bottom: 6px; }
+.tl-tagpick-chips { display: flex; flex-wrap: wrap; gap: 5px; max-height: 130px; overflow-y: auto; }
+.tl-tagpick-feelings-scroll { max-height: 220px; overflow-y: auto; }
+.tl-tagpick-weather-block { margin-bottom: 8px; }
+.tl-tagpick-weather-title { font-family: var(--font-hand); font-size: 12px; color: #666; margin-bottom: 4px; }
+.tl-tagpick-chip {
+  padding: 3px 10px; font-family: var(--font-hand); font-size: 14px; cursor: pointer;
+  border: 1.5px solid var(--blue); background: #e8ecf9; color: #333; user-select: none;
+}
+.tl-tagpick-chip.active { background: var(--blue); color: #fff; }
+.tl-tagpick-chip.sunny { background: #f8edb8; border-color: #715f04; color: #715f04; }
+.tl-tagpick-chip.rainy { background: #c9b3e7; border-color: #260156; color: #260156; }
+.tl-tagpick-chip.windy { background: #b6e7d0; border-color: #046957; color: #046957; }
+.tl-tagpick-chip.snowy { background: #a0d7e6; border-color: #033f50; color: #033f50; }
+.tl-tagpick-chip.sunny.active, .tl-tagpick-chip.rainy.active, .tl-tagpick-chip.windy.active, .tl-tagpick-chip.snowy.active {
+  outline: 2px solid #000; outline-offset: 1px;
+}
+.tl-top-recs-panel { border: 2px solid var(--blue); padding: 16px 18px; background: #f4f6fc; }
+.tl-top-recs-label {
+  font-family: var(--font-hand); font-size: 12px; color: var(--blue);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+.tl-top-rec-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+.tl-top-rec-row:last-child { margin-bottom: 0; }
+.tl-top-rec-row a {
+  font-family: var(--font-hand); font-size: 15px; color: var(--blue); text-decoration: underline;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tl-top-rec-score { font-family: var(--font-hand); font-size: 13px; color: #888; flex-shrink: 0; }
+
+@media (max-width: 480px) {
+  .tl-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}
+
 </style>
 </head>
 <body>
@@ -333,6 +416,9 @@ html, body {
   <div class="room-icon" id="icon-projector" onclick="openLibrary('visual')">
     <img src="../assets/elements/tv.png" alt="projector (visuals)">
   </div>
+  <div class="room-icon" id="icon-tools" onclick="openTools()">
+    <img src="../assets/elements/organizer.png" alt="organizer (tools)">
+  </div>
 
   <!-- HEART CHARACTER -->
   <div class="char-heart" id="char-heart">
@@ -353,12 +439,24 @@ html, body {
   </div>
 </div>
 
+<!-- TOOLS MODAL -->
+<div class="hg-modal-overlay" id="tools-overlay">
+  <div class="hg-modal" style="width:96vw; max-height:86vh; display:flex; flex-direction:column;">
+    <div class="hg-modal-titlebar">
+      <span>tools</span>
+      <span class="hg-modal-close" id="tools-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body tl-body" id="tools-modal-body"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/supabase-init.js"></script>
 <script src="../assets/js/dom-utils.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script src="../assets/js/room-nav.js" defer></script>
 <script src="../assets/js/three-act-map.js"></script>
+<script src="../assets/js/treasure-map.js"></script>
 <script>
 const MEDIA_COVER_BUCKET = 'media-covers';
 let currentUser = null;
@@ -1048,7 +1146,7 @@ document.getElementById('library-close').addEventListener('click', closeLibrary)
 document.getElementById('library-overlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('library-overlay')) closeLibrary();
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLibrary(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLibrary(); closeTools(); } });
 
 // ── Deep link: rooms/library.html?media=<media_id> opens straight to a title's detail ──
 async function handleDeepLink() {
@@ -1066,11 +1164,337 @@ async function handleDeepLink() {
   openDetail(mediaId);
 }
 
+// ── TOOLS MODAL ──
+const TOOL_TYPES = ['nutrition', 'connection', 'cleanliness', 'rest', 'relaxation'];
+
+let toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
+let toolsCache = null;      // approved tools (array) or null before first fetch
+let toolRecsCache = {};     // toolId -> community recommendations array (from tool_recommendations_public, score desc)
+let myRecVotes = {};        // recommendation_id -> current user's vote (1/-1) on the open tool's recommendations
+let recDraftTags = { terrains: new Set(), feelings: new Set() }; // scratch state for the add-a-recommendation form
+let savedToolIds = new Set(); // tool ids the current user has added to their personal inventory (tool_saves)
+
+async function fetchSavedToolIds() {
+  if (!currentUser) { savedToolIds = new Set(); return; }
+  const { data, error } = await sb.from('tool_saves').select('tool_id').eq('user_id', currentUser.id);
+  if (error) { console.error('[library] tool_saves fetch failed:', error); savedToolIds = new Set(); return; }
+  savedToolIds = new Set((data || []).map(r => r.tool_id));
+}
+
+async function toggleInventorySave(toolId) {
+  if (!currentUser) return;
+  if (savedToolIds.has(toolId)) {
+    const { error } = await sb.from('tool_saves').delete().eq('user_id', currentUser.id).eq('tool_id', toolId);
+    if (error) { console.error('[library] remove from inventory failed:', error); return; }
+    savedToolIds.delete(toolId);
+  } else {
+    const { error } = await sb.from('tool_saves').insert({ user_id: currentUser.id, tool_id: toolId });
+    if (error) { console.error('[library] add to inventory failed:', error); return; }
+    savedToolIds.add(toolId);
+  }
+  renderTools();
+}
+
+async function fetchTools() {
+  const { data, error } = await sb.from('tools').select('*')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+  if (error) { console.error('[library] tools fetch failed:', error); toolsCache = []; return; }
+  toolsCache = data || [];
+}
+
+async function fetchToolRecommendations(toolId) {
+  const { data, error } = await sb.from('tool_recommendations_public').select('*')
+    .eq('tool_id', toolId)
+    .order('score', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) { console.error('[library] tool recommendations fetch failed:', error); toolRecsCache[toolId] = []; return; }
+  toolRecsCache[toolId] = data || [];
+}
+
+async function fetchMyRecVotes(toolId) {
+  if (!currentUser) { myRecVotes = {}; return; }
+  const ids = (toolRecsCache[toolId] || []).map(r => r.id);
+  if (!ids.length) { myRecVotes = {}; return; }
+  const { data, error } = await sb.from('tool_recommendation_votes').select('recommendation_id, vote')
+    .eq('voter_id', currentUser.id).in('recommendation_id', ids);
+  if (error) { console.error('[library] tool rec votes fetch failed:', error); myRecVotes = {}; return; }
+  myRecVotes = Object.fromEntries((data || []).map(v => [v.recommendation_id, v.vote]));
+}
+
+async function voteToolRec(toolId, recId, val) {
+  if (!currentUser) { window.location.href = '../users/login.html'; return; }
+  if (myRecVotes[recId] === val) {
+    const { error } = await sb.from('tool_recommendation_votes').delete()
+      .eq('recommendation_id', recId).eq('voter_id', currentUser.id);
+    if (error) { console.error('[library] retract tool rec vote failed:', error); return; }
+  } else {
+    const { error } = await sb.from('tool_recommendation_votes').upsert(
+      { recommendation_id: recId, voter_id: currentUser.id, vote: val },
+      { onConflict: 'recommendation_id,voter_id' }
+    );
+    if (error) { console.error('[library] tool rec vote failed:', error); return; }
+  }
+  await fetchToolRecommendations(toolId);
+  await fetchMyRecVotes(toolId);
+  renderTools();
+}
+
+function toolHasTerrain(tool, terrain) { return (tool.landscapes || []).some(z => z.terrain === terrain); }
+function computeToolTerrainFacets(tools) {
+  const terrains = new Set();
+  tools.forEach(t => (t.landscapes || []).forEach(z => { if (z.terrain) terrains.add(z.terrain); }));
+  return [...terrains].sort();
+}
+function filteredTools(tools) {
+  return tools.filter(t => {
+    if (toolsState.filterType && t.tool_type !== toolsState.filterType) return false;
+    if (toolsState.filterTerrain && !toolHasTerrain(t, toolsState.filterTerrain)) return false;
+    return true;
+  });
+}
+
+function toolCardHtml(t) {
+  return `<div class="tl-card" onclick="openToolDetail('${t.id}')">
+    <div class="tl-card-type">${_escapeHtml(t.tool_type)}</div>
+    <div class="tl-card-title">${_escapeHtml(t.title)}</div>
+    ${t.icon_url ? `<img class="tl-card-icon" src="${_escapeHtml(t.icon_url)}" alt="">` : '<div class="tl-card-icon-noimg">?</div>'}
+    <div class="tl-card-meta">${(t.landscapes || []).length} ${(t.landscapes || []).length === 1 ? 'landscape' : 'landscapes'}</div>
+  </div>`;
+}
+
+function buildToolsGridHtml() {
+  const tools = toolsCache || [];
+  const terrains = computeToolTerrainFacets(tools);
+  const shown = filteredTools(tools);
+  const filterHtml = `<div class="tl-filters">
+    <select onchange="setToolTypeFilter(this.value)">
+      <option value="">any type</option>
+      ${TOOL_TYPES.map(t => `<option value="${t}" ${toolsState.filterType === t ? 'selected' : ''}>${t}</option>`).join('')}
+    </select>
+    <select onchange="setToolTerrainFilter(this.value)">
+      <option value="">any landscape</option>
+      ${terrains.map(t => `<option value="${t}" ${toolsState.filterTerrain === t ? 'selected' : ''}>${t}</option>`).join('')}
+    </select>
+  </div>`;
+  if (!tools.length) return filterHtml + `<div class="tl-empty">no tools yet — be the first to <a href="../matrix/tools.html">add one</a>.</div>`;
+  if (!shown.length) return filterHtml + `<div class="tl-empty">nothing matches those filters.</div>`;
+  return filterHtml + `<div class="tl-grid">${shown.map(toolCardHtml).join('')}</div>`;
+}
+
+function toggleRecTag(kind, value) {
+  const set = recDraftTags[kind];
+  if (set.has(value)) set.delete(value); else set.add(value);
+  document.getElementById(`rec-tag-${kind}-${value}`)?.classList.toggle('active', set.has(value));
+}
+
+function recTerrainChipsHtml() {
+  return (window.TreasureMap?.TERRAIN || []).map(t =>
+    `<span class="tl-tagpick-chip" id="rec-tag-terrains-${t.id}" onclick="toggleRecTag('terrains','${t.id}')">${_escapeHtml(t.label)}</span>`
+  ).join('');
+}
+function recFeelingGroupsHtml() {
+  return (window.TreasureMap?.WEATHER_CATS || []).map(cat => `
+    <div class="tl-tagpick-weather-block">
+      <div class="tl-tagpick-weather-title">${_escapeHtml(cat.label)} — ${_escapeHtml(cat.desc)}</div>
+      <div class="tl-tagpick-chips" style="max-height:none;">
+        ${cat.feelings.map(f => `<span class="tl-tagpick-chip ${cat.id}" id="rec-tag-feelings-${f}" onclick="toggleRecTag('feelings','${f}')">${_escapeHtml(f)}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function buildAddRecFormHtml(toolId) {
+  return `<div class="tl-add-rec">
+    <div class="tl-detail-fact" style="margin-bottom:0;">share a recommendation</div>
+    <input type="text" id="new-rec-title" maxlength="120" placeholder="title (e.g. a video, article, or product name)">
+    <input type="url" id="new-rec-link" maxlength="500" placeholder="link (https://...)">
+    <textarea id="new-rec-desc" maxlength="500" placeholder="why do you recommend it?"></textarea>
+    <div class="tl-tagpick-group">
+      <div class="tl-tagpick-label">mental landscapes</div>
+      <div class="tl-tagpick-chips">${recTerrainChipsHtml()}</div>
+    </div>
+    <div class="tl-tagpick-group">
+      <div class="tl-tagpick-label">emotional climates</div>
+      <div class="tl-tagpick-feelings-scroll">${recFeelingGroupsHtml()}</div>
+    </div>
+    <button type="button" class="tl-save-btn" onclick="submitToolRecommendation('${toolId}')">post recommendation</button>
+  </div>`;
+}
+
+function recTagChipsHtml(rec) {
+  const chips = [...(rec.terrains || []), ...(rec.feelings || [])].map(v => `<span class="detail-tag-chip">${_escapeHtml(v)}</span>`).join('');
+  return chips ? `<div class="tl-rec-tags">${chips}</div>` : '';
+}
+
+function toolRecCardHtml(toolId, rec) {
+  const myVote = myRecVotes[rec.id];
+  return `<div class="tl-rec">
+    <div class="tl-rec-head">
+      <a class="tl-rec-title" href="${_escapeHtml(rec.link_url)}" target="_blank" rel="noopener noreferrer">${_escapeHtml(rec.title)}</a>
+      <div class="tl-rec-votes">
+        <button type="button" class="lib-arc-vote-btn ${myVote === 1 ? 'active' : ''}" onclick="voteToolRec('${toolId}','${rec.id}',1)" ${currentUser ? '' : 'disabled'}>▲</button>
+        <span class="tl-rec-score">${rec.score ?? 0}</span>
+        <button type="button" class="lib-arc-vote-btn ${myVote === -1 ? 'active' : ''}" onclick="voteToolRec('${toolId}','${rec.id}',-1)" ${currentUser ? '' : 'disabled'}>▼</button>
+      </div>
+    </div>
+    <div class="tl-comment-author">${rec.username ? _escapeHtml(rec.username) : 'anonymous'}</div>
+    <div class="tl-comment-text">${_escapeHtml(rec.description)}</div>
+    ${recTagChipsHtml(rec)}
+  </div>`;
+}
+
+function buildToolRecsSectionHtml(toolId) {
+  const recs = toolRecsCache[toolId] || [];
+  const listHtml = recs.length
+    ? `<div class="tl-recs">${recs.map(r => toolRecCardHtml(toolId, r)).join('')}</div>`
+    : `<div class="tl-empty">no recommendations yet — be the first to share one.</div>`;
+  const addHtml = currentUser
+    ? buildAddRecFormHtml(toolId)
+    : `<div class="tl-detail-fact">want to share a recommendation? <a href="../users/login.html">log in</a></div>`;
+  return `<div class="tl-rec-section-label">community recommendations</div>${listHtml}${addHtml}`;
+}
+
+function toolTopRecsPanelHtml(toolId) {
+  const recs = (toolRecsCache[toolId] || []).slice(0, 3);
+  const rowsHtml = recs.length
+    ? recs.map(r => `<div class="tl-top-rec-row"><a href="${_escapeHtml(r.link_url)}" target="_blank" rel="noopener noreferrer">${_escapeHtml(r.title)}</a><span class="tl-top-rec-score">${r.score ?? 0}</span></div>`).join('')
+    : `<div class="detail-tag-empty">no recommendations yet</div>`;
+  return `<div class="tl-top-recs-panel">
+    <div class="tl-top-recs-label">top recommendations</div>
+    ${rowsHtml}
+  </div>`;
+}
+
+function buildToolsDetailHtml() {
+  const id = toolsState.detailToolId;
+  const backBtn = `<button type="button" class="link-btn" onclick="backToToolsGrid()">← back to list</button>`;
+  const tool = (toolsCache || []).find(t => t.id === id);
+  if (!tool) return backBtn + '<div class="tl-empty">not found.</div>';
+
+  const landscapes = tool.landscapes || [];
+  const terrains = [...new Set(landscapes.map(z => z.terrain).filter(Boolean))];
+  const feelings = [...new Set(landscapes.map(z => z.feeling).filter(Boolean))];
+
+  const chipsOrEmpty = (values) => values.length
+    ? `<div class="detail-tag-chips">${values.map(v => `<span class="detail-tag-chip">${_escapeHtml(v)}</span>`).join('')}</div>`
+    : `<div class="detail-tag-empty">none yet</div>`;
+
+  const tagsPanelHtml = `<div class="detail-tags-panel">
+    <div><div class="detail-tag-col-label">terrains</div>${chipsOrEmpty(terrains)}</div>
+    <div><div class="detail-tag-col-label">emotions</div>${chipsOrEmpty(feelings)}</div>
+    <div><div class="detail-tag-col-label">category of care</div><div class="detail-tag-chips"><span class="detail-tag-chip">${_escapeHtml(tool.tool_type)}</span></div></div>
+  </div>`;
+
+  const inventoryBtnHtml = currentUser
+    ? `<button type="button" class="tl-save-btn" onclick="toggleInventorySave('${id}')">${savedToolIds.has(id) ? '− remove from my inventory' : '+ add to my inventory'}</button>`
+    : `<div class="tl-detail-fact">want to add this to your inventory? <a href="../users/login.html">log in</a></div>`;
+
+  const posterHtml = tool.icon_url
+    ? `<img class="detail-poster aspect-square" src="${_escapeHtml(tool.icon_url)}" alt="">`
+    : `<div class="detail-poster-noimg">?</div>`;
+
+  return backBtn + `<div class="detail-layout tools-layout">
+    <div class="detail-left">
+      ${posterHtml}
+      ${toolTopRecsPanelHtml(id)}
+      ${inventoryBtnHtml}
+    </div>
+    <div class="detail-main">
+      <div class="detail-title">${_escapeHtml(tool.title)}</div>
+      <div class="detail-subtitle-row">
+        <span class="detail-badge">${_escapeHtml(tool.tool_type)}</span>
+        ${tool.author_name ? `<span class="detail-fact">added by ${_escapeHtml(tool.author_name)}</span>` : ''}
+      </div>
+      <div class="detail-summary">${_escapeHtml(tool.summary)}</div>
+      ${tool.favorite_brands ? `<div class="detail-fact">favorite brands: ${_escapeHtml(tool.favorite_brands)}</div>` : ''}
+      ${tagsPanelHtml}
+      ${buildToolRecsSectionHtml(id)}
+    </div>
+  </div>`;
+}
+
+function buildToolsBodyHtml() {
+  const addLink = currentUser
+    ? `<a class="tl-add-top" href="../matrix/tools.html">+ add a tool</a>`
+    : `<a class="tl-add-top" href="../users/login.html">log in to add a tool</a>`;
+  const topRow = `<div class="tl-top-row">${addLink}</div>`;
+  if (toolsState.detailToolId) return topRow + buildToolsDetailHtml();
+  return topRow + buildToolsGridHtml();
+}
+
+function renderToolsModalBody(html) { document.getElementById('tools-modal-body').innerHTML = html; }
+function renderTools() { renderToolsModalBody(buildToolsBodyHtml()); }
+
+function setToolTypeFilter(v) { toolsState.filterType = v || null; renderTools(); }
+function setToolTerrainFilter(v) { toolsState.filterTerrain = v || null; renderTools(); }
+
+async function openToolDetail(toolId) {
+  toolsState.detailToolId = toolId;
+  document.querySelector('#tools-overlay .hg-modal').classList.add('detail-mode');
+  renderToolsModalBody('<div class="tl-loading">loading…</div>');
+  recDraftTags = { terrains: new Set(), feelings: new Set() };
+  if (!toolRecsCache[toolId]) await fetchToolRecommendations(toolId);
+  await fetchMyRecVotes(toolId);
+  renderTools();
+}
+function backToToolsGrid() {
+  toolsState.detailToolId = null;
+  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
+  renderTools();
+}
+
+async function submitToolRecommendation(toolId) {
+  if (!currentUser) return;
+  const title = (document.getElementById('new-rec-title').value || '').trim();
+  const linkRaw = (document.getElementById('new-rec-link').value || '').trim();
+  const description = (document.getElementById('new-rec-desc').value || '').trim();
+  if (!title || !linkRaw || !description) {
+    HGModal.alert('missing info', 'a title, link, and description are all required.');
+    return;
+  }
+  let link_url;
+  try {
+    const url = new URL(linkRaw);
+    if (!/^https?:$/.test(url.protocol)) throw new Error('bad protocol');
+    link_url = url.toString();
+  } catch (e) {
+    HGModal.alert('bad link', "that link doesn't look like a valid web address — include https://");
+    return;
+  }
+  const username = await resolveUsername(currentUser);
+  const { error } = await sb.from('tool_recommendations').insert({
+    tool_id: toolId, user_id: currentUser.id, username, title, link_url, description,
+    terrains: [...recDraftTags.terrains], feelings: [...recDraftTags.feelings],
+  });
+  if (error) { console.error('[library] tool recommendation insert failed:', error); return; }
+  recDraftTags = { terrains: new Set(), feelings: new Set() };
+  await fetchToolRecommendations(toolId);
+  await fetchMyRecVotes(toolId);
+  renderTools();
+}
+
+async function openTools() {
+  toolsState = { detailToolId: null, filterType: null, filterTerrain: null, minRating: 0 };
+  document.querySelector('#tools-overlay .hg-modal').classList.remove('detail-mode');
+  document.getElementById('tools-overlay').classList.add('open');
+  renderToolsModalBody('<div class="tl-loading">loading…</div>');
+  if (!toolsCache) await fetchTools();
+  await fetchSavedToolIds();
+  renderTools();
+}
+function closeTools() { document.getElementById('tools-overlay').classList.remove('open'); }
+
+document.getElementById('tools-close').addEventListener('click', closeTools);
+document.getElementById('tools-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('tools-overlay')) closeTools();
+});
+
 // ── Thought bubble ──
 const bubble = document.getElementById('thought-bubble');
 const bubbleMessages = {
   'icon-bookshelf': "browse the texts people've read",
   'icon-projector': "browse the films & shows people've watched",
+  'icon-tools': "explore our collection of self care tools",
 };
 document.querySelectorAll('.room-icon').forEach(icon => {
   icon.addEventListener('mouseenter', () => {
@@ -1103,12 +1527,15 @@ document.addEventListener('DOMContentLoaded', () => {
       privateAllCache = null;
       privateSavesCache = null;
       resolveUsername(session.user).then(username => HeartabilityNav.setAuthState({ loggedIn: true, username }));
+      fetchSavedToolIds().then(renderTools);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       privateAllCache = null;
       privateSavesCache = null;
       HeartabilityNav.setAuthState({ loggedIn: false });
       if (libState.tab === 'private') render();
+      savedToolIds = new Set();
+      renderTools();
     }
   });
 

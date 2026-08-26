@@ -1409,6 +1409,20 @@ const PLANET_READINGS = {
   neptune: 'Neptune wants to explore the unknown (dream, dissociate, drown)',
   pluto: 'Pluto wants to transform (power, endings, rebirth)',
 };
+const SIGN_READINGS = {
+  aries: 'Aries is the sign of youth',
+  taurus: 'Taurus is the sign of pleasure',
+  gemini: 'Gemini is the sign of performance',
+  cancer: 'Cancer is the sign of feeling deeply',
+  leo: 'Leo is the sign of attention',
+  virgo: 'Virgo is the sign of order',
+  libra: 'Libra is the sign of balance',
+  scorpio: 'Scorpio is the sign of depth',
+  sagittarius: 'Sagittarius is the sign of exploration',
+  capricorn: 'Capricorn is the sign of structure',
+  aquarius: 'Aquarius is the sign of the future',
+  pisces: 'Pisces is the sign of the imagination',
+};
 const ASPECT_READINGS = {
   sextile:     { glyph:'sextile',  label:'Sextiles create secret pathways' },
   trine:       { glyph:'trine',    label:'Trines create harmony' },
@@ -1442,9 +1456,16 @@ function buildTransitReadingHTML(transit){
   const typeItem = typeInfo ? `<div class="reading-item reading-item-aspect">
       <img src="../assets/elements/glyphs/${typeInfo.glyph}.png" alt="${type}" class="reading-item-glyph" onerror="this.style.display='none'">
     </div>` : '';
-  const row = planets.length === 2
+  const signItem = s => SIGN_READINGS[s] ? `<div class="reading-item">
+      <img src="../assets/elements/glyphs/${s}.png" alt="${s}" class="reading-item-glyph" onerror="this.style.display='none'">
+      <div class="reading-item-dash"></div>
+      <div class="reading-item-text">${escSvg(SIGN_READINGS[s])}</div>
+    </div>` : '';
+  const signs = [transit?.sign, transit?.sign_b].filter(Boolean);
+  const row = (planets.length === 2
     ? planetItem(planets[0]) + typeItem + planetItem(planets[1])
-    : planets.map(planetItem).join('') + typeItem;
+    : planets.map(planetItem).join('') + typeItem)
+    + signs.map(signItem).join('');
   return `${heading}<div class="reading-row">${row}</div>`;
 }
 function openTransitReading(transit){
