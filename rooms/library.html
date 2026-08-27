@@ -125,9 +125,32 @@ html, body {
 .room-icon:active { transform: translateY(-2px); }
 
 #icon-bookshelf { bottom: 10cqh; left: 18cqw; width: clamp(90px, 38cqw, 480px) }
-#icon-projector { bottom: 10cqh; right: 18cqw; width: clamp(90px, 24cqw, 350px)}
-#icon-tools { top: 13cqh; right: 6cqw; width: clamp(200px, 24cqw, 380px); }
 .room-icon img { width: 100%; height: auto; display: block; }
+
+/* Tools (organizer) + projector (TV) share the right half of the wall, stacked
+   in a 2-row grid instead of two independently-positioned absolute elements —
+   at tall/narrow aspect ratios the old top+bottom cqh offsets could grow into
+   each other and stack the artwork. A grid row can't overlap its neighbor, and
+   max-width/max-height on the images keeps each one inside its own row no
+   matter how the stage is shaped. */
+.room-right-icons {
+  position: absolute;
+  top: 9cqh; bottom: 4cqh;
+  left: 50cqw; right: 4cqw;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  row-gap: 2cqh;
+  z-index: 10;
+  pointer-events: none;
+}
+.room-right-icons .room-icon {
+  position: static;
+  width: 100%; height: 100%;
+  pointer-events: auto;
+}
+.room-right-icons .room-icon img { max-width: 100%; max-height: 100%; width: auto; height: auto; }
+#icon-tools { grid-row: 1; justify-content: flex-start; align-items: flex-start; }
+#icon-projector { grid-row: 2; justify-content: flex-end; align-items: flex-end; }
 
 .room-icon-label { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); color: #444; text-align: center; }
 
@@ -175,8 +198,6 @@ html, body {
 @media (orientation: portrait) {
   .char-heart { width: clamp(70px, 10cqw, 180px); }
   #icon-bookshelf { width: clamp(140px, 30cqw, 315px); }
-  #icon-projector { width: clamp(120px, 24cqw, 290px); }
-  #icon-tools { width: clamp(120px, 20cqw, 220px); }
 }
 .char-heart img {
   display: block;
@@ -413,11 +434,13 @@ html, body {
   <div class="room-icon" id="icon-bookshelf" onclick="openLibrary('book')">
     <img src="../assets/elements/shelf.png" alt="bookshelf (texts)">
   </div>
-  <div class="room-icon" id="icon-projector" onclick="openLibrary('visual')">
-    <img src="../assets/elements/tv.png" alt="projector (visuals)">
-  </div>
-  <div class="room-icon" id="icon-tools" onclick="openTools()">
-    <img src="../assets/elements/organizer.png" alt="organizer (tools)">
+  <div class="room-right-icons">
+    <div class="room-icon" id="icon-tools" onclick="openTools()">
+      <img src="../assets/elements/organizer.png" alt="organizer (tools)">
+    </div>
+    <div class="room-icon" id="icon-projector" onclick="openLibrary('visual')">
+      <img src="../assets/elements/tv.png" alt="projector (visuals)">
+    </div>
   </div>
 
   <!-- HEART CHARACTER -->

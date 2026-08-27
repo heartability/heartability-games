@@ -302,6 +302,10 @@ html, body {
 .wall-picker-item:hover .wall-picker-thumb { outline: 2px solid var(--purple); }
 .wall-picker-label { font-family: var(--font-hand); font-size: 12px; color: #777; text-align: center; }
 
+/* ── WALL PHOTO DETAIL MODAL ── */
+.wall-detail-body { padding: 0 !important; overflow: hidden; flex: 1; min-height: 0; }
+.wall-detail-iframe { width: 100%; height: 100%; border: none; display: block; }
+
 /* ── LOADING ── */
 #loading-state {
   position: fixed;
@@ -388,6 +392,17 @@ html, body {
   </div>
 </div>
 
+<!-- WALL PHOTO DETAIL MODAL -->
+<div class="hg-modal-overlay" id="wall-detail-overlay">
+  <div class="hg-modal" style="width:min(94vw,480px); height:min(88vh,800px); display:flex; flex-direction:column;">
+    <div class="hg-modal-titlebar">
+      <span>archive</span>
+      <span class="hg-modal-close" id="wall-detail-close">&#x2715;</span>
+    </div>
+    <div class="hg-modal-body wall-detail-body" id="wall-detail-body"></div>
+  </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/supabase-init.js"></script>
@@ -398,7 +413,7 @@ html, body {
 <script>
 (function () {
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeWallPicker(); }
+    if (e.key === 'Escape') { closeWallPicker(); closeWallDetail(); }
   });
 
   // ── Wall board — bulletin board of matrix photos ──────────
@@ -442,8 +457,19 @@ html, body {
     } else {
       return;
     }
-    window.open(url, 'wallPhotoDetail', 'width=480,height=800');
+    const body = document.getElementById('wall-detail-body');
+    body.innerHTML = `<iframe class="wall-detail-iframe" src="${escAttr(url)}"></iframe>`;
+    document.getElementById('wall-detail-overlay').classList.add('open');
   }
+
+  function closeWallDetail() {
+    document.getElementById('wall-detail-overlay').classList.remove('open');
+    document.getElementById('wall-detail-body').innerHTML = '';
+  }
+  document.getElementById('wall-detail-close').addEventListener('click', closeWallDetail);
+  document.getElementById('wall-detail-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('wall-detail-overlay')) closeWallDetail();
+  });
 
   function attachWallInteractions(el, photo) {
     let dragging = false, moved = false, startX, startY, startLeftPx, startTopPx, boardRect;
