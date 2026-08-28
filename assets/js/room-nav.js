@@ -8,9 +8,7 @@ window.HeartabilityRoomNav = (function () {
   const ROOMS = [
     { id: 'bed',       label: 'bedroom',   href: '../rooms/bed.html' },
     { id: 'game-room', label: 'game room', href: '../rooms/game-room.html' },
-    { id: 'patio',     label: 'patio',     href: '../rooms/patio.html' },
     { id: 'library',   label: 'library',   href: '../rooms/library.html' },
-    { id: 'salon',     label: 'salon',     href: '../rooms/salon.html' },
     { id: 'timewarp',  label: 'timewarp',  href: '../matrix/timewarp.html' },
     { id: 'daily',     label: 'matrix',    href: '../matrix/daily.html' },
     { id: 'archive',   label: 'archive',   href: '../matrix/archive.html' },
