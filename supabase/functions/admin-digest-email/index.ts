@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     console.error(err);
-    return new Response(JSON.stringify({ error: "Something went wrong.", debug: String(err?.stack ?? err) }), {
+    return new Response(JSON.stringify({ error: "Something went wrong." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
