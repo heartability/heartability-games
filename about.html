@@ -111,14 +111,14 @@ body {
 .dreams-grid {
   display: grid;
   grid-template-columns: minmax(240px, 400px) 1fr;
-  gap: 2vw;
+  gap: 4vw;
   align-items: start;
 }
 .dreams-left { padding-top: 6%; }
 .dreams-left-top {
   display: flex;
   align-items: center;
-  gap: clamp(12px, 2vw, 24px);
+  gap: clamp(20px, 3vw, 36px);
 }
 .dreams-copy {
   font-family: "ZoesHandwriting", cursive;
@@ -130,23 +130,23 @@ body {
   max-width: 100%;
 }
 
-.dreams-right { display: flex; flex-direction: column; }
+.dreams-right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 5vh, 56px);
+}
 .reveal-item {
   position: relative;
   cursor: pointer;
-  width: clamp(90px, 13vw, 150px);
-  min-height: clamp(90px, 13vw, 150px);
+  width: clamp(112px, 16vw, 188px);
+  min-height: clamp(112px, 16vw, 188px);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .reveal-map    { align-self: flex-end;   margin-right: 2%; }
-.reveal-mirror { align-self: center;     margin-top: clamp(-10px, -2vh, 0px); }
-.dreams-left-top .reveal-bingo {
-  width: clamp(60px, 8vw, 100px);
-  min-height: clamp(60px, 8vw, 100px);
-}
+.reveal-mirror { align-self: center; }
 
 .reveal-img {
   display: block;
