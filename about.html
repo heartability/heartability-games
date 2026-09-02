@@ -97,13 +97,21 @@ body {
   font-size: var(--fs-title);
   line-height: 1.3;
 }
+.section-title-center {
+  text-align: center;
+  display: block;
+}
 
-/* ── EXPLORE YOUR DREAMS — scrapbook two-column layout ── */
+/* ── EXPLORE YOUR DREAMS — scrapbook two-column layout, contained so it
+     doesn't sprawl edge-to-edge on wide viewports ── */
+.dreams-wrap {
+  max-width: 960px;
+  margin: clamp(40px, 8vh, 72px) auto 0;
+}
 .dreams-grid {
   display: grid;
   grid-template-columns: minmax(240px, 400px) 1fr;
-  gap: 1.5vw;
-  margin-top: clamp(40px, 8vh, 72px);
+  gap: 2vw;
   align-items: start;
 }
 .dreams-left { padding-top: 6%; }
@@ -114,9 +122,6 @@ body {
   line-height: 1.6;
   margin-top: clamp(16px, 3vh, 24px);
   max-width: 34ch;
-}
-.matrix-title-inline {
-  margin-top: clamp(32px, 7vh, 56px);
 }
 
 .dreams-right { display: flex; flex-direction: column; }
@@ -176,6 +181,7 @@ body {
 
 /* ── ENTER THE MATRIX ── */
 .matrix-section { margin-top: clamp(48px, 9vh, 80px); }
+.matrix-section .section-title { margin-bottom: clamp(20px, 4vh, 32px); }
 .section-intro,
 .section-outro {
   font-family: "ZoesHandwriting", cursive;
@@ -225,7 +231,8 @@ body {
   display: flex;
   align-items: center;
   gap: clamp(20px, 5vw, 40px);
-  margin-top: clamp(20px, 4vh, 32px);
+  margin: clamp(20px, 4vh, 32px) auto 0;
+  max-width: 900px;
 }
 .reveal-shelf {
   width: clamp(140px, 26vw, 220px);
@@ -295,42 +302,43 @@ body {
 </header>
 <p class="about-tagline">Heartability is a new kind of social media.<br>post-influencer, anti-algorithm, and ad-free</p>
 
-<div class="dreams-grid">
-  <div class="dreams-left">
-    <h2 class="section-title">explore your dreams</h2>
-    <p class="dreams-copy">Heartability is inspired by open world video games that equip you with a map, inventory and heart meter. Our core games: Treasure Map, Infinity Mirror and Self Care Bingo are designed to turn your mind into a world that you can explore with greater perspective.</p>
-
-    <h2 class="section-title matrix-title-inline">enter the matrix</h2>
-  </div>
-
-  <div class="dreams-right">
-    <div class="reveal-item reveal-map" tabindex="0" role="button" aria-expanded="false">
-      <img class="reveal-img" src="assets/elements/map.png" alt="Treasure Map">
-      <div class="reveal-text">
-        <p>track your progress chasing your dreams</p>
-        <a class="play-now-link" href="games/treasure-map.html">play now →</a>
-      </div>
+<div class="dreams-wrap">
+  <div class="dreams-grid">
+    <div class="dreams-left">
+      <h2 class="section-title">explore your dreams</h2>
+      <p class="dreams-copy">Heartability is inspired by open world video games that equip you with a map, inventory and heart meter. Our core games: Treasure Map, Infinity Mirror and Self Care Bingo are designed to turn your mind into a world that you can explore with greater perspective.</p>
     </div>
 
-    <div class="reveal-item reveal-mirror" tabindex="0" role="button" aria-expanded="false">
-      <img class="reveal-img" src="assets/elements/mirror.png" alt="Infinity Mirror">
-      <div class="reveal-text">
-        <p>explore your inner archetypes across different landscapes</p>
-        <a class="play-now-link" href="games/infinity-mirror.html">play now →</a>
+    <div class="dreams-right">
+      <div class="reveal-item reveal-map" tabindex="0" role="button" aria-expanded="false">
+        <img class="reveal-img" src="assets/elements/map.png" alt="Treasure Map">
+        <div class="reveal-text">
+          <p>track your progress chasing your dreams</p>
+          <a class="play-now-link" href="games/treasure-map.html">play now →</a>
+        </div>
       </div>
-    </div>
 
-    <div class="reveal-item reveal-bingo" tabindex="0" role="button" aria-expanded="false">
-      <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
-      <div class="reveal-text">
-        <p>celebrate the care you give yourself every day</p>
-        <a class="play-now-link" href="games/bingo.html">play now →</a>
+      <div class="reveal-item reveal-mirror" tabindex="0" role="button" aria-expanded="false">
+        <img class="reveal-img" src="assets/elements/mirror.png" alt="Infinity Mirror">
+        <div class="reveal-text">
+          <p>explore your inner archetypes across different landscapes</p>
+          <a class="play-now-link" href="games/infinity-mirror.html">play now →</a>
+        </div>
+      </div>
+
+      <div class="reveal-item reveal-bingo" tabindex="0" role="button" aria-expanded="false">
+        <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
+        <div class="reveal-text">
+          <p>celebrate the care you give yourself every day</p>
+          <a class="play-now-link" href="games/bingo.html">play now →</a>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <section class="matrix-section">
+  <h2 class="section-title section-title-center">enter the matrix</h2>
   <p class="section-intro">The Matrix is a place to track your emotional patterns over time. How often are you moving through the same cycles? Are the tools you are using working?</p>
 
   <div class="matrix-glow">
@@ -344,7 +352,7 @@ body {
 </section>
 
 <section class="library-section">
-  <h2 class="section-title" style="text-align:center; display:block;">visit the library</h2>
+  <h2 class="section-title section-title-center">visit the library</h2>
   <div class="library-row">
     <div class="reveal-item reveal-shelf" tabindex="0" role="button" aria-expanded="false">
       <img class="reveal-img" src="assets/elements/shelf.png" alt="Library shelf">
