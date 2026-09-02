@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="assets/elements/favicon.png">
-<link rel="stylesheet" href="assets/css/modal.css">
-<script src="assets/js/modal.js" defer></script>
 <title>About — Heartability</title>
 <meta name="description" content="Heartability turns emotional growth into a game — explore treasure maps, an infinity mirror, and self-care bingo, all designed to help you rediscover optimism.">
 <meta property="og:image" content="https://heartability-games.vercel.app/assets/social-preview-v2.png">
@@ -41,163 +39,177 @@ body {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-}
-
-
-/* ── HEADER: title + castle ── */
-.about-header {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 3vw;
-  padding: clamp(24px, 6vh, 48px) 5vw 0;
-}
-.about-intro-text {
-  font-family: "ZoesHandwriting", cursive;
-  font-weight: normal;
-  color: #fff;
-  font-size: clamp(33px, 5vw, 55px);
-  line-height: 1.5;
-  max-width: clamp(280px, 40vw, 560px);
-}
-.about-castle-img {
-  width: clamp(200px, 50vw, 750px);
-  height: auto;
-  flex-shrink: 0;
-  margin-top: clamp(20px, 9vh, 64px);
-}
-
-/* ── SECTION INTRO LINES (above "the games" / above "the matrices") ── */
-.section-intro {
-  position: relative;
-  z-index: 1;
-  font-family: "ZoesHandwriting", cursive;
-  color: #fff;
-  text-align: center;
-  font-size: clamp(20px, 3vw, 44px);
-  line-height: 1.5;
-  max-width: 1500px;
-  margin: clamp(24px, 5vh, 48px) auto 0;
-  padding: 0 6vw;
-}
-
-/* ── THE GAMES ── */
-.section-title {
-  position: relative;
-  z-index: 1;
-  font-family: "PFPixelscript", cursive;
-  color: #fff;
-  text-align: center;
-  font-size: clamp(40px, 5.5vw, 50px);
-  margin: clamp(32px, 8vh, 64px) 0 clamp(20px, 5vh, 40px);
-}
-.games-row {
-  position: relative;
-  z-index: 1;
-  max-width: 1600px;
+  align-items: center;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 0 5vw;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4vw;
-  text-align: center;
-}
-.game-col-title {
-  font-family: "PFPixelscript", cursive;
-  color: #fff;
-  font-size: clamp(25px, 2.4vw, 28px);
-  line-height: 2;
-  margin-bottom: 1.4vh;
-}
-.game-col-desc {
-  font-family: "ZoesHandwriting", cursive;
-  color: rgba(255,255,255,0.9);
-  font-size: clamp(20px, 1.9vw, 24px);
-  line-height: 1.5;
+  padding: clamp(24px, 5vh, 48px) 6vw 0;
 }
 
-/* ── THE MATRICES ──
-   .matrices-content sits in normal flow so the section's height always
-   fits its own text; the glow image is the absolutely-positioned layer
-   and simply stretches to match whatever height that content needs.
-   (Previously the image drove the height and the text was the absolute
-   layer, so long text could overflow the image's box and bleed into
-   the section above — never invert this back.)
-   The glow is intentionally allowed to bleed past this section's own
-   box (no overflow:hidden, no object-fit:cover crop) — it keeps its
-   natural aspect ratio and soft fade so it can glow into the section
-   above/below. z-index is dropped below the surrounding text sections
-   so that bleed never paints over their words. */
-.matrices-wrap {
-  position: relative;
-  z-index: 0;
-  padding: 0 2vw;
-  margin: clamp(32px, 8vh, 64px) 0 clamp(8px, 2vh, 16px);
-}
-.matrices-wrap picture {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 0;
-  display: block;
-}
-.about-matrices-img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.matrices-color { color: #6e83d3; }
-.matrices-content {
-  position: relative;
-  z-index: 1;
+/* ── HEADER ── */
+.about-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  padding: clamp(48px, 10vh, 100px) 6vw;
+  gap: clamp(16px, 3vh, 28px);
 }
-.matrices-title { margin: 0 0 3vh; }
-.matrices-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 3vw;
-  max-width: 1100px;
-  width: 100%;
+.about-castle-img {
+  width: clamp(140px, 30vw, 220px);
+  height: auto;
+}
+.about-intro-text,
+.about-tagline {
+  font-family: "PFPixelscript", cursive;
+  color: #fff;
+  line-height: 1.6;
+}
+.about-intro-text {
+  font-size: clamp(16px, 2.4vw, 22px);
+  max-width: 560px;
+}
+.about-tagline {
+  font-size: clamp(13px, 1.7vw, 16px);
+  opacity: 0.9;
 }
 
-/* ── START PLAYING LINK ── */
-.start-playing-link {
-  position: relative;
-  z-index: 1;
-  display: block;
-  text-align: center;
-  margin: clamp(24px, 5vh, 48px) 0 clamp(16px, 4vh, 32px);
+/* ── SECTIONS ── */
+section {
+  width: 100%;
+  margin-top: clamp(48px, 9vh, 88px);
+}
+.section-title {
   font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(21px, 8vw, 60px);
+  font-style: italic;
   color: #fff;
-  padding: 10px;
+  text-align: center;
+  font-size: clamp(30px, 5vw, 44px);
+  margin-bottom: clamp(20px, 4vh, 36px);
+}
+.section-intro,
+.section-outro {
+  font-family: "ZoesHandwriting", cursive;
+  color: #fff;
+  text-align: center;
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.6;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ── EXPLORE YOUR DREAMS (click to reveal) ── */
+.reveal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(16px, 4vw, 32px);
+  cursor: pointer;
+  margin-bottom: clamp(28px, 5vh, 44px);
+}
+.reveal-item:last-child { margin-bottom: 0; }
+.reveal-img {
+  display: block;
+  width: clamp(110px, 22vw, 170px);
+  height: auto;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.reveal-item:hover .reveal-img { transform: scale(1.03); }
+
+@keyframes about-art-wiggle {
+  0%,100% { transform: rotate(0deg); }
+  20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); }
+  60% { transform: rotate(-2deg); }
+  80% { transform: rotate(2deg); }
+}
+.reveal-img.wiggling { animation: about-art-wiggle 0.48s ease; }
+
+.reveal-desc {
+  font-family: "ZoesHandwriting", cursive;
+  color: #fff;
+  font-size: clamp(17px, 2.2vw, 21px);
+  line-height: 1.5;
+  padding-top: clamp(20px, 4vh, 32px);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.35s ease;
+}
+.reveal-item.revealed .reveal-desc {
+  max-height: 220px;
+  opacity: 1;
+}
+.reveal-desc p { margin: 0 0 12px; }
+.play-now-link {
+  display: inline-block;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(16px, 2vw, 20px);
+  color: #fff;
   text-decoration: none;
 }
-.start-playing-link:hover { text-decoration: underline; }
+.play-now-link:hover { text-decoration: underline; }
+
+/* ── ENTER THE MATRIX ── */
+.matrix-glow {
+  position: relative;
+  margin: clamp(28px, 6vh, 48px) auto;
+  max-width: 480px;
+}
+.matrix-glow img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.glow-word {
+  position: absolute;
+  font-family: "ZoesHandwriting", cursive;
+  font-style: italic;
+  color: #6e83d3;
+  font-size: clamp(28px, 6vw, 42px);
+}
+.glow-dream { top: 22%; left: 8%; }
+.glow-matrix { bottom: 18%; right: 8%; }
+.glow-center-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  text-align: center;
+  font-family: "ZoesHandwriting", cursive;
+  color: #fff;
+  font-size: clamp(12px, 1.6vw, 15px);
+  line-height: 1.4;
+}
+.section-outro { margin-top: clamp(20px, 4vh, 32px); }
+
+/* ── VISIT THE LIBRARY ── */
+.library-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 5vw, 40px);
+}
+.library-img {
+  width: clamp(140px, 30vw, 220px);
+  height: auto;
+  flex-shrink: 0;
+}
+.library-desc {
+  font-family: "ZoesHandwriting", cursive;
+  color: #fff;
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.6;
+}
+.library-desc p { margin: 0 0 16px; }
+.library-desc p:last-child { margin-bottom: 0; }
 
 /* ── FOOTER ── */
 .about-footer {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: center;
-  padding: clamp(32px, 8vh, 64px) 5vw clamp(24px, 8vh, 48px);
+  padding: clamp(40px, 9vh, 72px) 6vw clamp(24px, 6vh, 40px);
 }
-
 .legal-links {
   font-family: "ZoesHandwriting", cursive;
-  font-size: clamp(16px, 1.6vw, 21px);
+  font-size: clamp(14px, 1.6vw, 17px);
   color: #fff;
   text-align: center;
   white-space: nowrap;
@@ -211,22 +223,10 @@ body {
 /* ══════════════════════════════════════════════════
    MOBILE
 ══════════════════════════════════════════════════ */
-@media (max-width: 700px) {
-  .about-header { align-items: center; gap: 3vw; padding: 24px 5vw 0; }
-  .about-intro-text { font-size: 18px; max-width: none; }
-  .about-castle-img { width: clamp(70px, 26vw, 140px); margin-top: 0; }
-  .section-intro { font-size: 18px; padding: 0 8vw; }
-  .games-row { grid-template-columns: 1fr; gap: 6vh; padding: 0 8vw; }
-  .about-footer { padding: 16px 8vw 24px; }
-  .matrices-wrap { padding: 0; }
-  .matrices-content { padding: 6vh 12vw; }
-  .matrices-title { margin-bottom: 1.2vh; }
-  .matrices-row { grid-template-columns: 1fr; gap: 1.6vh; }
-
-  /* shared standard: same title/desc sizing for "the games" and "the matrices" */
-  .section-title { font-size: 25px; }
-  .game-col-title { font-size: 18px; line-height: 2; margin-bottom: 0.2vh; }
-  .game-col-desc { font-size: 21px; line-height: 1.3; }
+@media (max-width: 600px) {
+  .reveal-item { gap: 4vw; }
+  .reveal-img { width: 26vw; }
+  .library-row { flex-direction: column; text-align: center; }
 }
 
 </style>
@@ -236,66 +236,98 @@ body {
 <main class="about-main">
 
 <header class="about-header">
-  <h1 class="about-intro-text">Heartability is a fortress for everything we hold dear — the patterns that guide us, the tools that support us and the media that inspires us.</h1>
   <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
+  <p class="about-intro-text">This castle is a fortress for everything we hold dear: the patterns that guide us, the tools that support us and the media that inspires us.</p>
+  <p class="about-tagline">Heartability is a new kind of social media.<br>post-influencer, anti-algorithm, and ad-free</p>
 </header>
 
-<p class="section-intro">What if you could take control of your life and begin <br> to explore the world like an open world video game?</p>
+<section class="dreams-section">
+  <h2 class="section-title">explore your dreams</h2>
 
-<h2 class="section-title">the games</h2>
-<div class="games-row">
-  <div class="game-col">
-    <div class="game-col-title">treasure<br>maps</div>
-    <div class="game-col-desc">in a video game a map tells you where to go next but in real life you have to listen to your heart. treasure maps allows you to track your progress as you try chasing your dreams.</div>
-  </div>
-  <div class="game-col">
-    <div class="game-col-title">infinity<br>mirror</div>
-    <div class="game-col-desc">you can be anyone you imagine. the infinity mirror is a place to explore your inner archetypes across different landscapes and learn how to nurture different aspects of yourself.</div>
-  </div>
-  <div class="game-col">
-    <div class="game-col-title">selfcare<br>bingo</div>
-    <div class="game-col-desc">wellness is not a competition, its the quaility of our experience surviving every day. most days are not perfect, but you can still celebrate the care you give yourself every day.</div>
-  </div>
-</div>
-
-<p class="section-intro">Once you can visualize your emotional world, go back into the real world <br> to see what happens next, using the matrix to track your patterns.</p>
-
-<div class="matrices-wrap">
-  <picture>
-    <source media="(max-width: 700px)" srcset="assets/elements/circle-rainbow-m.png">
-    <img class="about-matrices-img" src="assets/elements/circle-rainbow.png" alt="">
-  </picture>
-  <div class="matrices-content">
-    <h2 class="section-title matrices-title matrices-color">the matrices</h2>
-    <div class="matrices-row">
-      <div class="game-col">
-        <div class="game-col-title matrices-color">daily</div>
-        <div class="game-col-desc matrices-color">track your daily experiences to reveal unknown patterns and secret paths</div>
-      </div>
-      <div class="game-col">
-        <div class="game-col-title matrices-color">dream</div>
-        <div class="game-col-desc matrices-color">track your progress following dreams over time, including all the times you have to start over</div>
-      </div>
-      <div class="game-col">
-        <div class="game-col-title matrices-color">cosmic</div>
-        <div class="game-col-desc matrices-color">track your personal experience across cosmic transits to learn how the stars influence you</div>
-      </div>
+  <div class="reveal-item" id="reveal-map" tabindex="0" role="button" aria-expanded="false">
+    <img class="reveal-img" src="assets/elements/map.png" alt="Treasure Map">
+    <div class="reveal-desc">
+      <p>track your progress chasing your dreams</p>
+      <a class="play-now-link" href="games/treasure-map.html">play now →</a>
     </div>
   </div>
-</div>
 
-<a class="start-playing-link" href="rooms/game-room.html">start playing →</a>
+  <div class="reveal-item" id="reveal-mirror" tabindex="0" role="button" aria-expanded="false">
+    <img class="reveal-img" src="assets/elements/mirror.png" alt="Infinity Mirror">
+    <div class="reveal-desc">
+      <p>explore your inner archetypes across different landscapes</p>
+      <a class="play-now-link" href="games/infinity-mirror.html">play now →</a>
+    </div>
+  </div>
+
+  <div class="reveal-item" id="reveal-bingo" tabindex="0" role="button" aria-expanded="false">
+    <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
+    <div class="reveal-desc">
+      <p>celebrate the care you give yourself every day</p>
+      <a class="play-now-link" href="games/bingo.html">play now →</a>
+    </div>
+  </div>
+</section>
+
+<section class="matrix-section">
+  <h2 class="section-title">enter the matrix</h2>
+  <p class="section-intro">The Matrix is a place to track your emotional patterns over time. How often are you moving through the same cycles? Are the tools you are using working?</p>
+
+  <div class="matrix-glow">
+    <img src="assets/elements/circle-rainbow.png" alt="">
+    <span class="glow-word glow-dream">dream</span>
+    <span class="glow-word glow-matrix">matrix</span>
+    <p class="glow-center-text">track your progress following dreams over time, including all the times you have to start over</p>
+  </div>
+
+  <p class="section-outro">The matrix archive creates a hall of mirrors designed to help you see yourself more clearly and move through the world more confidently.</p>
+</section>
+
+<section class="library-section">
+  <h2 class="section-title">visit the library</h2>
+  <div class="library-row">
+    <img class="library-img" src="assets/elements/shelf.png" alt="Library shelf">
+    <div class="library-desc">
+      <p>The library is a collection of resources designed as a choose your own adventure approach to building a feed.</p>
+      <p>Instead of creating an algorithm, you self select your interests with every matrix entry, each creating a unique session from the last.</p>
+    </div>
+  </div>
+</section>
 
 </main>
 
 <footer class="about-footer">
   <p class="legal-links">
-    <a href="legal/refund-policy.html">refunds</a> &nbsp;
     <a href="legal/privacy-policy.html">privacy policy</a> &nbsp;
-    <a href="legal/support.html">support</a> &nbsp;
-    <a href="legal/bug-report.html">report a bug</a>
+    <a href="legal/refund-policy.html">refund</a> &nbsp;
+    <a href="legal/support.html">support</a>
   </p>
 </footer>
+
+<script>
+(function() {
+  document.querySelectorAll('.reveal-item').forEach(item => {
+    const img = item.querySelector('.reveal-img');
+
+    function toggle() {
+      const open = item.classList.toggle('revealed');
+      item.setAttribute('aria-expanded', open ? 'true' : 'false');
+      img.classList.remove('wiggling');
+      void img.offsetWidth;
+      img.classList.add('wiggling');
+      img.addEventListener('animationend', () => img.classList.remove('wiggling'), { once: true });
+    }
+
+    item.addEventListener('click', e => {
+      if (e.target.closest('.play-now-link')) return;
+      toggle();
+    });
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

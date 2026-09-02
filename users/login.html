@@ -286,6 +286,7 @@ input:focus { border-color: var(--purple); }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/js/supabase-init.js"></script>
+<script src="../assets/js/sentry-init.js"></script>
 <script>
   sb.auth.getSession().then(({ data: { session } }) => {
     if (session) window.location.href = '../rooms/bed.html';
