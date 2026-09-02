@@ -58,24 +58,27 @@ body {
   padding: clamp(24px, 5vh, 48px) 5vw 0;
 }
 
-/* ── HEADER: castle + intro side by side, matching the site's original header pattern ── */
+/* ── HEADER: restored exactly as it was in the original about.html — text left, castle right ── */
 .about-header {
   display: flex;
+  flex-wrap: nowrap;
   align-items: flex-start;
-  gap: clamp(16px, 4vw, 40px);
-}
-.about-castle-img {
-  width: clamp(300px, 40vw, 480px);
-  height: auto;
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 3vw;
 }
 .about-intro-text {
   font-family: "ZoesHandwriting", cursive;
+  font-weight: normal;
   color: #fff;
+  font-size: clamp(33px, 5vw, 55px);
   line-height: 1.5;
-  font-size: var(--fs-hero);
   max-width: clamp(280px, 40vw, 560px);
-  padding-top: clamp(8px, 2vh, 20px);
+}
+.about-castle-img {
+  width: clamp(200px, 50vw, 750px);
+  height: auto;
+  flex-shrink: 0;
+  margin-top: clamp(20px, 9vh, 64px);
 }
 .about-tagline {
   font-family: "ZoesHandwriting", cursive;
@@ -263,9 +266,9 @@ body {
    MOBILE
 ══════════════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .about-header { gap: 4vw; }
-  .about-castle-img { width: clamp(140px, 34vw, 220px); }
-  .about-intro-text { max-width: none; padding-top: 0; }
+  .about-header { align-items: center; gap: 3vw; }
+  .about-intro-text { font-size: 18px; max-width: none; }
+  .about-castle-img { width: clamp(70px, 26vw, 140px); margin-top: 0; }
 
   .dreams-grid { grid-template-columns: 1fr; gap: 6vh; }
   .dreams-left { padding-top: 0; }
@@ -288,8 +291,8 @@ body {
 <main class="about-main">
 
 <header class="about-header">
-  <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
   <p class="about-intro-text">This castle is a fortress for everything we hold dear: the patterns that guide us, the tools that support us and the media that inspires us.</p>
+  <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
 </header>
 <p class="about-tagline">Heartability is a new kind of social media.<br>post-influencer, anti-algorithm, and ad-free</p>
 
