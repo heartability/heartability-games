@@ -280,10 +280,14 @@ body {
   .about-castle-img { width: clamp(70px, 26vw, 140px); margin-top: 0; }
   .about-tagline { font-size: clamp(18px, 4vw, 24px); }
 
-  .section-title-center { white-space: normal; }
+  .section-title-center { white-space: nowrap; font-size: 18px; }
 
   .dreams-grid { flex-direction: column; gap: 4vh; }
   .dreams-copy { max-width: none; text-align: center; }
+  .dreams-carousel .reveal-item {
+    width: clamp(180px, 48vw, 230px);
+    min-height: clamp(180px, 48vw, 230px);
+  }
 
   .library-row { flex-direction: column; text-align: center; }
 }
