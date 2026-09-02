@@ -26,12 +26,10 @@
      ratio between hero/body/tagline text holds as the page resizes
      instead of drifting apart at different breakpoints. */
   --fs-hero:        clamp(30px, 4.6vw, 52px);  /* intro text */
-  --fs-title:       clamp(20px, 2.4vw, 32px);  /* section titles */
+  --fs-title:       clamp(31px, 3.75vw, 50px); /* section titles — 50px at desktop per wireframe */
   --fs-tagline:     clamp(34px, 4.8vw, 48px);  /* tagline + matrix intro/outro paragraphs */
-  --fs-body:        clamp(17px, 1.9vw, 22px);  /* dreams/library paragraphs */
+  --fs-body:        clamp(20px, 2.25vw, 26px); /* dreams/library paragraphs — 26px at desktop per wireframe */
   --fs-link:        clamp(16px, 1.7vw, 19px);
-  --fs-glow-word:   clamp(18px, 2.6vw, 26px);
-  --fs-glow-center: clamp(13px, 1.5vw, 16px);
   --fs-footer:      clamp(14px, 1.4vw, 17px);
 }
 
@@ -103,39 +101,47 @@ body {
   white-space: nowrap;
 }
 
-/* ── EXPLORE YOUR DREAMS — scrapbook two-column layout, contained so it
-     doesn't sprawl edge-to-edge on wide viewports ── */
+/* ── EXPLORE YOUR DREAMS — centered title, left-aligned paragraph beside
+     an image carousel that pages through the three games ── */
 .dreams-wrap {
   max-width: 1100px;
   margin: clamp(40px, 8vh, 72px) auto 0;
 }
 .dreams-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 400px) 1fr;
-  gap: 5vw;
-  align-items: start;
-}
-.dreams-left { padding-top: 6%; }
-.dreams-left-top {
-  display: flex;
+  grid-template-columns: 1fr auto;
+  gap: 4vw;
   align-items: center;
-  gap: clamp(28px, 4vw, 48px);
+  margin-top: clamp(20px, 4vh, 32px);
 }
 .dreams-copy {
   font-family: "ZoesHandwriting", cursive;
   color: #fff;
   font-size: var(--fs-body);
   line-height: 1.6;
-  text-align: right;
-  margin-top: clamp(16px, 3vh, 24px);
-  max-width: 100%;
+  text-align: left;
+  max-width: 46ch;
 }
 
-.dreams-right {
+.dreams-carousel {
   display: flex;
-  flex-direction: column;
-  gap: clamp(40px, 7vh, 80px);
+  align-items: center;
+  gap: clamp(8px, 1.5vw, 20px);
+  flex-shrink: 0;
 }
+.carousel-arrow {
+  background: none;
+  border: none;
+  color: #fff;
+  font-family: "ZoesHandwriting", cursive;
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1;
+  cursor: pointer;
+  padding: 8px;
+  transition: opacity 0.15s ease;
+}
+.carousel-arrow:hover { opacity: 0.65; }
+
 .reveal-item {
   position: relative;
   cursor: pointer;
@@ -146,8 +152,6 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
-.reveal-map    { align-self: flex-end;   margin-right: 2%; }
-.reveal-mirror { align-self: center; }
 
 .reveal-img {
   display: block;
@@ -213,7 +217,6 @@ body {
 }
 
 .matrix-glow {
-  position: relative;
   margin: clamp(28px, 6vh, 48px) auto;
   width: 85%;
   max-width: 640px;
@@ -222,25 +225,6 @@ body {
   display: block;
   width: 100%;
   height: auto;
-}
-.glow-word {
-  position: absolute;
-  font-family: "PFPixelscript", cursive;
-  color: #6e83d3;
-  font-size: var(--fs-glow-word);
-}
-.glow-dream { top: 22%; left: 8%; }
-.glow-matrix { bottom: 18%; right: 8%; }
-.glow-center-text {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 55%;
-  text-align: center;
-  font-family: "ZoesHandwriting", cursive;
-  color: #fff;
-  font-size: var(--fs-glow-center);
-  line-height: 1.4;
 }
 .section-outro { margin-top: clamp(20px, 4vh, 32px); }
 
@@ -295,17 +279,8 @@ body {
   .about-intro-text { font-size: 18px; max-width: none; }
   .about-castle-img { width: clamp(70px, 26vw, 140px); margin-top: 0; }
 
-  .dreams-grid { grid-template-columns: 1fr; gap: 6vh; }
-  .dreams-left { padding-top: 0; }
-  .dreams-left-top { flex-direction: column; text-align: center; }
-  .dreams-copy { max-width: none; text-align: center; margin-left: 0; }
-  .dreams-right { align-items: center; }
-  .reveal-item,
-  .reveal-map, .reveal-mirror {
-    align-self: center;
-    margin: 0 0 24px;
-  }
-  .reveal-item:last-child { margin-bottom: 0; }
+  .dreams-grid { grid-template-columns: 1fr; justify-items: center; gap: 4vh; }
+  .dreams-copy { max-width: none; text-align: center; }
 
   .library-row { flex-direction: column; text-align: center; }
 }
@@ -323,37 +298,20 @@ body {
 <p class="about-tagline">Heartability is a new kind of social media.<br>post-influencer, anti-algorithm, and ad-free</p>
 
 <div class="dreams-wrap">
+  <h2 class="section-title section-title-center">explore your dreams</h2>
   <div class="dreams-grid">
-    <div class="dreams-left">
-      <div class="dreams-left-top">
-        <div class="reveal-item reveal-bingo" tabindex="0" role="button" aria-expanded="false">
-          <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
-          <div class="reveal-text">
-            <p>celebrate the care you give yourself every day</p>
-            <a class="play-now-link" href="games/bingo.html">play now →</a>
-          </div>
-        </div>
-        <h2 class="section-title">explore your dreams</h2>
-      </div>
-      <p class="dreams-copy">Heartability is inspired by open world video games that equip you with a map, inventory and heart meter. Our core games: Treasure Map, Infinity Mirror and Self Care Bingo are designed to turn your mind into a world that you can explore with greater perspective.</p>
-    </div>
+    <p class="dreams-copy">Heartability is inspired by open world video games that equip you with a map, inventory and heart meter. Our core games: Treasure Map, Infinity Mirror and Self Care Bingo are designed to turn your mind into a world that you can explore with greater perspective.</p>
 
-    <div class="dreams-right">
-      <div class="reveal-item reveal-mirror" tabindex="0" role="button" aria-expanded="false">
-        <img class="reveal-img" src="assets/elements/mirror.png" alt="Infinity Mirror">
+    <div class="dreams-carousel">
+      <button class="carousel-arrow" id="dreams-prev" type="button" aria-label="Previous game">&#8249;</button>
+      <div class="reveal-item" id="dreams-reveal" tabindex="0" role="button" aria-expanded="false">
+        <img class="reveal-img" id="dreams-img" src="assets/elements/map.png" alt="Treasure Map">
         <div class="reveal-text">
-          <p>explore your inner archetypes across different landscapes</p>
-          <a class="play-now-link" href="games/infinity-mirror.html">play now →</a>
+          <p id="dreams-caption">track your progress chasing your dreams</p>
+          <a class="play-now-link" id="dreams-link" href="games/treasure-map.html">play now →</a>
         </div>
       </div>
-
-      <div class="reveal-item reveal-map" tabindex="0" role="button" aria-expanded="false">
-        <img class="reveal-img" src="assets/elements/map.png" alt="Treasure Map">
-        <div class="reveal-text">
-          <p>track your progress chasing your dreams</p>
-          <a class="play-now-link" href="games/treasure-map.html">play now →</a>
-        </div>
-      </div>
+      <button class="carousel-arrow" id="dreams-next" type="button" aria-label="Next game">&#8250;</button>
     </div>
   </div>
 </div>
@@ -363,10 +321,7 @@ body {
   <p class="section-intro">The Matrix is a place to track your emotional patterns over time. How often are you moving through the same cycles? Are the tools you are using working?</p>
 
   <div class="matrix-glow">
-    <img src="assets/elements/circle-rainbow.png" alt="">
-    <span class="glow-word glow-dream">dream</span>
-    <span class="glow-word glow-matrix">matrix</span>
-    <p class="glow-center-text">track your progress following dreams over time, including all the times you have to start over</p>
+    <img src="assets/elements/dream-about.png" alt="Dream matrix — track your progress following dreams over time, including all the times you have to start over">
   </div>
 
   <p class="section-outro">The matrix archive creates a hall of mirrors designed to help you see yourself more clearly and move through the world more confidently.</p>
@@ -427,6 +382,37 @@ body {
     item.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
     });
+  });
+
+  // ── Explore your dreams: image carousel ──
+  const dreamsGames = [
+    { img: 'assets/elements/map.png',    alt: 'Treasure Map',   caption: 'track your progress chasing your dreams', href: 'games/treasure-map.html' },
+    { img: 'assets/elements/mirror.png', alt: 'Infinity Mirror', caption: 'explore your inner archetypes across different landscapes', href: 'games/infinity-mirror.html' },
+    { img: 'assets/elements/bingo.png',  alt: 'Self Care Bingo', caption: 'celebrate the care you give yourself every day', href: 'games/bingo.html' }
+  ];
+  let dreamsIndex = 0;
+  const dreamsItem    = document.getElementById('dreams-reveal');
+  const dreamsImg     = document.getElementById('dreams-img');
+  const dreamsCaption = document.getElementById('dreams-caption');
+  const dreamsLink    = document.getElementById('dreams-link');
+
+  function renderDreamsGame() {
+    const g = dreamsGames[dreamsIndex];
+    dreamsImg.src = g.img;
+    dreamsImg.alt = g.alt;
+    dreamsCaption.textContent = g.caption;
+    dreamsLink.href = g.href;
+    dreamsItem.classList.remove('revealed');
+    dreamsItem.setAttribute('aria-expanded', 'false');
+  }
+
+  document.getElementById('dreams-prev').addEventListener('click', () => {
+    dreamsIndex = (dreamsIndex - 1 + dreamsGames.length) % dreamsGames.length;
+    renderDreamsGame();
+  });
+  document.getElementById('dreams-next').addEventListener('click', () => {
+    dreamsIndex = (dreamsIndex + 1) % dreamsGames.length;
+    renderDreamsGame();
   });
 })();
 </script>
