@@ -55,20 +55,21 @@ body {
   flex-shrink: 0;
 }
 .about-intro-text {
-  font-family: "PFPixelscript", cursive;
+  font-family: "ZoesHandwriting", cursive;
   color: #fff;
-  line-height: 1.6;
-  font-size: clamp(16px, 2.2vw, 22px);
+  line-height: 1.5;
+  font-size: clamp(13px, 1.4vw, 16px);
   padding-top: clamp(8px, 2vh, 20px);
 }
 .about-tagline {
-  font-family: "PFPixelscript", cursive;
+  font-family: "ZoesHandwriting", cursive;
   color: #fff;
-  line-height: 1.5;
-  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.4;
+  font-size: clamp(12px, 1.2vw, 14px);
   text-align: center;
   opacity: 0.9;
-  margin-top: clamp(16px, 3vh, 28px);
+  margin-top: clamp(12px, 2vh, 20px);
+  white-space: nowrap;
 }
 
 /* ── Shared section titles: always PFPixelscript (this is the site's "cursive" display font).
@@ -83,8 +84,8 @@ body {
 /* ── EXPLORE YOUR DREAMS — scrapbook two-column layout ── */
 .dreams-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4vw;
+  grid-template-columns: minmax(240px, 400px) 1fr;
+  gap: 1.5vw;
   margin-top: clamp(40px, 8vh, 72px);
   align-items: start;
 }
@@ -204,23 +205,13 @@ body {
 .library-section { margin-top: clamp(48px, 9vh, 80px); }
 .library-row {
   display: flex;
-  align-items: center;
-  gap: clamp(20px, 5vw, 40px);
+  justify-content: center;
   margin-top: clamp(20px, 4vh, 32px);
 }
-.library-img {
-  width: clamp(140px, 26vw, 220px);
-  height: auto;
-  flex-shrink: 0;
+.reveal-shelf {
+  width: clamp(160px, 28vw, 240px);
+  min-height: clamp(160px, 28vw, 240px);
 }
-.library-desc {
-  font-family: "ZoesHandwriting", cursive;
-  color: #fff;
-  font-size: clamp(16px, 2vw, 19px);
-  line-height: 1.6;
-}
-.library-desc p { margin: 0 0 16px; }
-.library-desc p:last-child { margin-bottom: 0; }
 
 /* ── FOOTER ── */
 .about-footer {
@@ -247,7 +238,8 @@ body {
 @media (max-width: 700px) {
   .about-header { gap: 4vw; }
   .about-castle-img { width: 22vw; }
-  .about-intro-text { font-size: 15px; padding-top: 0; }
+  .about-intro-text { font-size: 13px; padding-top: 0; }
+  .about-tagline { white-space: normal; font-size: 12px; }
 
   .dreams-grid { grid-template-columns: 1fr; gap: 6vh; }
   .dreams-left { padding-top: 0; }
@@ -259,8 +251,6 @@ body {
     margin: 0 0 24px;
   }
   .reveal-item:last-child { margin-bottom: 0; }
-
-  .library-row { flex-direction: column; text-align: center; }
 }
 
 </style>
@@ -273,7 +263,7 @@ body {
   <img class="about-castle-img" src="assets/elements/castle.png" alt="Heartability castle">
   <p class="about-intro-text">This castle is a fortress for everything we hold dear: the patterns that guide us, the tools that support us and the media that inspires us.</p>
 </header>
-<p class="about-tagline">Heartability is a new kind of social media.<br>post-influencer, anti-algorithm, and ad-free</p>
+<p class="about-tagline">Heartability is a new kind of social media. post-influencer, anti-algorithm, and ad-free</p>
 
 <div class="dreams-grid">
   <div class="dreams-left">
@@ -326,10 +316,12 @@ body {
 <section class="library-section">
   <h2 class="section-title" style="text-align:center; display:block;">visit the library</h2>
   <div class="library-row">
-    <img class="library-img" src="assets/elements/shelf.png" alt="Library shelf">
-    <div class="library-desc">
-      <p>The library is a collection of resources designed as a choose your own adventure approach to building a feed.</p>
-      <p>Instead of creating an algorithm, you self select your interests with every matrix entry, each creating a unique session from the last.</p>
+    <div class="reveal-item reveal-shelf" tabindex="0" role="button" aria-expanded="false">
+      <img class="reveal-img" src="assets/elements/shelf.png" alt="Library shelf">
+      <div class="reveal-text">
+        <p>explore our collection of inspiration</p>
+        <a class="play-now-link" href="rooms/library.html">go now →</a>
+      </div>
     </div>
   </div>
 </section>
