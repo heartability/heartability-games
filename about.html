@@ -26,7 +26,7 @@
      ratio between hero/body/tagline text holds as the page resizes
      instead of drifting apart at different breakpoints. */
   --fs-hero:        clamp(30px, 4.6vw, 52px);  /* intro text */
-  --fs-title:       clamp(14px, 1.6vw, 20px);  /* section titles */
+  --fs-title:       clamp(20px, 2.4vw, 32px);  /* section titles */
   --fs-tagline:     clamp(34px, 4.8vw, 48px);  /* tagline + matrix intro/outro paragraphs */
   --fs-body:        clamp(17px, 1.9vw, 22px);  /* dreams/library paragraphs */
   --fs-link:        clamp(16px, 1.7vw, 19px);
@@ -95,11 +95,12 @@ body {
   font-family: "PFPixelscript", cursive;
   color: #fff;
   font-size: var(--fs-title);
-  line-height: 1.6;
+  line-height: 2.1;
 }
 .section-title-center {
   text-align: center;
   display: block;
+  white-space: nowrap;
 }
 
 /* ── EXPLORE YOUR DREAMS — scrapbook two-column layout, contained so it
