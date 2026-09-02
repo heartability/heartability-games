@@ -115,13 +115,20 @@ body {
   align-items: start;
 }
 .dreams-left { padding-top: 6%; }
+.dreams-left-top {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+}
 .dreams-copy {
   font-family: "ZoesHandwriting", cursive;
   color: #fff;
   font-size: var(--fs-body);
   line-height: 1.6;
+  text-align: right;
   margin-top: clamp(16px, 3vh, 24px);
   max-width: 34ch;
+  margin-left: auto;
 }
 
 .dreams-right { display: flex; flex-direction: column; }
@@ -133,10 +140,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .reveal-map    { align-self: flex-end;   margin-right: 2%; }
 .reveal-mirror { align-self: center;     margin-top: clamp(-10px, -2vh, 0px); }
-.reveal-bingo  { align-self: flex-start; margin-left: 8%; margin-top: clamp(8px, 2vh, 16px); }
+.dreams-left-top .reveal-bingo {
+  width: clamp(90px, 12vw, 140px);
+  min-height: clamp(90px, 12vw, 140px);
+}
 
 .reveal-img {
   display: block;
@@ -187,9 +198,9 @@ body {
   font-family: "ZoesHandwriting", cursive;
   color: #fff;
   text-align: center;
-  font-size: var(--fs-tagline);
-  line-height: 1.5;
-  max-width: 800px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  max-width: 640px;
   margin: 0 auto;
 }
 
@@ -278,10 +289,11 @@ body {
 
   .dreams-grid { grid-template-columns: 1fr; gap: 6vh; }
   .dreams-left { padding-top: 0; }
-  .dreams-copy { max-width: none; }
+  .dreams-left-top { flex-direction: column; text-align: center; }
+  .dreams-copy { max-width: none; text-align: center; margin-left: 0; }
   .dreams-right { align-items: center; }
   .reveal-item,
-  .reveal-map, .reveal-mirror, .reveal-bingo {
+  .reveal-map, .reveal-mirror {
     align-self: center;
     margin: 0 0 24px;
   }
@@ -305,7 +317,16 @@ body {
 <div class="dreams-wrap">
   <div class="dreams-grid">
     <div class="dreams-left">
-      <h2 class="section-title">explore your dreams</h2>
+      <div class="dreams-left-top">
+        <div class="reveal-item reveal-bingo" tabindex="0" role="button" aria-expanded="false">
+          <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
+          <div class="reveal-text">
+            <p>celebrate the care you give yourself every day</p>
+            <a class="play-now-link" href="games/bingo.html">play now →</a>
+          </div>
+        </div>
+        <h2 class="section-title">explore your dreams</h2>
+      </div>
       <p class="dreams-copy">Heartability is inspired by open world video games that equip you with a map, inventory and heart meter. Our core games: Treasure Map, Infinity Mirror and Self Care Bingo are designed to turn your mind into a world that you can explore with greater perspective.</p>
     </div>
 
@@ -323,14 +344,6 @@ body {
         <div class="reveal-text">
           <p>explore your inner archetypes across different landscapes</p>
           <a class="play-now-link" href="games/infinity-mirror.html">play now →</a>
-        </div>
-      </div>
-
-      <div class="reveal-item reveal-bingo" tabindex="0" role="button" aria-expanded="false">
-        <img class="reveal-img" src="assets/elements/bingo.png" alt="Self Care Bingo">
-        <div class="reveal-text">
-          <p>celebrate the care you give yourself every day</p>
-          <a class="play-now-link" href="games/bingo.html">play now →</a>
         </div>
       </div>
     </div>
