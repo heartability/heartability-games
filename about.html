@@ -108,10 +108,10 @@ body {
   margin: clamp(40px, 8vh, 72px) auto 0;
 }
 .dreams-grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4vw;
+  display: flex;
+  justify-content: center;
   align-items: center;
+  gap: clamp(24px, 4vw, 64px);
   margin-top: clamp(20px, 4vh, 32px);
 }
 .dreams-copy {
@@ -218,8 +218,8 @@ body {
 
 .matrix-glow {
   margin: clamp(28px, 6vh, 48px) auto;
-  width: 85%;
-  max-width: 640px;
+  width: 95%;
+  max-width: 980px;
 }
 .matrix-glow img {
   display: block;
@@ -279,7 +279,7 @@ body {
   .about-intro-text { font-size: 18px; max-width: none; }
   .about-castle-img { width: clamp(70px, 26vw, 140px); margin-top: 0; }
 
-  .dreams-grid { grid-template-columns: 1fr; justify-items: center; gap: 4vh; }
+  .dreams-grid { flex-direction: column; gap: 4vh; }
   .dreams-copy { max-width: none; text-align: center; }
 
   .library-row { flex-direction: column; text-align: center; }
