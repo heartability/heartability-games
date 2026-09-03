@@ -275,18 +275,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 .nav-btn { cursor:pointer; padding:4px 8px; border-radius:2px; transition:background .15s; color:inherit; text-decoration:none; }
 .nav-btn:hover { background:rgba(0,0,0,.08); }
 
-/* ── MATRIX PAGE TOGGLE — switches between daily/dream/cosmic ── */
-.matrix-toggle {
-  position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
-  z-index:210; display:flex; gap:clamp(24px,4vw,48px);
-}
-.matrix-toggle-link {
-  font-family:var(--font-hand); font-size:clamp(19px,2.2vw,26px);
-  color:#fff; text-decoration:none; padding-bottom:2px;
-  border-bottom:2px solid transparent;
-}
-.matrix-toggle-link:hover { opacity:.8; }
-.matrix-toggle-link.active { border-bottom-color:#fff; }
 
 /* ── WALL BUTTONS — centered on the back wall ── */
 .wall-btns {
@@ -424,11 +412,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
     --bw-top:    44px;
     --bw-left:   0%;
     --bw-width:  100%;
-    /* Reserve space for the fixed .matrix-toggle bar (daily/dream/cosmic
-       links) at the bottom so flow content — e.g. matrix-toolbar — never
-       renders underneath it (was invisible there: toggle text is white on
-       the toolbar's white circle buttons, z-index alone didn't save it). */
-    --bw-height: calc(100dvh - 44px - 52px);
+    --bw-height: calc(100dvh - 44px);
   }
   .content-panel.active:not(.iframe-mode) { border:none; box-shadow:none; }
   /* step-panel centered its content vertically (justify-content:center) —
@@ -439,7 +423,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
      uniformly for mobile and desktop, so no iframe-mode-specific fixed-
      position overrides are needed here. */
   .step-panel { justify-content:flex-start; }
-  .matrix-toggle { gap:16px; bottom:8px; }
   .phase-key { width:180px; font-size:14px; }
   .map-grid { grid-template-columns:repeat(2,1fr); }
   .add-new-btn { bottom:12px; right:12px; }
@@ -719,6 +702,142 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
   .sq-terrain, .sq-chip, .sq-btn { transition:none; }
 }
 
+/* ── DAYQUEST BUILDER MODAL — "track today" location picker, ported from
+   matrix/daily.html. .dq-overlay spans the full viewport (including the nav
+   strip above the back wall) but stays pointer-events:none so nav clicks
+   pass through it — see project memory on the daily-matrix nav-blocked bug.
+   .dq-scroll is the actual interactive/scrollable region. ── */
+.dq-overlay {
+  position:fixed; inset:0; z-index:300;
+  background:none;
+  display:none;
+  pointer-events:none;
+}
+.dq-overlay.open { display:block; }
+.dq-scroll {
+  position:absolute; top:var(--bw-top); left:0; right:0; bottom:0;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  display:flex; flex-direction:column; align-items:center;
+  padding:0 0 40px;
+  pointer-events:auto;
+}
+.dq-card {
+  width:var(--bw-width); height:auto; min-height:var(--bw-height);
+  max-height:none;
+  padding:18px 20px; font-family:var(--font-hand);
+  background:var(--back-wall);
+  border:3px solid var(--blue);
+  box-shadow:0 0 0 3px var(--blue), 6px 10px 40px rgba(0,0,0,.4);
+  pointer-events:auto;
+  flex-shrink:0;
+}
+.dq-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.dq-title { font-size:clamp(22px,2.2vw,30px); color:#3a4aaa; font-family:var(--font-hand); }
+.dq-title-row .dq-close { margin:0; }
+.dq-close { font-size:32px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
+.dq-close:hover { color:#E8478B; }
+.dq-body {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap:16px 24px;
+  align-items:start;
+}
+@media (max-width:640px){ .dq-body { grid-template-columns:1fr; } }
+.dq-preview-col { min-width:0; display:flex; flex-direction:column; align-items:center; }
+.dq-terrain-col { min-width:0; }
+.dq-climate-col { grid-column: 1 / -1; min-width:0; }
+.dq-map-frame {
+  width:min(100%, 300px); aspect-ratio:1/1;
+  background:#cdd3ec;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+}
+.dq-map-frame svg { width:100%; height:100%; display:block; }
+.dq-section-label { font-size:22px; color:#7a86bb; letter-spacing:.4px; margin:0 0 8px; }
+
+.dq-cat-tabs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.dq-cat-btn {
+  padding:4px 10px; background:#dfe2ef;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+  font-family:var(--font-hand); font-size:13px; letter-spacing:.5px;
+  color:#3a4aaa; cursor:pointer; user-select:none; transition:filter .1s;
+}
+.dq-cat-btn:hover { filter:brightness(1.06); }
+.dq-cat-btn.active { border-color:#3a4aaa; outline:2px solid #3a4aaa; outline-offset:1px; background:#e0f0f0; }
+.dq-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+.dq-terrain {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:8px 6px; background:#dfe2ef; cursor:pointer; user-select:none;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+  transition:filter .1s;
+}
+.dq-terrain:hover { filter:brightness(1.06); }
+.dq-terrain.active { border-color:#3a4aaa; outline:2px solid #3a4aaa; outline-offset:1px; background:#e0f0f0; }
+.dq-terrain img { width:60px; height:50px; object-fit:contain; pointer-events:none; }
+.dq-terrain span { font-size:13px; color:#3a4aaa; letter-spacing:.4px; pointer-events:none; }
+
+.dq-climates { display:flex; flex-direction:column; gap:8px; }
+.dq-climate {
+  padding:7px 9px;
+  border:2px solid var(--blue); border-right-color:#3a4aaa; border-bottom-color:#3a4aaa;
+  border-left-color:#5465c5; border-top-color:#5465c5;
+}
+.dq-climate.sunny { background:#f2e6a8; border-color:#715f04; }
+.dq-climate.rainy { background:#ae87e2; border-color:#260156; }
+.dq-climate.windy { background:#a3eac9; border-color:#046957; }
+.dq-climate.snowy { background:#6cd1ea; border-color:#033f50; }
+.dq-climate-head { font-size:clamp(30px,3vw,41px); margin-bottom:8px; }
+.dq-climate.sunny .dq-climate-head { color:#715f04; }
+.dq-climate.rainy .dq-climate-head { color:#260156; }
+.dq-climate.windy .dq-climate-head { color:#046957; }
+.dq-climate.snowy .dq-climate-head { color:#033f50; }
+.dq-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.dq-chip {
+  padding:5px 14px; font-family:var(--font-hand); font-size:clamp(18px,1.8vw,25px); letter-spacing:.4px;
+  cursor:pointer; user-select:none; border:2px solid; transition:filter .1s;
+}
+.dq-chip:hover { filter:brightness(.92); }
+.dq-chip.active { outline:2px solid #111; outline-offset:1px; }
+.dq-climate.sunny .dq-chip { background:#f8edb8; border-color:#715f04; color:#715f04; }
+.dq-climate.rainy .dq-chip { background:#c9b3e7; border-color:#260156; color:#260156; }
+.dq-climate.windy .dq-chip { background:#b6e7d0; border-color:#046957; color:#046957; }
+.dq-climate.snowy .dq-chip { background:#a0d7e6; border-color:#033f50; color:#033f50; }
+
+.dq-foot {
+  display:none; align-items:center; justify-content:center;
+  margin-top:20px; flex-shrink:0;
+  pointer-events:none;
+}
+.dq-overlay.open .dq-foot { display:flex; }
+.dq-foot > * { pointer-events:all; }
+.dq-btn {
+  padding:10px 18px; font-family:var(--font-hand); font-size:17px; cursor:pointer;
+  border:2px solid #4a5bc4; background:var(--blue); color:#fff; box-shadow:2px 2px 0 #3a4aaa;
+  transition:all .05s;
+}
+.dq-btn:hover { background:#4a5bc4; }
+.dq-btn:active { box-shadow:none; transform:translate(2px,2px); }
+.dq-btn:disabled { opacity:.38; cursor:not-allowed; transform:none !important; box-shadow:2px 2px 0 #3a4aaa; }
+.dq-btn.ghost { background:none; color:#999; border-color:#ccc; box-shadow:none; }
+.dq-btn.ghost:hover { border-color:var(--blue); color:var(--blue); background:none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dq-terrain, .dq-chip, .dq-btn { transition:none; }
+}
+
+/* "track today" card in the map-selection grid */
+.track-today-btn {
+  width:100%; padding:10px 16px; margin-bottom:10px;
+  font-family:var(--font-hand); font-size:clamp(16px,1.6vw,20px); color:#fff;
+  background:var(--blue); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
+  cursor:pointer; transition:all .05s; text-align:center;
+}
+.track-today-btn:hover { background:#4a5bc4; }
+.track-today-btn:active { box-shadow:none; transform:translate(2px,2px); }
+
 /* ── MEMBER GATE ── */
 .member-gate-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.6);
@@ -899,12 +1018,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <div class="wall-btns" id="wall-btns"></div>
 
 <!-- MATRIX PAGE TOGGLE -->
-<nav class="matrix-toggle" aria-label="switch matrix">
-  <a class="matrix-toggle-link" href="daily.html" onclick="return matrixNav(event,'daily.html')">daily</a>
-  <a class="matrix-toggle-link active" href="dream.html" onclick="return matrixNav(event,'dream.html')">dream</a>
-  <a class="matrix-toggle-link" href="cosmic.html" onclick="return matrixNav(event,'cosmic.html')">cosmic</a>
-</nav>
-
 <div class="save-status-bar" id="save-status-bar"></div>
 
 <!-- ADD NEW BUTTON — shown on map selector screen -->
@@ -1016,17 +1129,47 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <!-- Photo upload / sticker picker / text-add modals are now created dynamically
      by MatrixRender.createMatrixEditor() (matrix-render.js) — no static markup
      needed here. -->
-<!-- MEMBER GATE -->
+<!-- MEMBER GATE — photo uploads only; stickers/text stay free -->
 <div class="member-gate-overlay" id="member-gate-overlay">
   <div class="member-gate">
-    <div class="member-gate-title">dream matrix</div>
-    <div class="member-gate-text">the dream matrix is for paid members. free members have access to the daily tracker.</div>
+    <div class="member-gate-title">photo uploads</div>
+    <div class="member-gate-text">adding photos to your matrix is for paid members. stickers and text are still free for everyone.</div>
     <div class="member-gate-btns">
-      <button class="member-gate-btn" onclick="window.location.href='daily.html'">free tracker →</button>
-      <button class="member-gate-btn ghost" onclick="window.location.href='../users/membership.html'">upgrade now</button>
+      <button class="member-gate-btn" onclick="window.location.href='../users/membership.html'">upgrade now</button>
+      <button class="member-gate-btn ghost" onclick="closeMemberGate()">maybe later</button>
     </div>
-    <div style="text-align:center;margin-top:8px;">
-      <span style="font-family:var(--font-hand);font-size:13px;color:#aaa;cursor:pointer;text-decoration:underline;" onclick="showLoginModal()">login here</span>
+  </div>
+</div>
+
+<!-- DAYQUEST BUILDER — "track today" location picker (ported from daily.html) -->
+<div class="dq-overlay" id="dq-overlay">
+  <div class="dq-scroll">
+    <div class="dq-card">
+      <div class="dq-title-row">
+        <span class="dq-title">where are you today?</span>
+        <span class="dq-close" onclick="closeDayquestBuilder()">&#x2715;</span>
+      </div>
+      <div style="margin:-4px 0 10px;">
+        <span style="font-family:var(--font-hand);font-size:14px;color:#7a86bb;cursor:pointer;text-decoration:underline;" onclick="returnToDreamMatrix()">browse your dream maps →</span>
+      </div>
+      <div class="dq-body">
+        <div class="dq-preview-col">
+          <div class="dq-section-label">today's adventure:</div>
+          <div class="dq-map-frame" id="dq-map-frame"></div>
+        </div>
+        <div class="dq-terrain-col">
+          <div class="dq-section-label">terrain</div>
+          <div class="dq-cat-tabs" id="dq-cat-tabs"></div>
+          <div class="dq-palette" id="dq-palette"></div>
+        </div>
+        <div class="dq-climate-col">
+          <div class="dq-section-label">emotional climate</div>
+          <div class="dq-climates" id="dq-climates"></div>
+        </div>
+      </div>
+    </div>
+    <div class="dq-foot">
+      <button class="save-continue-btn" id="dq-confirm" disabled onclick="confirmDayquest()">add to matrix →</button>
     </div>
   </div>
 </div>
@@ -1056,6 +1199,7 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <script src="../assets/js/membership.js" defer></script>
 <script>
 let currentUser = null;
+let isPaidUser = false; // gates photo uploads only — the matrix itself is free
 
 
 // ── MATRIX PHOTO UPLOADS ──────────────────────────────────
@@ -1094,11 +1238,38 @@ let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
 let currentStep    = null; // 'map' | 'character' | 'bingo' | 'library' | 'journal' — whichever popup is open
-let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row
+let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row (or one daily_matrix row in daily mode)
 let activeSidequest    = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 let activeDreamCameTrue = null; // {name,terrain,feeling,tint,cat} when dream-came-true phase is taken
 
+// ── "TRACK TODAY" MODE ────────────────────────────────────
+// matrixMode switches the whole matrix shell (renderMatrix/getMatrixEditor/
+// openQuadrant/journal/inventory saves) between browsing a long-running
+// dream (table dream_matrix, scoped by activeGameId) and a single lightweight
+// same-day entry (table daily_matrix, scoped by activeEntryDate) — see
+// startTrackToday()/returnToDreamMatrix(). Backend tables stay fully
+// separate; only the front-end shell is shared.
+let matrixMode = 'dream'; // 'dream' | 'daily'
+let activeEntryDate = null; // 'YYYY-MM-DD' (user's LOCAL day) — daily mode only
+let activeDayquest  = null; // {terrain,feeling,tint,cat} — today's location, daily mode only
+let dqDraft = { terrain:null, feeling:null, tint:null, cat:null };
+
+function localTodayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function currentTable(){ return matrixMode === 'daily' ? 'daily_matrix' : 'dream_matrix'; }
+function currentUpsertBase(){
+  return matrixMode === 'daily'
+    ? { id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate }
+    : { id: activeEntryId, map_id: activeGameId, user_id: currentUser.id };
+}
+
 function showMemberGate() { document.getElementById('member-gate-overlay').classList.add('open'); }
+function closeMemberGate() { document.getElementById('member-gate-overlay').classList.remove('open'); }
 
 // ── LOGIN MODAL ───────────────────────────────────────────
 function showLoginModal() {
@@ -1174,15 +1345,12 @@ sb.auth.onAuthStateChange((event, session) => {
       currentUser = session.user;
       if (alreadySignedIn) return;
       closeLoginModal();
-      let isPaid = false;
       try {
         const { data: profile } = await sb.from('user-profiles')
           .select('username, membership_status').eq('id', currentUser.id).single();
         HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
-        isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
+        isPaidUser = HeartabilityMembership.isPaid(profile?.membership_status);
       } catch(e) {}
-      if (!isPaid) { showMemberGate(); return; }
-      document.getElementById('member-gate-overlay').classList.remove('open');
       stepInitial();
     }, 0);
   }
@@ -1599,6 +1767,7 @@ function renderMapGrid(games) {
       <span style="font-family:var(--font-hand);font-size:clamp(22px,2.4vw,30px);color:#333;">your maps</span>
     </div>
     <div style="width:100%;max-width:900px;display:flex;flex-direction:column;align-items:flex-end;">
+      <button class="track-today-btn" onclick="startTrackToday()">track today →</button>
       <div class="map-grid" style="width:100%;">${slots}</div>
       <button class="add-new-btn" style="position:static;display:block;margin-top:10px;" onclick="stepNewGame()">+ add new</button>
     </div>
@@ -1748,7 +1917,8 @@ async function stepBegin() {
 
 function openCharacterBuilder() {
   setQuadPopupTitle('build a character');
-  const src  = `../games/infinity-mirror.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
+  const gid = matrixMode === 'daily' ? activeEntryId : activeGameId;
+  const src  = `../games/infinity-mirror.html?game_id=${gid}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src, 'infinity-mirror');
   setSaveBtnVisible(true, 'loading...');
   document.getElementById('save-continue-btn').disabled = true;
@@ -1824,9 +1994,8 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
     else finalArchetypeId = newArch.id;
   }
 
-  const { error } = await sb.from('dream_matrix').upsert({
-    id: activeEntryId,
-    map_id: activeGameId, user_id: currentUser.id,
+  const { error } = await sb.from(currentTable()).upsert({
+    ...currentUpsertBase(),
     character_data: charState,
     archetype_id: finalArchetypeId,
   }, { onConflict: 'id' });
@@ -1847,7 +2016,8 @@ async function saveCharacterAndAdvance(charState, { fork, archetypeId }) {
 function stepBingo() {
   currentStep = 'bingo';
   setBubble('how full is your heart meter?', []);
-  const src  = `../games/bingo.html?game_id=${activeGameId}&phase=${activePhase}&loop=true&mode=cloud`;
+  const gid = matrixMode === 'daily' ? activeEntryId : activeGameId;
+  const src  = `../games/bingo.html?game_id=${gid}&phase=${activePhase}&loop=true&mode=cloud`;
   showIframe(src);
   setSaveBtnVisible(true, 'add to matrix →');
 }
@@ -1860,8 +2030,8 @@ const inventoryPanel = MatrixInventory.createPanel({
   sb,
   getCurrentUser: () => currentUser,
   persist: async (fields) => {
-    const { error } = await sb.from('dream_matrix').upsert({
-      id: activeEntryId, map_id: activeGameId, user_id: currentUser.id,
+    const { error } = await sb.from(currentTable()).upsert({
+      ...currentUpsertBase(),
       ...fields,
     }, { onConflict: 'id' });
     if (error) throw error;
@@ -1894,13 +2064,13 @@ async function saveLibrarySelection(){
 const journalPanel = MatrixJournal.createPanel({
   sb,
   getCurrentUser: () => currentUser,
-  table: 'dream_matrix',
+  get table() { return currentTable(); },
   charAssets: MatrixRender.CHAR_FULL_ASSETS,
   placeholder: 'what do you want to remember?',
   emptyText: 'What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries',
   isReady: () => !!activeEntryId,
   identityColumns: ['id'],
-  buildUpsertBase: () => ({ id: activeEntryId, map_id: activeGameId, user_id: currentUser.id }),
+  buildUpsertBase: () => currentUpsertBase(),
   rowMatchesActive: row => row.id === activeEntryId,
   sideForRow: (row, i) => i % 2 === 0 ? 'left' : 'right',
   charDataForRow: row => row.character_data || null,
@@ -1908,7 +2078,17 @@ const journalPanel = MatrixJournal.createPanel({
     const ld = row.location_data || {};
     return (ld.terrain && ld.feeling) ? `${ld.terrain} of ${ld.feeling}` : (ld.terrain || ld.feeling || '');
   },
+  // Dream mode: journal history scoped to the current dream (map_id). Daily
+  // mode: the whole day-by-day journal across every daily_matrix entry —
+  // matches daily.html's original (unscoped) history query.
   loadHistoryRows: async () => {
+    if (matrixMode === 'daily') {
+      const { data } = await sb.from('daily_matrix')
+        .select('id, journal_messages, created_at, character_data, location_data')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: true }).limit(60);
+      return data || [];
+    }
     const { data } = await sb.from('dream_matrix')
       .select('id, journal_messages, matrix_images, created_at, character_data, location_data')
       .eq('map_id', activeGameId).eq('user_id', currentUser.id)
@@ -1938,24 +2118,36 @@ function stepJournal() {
 // on every render). getUserId/getEntryId close over the page's own auth/
 // step state so the editor always acts on whichever entry is active.
 let _matrixEditor = null;
+let _matrixEditorMode = null;
 function getMatrixEditor(){
-  if (_matrixEditor) return _matrixEditor;
+  if (_matrixEditor && _matrixEditorMode === matrixMode) return _matrixEditor;
+  _matrixEditorMode = matrixMode;
   _matrixEditor = MatrixRender.createMatrixEditor({
-    sb, table: 'dream_matrix',
+    sb, table: currentTable(),
     getEntryId: () => activeEntryId,
     getUserId: () => currentUser?.id,
     status: (msg, color) => showRoomStatus(msg, color),
     onChange: renderMatrix,
     onQuadrantOpen: openQuadrant,
     onOpenJournal: openJournalPopup,
+    onPhotoBlocked: () => {
+      if (isPaidUser) return false;
+      showMemberGate();
+      return true;
+    },
   });
   return _matrixEditor;
 }
 
-const QUADRANT_PROMPTS = {
+const QUADRANT_PROMPTS_DREAM = {
   map: 'where are you?', bingo: 'how are you?',
   library: "what's in your bag?", char: 'who are you?',
 };
+const QUADRANT_PROMPTS_DAILY = {
+  map: 'where are you today?', bingo: 'how are you?',
+  library: "what's in your bag?", char: 'who are you?',
+};
+let QUADRANT_PROMPTS = QUADRANT_PROMPTS_DREAM;
 
 // Re-assemble + redraw the matrix in place — this is the landing view itself
 // now (see stepInitial), not a final "step". With no activeEntryId yet, the
@@ -1964,9 +2156,9 @@ const QUADRANT_PROMPTS = {
 let _matrixSeed = 'matrix';
 async function renderMatrix() {
   const data = activeEntryId
-    ? await MatrixRender.assemble(sb, activeEntryId, activeGameData, 'dream_matrix')
+    ? await MatrixRender.assemble(sb, activeEntryId, matrixMode === 'daily' ? null : activeGameData, currentTable())
     : {};
-  _matrixSeed = `${activeGameId}|${activeEntryId}`;
+  _matrixSeed = matrixMode === 'daily' ? (activeEntryId || 'daily-matrix') : `${activeGameId}|${activeEntryId}`;
   showMatrixPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showEditNotes: false, showFrame: true,
     editable: !!activeEntryId, showJournalTool: !!activeEntryId,
@@ -2010,7 +2202,7 @@ function handleQuadPopupOverlayClick(e) {
 // entry exists, so this should only ever fire for those once activeEntryId
 // is set — the guard is just a safety net.
 function openQuadrant(quadrant) {
-  if (quadrant === 'map') return openMapPopup();
+  if (quadrant === 'map') return matrixMode === 'daily' ? openLocationPopup() : openMapPopup();
   if (!activeEntryId) return;
   if (quadrant === 'bingo') return openBingoPopup();
   if (quadrant === 'char') return openCharPopup();
@@ -2129,9 +2321,8 @@ window.addEventListener('message', async e => {
     const energyScore  = Math.round((score / 24) * 100);
     const bingoPayload = { marked: markedArr, score };
 
-    const { error } = await sb.from('dream_matrix').upsert({
-      id: activeEntryId,
-      map_id: activeGameId, user_id: currentUser.id,
+    const { error } = await sb.from(currentTable()).upsert({
+      ...currentUpsertBase(),
       bingo_data: bingoPayload, energy_score: energyScore,
     }, { onConflict: 'id' });
 
@@ -2406,6 +2597,133 @@ function confirmDct() {
   stepBegin();  // saves this entry's location, closes the popup, redraws the matrix
 }
 
+// ── TRACK TODAY — DAYQUEST BUILDER (ported from matrix/daily.html) ──
+// A single same-day location, distinct from a dream's multi-phase map. Its
+// own top-level overlay (#dq-overlay), not nested in the quad-popup shell —
+// see openQuadrant()'s matrixMode branch on the 'map' quadrant.
+function buildDayquestPalette() {
+  const pal = document.getElementById('dq-palette');
+  pal.innerHTML = TreasureMap.TERRAIN.map(t => `
+    <div class="dq-terrain" id="dq-terrain-${t.id}" data-cat="${t.cat}" onclick="dayquestPickTerrain('${t.id}')">
+      <img src="${TERRAIN_IMGS[t.id]}" alt="${t.id}">
+      <span>${t.id}</span>
+    </div>`).join('');
+  TreasureMap.renderTerrainCatTabs(
+    document.getElementById('dq-cat-tabs'), pal, { btnClass: 'dq-cat-btn' }
+  );
+  const cl = document.getElementById('dq-climates');
+  cl.innerHTML = WEATHER_CATS.map(cat => `
+    <div class="dq-climate ${cat.id}">
+      <div class="dq-climate-head">${cat.label}</div>
+      <div class="dq-chips">
+        ${cat.feelings.map(f => `<span class="dq-chip" id="dq-chip-${f}"
+            onclick="dayquestPickFeeling('${f}','${cat.id}','${cat.tint}')">${f}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openLocationPopup() {
+  dqDraft = activeDayquest
+    ? { terrain: activeDayquest.terrain || null, feeling: activeDayquest.feeling || null,
+        tint: activeDayquest.tint || null, cat: activeDayquest.cat || null }
+    : { terrain:null, feeling:null, tint:null, cat:null };
+  document.querySelectorAll('.dq-terrain.active, .dq-chip.active').forEach(el => el.classList.remove('active'));
+  if (dqDraft.terrain) document.getElementById(`dq-terrain-${dqDraft.terrain}`)?.classList.add('active');
+  if (dqDraft.feeling) document.getElementById(`dq-chip-${dqDraft.feeling}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
+  document.getElementById('dq-overlay').classList.add('open');
+}
+function closeDayquestBuilder() {
+  document.getElementById('dq-overlay').classList.remove('open');
+}
+function dayquestPickTerrain(id) {
+  dqDraft.terrain = id;
+  document.querySelectorAll('.dq-terrain').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dq-terrain-${id}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
+}
+function dayquestPickFeeling(feeling, cat, tint) {
+  dqDraft.feeling = feeling; dqDraft.cat = cat; dqDraft.tint = tint;
+  document.querySelectorAll('.dq-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById(`dq-chip-${feeling}`)?.classList.add('active');
+  renderDayquestPreview();
+  refreshDayquestConfirm();
+}
+function refreshDayquestConfirm() {
+  document.getElementById('dq-confirm').disabled = !(dqDraft.terrain && dqDraft.feeling);
+}
+function renderDayquestPreview() {
+  document.getElementById('dq-map-frame').innerHTML = buildSingleLocationSVG(dqDraft);
+}
+
+async function confirmDayquest() {
+  if (!(dqDraft.terrain && dqDraft.feeling)) return;
+  const btn = document.getElementById('dq-confirm');
+  if (btn) { btn.disabled = true; btn.textContent = 'saving...'; }
+  activeDayquest = { terrain: dqDraft.terrain, feeling: dqDraft.feeling, tint: dqDraft.tint, cat: dqDraft.cat };
+  activePhase = 'dayquest';
+  if (!activeEntryId) activeEntryId = crypto.randomUUID();
+  activeEntryDate = activeEntryDate || localTodayStr();
+
+  const { error } = await sb.from('daily_matrix').upsert({
+    id: activeEntryId, user_id: currentUser.id, entry_date: activeEntryDate,
+    location_data: activeDayquest,
+  }, { onConflict: 'id' });
+
+  if (error) {
+    HGModal.alert('oops', 'save failed');
+    if (btn) { btn.disabled = false; btn.textContent = 'add to matrix →'; }
+    return;
+  }
+
+  showRoomStatus('location saved ✓', '#6ab86a');
+  if (btn) { btn.disabled = false; btn.textContent = 'add to matrix →'; }
+  closeDayquestBuilder();
+  await renderMatrix();
+}
+
+// Switches the matrix shell into "track today" mode — looks up (or leaves to
+// be created on first save) today's daily_matrix row and redraws the
+// canvas against it. Reachable from the map-selection grid's "track today"
+// button, or via ?mode=daily deep links (e.g. from archive.html).
+async function startTrackToday() {
+  if (!currentUser) { showLoginModal(); return; }
+  matrixMode = 'daily';
+  activeEntryDate = localTodayStr();
+  activeEntryId = null;
+  activeDayquest = null;
+  activePhase = null;
+  QUADRANT_PROMPTS = QUADRANT_PROMPTS_DAILY;
+
+  try {
+    const { data } = await sb.from('daily_matrix')
+      .select('*').eq('user_id', currentUser.id).eq('entry_date', activeEntryDate).maybeSingle();
+    if (data) {
+      activeEntryId = data.id;
+      activePhase = 'dayquest';
+      activeDayquest = data.location_data || null;
+    }
+  } catch(e) { console.error('[track today] lookup failed', e); }
+
+  closeQuadrantPopup();
+  await renderMatrix();
+}
+
+// Back out of "track today" mode into the normal dream map-selection grid.
+async function returnToDreamMatrix() {
+  matrixMode = 'dream';
+  QUADRANT_PROMPTS = QUADRANT_PROMPTS_DREAM;
+  activeEntryId = null;
+  activeGameId = null;
+  activeGameData = null;
+  activePhase = null;
+  closeDayquestBuilder();
+  await renderMatrix();
+  openMapPopup();
+}
+
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
   HeartabilityNav.init({
@@ -2420,34 +2738,40 @@ async function init() {
 
   buildSidequestPalette();
   buildDctPalette();
+  buildDayquestPalette();
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { showMemberGate(); return; }
-  currentUser = session.user;
+  if (session) {
+    currentUser = session.user;
 
-  // Touching sb.auth's internal session lock a second time after resuming a
-  // persisted session (e.g. via sb.from(), which resolves auth headers
-  // internally) can hang forever. Pin the token we already have onto a fresh
-  // client for every call from here on, so nothing in this page load ever
-  // touches that lock again. Sign-in/out keep using the original `sb` above,
-  // which keeps normal auto-refresh/persistence. This second client never
-  // reads/writes localStorage itself (no refresh, no getSession calls), so
-  // give it its own dummy storageKey — otherwise Supabase logs a "multiple
-  // GoTrueClient instances" warning for two clients sharing the real one.
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false, storageKey: 'sb-dream-matrix-pinned-noop' },
-    global: { headers: { Authorization: `Bearer ${session.access_token}` } }
-  });
-  HeartabilityNav.setClient(sb);
+    // Touching sb.auth's internal session lock a second time after resuming a
+    // persisted session (e.g. via sb.from(), which resolves auth headers
+    // internally) can hang forever. Pin the token we already have onto a fresh
+    // client for every call from here on, so nothing in this page load ever
+    // touches that lock again. Sign-in/out keep using the original `sb` above,
+    // which keeps normal auto-refresh/persistence. This second client never
+    // reads/writes localStorage itself (no refresh, no getSession calls), so
+    // give it its own dummy storageKey — otherwise Supabase logs a "multiple
+    // GoTrueClient instances" warning for two clients sharing the real one.
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false, storageKey: 'sb-dream-matrix-pinned-noop' },
+      global: { headers: { Authorization: `Bearer ${session.access_token}` } }
+    });
+    HeartabilityNav.setClient(sb);
 
-  let isPaid = false;
-  try {
-    const { data: profile } = await sb.from('user-profiles')
-      .select('username, membership_status').eq('id', currentUser.id).single();
-    HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
-    isPaid = HeartabilityMembership.isPaid(profile?.membership_status);
-  } catch(e) {}
-  if (!isPaid) { showMemberGate(); return; }
-  stepInitial();
+    try {
+      const { data: profile } = await sb.from('user-profiles')
+        .select('username, membership_status').eq('id', currentUser.id).single();
+      HeartabilityNav.setAuthState({ loggedIn: true, username: profile?.username || currentUser.email });
+      isPaidUser = HeartabilityMembership.isPaid(profile?.membership_status);
+    } catch(e) {}
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'daily' && currentUser) {
+    startTrackToday();
+  } else {
+    stepInitial();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

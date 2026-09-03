@@ -637,8 +637,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 <span class="floating-play-link" id="play-link" style="display:none;"></span>
 
 <div class="tab-bar" id="tab-bar">
-  <button class="tab-btn" data-tab="daily" onclick="switchTab('daily')">daily</button>
-  <button class="tab-btn" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+  <button class="tab-btn" data-tab="dream" onclick="switchTab('dream')">dream</button>
   <button class="tab-btn" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
   <button class="tab-btn" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
   <button class="tab-btn" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
@@ -647,11 +646,10 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 
 <div class="tab-bar-mobile" id="tab-bar-mobile">
   <button class="tab-bar-mobile-btn" id="tab-bar-mobile-btn" onclick="toggleTabMenu()">
-    <span id="tab-bar-mobile-label">daily</span><span class="tab-bar-mobile-caret">▾</span>
+    <span id="tab-bar-mobile-label">dream</span><span class="tab-bar-mobile-caret">▾</span>
   </button>
   <div class="tab-bar-mobile-menu" id="tab-bar-mobile-menu">
-    <button class="tab-bar-mobile-item" data-tab="daily" onclick="switchTab('daily')">daily</button>
-    <button class="tab-bar-mobile-item" data-tab="dream" onclick="switchTab('dream')">dream<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
+    <button class="tab-bar-mobile-item" data-tab="dream" onclick="switchTab('dream')">dream</button>
     <button class="tab-bar-mobile-item" data-tab="cosmic" onclick="switchTab('cosmic')">cosmic<img class="tab-lock" src="../assets/elements/lock.png" alt=""></button>
     <button class="tab-bar-mobile-item" data-tab="archetype" onclick="switchTab('archetype')">archetypes</button>
     <button class="tab-bar-mobile-item" data-tab="inventory" onclick="switchTab('inventory')">inventory</button>
@@ -1053,7 +1051,7 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 let currentUser   = null;
 let isPaid        = false;
 let activeTab     = null;               // 'dream' | 'cosmic' | 'daily' | 'archetype' | 'inventory' | 'patterns'
-const LOCKED_TABS = ['dream', 'cosmic']; // 'patterns' is locked for everyone (coming soon) — handled separately in switchTab
+const LOCKED_TABS = ['cosmic']; // 'patterns' is locked for everyone (coming soon) — handled separately in switchTab
 
 // currentMode drives the shared map+graph+calendar system: 'dream' | 'daily'
 let currentMode   = 'dream';
@@ -1084,8 +1082,11 @@ const DP_WEATHER_COLORS = {
 // popup state
 let activeDayKey  = null;
 let activeSaveId  = null;
+let activeSaveSource = 'dream';  // 'dream' | 'daily' — which table activeSaveId belongs to (a dream tab's
+                                  // calendar can hold merged daily_matrix rows, see loadEntries())
 let lastMatrixData = null;
 let matrixEditor  = null;        // full drag/rotate/resize + add-photo/sticker/text editor for the dream-entry view
+let dailyMatrixEditor = null;    // same, for a daily_matrix entry opened from a (merged) calendar day
 let journalEditor = null;        // dream_matrix notes
 let dailyJournalEditor = null;   // daily_matrix notes
 
@@ -1143,7 +1144,8 @@ function formatTime(ts) {
 function locationLabel(save) {
   const l = save.location_data || {};
   let suffix = '';
-  if (save.map_phase === 'sidequest') suffix = ' (sidequest)';
+  if (save._source === 'daily') suffix = ' (track today)';
+  else if (save.map_phase === 'sidequest') suffix = ' (sidequest)';
   else if (save.map_phase === 'dream_came_true') suffix = ' (dream came true)';
   if (l.name) return l.name;
   if (l.terrain && l.feeling) return `the ${l.terrain} of ${l.feeling}` + suffix;
@@ -1182,7 +1184,7 @@ function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':
 // Live-game deep links shown in the nav bar, per active tab (Completed/Archetypes
 // have no "continue playing" destination, so the link just stays hidden).
 const LIVE_GAME_LINKS = {
-  daily:  { href: 'daily.html',  label: 'daily matrix →' },
+  daily:  { href: 'dream.html?mode=daily', label: 'track today →' },
   dream:  { href: 'dream.html',  label: 'dream matrix →' },
   cosmic: { href: 'cosmic.html', label: 'cosmic matrix →' },
 };
@@ -1246,7 +1248,6 @@ function switchTab(tab){
 }
 function showGate(tab, comingSoon){
   const copy = {
-    dream:     { title:'dream matrix archive', text:'the dream matrix archive is for paid members. free members can still browse the daily tracker and their cast of archetypes.' },
     cosmic:    { title:'cosmic matrix archive', text:'the cosmic matrix archive is for paid members — one season, one ritual, one archive to look back on.' },
     patterns:  { title:'patterns',              text:'deeper pattern tracking — recent history, energy over time, weather report, and commonly visited — is coming soon.' },
   }[tab] || { title:'members only', text:'this part of the archive is for paid members.' };
@@ -1486,7 +1487,7 @@ function paintGraph(slots, opts) {
 // ── DAY POPUP ─────────────────────────────────────────────
 function openDayPopup(dateStr) {
   activeDayKey = dateStr;
-  const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> new Date(a.created_at||a.entry_date) - new Date(b.created_at||b.entry_date));
+  const saves = (daysByKey[dateStr] || []).slice().sort((a,b)=> (a._source==='daily'?0:1) - (b._source==='daily'?0:1) || new Date(a.created_at||0) - new Date(b.created_at||0));
 
   if (currentMode === 'daily') {
     if (saves.length) openDailyDayInPreview(dateStr);
@@ -1504,7 +1505,7 @@ function openDayPopup(dateStr) {
       row.className = 'loc-row';
       row.innerHTML = `<span class="loc-name">${escapeHtml(locationLabel(save))}</span>
         <span style="display:flex;align-items:center;gap:10px;">
-          <span class="loc-time">${formatTime(save.created_at)}</span>
+          <span class="loc-time">${save._source==='daily' ? '' : formatTime(save.created_at)}</span>
           <span class="loc-arrow">→</span>
         </span>`;
       row.onclick = () => openMatrixView(save.id);
@@ -1536,6 +1537,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') { closeDayPopu
 async function openMatrixView(saveId) {
   activeSaveId = saveId;
   const save = allSaves.find(s => s.id === saveId);
+  activeSaveSource = save?._source === 'daily' ? 'daily' : 'dream';
   document.getElementById('matrix-loc-title').textContent = save ? locationLabel(save) : '';
   document.getElementById('day-list-wrap').style.display = 'none';
   document.getElementById('day-matrix-wrap').style.display = 'flex';
@@ -1545,16 +1547,18 @@ async function openMatrixView(saveId) {
 }
 async function refreshMatrixView() {
   if (!activeSaveId) return;
-  const game = allGames.find(g => g.id === activeGameId);
-  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, 'dream_matrix');
-  const seed = `dream_matrix|${activeGameId||'x'}|${activeSaveId}`;
+  const isDaily = activeSaveSource === 'daily';
+  const table = isDaily ? 'daily_matrix' : 'dream_matrix';
+  const game  = isDaily ? null : allGames.find(g => g.id === activeGameId);
+  lastMatrixData = await MatrixRender.assemble(sb, activeSaveId, game, table);
+  const seed = `${table}|${isDaily ? 'daily' : (activeGameId||'x')}|${activeSaveId}`;
   const stage = document.getElementById('matrix-stage');
   // editable:true brings in the full toolbar (add photo/sticker/text, plus
   // drag/rotate/resize on every item) — replaces the old add-photo-only
-  // affordance (see matrixEditor setup below).
+  // affordance (see matrixEditor/dailyMatrixEditor setup below).
   stage.innerHTML = MatrixRender.buildHTML(lastMatrixData, seed,
     { showEditNotes:true, archiveHref:null, bgImage:'../assets/elements/sky.png', showFrame:true, editable:true });
-  matrixEditor.attachInteractions(stage);
+  (isDaily ? dailyMatrixEditor : matrixEditor).attachInteractions(stage);
 }
 
 // ── GAME LOADING + ENTRIES (dream / completed) ────────────
@@ -1586,12 +1590,29 @@ async function loadEntries() {
     .eq('map_id', activeGameId)
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending:true });
-  allSaves = data || [];
+  const dreamSaves = (data || []).map(s => ({ ...s, _source: 'dream' }));
+
+  // "Track today" entries aren't tied to any one dream map — pull in every
+  // daily_matrix row for the user so the calendar/graph for whichever dream
+  // is open also reflects days that were only tracked via track-today.
+  let dailySaves = [];
+  try {
+    const { data: dailyData } = await sb.from('daily_matrix')
+      .select('id, character_data, bingo_data, energy_score, location_data, journal_messages, entry_date')
+      .eq('user_id', currentUser.id)
+      .order('entry_date', { ascending:true });
+    dailySaves = (dailyData || []).map(s => ({ ...s, _source: 'daily' }));
+  } catch(e) { console.error('[archive] daily_matrix merge failed', e); }
+
+  allSaves = dreamSaves.concat(dailySaves);
 
   // Group once, by local day. Calendar, graph, and popup all read this.
+  // Daily rows key off entry_date directly (already a local YYYY-MM-DD
+  // string) rather than localDayKey(created_at), which expects a real
+  // timestamp.
   daysByKey = {};
   allSaves.forEach(s => {
-    const k = localDayKey(s.created_at);
+    const k = s._source === 'daily' ? s.entry_date : localDayKey(s.created_at);
     (daysByKey[k] = daysByKey[k] || []).push(s);
   });
 
@@ -2714,7 +2735,7 @@ async function maybeOpenDeepLinkedEntry() {
   if (!openEntry) return false;
   const [kind, ...rest] = openEntry.split(':');
 
-  if (kind === 'dream' && isPaid) {
+  if (kind === 'dream') {
     const [rowId, mapId] = rest;
     switchTab('dream');
     await loadGamesForMode('dream');
@@ -2768,6 +2789,10 @@ async function init() {
     sb, table:'dream_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
   });
+  dailyMatrixEditor = MatrixRender.createMatrixEditor({
+    sb, table:'daily_matrix', getEntryId: () => activeSaveId,
+    onChange: refreshMatrixView, status: statusRoute,
+  });
   journalEditor = MatrixRender.createJournalEditor({
     sb, table:'dream_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
@@ -2777,8 +2802,8 @@ async function init() {
     onChange: refreshMatrixView, status: statusRoute,
   });
   MatrixRender.attachMatrix(document.getElementById('matrix-stage'), {
-    onRemovePhoto: (url) => matrixEditor.removeMatrixPhoto(url),
-    onEditNotes:   () => (currentMode==='daily' ? dailyJournalEditor : journalEditor).open(lastMatrixData ? lastMatrixData.journalText : ''),
+    onRemovePhoto: (url) => (activeSaveSource==='daily' ? dailyMatrixEditor : matrixEditor).removeMatrixPhoto(url),
+    onEditNotes:   () => (activeSaveSource==='daily' ? dailyJournalEditor : journalEditor).open(lastMatrixData ? lastMatrixData.journalText : ''),
   });
 
   document.getElementById('loading-state').style.display='none';
@@ -2788,12 +2813,12 @@ async function init() {
   const params = new URLSearchParams(window.location.search);
   const urlGameId = params.get('game_id');
 
-  if (urlGameId && isPaid) {
+  if (urlGameId) {
     switchTab('dream');
     await loadGamesForMode('dream');
     if (allGames.find(g => g.id === urlGameId)) await selectMapForArchive(urlGameId);
   } else {
-    switchTab(isPaid ? 'dream' : 'daily');
+    switchTab('dream');
   }
 }
 

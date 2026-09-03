@@ -10,7 +10,7 @@ window.HeartabilityRoomNav = (function () {
     { id: 'game-room', label: 'game room', href: '../rooms/game-room.html' },
     { id: 'library',   label: 'library',   href: '../rooms/library.html' },
     { id: 'timewarp',  label: 'timewarp',  href: '../matrix/timewarp.html' },
-    { id: 'daily',     label: 'matrix',    href: '../matrix/daily.html' },
+    { id: 'daily',     label: 'matrix',    href: '../matrix/dream.html' },
     { id: 'archive',   label: 'archive',   href: '../matrix/archive.html' },
   ];
 
