@@ -152,8 +152,9 @@ body {
   z-index: 20;
   background: rgba(4, 6, 18, 0.62);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: clamp(90px, 16vh, 200px);
   cursor: pointer;
   opacity: 1;
   transition: opacity 0.45s ease;
@@ -202,7 +203,7 @@ body {
 .arrival-option:focus-visible { transform: translateY(-6px); }
 
 .arrival-icon {
-  width: clamp(90px, 12vw, 170px);
+  width: clamp(150px, 17vw, 280px);
   height: auto;
   filter: drop-shadow(0 0 14px rgba(180, 210, 255, 0.55));
 }
@@ -210,7 +211,7 @@ body {
 .arrival-label {
   font-family: "Mazzy", cursive;
   color: #fff;
-  font-size: clamp(16px, 1.9vw, 23px);
+  font-size: clamp(22px, 2.6vw, 34px);
   text-align: center;
 }
 
@@ -260,7 +261,7 @@ body {
     flex-direction: column;
     gap: 30px;
   }
-  .arrival-icon { width: clamp(90px, 32vw, 150px); }
+  .arrival-icon { width: clamp(120px, 38vw, 190px); }
 }
 
 /* ══════════════════════════════════════════════════
@@ -299,7 +300,7 @@ body {
 <h1 class="sr-only">Heartability</h1>
 
 <!-- Arrival selection overlay: shown on load, dismissed by clicking off a button -->
-<div class="arrival-overlay" id="arrivalOverlay">
+<div class="arrival-overlay closed" id="arrivalOverlay">
   <div class="arrival-panel">
     <h2 class="arrival-heading">where do you want to go?</h2>
     <div class="arrival-options">
@@ -351,7 +352,17 @@ body {
 <script>
 (function () {
   var overlay = document.getElementById('arrivalOverlay');
+  var castleLink = document.querySelector('.castle-link');
   if (!overlay) return;
+
+  if (castleLink) {
+    castleLink.addEventListener('click', function (e) {
+      if (!overlay.classList.contains('closed')) return;
+      e.preventDefault();
+      overlay.classList.remove('closed');
+    });
+  }
+
   overlay.addEventListener('click', function (e) {
     if (e.target.closest('a')) return;
     overlay.classList.add('closed');
