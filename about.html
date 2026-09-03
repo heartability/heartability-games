@@ -262,6 +262,16 @@ body {
 .library-desc p { margin: 0 0 16px; }
 .library-desc p:last-child { margin-bottom: 0; }
 
+/* Mobile-only CTA column; no effect on the desktop layout above */
+.library-cta {
+  display: none;
+  font-family: "ZoesHandwriting", cursive;
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+}
+.library-cta:hover { text-decoration: underline; }
+
 /* ── FOOTER ── */
 .about-footer {
   display: flex;
@@ -288,8 +298,9 @@ body {
   .about-header { align-items: center; gap: 3vw; }
   .about-intro-text { font-size: 18px; max-width: none; }
   .about-castle-img { width: clamp(120px, 45vw, 200px); margin-top: 0; }
+  .about-tagline { font-size: clamp(18px, 4.5vw, 24px); }
 
-  .section-title-center { white-space: nowrap; font-size: 15px; }
+  .section-title-center { white-space: nowrap; font-size: clamp(22px, 7vw, 32px); }
 
   .dreams-grid { flex-direction: column; gap: 4vh; }
   .dreams-copy { max-width: none; text-align: center; }
@@ -300,7 +311,30 @@ body {
     min-height: clamp(180px, 48vw, 230px);
   }
 
-  .library-row { flex-direction: column; text-align: center; }
+  /* Library: shelf moves to the right of the text, the whole block shifts
+     left, and a "let's go" CTA fills the remaining column at a 3:1 ratio */
+  .library-content {
+    display: flex;
+    align-items: center;
+    gap: 4vw;
+  }
+  .library-row {
+    flex: 3;
+    margin: 0;
+    max-width: none;
+    gap: 3vw;
+  }
+  .library-row .library-desc { order: 1; text-align: left; }
+  .library-row .reveal-shelf {
+    order: 2;
+    width: clamp(70px, 22vw, 110px);
+    min-height: clamp(70px, 22vw, 110px);
+  }
+  .library-cta {
+    display: block;
+    flex: 1;
+    font-size: clamp(16px, 4.5vw, 20px);
+  }
 }
 
 </style>
@@ -348,18 +382,21 @@ body {
 
 <section class="library-section">
   <h2 class="section-title section-title-center">visit the library</h2>
-  <div class="library-row">
-    <div class="reveal-item reveal-shelf" tabindex="0" role="button" aria-expanded="false">
-      <img class="reveal-img" src="assets/elements/shelf.png" alt="Library shelf">
-      <div class="reveal-text">
-        <p>explore our collection of inspiration</p>
-        <a class="play-now-link" href="rooms/library.html">go now →</a>
+  <div class="library-content">
+    <div class="library-row">
+      <div class="reveal-item reveal-shelf" tabindex="0" role="button" aria-expanded="false">
+        <img class="reveal-img" src="assets/elements/shelf.png" alt="Library shelf">
+        <div class="reveal-text">
+          <p>explore our collection of inspiration</p>
+          <a class="play-now-link" href="rooms/library.html">go now →</a>
+        </div>
+      </div>
+      <div class="library-desc">
+        <p>The library is a collection of resources designed as a choose your own adventure approach to building a feed.</p>
+        <p>Instead of creating an algorithm, you self select your interests with every matrix entry, each creating a unique session from the last.</p>
       </div>
     </div>
-    <div class="library-desc">
-      <p>The library is a collection of resources designed as a choose your own adventure approach to building a feed.</p>
-      <p>Instead of creating an algorithm, you self select your interests with every matrix entry, each creating a unique session from the last.</p>
-    </div>
+    <a class="library-cta" href="rooms/game-room.html">let's go →</a>
   </div>
 </section>
 
