@@ -31,6 +31,10 @@
   font-family: "PFPixelScript";
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Mazzy";
+  src: url("assets/fonts/mazzy-TM.otf") format("opentype");
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -141,6 +145,75 @@ body {
 .copyright a { color: inherit; text-decoration: none; }
 .copyright a:hover { color: rgba(255,255,255,0.72); }
 
+/* ── ARRIVAL SELECTION OVERLAY ── */
+.arrival-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(4, 6, 18, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+.arrival-overlay.closed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.arrival-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(28px, 6vh, 64px);
+  cursor: default;
+  padding: 24px;
+}
+
+.arrival-heading {
+  font-family: "Mazzy", cursive;
+  font-weight: normal;
+  color: #fff;
+  font-size: clamp(28px, 4.5vw, 56px);
+  text-align: center;
+  text-shadow: 0 0 24px rgba(150, 190, 255, 0.55);
+}
+
+.arrival-options {
+  display: flex;
+  gap: clamp(28px, 7vw, 100px);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.arrival-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.arrival-option:hover,
+.arrival-option:focus-visible { transform: translateY(-6px); }
+
+.arrival-icon {
+  width: clamp(90px, 12vw, 170px);
+  height: auto;
+  filter: drop-shadow(0 0 14px rgba(180, 210, 255, 0.55));
+}
+
+.arrival-label {
+  font-family: "Mazzy", cursive;
+  color: #fff;
+  font-size: clamp(16px, 1.9vw, 23px);
+  text-align: center;
+}
+
 /* ── SCREEN READER ONLY ── */
 .sr-only {
   position: absolute;
@@ -182,6 +255,12 @@ body {
   }
 
   .copyright { font-size: 6px; }
+
+  .arrival-options {
+    flex-direction: column;
+    gap: 30px;
+  }
+  .arrival-icon { width: clamp(90px, 32vw, 150px); }
 }
 
 /* ══════════════════════════════════════════════════
@@ -219,6 +298,27 @@ body {
 </div>
 <h1 class="sr-only">Heartability</h1>
 
+<!-- Arrival selection overlay: shown on load, dismissed by clicking off a button -->
+<div class="arrival-overlay" id="arrivalOverlay">
+  <div class="arrival-panel">
+    <h2 class="arrival-heading">where do you want to go?</h2>
+    <div class="arrival-options">
+      <a class="arrival-option" href="rooms/game-room.html">
+        <img class="arrival-icon" src="assets/elements/home-gate.png" alt="Explore the castle">
+        <span class="arrival-label">explore the castle</span>
+      </a>
+      <a class="arrival-option" href="matrix/archive.html">
+        <img class="arrival-icon" src="assets/elements/home-matrix.png" alt="Enter the matrix">
+        <span class="arrival-label">enter the matrix</span>
+      </a>
+      <a class="arrival-option" href="rooms/library.html">
+        <img class="arrival-icon" src="assets/elements/home-shelf.png" alt="Visit the library">
+        <span class="arrival-label">visit the library</span>
+      </a>
+    </div>
+  </div>
+</div>
+
 <picture>
   <source media="(max-width: 768px)" srcset="assets/elements/explore-dreams-m.png">
   <img class="dreams-banner"
@@ -249,6 +349,15 @@ body {
 <p class="copyright">©&nbsp;<a href="https://untolduntilmedia.com" target="_blank" rel="noopener">untold until media</a></p>
 
 <script>
+(function () {
+  var overlay = document.getElementById('arrivalOverlay');
+  if (!overlay) return;
+  overlay.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
+    overlay.classList.add('closed');
+  });
+}());
+
 (function () {
   if (window.innerWidth > 768) return;
 
