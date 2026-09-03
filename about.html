@@ -59,12 +59,14 @@ body {
   padding: clamp(24px, 5vh, 48px) 5vw 0;
 }
 
-/* ── HEADER: restored exactly as it was in the original about.html — text left, castle right ── */
+/* ── HEADER: castle + text anchored together as one group (not pinned to
+     opposite edges), so the gap between them stays proportional instead
+     of stretching open as the viewport widens ── */
 .about-header {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 3vw;
 }
 .about-intro-text {
