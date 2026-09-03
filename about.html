@@ -17,6 +17,10 @@
   font-family: "PFPixelscript";
   src: url("assets/fonts/PFPixelscriptProRegular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "MazzyTM";
+  src: url("assets/fonts/mazzy-TM.otf") format("opentype");
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -87,13 +91,16 @@ body {
   margin-top: clamp(12px, 2vh, 20px);
 }
 
-/* ── Shared section titles: always PFPixelscript (this is the site's "cursive" display font).
-     ZoesHandwriting is body copy only and is never italicized. ── */
+/* ── Shared section titles: MazzyTM (heading font). PFPixelscript is now
+     the "game font" only — used inside game art and the dream/matrix
+     graphic, not for page headings. ZoesHandwriting is body copy only
+     and is never italicized. ── */
 .section-title {
-  font-family: "PFPixelscript", cursive;
+  font-family: "MazzyTM", cursive;
   color: #fff;
   font-size: var(--fs-title);
   line-height: 2.1;
+  letter-spacing: 0.1em;
 }
 .section-title-center {
   text-align: center;
