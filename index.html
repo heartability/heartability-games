@@ -171,6 +171,7 @@ body {
   gap: clamp(28px, 6vh, 64px);
   cursor: default;
   padding: 24px;
+  width: min(92vw, 720px);
 }
 
 .arrival-heading {
@@ -215,6 +216,17 @@ body {
   text-align: center;
 }
 
+.arrival-learn-more {
+  align-self: flex-end;
+  font-family: "Mazzy", cursive;
+  color: #fff;
+  opacity: 0.8;
+  font-size: clamp(16px, 1.8vw, 22px);
+  text-decoration: none;
+}
+.arrival-learn-more:hover,
+.arrival-learn-more:focus-visible { opacity: 1; }
+
 /* ── SCREEN READER ONLY ── */
 .sr-only {
   position: absolute;
@@ -257,11 +269,31 @@ body {
 
   .copyright { font-size: 6px; }
 
-  .arrival-options {
-    flex-direction: column;
-    gap: 30px;
+  .arrival-overlay {
+    padding-top: clamp(60px, 11vh, 110px);
   }
-  .arrival-icon { height: clamp(145px, 46vw, 230px); width: auto; }
+  .arrival-panel {
+    gap: clamp(24px, 5vh, 40px);
+  }
+  .arrival-heading {
+    font-size: clamp(24px, 6.5vw, 34px);
+  }
+  .arrival-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "castle library"
+      "matrix matrix";
+    row-gap: clamp(24px, 5vh, 40px);
+    column-gap: 14px;
+    align-items: start;
+    width: 100%;
+  }
+  .arrival-castle { grid-area: castle; }
+  .arrival-library { grid-area: library; }
+  .arrival-matrix { grid-area: matrix; }
+  .arrival-icon { height: clamp(110px, 26vh, 170px); width: auto; }
+  .arrival-label { font-size: clamp(17px, 4.5vw, 22px); }
 }
 
 /* ══════════════════════════════════════════════════
@@ -304,19 +336,20 @@ body {
   <div class="arrival-panel">
     <h2 class="arrival-heading">where do you want to go?</h2>
     <div class="arrival-options">
-      <a class="arrival-option" href="rooms/game-room.html">
+      <a class="arrival-option arrival-castle" href="rooms/game-room.html">
         <img class="arrival-icon" src="assets/elements/home-gate.png" alt="Explore the castle">
         <span class="arrival-label">explore the castle</span>
       </a>
-      <a class="arrival-option" href="matrix/dream.html">
+      <a class="arrival-option arrival-matrix" href="matrix/dream.html">
         <img class="arrival-icon" src="assets/elements/home-matrix.png" alt="Enter the matrix">
         <span class="arrival-label">enter the matrix</span>
       </a>
-      <a class="arrival-option" href="rooms/library.html">
+      <a class="arrival-option arrival-library" href="rooms/library.html">
         <img class="arrival-icon" src="assets/elements/home-shelf.png" alt="Visit the library">
         <span class="arrival-label">visit the library</span>
       </a>
     </div>
+    <a class="arrival-learn-more" href="about.html">learn more</a>
   </div>
 </div>
 
