@@ -130,6 +130,10 @@ html, body {
    right edge at 15%+70%=85%) with a small inset — top-anchored so it holds
    its spot near the ceiling on resize instead of drifting down toward the TV. */
 #icon-tools { top: 15cqh; right: 19cqw; width: clamp(250px, 29cqw, 450px); }
+/* Hung on the wall above the bookshelf, like the "LIBRARY" sign in the room mockup.
+   z-index raised above #icon-bookshelf: shelf.png's transparent padding extends up
+   past the sign's own box and would otherwise eat its clicks. */
+#icon-library-mission { top: 13cqh; left: 21cqw; width: clamp(190px, 26cqw, 380px); z-index: 11; }
 .room-icon img { width: 100%; height: auto; display: block; }
 
 .room-icon-label { font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); color: #444; text-align: center; }
@@ -180,6 +184,7 @@ html, body {
   #icon-bookshelf { width: clamp(140px, 30cqw, 315px); }
   #icon-projector { width: clamp(120px, 24cqw, 290px); }
   #icon-tools { width: clamp(120px, 20cqw, 220px); }
+  #icon-library-mission { width: clamp(130px, 24cqw, 240px); }
 }
 .char-heart img {
   display: block;
@@ -413,6 +418,9 @@ html, body {
   <div class="room-back-wall" aria-hidden="true"></div>
 
   <!-- ROOM ICONS -->
+  <div class="room-icon" id="icon-library-mission" onclick="openLibraryMission()">
+    <img src="../assets/elements/library-mission.png" alt="the library's mission">
+  </div>
   <div class="room-icon" id="icon-bookshelf" onclick="openLibrary('book')">
     <img src="../assets/elements/shelf.png" alt="bookshelf (texts)">
   </div>
@@ -1145,6 +1153,10 @@ async function openLibrary(category) {
   render();
 }
 function closeLibrary() { document.getElementById('library-overlay').classList.remove('open'); }
+
+function openLibraryMission() {
+  HGModal.info('mission', "The heartability library is a place to explore stories experientially rather than critically. It doesn’t matter if a story is good, it matters what that story means to you and how it inspired you.\n\nIf you are looking for a recommendation for something that speaks to what you are going through today, you are in the right place.", { center: true });
+}
 
 document.getElementById('library-close').addEventListener('click', closeLibrary);
 document.getElementById('library-overlay').addEventListener('click', (e) => {

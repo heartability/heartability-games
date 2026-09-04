@@ -81,6 +81,7 @@
   color: #222;
   white-space: pre-line;
 }
+.hg-modal-message.centered { text-align: center; }
 
 /* Secondary heading inside the body, e.g. a gate/paywall title
    or a section break within a richer popup. */

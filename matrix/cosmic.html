@@ -66,14 +66,6 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 }
 .panel-scroll{ width:100%; height:100%; overflow-y:auto; padding:22px; display:flex; flex-direction:column; align-items:center; }
 
-/* MATRIX PAGE TOGGLE — switches between daily/dream/cosmic */
-.matrix-toggle{ position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
-  z-index:210; display:flex; gap:clamp(24px,4vw,48px); }
-.matrix-toggle-link{ font-family:var(--font-hand); font-size:clamp(19px,2.2vw,26px);
-  color:#fff; text-decoration:none; padding-bottom:2px; border-bottom:2px solid transparent; }
-.matrix-toggle-link:hover{ opacity:.8; }
-.matrix-toggle-link.active{ border-bottom-color:#fff; }
-
 /* SAVE BAR (matches adventure: floating blue button) */
 .save-continue-bar{ position:fixed; bottom:0; left:0; right:0; height:calc(21% - 44px);
   display:none; align-items:center; justify-content:center; z-index:15; pointer-events:none; }
@@ -424,6 +416,8 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 .lm-msg.error{ display:block; color:#c0392b; background:rgba(192,57,43,.08); border:1px solid rgba(192,57,43,.2); }
 .lm-msg.success{ display:block; color:#2d7a4f; background:rgba(45,122,79,.08); border:1px solid rgba(45,122,79,.2); }
 .lm-footer{ text-align:center; padding:0 24px 14px; font-family:var(--font-hand); font-size:13px; color:#aaa; }
+.lm-freeplay{ text-align:center; padding:0 24px 18px; font-family:var(--font-hand); font-size:14px; color:#777; }
+.lm-freeplay a{ color:var(--blue); text-decoration:underline; }
 
 /* MAP MODE — panel goes transparent so sky shows through, and fills the
    whole viewport below the nav instead of the --bw-* "wall panel" box other
@@ -438,13 +432,8 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
 
 /* MOBILE */
 @media (max-width:768px){
-  /* Reserve space for the fixed .matrix-toggle bar (daily/dream/cosmic
-     links) at the bottom so flow content — e.g. matrix-toolbar — never
-     renders underneath it (was invisible there: toggle text is white on
-     the toolbar's white circle buttons, z-index alone didn't save it). */
-  :root{ --bw-top:44px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 44px - 52px); }
+  :root{ --bw-top:44px; --bw-left:0%; --bw-width:100%; --bw-height:calc(100dvh - 44px); }
   .content-panel.active:not(.iframe-mode){ border:none; box-shadow:none; }
-  .matrix-toggle { gap:16px; bottom:8px; }
   .nav-title { font-size:clamp(15px,4vw,21px); }
 
   /* season map title + progress meter were overlapping — stack them instead */
@@ -496,11 +485,6 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
   <div id="reading-side-body"></div>
 </div>
 
-<!-- MATRIX PAGE TOGGLE -->
-<nav class="matrix-toggle" aria-label="switch matrix">
-  <a class="matrix-toggle-link" href="dream.html" onclick="return matrixNav(event,'dream.html')">dream</a>
-  <a class="matrix-toggle-link active" href="cosmic.html" onclick="return matrixNav(event,'cosmic.html')">cosmic</a>
-</nav>
 <div class="save-status-bar" id="status"></div>
 
 <!-- LOGIN MODAL — direct form, no redirect -->
@@ -544,7 +528,7 @@ html,body{ width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; user-
         <button class="lm-btn" id="lm-signup-btn" onclick="lmSignup()">create account</button>
       </div>
     </div>
-    <div class="lm-footer">login to access the cosmic matrix</div>
+    <div class="lm-freeplay">not ready to commit? you can play these games for free in the <a href="../rooms/game-room.html">game room</a>!</div>
   </div>
 </div>
 

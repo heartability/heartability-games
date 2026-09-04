@@ -31,6 +31,8 @@
     document.getElementById("hg-modal-title").textContent = title || "";
     document.getElementById("hg-modal-message").textContent = message || "";
 
+    document.getElementById("hg-modal-message").classList.toggle("centered", !!buttons.center);
+
     var actions = document.getElementById("hg-modal-actions");
     actions.innerHTML = "";
     actions.classList.toggle("stacked", !!buttons.stacked);
@@ -100,6 +102,13 @@
           { label: opts.label || "ok", value: true, variant: opts.variant || "primary" }
         ]
       });
+    },
+    // Read-only popup: no buttons at all, just the message and the titlebar ×
+    // — for plain informational text (e.g. a room's mission statement) where
+    // there's nothing to confirm. opts.center: true centers the message text.
+    info: function (title, message, opts) {
+      opts = opts || {};
+      return open(title, message, { escValue: undefined, center: !!opts.center, items: [] });
     }
   };
 })();
