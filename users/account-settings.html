@@ -430,7 +430,7 @@ html, body {
 
   async function loadStorageUsage() {
     const { data, error } = await sb.rpc('get_storage_usage');
-    if (error || !data || !data[0]) return;
+    if (error || !data || !data[0]) { console.error('loadStorageUsage failed:', error); return; }
     const { bytes_used, limit_bytes } = data[0];
     storageUsage = { bytesUsed: bytes_used, limitBytes: limit_bytes };
 
