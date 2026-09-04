@@ -101,7 +101,7 @@
 }
 .cst-overlay.open { display:flex; }
 .cst-shell {
-  width:min(480px,94vw); height:min(88vh,720px); display:flex; flex-direction:column; overflow:hidden;
+  width:min(94vw,640px); height:min(86dvh,700px); display:flex; flex-direction:column; overflow:hidden;
   background:#dfe2ef;
   box-shadow:0 0 0 4px var(--blue,#6e83d3), 4px 8px 28px rgba(0,0,0,.35);
   font-family:var(--font-hand,"ZoesHandwriting",cursive);
@@ -236,7 +236,7 @@
 .cst-sticker-thumb img { width:100%; display:block; }
 
 /* text tab */
-.cst-text-top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.cst-text-add-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
 .cst-add-btn-compact { width:auto; flex-shrink:0; padding:9px 18px; }
 .cst-text-input {
   width:100%; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#222;
@@ -245,7 +245,7 @@
 }
 .cst-text-input:focus { border-color:var(--blue,#6e83d3); }
 .cst-text-size-slider { width:100%; margin:0 0 16px; accent-color:var(--blue,#6e83d3); }
-.cst-text-preview { position:relative; width:100%; max-width:220px; margin:0; }
+.cst-text-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
 .cst-text-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
 .cst-text-preview-body {
   position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
@@ -324,10 +324,10 @@
             <div class="cst-sticker-grid"></div>
           </div>
           <div class="cst-pane" data-pane="text">
-            <div class="cst-text-top-row">
-              <div class="cst-text-preview" style="display:none;"></div>
+            <div class="cst-text-add-row">
               <button class="cst-add-btn cst-text-add cst-add-btn-compact" type="button">add</button>
             </div>
+            <div class="cst-text-preview" style="display:none;"></div>
             <textarea class="cst-text-input" maxlength="80" placeholder="write something..."></textarea>
             <div class="cst-label">text size</div>
             <input type="range" class="cst-text-size-slider" min="0.6" max="2" step="0.1" value="1">
