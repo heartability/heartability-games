@@ -97,7 +97,7 @@ begin
   return query
   select
     coalesce((select sum((metadata->>'size')::bigint) from storage.objects where coalesce(owner_id::uuid, owner) = v_owner), 0),
-    coalesce((select limit_bytes from public.storage_limits where tier = coalesce(v_tier, 'free')), 2147483648);
+    coalesce((select sl.limit_bytes from public.storage_limits sl where sl.tier = coalesce(v_tier, 'free')), 2147483648);
 end;
 $$;
 
