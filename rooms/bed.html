@@ -434,14 +434,16 @@ html, body {
 
     if (item.kind === 'text') {
       const removeBtn = `<button class="mx-note-remove" type="button" title="remove text" aria-label="remove text">✕</button>`;
+      const textScale = item.text_scale || 1;
       if (item.stationery && MatrixRender.STATIONERY_FILE[item.stationery]) {
         el.className = 'mx-note stationery';
         const box = MatrixRender.STATIONERY_BOX[item.stationery];
         el.innerHTML = `<img class="mx-note-stationery-img" src="${MatrixRender.STATIONERY_BASE}${MatrixRender.STATIONERY_FILE[item.stationery]}" alt="">
-            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${escHtml(item.text_content)}</div>
+            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;font-size:calc(clamp(11px,1.2vw,15px) * ${textScale});">${escHtml(item.text_content)}</div>
             ${resizeHandle}${removeBtn}`;
       } else {
         el.className = 'mx-note';
+        el.style.fontSize = `calc(clamp(20px,2.2vw,30px) * ${textScale})`;
         el.innerHTML = `${escHtml(item.text_content)}${resizeHandle}${removeBtn}`;
       }
       return el;
@@ -653,10 +655,10 @@ html, body {
     renderWallItems();
   }
 
-  async function onAddText({ text, stationery, scale }) {
+  async function onAddText({ text, stationery, textScale }) {
     const row = {
       user_id: currentUserId, kind: 'text', text_content: text, stationery: stationery || null,
-      x: wallJitter(), y: wallJitter(), scale: scale || 1, rot: +((Math.random() * 2 - 1) * 8).toFixed(1),
+      x: wallJitter(), y: wallJitter(), scale: 1, text_scale: textScale || 1, rot: +((Math.random() * 2 - 1) * 8).toFixed(1),
     };
     const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
     if (error) throw error;

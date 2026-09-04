@@ -466,7 +466,7 @@
     let texts = '';
     (data.matrixTexts||[]).forEach(t => {
       if (!t || !t.text || !t.id) return;
-      const tRot = t.rot || 0, tScale = t.scale || 1;
+      const tRot = t.rot || 0, tScale = t.scale || 1, tTextScale = t.textScale || 1;
       const removeBtn = editable ? `<button class="mx-note-remove" type="button" data-id="${esc(t.id)}" title="remove text" aria-label="remove text">✕</button>` : '';
       const noteHandles = dragHandles('text', t.id);
       if (t.postit) {
@@ -476,10 +476,10 @@
         const box = STATIONERY_BOX[t.stationery];
         texts += `<div class="mx-note stationery${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">
             <img class="mx-note-stationery-img" src="${STATIONERY_BASE}${STATIONERY_FILE[t.stationery]}" alt="">
-            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(t.text)}</div>
+            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;font-size:calc(clamp(11px,1.2vw,15px) * ${tTextScale});">${esc(t.text)}</div>
             ${noteHandles}${removeBtn}</div>`;
       } else {
-        texts += `<div class="mx-note${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});">${esc(t.text)}
+        texts += `<div class="mx-note${dragClass}"${dragAttrs('text',t.id,tRot,tScale)} style="left:${t.x}%;top:${t.y}%;transform:translate(-50%,-50%) rotate(${tRot}deg) scale(${tScale});font-size:calc(clamp(20px,2.2vw,30px) * ${tTextScale});">${esc(t.text)}
             ${noteHandles}${removeBtn}</div>`;
       }
     });
@@ -1007,10 +1007,10 @@
       onChange();
     }
 
-    async function addMatrixText({ text, stationery, scale }){
+    async function addMatrixText({ text, stationery, textScale }){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
       if (!sb || !entryId) throw new Error('sign in to save text');
-      const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1), scale: scale || 1 };
+      const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1), textScale: textScale || 1 };
       if (stationery) entry.stationery = stationery;
       const { data: row, error: readErr } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
       if (readErr) throw readErr;

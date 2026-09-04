@@ -21,7 +21,7 @@
      onPickAlbumPhoto(item): Promise, // called with the raw item from loadAlbum()
      onUploadPhoto({file,dataUrl,frame,imgScale,imgPosX,imgPosY,imgRot}): Promise,
      onAddSticker(url): Promise,
-     onAddText({text,stationery,scale}): Promise,
+     onAddText({text,stationery,textScale}): Promise,
      addLabel: string,                // button text on the photo tab's "add" action, default 'add to matrix' (text tab's button is always 'add')
      status(msg, color): void,        // optional external status line
    }
@@ -678,8 +678,8 @@
     });
 
     // ═══ TEXT TAB ═══
-    const TEXT_BASE_SIZE = 18, STATIONERY_BASE_SIZE = 14;
-    let textDraft = { stationery: null, scale: 2 };
+    const STATIONERY_BASE_SIZE = 14;
+    let textDraft = { stationery: null, textScale: 2 };
     const textPreviewEl = overlay.querySelector('.cst-text-preview');
     const textInputEl = overlay.querySelector('.cst-text-input');
     const textSizeSliderEl = overlay.querySelector('.cst-text-size-slider');
@@ -699,17 +699,16 @@
       stationeryGridEl.innerHTML = plainThumb + cardThumbs;
     }
     function updateTextAddPreview(){
-      textInputEl.style.fontSize = (TEXT_BASE_SIZE * textDraft.scale) + 'px';
       if (!textDraft.stationery) { textPreviewEl.style.display = 'none'; return; }
       textPreviewEl.style.display = 'block';
       const file = MR.STATIONERY_FILE[textDraft.stationery];
       const box = MR.STATIONERY_BOX[textDraft.stationery];
       textPreviewEl.innerHTML = `<img class="cst-text-preview-img" src="${MR.STATIONERY_BASE}${file}" alt="">
-          <div class="cst-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;font-size:${STATIONERY_BASE_SIZE * textDraft.scale}px;">${esc(textInputEl.value)}</div>`;
+          <div class="cst-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;font-size:${STATIONERY_BASE_SIZE * textDraft.textScale}px;">${esc(textInputEl.value)}</div>`;
     }
     function resetTextAdd(){
       textInputEl.value = ''; textInputEl.maxLength = 80;
-      textDraft = { stationery: null, scale: 2 };
+      textDraft = { stationery: null, textScale: 2 };
       textSizeSliderEl.value = 2;
       renderStationeryGrid(); updateTextAddPreview();
       textStatusEl.textContent = ''; textStatusEl.style.color = '';
@@ -717,7 +716,7 @@
     }
     textInputEl.addEventListener('input', updateTextAddPreview);
     textSizeSliderEl.addEventListener('input', () => {
-      textDraft.scale = +textSizeSliderEl.value;
+      textDraft.textScale = +textSizeSliderEl.value;
       updateTextAddPreview();
     });
     stationeryGridEl.addEventListener('click', e => {
@@ -734,7 +733,7 @@
       if (!text) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'write something first'; return; }
       textAddBtn.disabled = true; textAddBtn.textContent = 'adding…';
       try {
-        await deps.onAddText({ text, stationery: textDraft.stationery || null, scale: textDraft.scale });
+        await deps.onAddText({ text, stationery: textDraft.stationery || null, textScale: textDraft.textScale });
         status('text added ✓', '#6ab86a');
         close();
       } catch (err) {
