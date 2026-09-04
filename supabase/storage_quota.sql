@@ -20,6 +20,10 @@ create table if not exists public.storage_limits (
   limit_bytes bigint not null
 );
 
+-- No client ever needs to read this table directly — get_storage_usage()
+-- below is SECURITY DEFINER and exposes only the caller's own limit.
+alter table public.storage_limits enable row level security;
+
 insert into public.storage_limits (tier, limit_bytes) values
   ('free',     1073741824),  -- 1 GB
   ('dream',    5368709120),  -- 5 GB
@@ -96,7 +100,7 @@ begin
 
   return query
   select
-    coalesce((select sum((metadata->>'size')::bigint) from storage.objects where coalesce(owner_id::uuid, owner) = v_owner), 0),
+    coalesce((select sum((metadata->>'size')::bigint) from storage.objects where coalesce(owner_id::uuid, owner) = v_owner), 0)::bigint,
     coalesce((select sl.limit_bytes from public.storage_limits sl where sl.tier = coalesce(v_tier, 'free')), 2147483648);
 end;
 $$;
