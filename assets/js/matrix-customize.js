@@ -253,6 +253,13 @@
 .cst-stationery-plain-glyph { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:28px; color:#3a2e1e; }
 
 /* wallpaper tab (bedroom only) */
+.cst-target-toggle { display:flex; gap:8px; margin-bottom:16px; }
+.cst-target-btn {
+  flex:1; padding:8px 4px; background:#fff; border:1.5px solid #ccc;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#7a86bb; cursor:pointer; transition:all .1s;
+}
+.cst-target-btn:hover { border-color:var(--blue,#6e83d3); color:var(--blue,#6e83d3); }
+.cst-target-btn.active { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); color:#fff; }
 .cst-swatch-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
 .cst-swatch {
   aspect-ratio:1; border:2px solid #ccc; padding:0; cursor:pointer; position:relative;
@@ -327,11 +334,12 @@
           </div>
           ${deps.showWallpaper ? `
           <div class="cst-pane" data-pane="wallpaper">
-            <div class="cst-sub">pick a wall and floor pattern for your room.</div>
-            <div class="cst-label">wall</div>
-            <div class="cst-swatch-grid cst-wall-swatch-grid"></div>
-            <div class="cst-label">floor</div>
-            <div class="cst-swatch-grid cst-floor-swatch-grid"></div>
+            <div class="cst-sub">pick a pattern for your wall or floor — any pattern works on either.</div>
+            <div class="cst-target-toggle">
+              <button type="button" class="cst-target-btn active" data-target="wall">wall</button>
+              <button type="button" class="cst-target-btn" data-target="floor">floor</button>
+            </div>
+            <div class="cst-swatch-grid cst-pattern-swatch-grid"></div>
             <div class="cst-status cst-wallpaper-status"></div>
           </div>` : ''}
         </div>
@@ -727,25 +735,32 @@
     });
 
     // ═══ WALLPAPER TAB (bedroom only) ═══
-    let wallSwatchGridEl, floorSwatchGridEl, wallpaperStatusEl;
+    let patternTargetToggleEl, patternSwatchGridEl, wallpaperStatusEl, activePatternTarget;
     if (deps.showWallpaper) {
-      wallSwatchGridEl = overlay.querySelector('.cst-wall-swatch-grid');
-      floorSwatchGridEl = overlay.querySelector('.cst-floor-swatch-grid');
+      patternTargetToggleEl = overlay.querySelector('.cst-target-toggle');
+      patternSwatchGridEl = overlay.querySelector('.cst-pattern-swatch-grid');
       wallpaperStatusEl = overlay.querySelector('.cst-wallpaper-status');
+      activePatternTarget = 'wall';
 
-      function renderSwatchGrid(gridEl, options, currentKey, onPick) {
-        gridEl.innerHTML = options.map(o => {
+      function currentKeyForTarget() {
+        if (activePatternTarget === 'floor') return deps.getCurrentFloor ? deps.getCurrentFloor() : null;
+        return deps.getCurrentWall ? deps.getCurrentWall() : null;
+      }
+      function renderPatternGrid() {
+        const currentKey = currentKeyForTarget();
+        patternSwatchGridEl.innerHTML = (deps.patternOptions || []).map(o => {
           const selected = o.key === currentKey ? ' selected' : '';
           return `<button class="cst-swatch${selected}" type="button" data-key="${o.key}"
               style="background-image:url('${o.file}');background-size:${o.swatchSize || '40px 40px'};"><span>${esc(o.label)}</span></button>`;
         }).join('');
-        gridEl.querySelectorAll('.cst-swatch').forEach(btn => {
+        patternSwatchGridEl.querySelectorAll('.cst-swatch').forEach(btn => {
           btn.addEventListener('click', async () => {
             if (btn.classList.contains('selected')) return;
-            gridEl.querySelectorAll('.cst-swatch').forEach(b => b.classList.remove('selected'));
+            patternSwatchGridEl.querySelectorAll('.cst-swatch').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             wallpaperStatusEl.style.color = '#7a86bb'; wallpaperStatusEl.textContent = 'saving…';
             try {
+              const onPick = activePatternTarget === 'floor' ? deps.onSetFloor : deps.onSetWall;
               await onPick(btn.dataset.key);
               wallpaperStatusEl.style.color = '#6ab86a'; wallpaperStatusEl.textContent = 'saved ✓';
             } catch (err) {
@@ -755,10 +770,19 @@
           });
         });
       }
-      function refreshWallpaperTab() {
+      patternTargetToggleEl.addEventListener('click', e => {
+        const btn = e.target.closest('.cst-target-btn');
+        if (!btn) return;
+        activePatternTarget = btn.dataset.target;
+        patternTargetToggleEl.querySelectorAll('.cst-target-btn').forEach(b => b.classList.toggle('active', b === btn));
         wallpaperStatusEl.textContent = ''; wallpaperStatusEl.style.color = '';
-        renderSwatchGrid(wallSwatchGridEl, deps.wallOptions || [], deps.getCurrentWall ? deps.getCurrentWall() : null, deps.onSetWall);
-        renderSwatchGrid(floorSwatchGridEl, deps.floorOptions || [], deps.getCurrentFloor ? deps.getCurrentFloor() : null, deps.onSetFloor);
+        renderPatternGrid();
+      });
+      function refreshWallpaperTab() {
+        activePatternTarget = 'wall';
+        patternTargetToggleEl.querySelectorAll('.cst-target-btn').forEach(b => b.classList.toggle('active', b.dataset.target === 'wall'));
+        wallpaperStatusEl.textContent = ''; wallpaperStatusEl.style.color = '';
+        renderPatternGrid();
       }
     }
 

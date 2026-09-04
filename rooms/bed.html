@@ -375,40 +375,33 @@ html, body {
   let isPaid = false;
   let wallItems = [];
 
-  // ── Wallpaper / floor pattern picker ──
+  // ── Wallpaper / floor pattern picker — one shared pool, usable on either surface ──
   const PATTERNS_BASE = '../assets/elements/patterns/';
-  const WALL_OPTIONS = [
-    { key: 'dots',    label: 'dots',    file: PATTERNS_BASE + 'wall-dots.jpg',    swatchSize: '90px 90px' },
-    { key: 'texture', label: 'texture', file: PATTERNS_BASE + 'wall-texture.jpg', swatchSize: '90px 90px' },
-  ];
-  const FLOOR_OPTIONS = [
-    { key: 'speckle', label: 'speckle', file: PATTERNS_BASE + 'tile-speckle.jpg', swatchSize: '50px 50px' },
-    { key: 'circle',  label: 'circle',  file: PATTERNS_BASE + 'tile-circle.jpg',  swatchSize: '50px 50px' },
-    { key: 'stars',   label: 'stars',   file: PATTERNS_BASE + 'tile-stars.jpg',   swatchSize: '50px 50px' },
-    { key: 'square',  label: 'square',  file: PATTERNS_BASE + 'tile-square.jpg',  swatchSize: '50px 50px' },
-    { key: 'ovals',   label: 'ovals',   file: PATTERNS_BASE + 'tile-ovals.jpg',   swatchSize: '50px 50px' },
-    { key: 'stripes', label: 'stripes', file: PATTERNS_BASE + 'tile-stripes.jpg', swatchSize: '50px 50px' },
+  const PATTERN_OPTIONS = [
+    { key: 'dots',    label: 'dots',    file: PATTERNS_BASE + 'wall-dots.jpg',    swatchSize: '90px 90px', appliedSize: '360px 360px' },
+    { key: 'texture', label: 'texture', file: PATTERNS_BASE + 'wall-texture.jpg', swatchSize: '90px 90px', appliedSize: '360px 360px' },
+    { key: 'speckle', label: 'speckle', file: PATTERNS_BASE + 'tile-speckle.jpg', swatchSize: '50px 50px', appliedSize: '200px 200px' },
+    { key: 'circle',  label: 'circle',  file: PATTERNS_BASE + 'tile-circle.jpg',  swatchSize: '50px 50px', appliedSize: '200px 200px' },
+    { key: 'stars',   label: 'stars',   file: PATTERNS_BASE + 'tile-stars.jpg',   swatchSize: '50px 50px', appliedSize: '200px 200px' },
+    { key: 'square',  label: 'square',  file: PATTERNS_BASE + 'tile-square.jpg',  swatchSize: '50px 50px', appliedSize: '200px 200px' },
+    { key: 'ovals',   label: 'ovals',   file: PATTERNS_BASE + 'tile-ovals.jpg',   swatchSize: '50px 50px', appliedSize: '200px 200px' },
+    { key: 'stripes', label: 'stripes', file: PATTERNS_BASE + 'tile-stripes.jpg', swatchSize: '50px 50px', appliedSize: '200px 200px' },
   ];
   let currentWall = 'dots';
   let currentFloor = 'speckle';
 
   function applyWallPattern(key) {
-    const opt = WALL_OPTIONS.find(o => o.key === key) || WALL_OPTIONS[0];
+    const opt = PATTERN_OPTIONS.find(o => o.key === key) || PATTERN_OPTIONS[0];
     currentWall = opt.key;
-    const bg = `url("${opt.file}") repeat`;
-    document.querySelector('.room-side-wall-left').style.background = bg;
-    document.querySelector('.room-side-wall-left').style.backgroundSize = '360px 360px';
-    document.querySelector('.room-side-wall-right').style.background = bg;
-    document.querySelector('.room-side-wall-right').style.backgroundSize = '360px 360px';
-    document.querySelector('.room-back-wall').style.background = bg;
-    document.querySelector('.room-back-wall').style.backgroundSize = '360px 360px';
+    [document.querySelector('.room-side-wall-left'), document.querySelector('.room-side-wall-right'), document.querySelector('.room-back-wall')]
+      .forEach(el => { el.style.background = `url("${opt.file}") repeat`; el.style.backgroundSize = opt.appliedSize; });
   }
   function applyFloorPattern(key) {
-    const opt = FLOOR_OPTIONS.find(o => o.key === key) || FLOOR_OPTIONS[0];
+    const opt = PATTERN_OPTIONS.find(o => o.key === key) || PATTERN_OPTIONS.find(o => o.key === 'speckle');
     currentFloor = opt.key;
     const carpet = document.querySelector('.room-carpet');
     carpet.style.background = `url("${opt.file}") repeat`;
-    carpet.style.backgroundSize = '200px 200px';
+    carpet.style.backgroundSize = opt.appliedSize;
   }
   async function onSetWall(key) {
     await sb.from('user-profiles').update({ bedroom_wall_pattern: key }).eq('id', currentUserId);
@@ -680,7 +673,7 @@ html, body {
       customizePanel = MatrixCustomize.createPanel({
         title: 'customize', addLabel: 'pin to wall', showAlbum: true,
         loadAlbum, albumThumb, onPickAlbumPhoto, onUploadPhoto, onAddSticker, onAddText,
-        showWallpaper: true, wallOptions: WALL_OPTIONS, floorOptions: FLOOR_OPTIONS,
+        showWallpaper: true, patternOptions: PATTERN_OPTIONS,
         getCurrentWall: () => currentWall, getCurrentFloor: () => currentFloor,
         onSetWall, onSetFloor,
       });
