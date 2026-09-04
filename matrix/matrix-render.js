@@ -244,57 +244,6 @@
   const STATIONERY_FILE = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.file]));
   const STATIONERY_BOX  = Object.fromEntries(STATIONERY_ITEMS.map(s => [s.key, s.box]));
 
-  // Sticker picker categories — static lists of filenames living in
-  // assets/elements/stickers/<category>/ (no server-side directory listing on
-  // a static site, so the picker hardcodes them; mirrors STICKER_CATEGORIES
-  // in dream.html/daily.html).
-  const STICKER_BASE = '../assets/elements/stickers/';
-  const STICKER_CATEGORIES = {
-    'affirmations': { label: 'affirmations', files: [
-      'affirmation-banner-let-it-come-go.png','affirmation-license-plate-meant-for-you.png',
-      'affirmation-sticker-taking-time.png','affirmation-ticket-beautiful-life.png','affirmation-ticket-good-things-coming.png',
-    ]},
-    'angel-numbers': { label: 'angel numbers', files: [
-      'angel-number-111-intuition.png','angel-number-222-alignment.png','angel-number-333-support.png',
-      'angel-number-444-protection.png','angel-number-555-change.png','angel-number-777-luck.png',
-      'angel-number-888-balance.png','angel-number-999-release.png',
-    ]},
-    'ephemera': { label: 'ephemera', files: [
-      'ephemera-butterfly-pink-green.png','ephemera-butterfly-stamp-korea.png','ephemera-butterfly-white-lace.png',
-      'ephemera-cloud.png','ephemera-disco-ball.png','ephemera-fish-bottle-green.png','ephemera-key-head-profile.png',
-      'ephemera-lace-heart-doily-blue.png','ephemera-locket.png','ephemera-lovers-eye-pearl-brooch.png',
-      'ephemera-moon-woman-vintage.png','ephemera-museum-of-everything-ive-loved.png','ephemera-spiral-silver.png',
-      'ephemera-star-embroidered-silver.png','ephemera-watercolor-flower-pink.png','ephemera-wax-seal-rose.png',
-    ]},
-    'fruit-stickers': { label: 'fruit stickers', files: [
-      'fruit-sticker-appealing-bananas.png','fruit-sticker-banana-fruit-love-heart.png','fruit-sticker-berry-good-strawberry.png',
-      'fruit-sticker-chill-peel-asian-pear.png','fruit-sticker-eat-more-veggies.png','fruit-sticker-eat-squeeze-me-lemon.png',
-      'fruit-sticker-extra-fruity.png','fruit-sticker-go-go-mango.png','fruit-sticker-juicy-plantains.png',
-      'fruit-sticker-lime-crush.png','fruit-sticker-patience-is-sweet-peach.png','fruit-sticker-pear-fect.png',
-      'fruit-sticker-ripe-n-juicy.png','fruit-sticker-take-me-to-lunch-chiquita.png','fruit-sticker-that-a-way-groundhog.png',
-      'fruit-sticker-the-best-banana-ecuador.png','fruit-sticker-thumping-good-watermelon-bunny.png',
-    ]},
-    'fruits': { label: 'fruits', files: [
-      'fruit-circle-blood-orange.png','fruit-circle-blueberry.png','fruit-circle-feijoa.png','fruit-circle-guava.png',
-      'fruit-circle-kiwi.png','fruit-circle-lime.png','fruit-circle-orange.png','fruit-circle-papaya.png',
-      'fruit-circle-peach.png','fruit-circle-pineapple.png','fruit-circle-pomegranate.png','fruit-circle-watermelon.png',
-      'fruit-glitter-apple.png','fruit-glitter-cherries.png','fruit-glitter-grapes.png','fruit-glitter-lemon.png',
-      'fruit-glitter-strawberry.png','fruit-glitter-watermelon-slice.png',
-    ]},
-    'gems': { label: 'gems', files: [
-      'gem-baguette-blue.png','gem-cabochon-oval-blue.png','gem-cluster-cloud-emerald.png','gem-cluster-crescent-moon-blue.png',
-      'gem-cluster-flower-green.png','gem-cluster-flower-pink.png','gem-emerald-cut-pink.png','gem-heart-fuchsia.png',
-      'gem-oval-green.png','gem-pear-mint.png','gem-pear-teal.png','gem-rough-blue-green.png','gem-rough-green.png',
-      'gem-round-rose.png','gem-sparkle-purple.png','gem-star-gold.png','gem-star-teal.png','gem-trillion-red.png',
-    ]},
-    'stars': { label: 'stars', files: [
-      'star-foil-blue.png','star-foil-gold.png','star-foil-lime.png','star-foil-pink.png','star-foil-rainbow.png',
-      'star-foil-red.png','star-foil-silver.png','star-foil-teal.png','star-glitter-blue.png','star-glitter-green.png',
-      'star-glitter-hot-pink.png','star-glitter-light-blue.png','star-glitter-navy.png','star-glitter-olive.png',
-      'star-glitter-orange.png','star-glitter-purple-pink.png','star-paint-blue.png',
-    ]},
-  };
-
   // Quadrant geometry for photo placement (matrix %). 2-col grid growing inward
   // from each quadrant's outer corner so photo bodies don't overlap.
   const QUADRANTS = {
@@ -542,16 +491,16 @@
     // on-screen position into one write, so rearranging a lot at once can't
     // lose anything to overlapping autosaves.
     const saveBtn = editable ? `<button class="matrix-save-btn" type="button">save</button>` : '';
-    // Add photo / sticker / text / journal — centered below the matrix frame.
-    // Journal is opt-in (opts.showJournalTool) and can be shown disabled
-    // (opts.journalLocked) before there's an entry to attach it to.
+    // Customize (photo/sticker/text) + journal — centered below the matrix
+    // frame. Journal is opt-in (opts.showJournalTool) and can be shown
+    // disabled (opts.journalLocked) before there's an entry to attach it to.
     const journalBtn = (editable && opts.showJournalTool)
       ? `<button class="matrix-tool-btn" type="button" data-tool="notes" title="journal"${opts.journalLocked ? ' disabled' : ''}>&#9998;</button>`
       : '';
     const toolbar = editable ? `<div class="matrix-toolbar">
-        <button class="matrix-tool-btn" type="button" data-tool="photo" title="add photo">&#43;</button>
-        <button class="matrix-tool-btn" type="button" data-tool="sticker" title="add sticker">&#9733;</button>
-        <button class="matrix-tool-btn" type="button" data-tool="text" title="add text">Aa</button>
+        <button class="matrix-tool-btn matrix-customize-btn" type="button" data-tool="customize" title="customize">
+          <img src="../assets/elements/customize.png" alt="">
+        </button>
         ${journalBtn}
       </div>` : '';
 
@@ -692,78 +641,6 @@
     return () => rootEl.removeEventListener('click', onClick);
   }
 
-  // ── JOURNAL EDITOR ────────────────────────────────────────
-  // deps = { sb, getEntryId(), onChange(), status(msg,color), table }
-  // Edits <table>.journal_messages (defaults to dream_matrix). Saving replaces
-  // with a single message; clearing removes all.
-  function createJournalEditor(deps){
-    deps = deps || {};
-    const status = deps.status || function(){};
-    const table  = deps.table || 'dream_matrix';
-
-    const overlay = document.createElement('div');
-    overlay.className = 'mr-jr-overlay';
-    overlay.innerHTML = `
-      <div class="mr-jr-card">
-        <div class="mr-jr-head">
-          <span class="mr-jr-title">✎ adventure notes</span>
-          <button class="mr-jr-close" type="button">×</button>
-        </div>
-        <div class="mr-jr-sub">edit your notes for this entry. clearing the text removes them.</div>
-        <textarea class="mr-jr-text" placeholder="what was this moment like?"></textarea>
-        <div class="mr-jr-status"></div>
-        <div class="mr-jr-actions">
-          <button class="mr-jr-cancel" type="button">cancel</button>
-          <button class="mr-jr-save" type="button">save notes</button>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    const textEl   = overlay.querySelector('.mr-jr-text');
-    const statusEl = overlay.querySelector('.mr-jr-status');
-    const saveEl   = overlay.querySelector('.mr-jr-save');
-
-    function open(currentText){
-      textEl.value = currentText || '';
-      statusEl.textContent = ''; statusEl.style.color = '';
-      saveEl.disabled = false; saveEl.textContent = 'save notes';
-      overlay.classList.add('open');
-      textEl.focus();
-    }
-    function close(){ overlay.classList.remove('open'); }
-
-    overlay.querySelector('.mr-jr-close').addEventListener('click', close);
-    overlay.querySelector('.mr-jr-cancel').addEventListener('click', close);
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-
-    saveEl.addEventListener('click', async () => {
-      const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
-      if (!entryId){ statusEl.style.color = '#E8478B'; statusEl.textContent = 'no entry selected'; return; }
-      saveEl.disabled = true; saveEl.textContent = 'saving…';
-      const trimmed = textEl.value.trim();
-      const messages = trimmed.length
-        ? [{ id: crypto.randomUUID(), text: trimmed, image_url: null, created_at: new Date().toISOString() }]
-        : [];
-      try {
-        const { error } = await sb.from(table)
-          .update({ journal_messages: messages })
-          .eq('id', entryId);
-        if (error) throw error;
-        close();
-        status('notes saved ✓', '#6ab86a');
-        deps.onChange && deps.onChange();
-      } catch (err) {
-        console.error('[matrix-render] journal save failed:', err);
-        statusEl.style.color = '#E8478B';
-        statusEl.textContent = 'couldn’t save notes — try again';
-        saveEl.disabled = false; saveEl.textContent = 'save notes';
-      }
-    });
-
-    function destroy(){ overlay.remove(); }
-    return { open, close, destroy };
-  }
-
   // ── MATRIX EDITOR — drag/rotate/resize/pinch on every item, plus the
   // add-photo (with frame + crop/pan/zoom/rotate), add-sticker, and add-text
   // (with stationery) modals, and the explicit save button. This is the full
@@ -785,24 +662,6 @@
   // instead. book entries bucket under layout.books, tools under layout.tools.
   const LAYOUT_KINDS = new Set(['map', 'bingo', 'char', 'book', 'tool']);
   const LAYOUT_BUCKET = { book: 'books', tool: 'tools' };
-
-  // ── BACKGROUND REMOVAL (client-side, via @imgly/background-removal WASM) ──
-  // Loaded lazily from CDN only when the user taps "cut out subject" — no
-  // server, no API key, no build step to wire up. Must go through esm.sh
-  // (not jsDelivr's raw dist file) because the package's own ESM build has a
-  // bare `import ... from 'onnxruntime-web'` specifier that only esm.sh
-  // rewrites into a resolvable URL; plain browser import() can't resolve
-  // bare specifiers on its own. The library's own default publicPath pulls
-  // its ONNX model (~40-80MB) from IMG.LY's asset CDN on first use — that
-  // download is the slow part (10-20s+), cached by the browser after that.
-  // Module import itself is cached so repeat use in one session doesn't
-  // re-fetch it.
-  const BG_REMOVAL_CDN = 'https://esm.sh/@imgly/background-removal@1.7.0';
-  let _bgRemovalModulePromise = null;
-  function loadBackgroundRemoval(){
-    if (!_bgRemovalModulePromise) _bgRemovalModulePromise = import(BG_REMOVAL_CDN);
-    return _bgRemovalModulePromise;
-  }
 
   function createMatrixEditor(deps){
     deps = deps || {};
@@ -1058,12 +917,10 @@
         const tool = e.target.closest('.matrix-tool-btn');
         if (tool) {
           const kind = tool.dataset.tool;
-          if (kind === 'photo') {
+          if (kind === 'customize') {
             if (deps.onPhotoBlocked && deps.onPhotoBlocked()) return;
-            openPhotoUpload();
+            customizePanel.open();
           }
-          else if (kind === 'sticker') openStickerPicker();
-          else if (kind === 'text') openTextAdd();
           else if (kind === 'notes') deps.onOpenJournal && deps.onOpenJournal();
           return;
         }
@@ -1074,263 +931,31 @@
       });
     }
 
-    // ── ADD PHOTO (frame picker + crop/pan/zoom/rotate) ──────
-    let photoDraft = { file: null, dataUrl: null, frame: 'polaroid', imgScale: 1, imgPosX: 50, imgPosY: 50, imgRot: 0 };
-    const photoOverlay = document.createElement('div');
-    photoOverlay.className = 'mr-photo-overlay mr-matrix-modal';
-    photoOverlay.innerHTML = `
-      <div class="mr-matrix-card">
-        <div class="mr-matrix-head">
-          <span class="mr-matrix-title">add a photo</span>
-          <button class="mr-matrix-close" type="button">×</button>
-        </div>
-        <div class="mr-matrix-sub">pick an image and a frame, then drag it into place.</div>
-        <input type="file" class="mrm-photo-file" accept="image/*" hidden>
-        <div class="mrm-photo-drop">
-          <div class="mrm-photo-preview"><span class="mrm-photo-hint">tap to choose an image</span></div>
-        </div>
-        <button class="mrm-photo-cutout" type="button" disabled>✂ cut out subject</button>
-        <div class="mr-matrix-label">which frame?</div>
-        <div class="mrm-photo-frame-grid"></div>
-        <div class="mr-matrix-status"></div>
-        <button class="mr-matrix-add" type="button" disabled>add to matrix</button>
-      </div>`;
-    document.body.appendChild(photoOverlay);
-    const photoFileEl = photoOverlay.querySelector('.mrm-photo-file');
-    const photoDropEl = photoOverlay.querySelector('.mrm-photo-drop');
-    const photoPreviewEl = photoOverlay.querySelector('.mrm-photo-preview');
-    const photoFrameGridEl = photoOverlay.querySelector('.mrm-photo-frame-grid');
-    const photoStatusEl = photoOverlay.querySelector('.mr-matrix-status');
-    const photoAddBtn = photoOverlay.querySelector('.mr-matrix-add');
-    const photoCutoutBtn = photoOverlay.querySelector('.mrm-photo-cutout');
-
-    function renderPhotoFrameGrid(){
-      const noneSelected = photoDraft.frame === NO_FRAME_KEY ? ' selected' : '';
-      photoFrameGridEl.innerHTML = PHOTO_FRAMES.map(f => {
-        const selected = f.key === photoDraft.frame ? ' selected' : '';
-        return `<button class="mrm-frame-thumb${selected}" type="button" data-frame="${f.key}">
-            <img src="${PHOTO_FRAME_BASE}${f.file}" alt="${esc(f.label)}"><span>${esc(f.label)}</span></button>`;
-      }).join('') + `<button class="mrm-frame-thumb mrm-frame-none${noneSelected}" type="button" data-frame="${NO_FRAME_KEY}">no frame</button>`;
-    }
-    function updatePhotoPreviewFit(){
-      const img = photoPreviewEl.querySelector('.mrm-photo-preview-img');
-      if (!img) return;
-      img.style.objectPosition = `${photoDraft.imgPosX}% ${photoDraft.imgPosY}%`;
-      img.style.transform = `rotate(${photoDraft.imgRot}deg) scale(${photoDraft.imgScale})`;
-    }
-    function renderPhotoPreviewContents(){
-      photoPreviewEl.style.cssText = '';
-      if (!photoDraft.dataUrl) return;
-      if (photoDraft.frame === NO_FRAME_KEY) {
-        photoPreviewEl.classList.add('no-frame');
-        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img plain" src="${photoDraft.dataUrl}" alt="">
-            <button class="mrm-photo-clear" type="button" title="remove image" aria-label="remove image">✕</button>`;
-      } else {
-        photoPreviewEl.classList.remove('no-frame');
-        photoPreviewEl.style.cssText = photoFrameMaskStyle(photoDraft.frame);
-        const frameFile = PHOTO_FRAME_FILE[photoDraft.frame] || PHOTO_FRAME_FILE.polaroid;
-        photoPreviewEl.innerHTML = `<img class="mrm-photo-preview-img" src="${photoDraft.dataUrl}" alt="" style="${photoMatteStyle(photoDraft.frame)}">
-           <img class="mrm-photo-preview-frame" src="${PHOTO_FRAME_BASE}${frameFile}" alt="">
-           <button class="mrm-photo-rotate" type="button" title="rotate" aria-label="rotate photo">↻</button>
-           <button class="mrm-photo-stretch" type="button" title="stretch" aria-label="stretch photo">⤢</button>
-           <button class="mrm-photo-clear" type="button" title="remove image" aria-label="remove image">✕</button>`;
-        updatePhotoPreviewFit();
-      }
-    }
-    function refreshPhotoAdd(){
-      photoAddBtn.disabled = !photoDraft.file;
-      photoCutoutBtn.disabled = !photoDraft.file;
-    }
-    function clearPhotoDraft(){
-      photoDraft.file = null; photoDraft.dataUrl = null;
-      photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
-      photoFileEl.value = '';
-      photoPreviewEl.classList.remove('no-frame');
-      photoPreviewEl.style.cssText = '';
-      photoPreviewEl.innerHTML = '<span class="mrm-photo-hint">tap to choose an image</span>';
-      photoCutoutBtn.textContent = '✂ cut out subject';
-      refreshPhotoAdd();
-    }
-    function openPhotoUpload(){
-      photoDraft = { file: null, dataUrl: null, frame: 'polaroid', imgScale: 1, imgPosX: 50, imgPosY: 50, imgRot: 0 };
-      photoFileEl.value = '';
-      photoPreviewEl.classList.remove('no-frame');
-      photoPreviewEl.style.cssText = '';
-      photoPreviewEl.innerHTML = '<span class="mrm-photo-hint">tap to choose an image</span>';
-      renderPhotoFrameGrid();
-      photoStatusEl.textContent = ''; photoStatusEl.style.color = '';
-      photoAddBtn.textContent = 'add to matrix';
-      photoCutoutBtn.textContent = '✂ cut out subject';
-      refreshPhotoAdd();
-      photoOverlay.classList.add('open');
-    }
-    function closePhotoUpload(){ photoOverlay.classList.remove('open'); }
-
-    photoOverlay.querySelector('.mr-matrix-close').addEventListener('click', closePhotoUpload);
-    photoOverlay.addEventListener('click', e => { if (e.target === photoOverlay) closePhotoUpload(); });
-    photoDropEl.addEventListener('click', () => { if (!photoDraft.dataUrl) photoFileEl.click(); });
-    photoFileEl.addEventListener('change', e => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        photoStatusEl.style.color = '#E8478B'; photoStatusEl.textContent = 'that file isn’t an image';
-        photoDraft.file = null; refreshPhotoAdd(); return;
-      }
-      photoDraft.file = file;
-      photoDraft.imgScale = 1; photoDraft.imgPosX = 50; photoDraft.imgPosY = 50; photoDraft.imgRot = 0;
-      const reader = new FileReader();
-      reader.onload = ev => { photoDraft.dataUrl = ev.target.result; renderPhotoPreviewContents(); };
-      reader.readAsDataURL(file);
-      photoStatusEl.textContent = '';
-      refreshPhotoAdd();
-    });
-    async function cutOutSubject(){
-      if (!photoDraft.file) return;
-      photoCutoutBtn.disabled = true; photoAddBtn.disabled = true;
-      photoStatusEl.style.color = '#7a86bb';
-      photoStatusEl.textContent = 'cutting out subject… (first time can take a bit while it downloads)';
-      try {
-        const { removeBackground } = await loadBackgroundRemoval();
-        const blob = await removeBackground(photoDraft.file);
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = ev => resolve(ev.target.result);
-          reader.onerror = () => reject(new Error('could not read cutout image'));
-          reader.readAsDataURL(blob);
-        });
-        photoDraft.file = new File([blob], 'cutout.png', { type: 'image/png' });
-        photoDraft.dataUrl = dataUrl;
-        photoDraft.frame = NO_FRAME_KEY; // cutouts show cleanest with no rectangular frame
-        renderPhotoFrameGrid();
-        renderPhotoPreviewContents();
-        photoCutoutBtn.textContent = '✂ cut out again';
-        photoStatusEl.style.color = '#6ab86a';
-        photoStatusEl.textContent = 'subject cut out ✓';
-      } catch(err) {
-        console.error('[matrix-render] background removal failed:', err);
-        photoStatusEl.style.color = '#E8478B';
-        photoStatusEl.textContent = 'couldn’t cut out subject — try again';
-      } finally {
-        photoAddBtn.disabled = !photoDraft.file;
-        photoCutoutBtn.disabled = !photoDraft.file;
-      }
-    }
-    photoCutoutBtn.addEventListener('click', cutOutSubject);
-    photoFrameGridEl.addEventListener('click', e => {
-      const btn = e.target.closest('.mrm-frame-thumb');
-      if (!btn) return;
-      photoDraft.frame = btn.dataset.frame;
-      photoFrameGridEl.querySelectorAll('.mrm-frame-thumb').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      renderPhotoPreviewContents();
-    });
-    photoPreviewEl.addEventListener('click', e => {
-      if (e.target.closest('.mrm-photo-clear')) clearPhotoDraft();
-    });
-    // Drag-to-reposition the photo within its frame window.
-    let photoPanState = null;
-    photoPreviewEl.addEventListener('pointerdown', e => {
-      const img = e.target.closest('.mrm-photo-preview-img');
-      if (!img || img.classList.contains('plain')) return;
-      img.setPointerCapture(e.pointerId);
-      const box = photoPreviewEl.getBoundingClientRect();
-      photoPanState = { pointerId: e.pointerId, box, startX: e.clientX, startY: e.clientY, startPosX: photoDraft.imgPosX, startPosY: photoDraft.imgPosY };
-      e.preventDefault();
-    });
-    photoPreviewEl.addEventListener('pointermove', e => {
-      if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
-      const dx = e.clientX - photoPanState.startX, dy = e.clientY - photoPanState.startY;
-      const posX = Math.max(0, Math.min(100, photoPanState.startPosX - (dx / photoPanState.box.width) * 100));
-      const posY = Math.max(0, Math.min(100, photoPanState.startPosY - (dy / photoPanState.box.height) * 100));
-      photoDraft.imgPosX = +posX.toFixed(1); photoDraft.imgPosY = +posY.toFixed(1);
-      updatePhotoPreviewFit();
-    });
-    photoPreviewEl.addEventListener('pointerup', e => {
-      if (!photoPanState || photoPanState.pointerId !== e.pointerId) return;
-      photoPanState = null;
-    });
-    // Stretch handle (zoom the crop).
-    let photoStretchState = null;
-    photoPreviewEl.addEventListener('pointerdown', e => {
-      const handle = e.target.closest('.mrm-photo-stretch');
-      if (!handle) return;
-      e.stopPropagation(); e.preventDefault();
-      handle.setPointerCapture(e.pointerId);
-      const rect = photoPreviewEl.getBoundingClientRect();
-      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
-      photoStretchState = { pointerId: e.pointerId, cx, cy, startDist: Math.max(10, Math.hypot(e.clientX-cx, e.clientY-cy)), startScale: photoDraft.imgScale };
-    });
-    photoPreviewEl.addEventListener('pointermove', e => {
-      if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
-      const dist = Math.hypot(e.clientX - photoStretchState.cx, e.clientY - photoStretchState.cy);
-      let scale = photoStretchState.startScale * (dist / photoStretchState.startDist);
-      photoDraft.imgScale = +Math.max(1, Math.min(2.5, scale)).toFixed(2);
-      updatePhotoPreviewFit();
-    });
-    photoPreviewEl.addEventListener('pointerup', e => {
-      if (!photoStretchState || photoStretchState.pointerId !== e.pointerId) return;
-      photoStretchState = null;
-    });
-    // Rotate handle (spin the photo within its frame).
-    let photoRotateState = null;
-    photoPreviewEl.addEventListener('pointerdown', e => {
-      const handle = e.target.closest('.mrm-photo-rotate');
-      if (!handle) return;
-      e.stopPropagation(); e.preventDefault();
-      handle.setPointerCapture(e.pointerId);
-      const rect = photoPreviewEl.getBoundingClientRect();
-      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
-      photoRotateState = { pointerId: e.pointerId, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI, startRot: photoDraft.imgRot };
-    });
-    photoPreviewEl.addEventListener('pointermove', e => {
-      if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
-      const angle = Math.atan2(e.clientY - photoRotateState.cy, e.clientX - photoRotateState.cx) * 180/Math.PI;
-      let rot = photoRotateState.startRot + (angle - photoRotateState.startAngle);
-      rot = ((rot + 180) % 360 + 360) % 360 - 180;
-      photoDraft.imgRot = +rot.toFixed(1);
-      updatePhotoPreviewFit();
-    });
-    photoPreviewEl.addEventListener('pointerup', e => {
-      if (!photoRotateState || photoRotateState.pointerId !== e.pointerId) return;
-      photoRotateState = null;
-    });
-
-    async function uploadMatrixPhoto(){
-      if (!photoDraft.file) return;
+    // ── customize modal (photo/sticker/text) — UI lives in
+    // assets/js/matrix-customize.js (MatrixCustomize.createPanel); these are
+    // just the persistence callbacks it calls into. ──
+    async function uploadMatrixPhoto({ file, frame, imgScale, imgPosX, imgPosY, imgRot }){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId(), userId = deps.getUserId && deps.getUserId();
-      if (!userId) { photoStatusEl.style.color = '#E8478B'; photoStatusEl.textContent = 'sign in to save photos'; return; }
-      photoAddBtn.disabled = true; photoAddBtn.textContent = 'uploading…';
-      photoStatusEl.style.color = '#7a86bb'; photoStatusEl.textContent = 'uploading…';
-      try {
-        const file = photoDraft.file;
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-        const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
-        const publicUrl = pub && pub.publicUrl;
-        if (!publicUrl) throw new Error('could not resolve image url');
-        const { data: row, error: readErr } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
-        if (readErr) throw readErr;
-        const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
-        const next = [...current, {
-          url: publicUrl, frame: photoDraft.frame,
-          imgScale: photoDraft.imgScale, imgPosX: photoDraft.imgPosX, imgPosY: photoDraft.imgPosY, imgRot: photoDraft.imgRot,
-          x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1),
-        }];
-        const { error: updErr } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
-        if (updErr) throw updErr;
-        closePhotoUpload();
-        status('photo added ✓', '#6ab86a');
-        onChange();
-      } catch(err) {
-        console.error('[matrix-render] photo upload failed:', err);
-        photoStatusEl.style.color = '#E8478B';
-        photoStatusEl.textContent = (err && err.message) ? `couldn’t add photo: ${err.message}` : 'couldn’t add photo — try again';
-        photoAddBtn.disabled = false; photoAddBtn.textContent = 'add to matrix';
-      }
+      if (!userId) throw new Error('sign in to save photos');
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
+      const publicUrl = pub && pub.publicUrl;
+      if (!publicUrl) throw new Error('could not resolve image url');
+      const { data: row, error: readErr } = await sb.from(table).select('matrix_images').eq('id', entryId).maybeSingle();
+      if (readErr) throw readErr;
+      const current = Array.isArray(row && row.matrix_images) ? row.matrix_images : [];
+      const next = [...current, {
+        url: publicUrl, frame,
+        imgScale, imgPosX, imgPosY, imgRot,
+        x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1),
+      }];
+      const { error: updErr } = await sb.from(table).update({ matrix_images: next }).eq('id', entryId);
+      if (updErr) throw updErr;
+      onChange();
     }
-    photoAddBtn.addEventListener('click', uploadMatrixPhoto);
 
     async function removeMatrixPhoto(url){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
@@ -1352,73 +977,17 @@
       onChange();
     }
 
-    // ── ADD STICKER ────────────────────────────────────────────
-    let activeStickerTab = Object.keys(STICKER_CATEGORIES)[0];
-    const stickerOverlay = document.createElement('div');
-    stickerOverlay.className = 'mr-photo-overlay mr-matrix-modal';
-    stickerOverlay.innerHTML = `
-      <div class="mr-matrix-card mrm-sticker-card">
-        <div class="mr-matrix-head">
-          <span class="mr-matrix-title">add a sticker</span>
-          <button class="mr-matrix-close" type="button">×</button>
-        </div>
-        <div class="mr-matrix-sub">tap a sticker to drop it on your matrix, then drag it into place.</div>
-        <div class="mrm-sticker-tabs"></div>
-        <div class="mrm-sticker-grid"></div>
-      </div>`;
-    document.body.appendChild(stickerOverlay);
-    const stickerTabsEl = stickerOverlay.querySelector('.mrm-sticker-tabs');
-    const stickerGridEl = stickerOverlay.querySelector('.mrm-sticker-grid');
-
-    function renderStickerTabs(){
-      stickerTabsEl.innerHTML = Object.entries(STICKER_CATEGORIES).map(([key, cat]) =>
-        `<button class="mrm-sticker-tab${key === activeStickerTab ? ' active' : ''}" type="button" data-tab="${key}">${esc(cat.label)}</button>`
-      ).join('');
-    }
-    function renderStickerGrid(){
-      const cat = STICKER_CATEGORIES[activeStickerTab];
-      stickerGridEl.innerHTML = cat.files.map(f => {
-        const url = STICKER_BASE + activeStickerTab + '/' + f;
-        const label = f.replace(/\.png$/,'').replace(/-/g,' ');
-        return `<button class="mrm-sticker-thumb" type="button" data-url="${url}" title="${esc(label)}"><img src="${url}" alt="${esc(label)}"></button>`;
-      }).join('');
-    }
-    function openStickerPicker(){
-      renderStickerTabs(); renderStickerGrid();
-      stickerOverlay.classList.add('open');
-    }
-    function closeStickerPicker(){ stickerOverlay.classList.remove('open'); }
-    stickerOverlay.querySelector('.mr-matrix-close').addEventListener('click', closeStickerPicker);
-    stickerOverlay.addEventListener('click', e => { if (e.target === stickerOverlay) closeStickerPicker(); });
-    stickerTabsEl.addEventListener('click', e => {
-      const btn = e.target.closest('.mrm-sticker-tab');
-      if (!btn) return;
-      activeStickerTab = btn.dataset.tab;
-      renderStickerTabs(); renderStickerGrid();
-    });
-
     async function addMatrixSticker(url){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
-      if (!sb || !entryId) { status('sign in to save stickers', '#E8478B'); return; }
+      if (!sb || !entryId) throw new Error('sign in to save stickers');
       const entry = { id: crypto.randomUUID(), url, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*15).toFixed(1) };
-      try {
-        const { data: row, error: readErr } = await sb.from(table).select('matrix_stickers').eq('id', entryId).maybeSingle();
-        if (readErr) throw readErr;
-        const current = Array.isArray(row && row.matrix_stickers) ? row.matrix_stickers : [];
-        const { error: updErr } = await sb.from(table).update({ matrix_stickers: [...current, entry] }).eq('id', entryId);
-        if (updErr) throw updErr;
-        closeStickerPicker();
-        status('sticker added ✓', '#6ab86a');
-        onChange();
-      } catch(err) {
-        console.error('[matrix-render] sticker add failed:', err);
-        status('couldn’t add sticker — try again', '#E8478B');
-      }
+      const { data: row, error: readErr } = await sb.from(table).select('matrix_stickers').eq('id', entryId).maybeSingle();
+      if (readErr) throw readErr;
+      const current = Array.isArray(row && row.matrix_stickers) ? row.matrix_stickers : [];
+      const { error: updErr } = await sb.from(table).update({ matrix_stickers: [...current, entry] }).eq('id', entryId);
+      if (updErr) throw updErr;
+      onChange();
     }
-    stickerGridEl.addEventListener('click', e => {
-      const btn = e.target.closest('.mrm-sticker-thumb');
-      if (btn) addMatrixSticker(btn.dataset.url);
-    });
 
     async function removeMatrixSticker(id){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
@@ -1438,96 +1007,18 @@
       onChange();
     }
 
-    // ── ADD TEXT (optionally on a stationery card) ────────────
-    let textDraft = { stationery: null };
-    const textOverlay = document.createElement('div');
-    textOverlay.className = 'mr-photo-overlay mr-matrix-modal';
-    textOverlay.innerHTML = `
-      <div class="mr-matrix-card mrm-text-card">
-        <div class="mr-matrix-head">
-          <span class="mr-matrix-title">add text</span>
-          <button class="mr-matrix-close" type="button">×</button>
-        </div>
-        <div class="mr-matrix-sub">write a few words in your matrix's own handwriting.</div>
-        <div class="mrm-text-preview" style="display:none;"></div>
-        <textarea class="mrm-text-input" maxlength="80" placeholder="write something..."></textarea>
-        <div class="mr-matrix-label">which stationery?</div>
-        <div class="mrm-photo-frame-grid mrm-stationery-grid"></div>
-        <div class="mr-matrix-status"></div>
-        <button class="mr-matrix-add" type="button">add to matrix</button>
-      </div>`;
-    document.body.appendChild(textOverlay);
-    const textPreviewEl = textOverlay.querySelector('.mrm-text-preview');
-    const textInputEl = textOverlay.querySelector('.mrm-text-input');
-    const stationeryGridEl = textOverlay.querySelector('.mrm-stationery-grid');
-    const textStatusEl = textOverlay.querySelector('.mr-matrix-status');
-    const textAddBtn = textOverlay.querySelector('.mr-matrix-add');
-
-    function renderStationeryGrid(){
-      const plainSelected = !textDraft.stationery ? ' selected' : '';
-      const plainThumb = `<button class="mrm-frame-thumb${plainSelected}" type="button" data-stationery="">
-          <div class="mrm-stationery-plain-glyph">Aa</div><span>plain</span></button>`;
-      const cardThumbs = STATIONERY_ITEMS.map(s => {
-        const selected = s.key === textDraft.stationery ? ' selected' : '';
-        return `<button class="mrm-frame-thumb${selected}" type="button" data-stationery="${s.key}">
-            <img src="${STATIONERY_BASE}${s.file}" alt="${esc(s.label)}"><span>${esc(s.label)}</span></button>`;
-      }).join('');
-      stationeryGridEl.innerHTML = plainThumb + cardThumbs;
-    }
-    function updateTextAddPreview(){
-      if (!textDraft.stationery) { textPreviewEl.style.display = 'none'; return; }
-      textPreviewEl.style.display = 'block';
-      const file = STATIONERY_FILE[textDraft.stationery];
-      const box = STATIONERY_BOX[textDraft.stationery];
-      textPreviewEl.innerHTML = `<img class="mrm-text-preview-img" src="${STATIONERY_BASE}${file}" alt="">
-          <div class="mrm-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(textInputEl.value)}</div>`;
-    }
-    function openTextAdd(){
-      textInputEl.value = ''; textInputEl.maxLength = 80;
-      textDraft = { stationery: null };
-      renderStationeryGrid(); updateTextAddPreview();
-      textStatusEl.textContent = ''; textStatusEl.style.color = '';
-      textAddBtn.disabled = false; textAddBtn.textContent = 'add to matrix';
-      textOverlay.classList.add('open');
-    }
-    function closeTextAdd(){ textOverlay.classList.remove('open'); }
-    textOverlay.querySelector('.mr-matrix-close').addEventListener('click', closeTextAdd);
-    textOverlay.addEventListener('click', e => { if (e.target === textOverlay) closeTextAdd(); });
-    textInputEl.addEventListener('input', updateTextAddPreview);
-    stationeryGridEl.addEventListener('click', e => {
-      const btn = e.target.closest('.mrm-frame-thumb');
-      if (!btn) return;
-      textDraft.stationery = btn.dataset.stationery || null;
-      stationeryGridEl.querySelectorAll('.mrm-frame-thumb').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      textInputEl.maxLength = textDraft.stationery ? 300 : 80;
-      updateTextAddPreview();
-    });
-
-    async function addMatrixText(){
-      const text = textInputEl.value.trim();
-      if (!text) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'write something first'; return; }
+    async function addMatrixText({ text, stationery }){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
-      if (!sb || !entryId) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'sign in to save text'; return; }
-      textAddBtn.disabled = true; textAddBtn.textContent = 'adding…';
+      if (!sb || !entryId) throw new Error('sign in to save text');
       const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1) };
-      if (textDraft.stationery) entry.stationery = textDraft.stationery;
-      try {
-        const { data: row, error: readErr } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
-        if (readErr) throw readErr;
-        const current = Array.isArray(row && row.matrix_texts) ? row.matrix_texts : [];
-        const { error: updErr } = await sb.from(table).update({ matrix_texts: [...current, entry] }).eq('id', entryId);
-        if (updErr) throw updErr;
-        closeTextAdd();
-        status('text added ✓', '#6ab86a');
-        onChange();
-      } catch(err) {
-        console.error('[matrix-render] text add failed:', err);
-        textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'couldn’t add text — try again';
-        textAddBtn.disabled = false; textAddBtn.textContent = 'add to matrix';
-      }
+      if (stationery) entry.stationery = stationery;
+      const { data: row, error: readErr } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
+      if (readErr) throw readErr;
+      const current = Array.isArray(row && row.matrix_texts) ? row.matrix_texts : [];
+      const { error: updErr } = await sb.from(table).update({ matrix_texts: [...current, entry] }).eq('id', entryId);
+      if (updErr) throw updErr;
+      onChange();
     }
-    textAddBtn.addEventListener('click', addMatrixText);
 
     async function removeMatrixText(id){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
@@ -1547,13 +1038,21 @@
       onChange();
     }
 
+    const customizePanel = MatrixCustomize.createPanel({
+      showAlbum: false,
+      onUploadPhoto: uploadMatrixPhoto,
+      onAddSticker: addMatrixSticker,
+      onAddText: addMatrixText,
+      status,
+    });
+
     function destroy(){
-      photoOverlay.remove(); stickerOverlay.remove(); textOverlay.remove();
+      customizePanel.destroy();
     }
 
     return {
       attachInteractions, saveAllPositions,
-      openPhotoUpload, openStickerPicker, openTextAdd,
+      openCustomize: (tab) => customizePanel.open(tab),
       removeMatrixPhoto, removeMatrixSticker, removeMatrixText,
       isDirty: () => _dirty,
       destroy,
@@ -1770,6 +1269,7 @@
 .matrix-tool-btn:active { transform:scale(0.93); }
 .matrix-tool-btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
 .matrix-tool-btn:disabled:hover { background:#fff; color:var(--blue,#6e83d3); }
+.matrix-customize-btn img { width:22px; height:22px; object-fit:contain; }
 
 /* Explicit save — top-right of the matrix header, above the date.
    Drag/rotate/resize already autosave per-gesture, but this batches every
@@ -1783,218 +1283,6 @@
 .matrix-save-btn:hover  { background:#4a5bc4; }
 .matrix-save-btn:active { box-shadow:none; transform:translate(2px,2px); }
 .matrix-save-btn:disabled { opacity:.6; cursor:default; transform:none; box-shadow:2px 2px 0 #3a4aaa; }
-
-/* ── shared photo-upload modal ── */
-.mr-photo-overlay, .mr-jr-overlay {
-  position:fixed; inset:0; z-index:600;
-  background:rgba(40,32,24,.45);
-  display:none; align-items:center; justify-content:center; padding:18px;
-}
-.mr-photo-overlay.open, .mr-jr-overlay.open { display:flex; }
-.mr-photo-card, .mr-jr-card {
-  width:min(440px,94vw); max-height:92vh; overflow-y:auto;
-  background:var(--back-wall,#f1ebe4);
-  border:2px solid var(--blue,#6e83d3);
-  box-shadow:0 0 0 3px var(--blue,#6e83d3), 0 0 0 6px var(--aqua,#83d2e6), 6px 10px 40px rgba(0,0,0,.4);
-  padding:18px 20px; font-family:var(--font-hand,"ZoesHandwriting",cursive);
-}
-.mr-photo-head, .mr-jr-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.mr-photo-title, .mr-jr-title { font-size:clamp(18px,2.2vw,24px); color:var(--blue,#6e83d3); }
-.mr-photo-close, .mr-jr-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
-.mr-photo-close:hover, .mr-jr-close:hover { color:#E8478B; }
-.mr-photo-sub, .mr-jr-sub { font-size:13px; color:#7a86bb; margin:2px 0 14px; }
-.mr-photo-drop { display:block; cursor:pointer; }
-.mr-photo-preview {
-  width:100%; aspect-ratio:4/3; background:#cdd3ec;
-  border:2px dashed var(--blue); display:flex; align-items:center; justify-content:center;
-  overflow:hidden; margin-bottom:14px; transition:border-color .12s;
-}
-.mr-photo-drop:hover .mr-photo-preview { border-color:var(--blue,#6e83d3); }
-.mr-photo-preview img { width:100%; height:100%; object-fit:contain; }
-.mr-photo-hint { color:rgba(138,122,90,.7); font-style:italic; font-size:14px; }
-.mr-photo-quad-label { font-size:12px; color:#7a86bb; letter-spacing:.4px; margin-bottom:6px; }
-.mr-photo-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-.mr-photo-quad {
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:12px 8px; background:#fdf6e3; border:1.5px solid #ccc;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); cursor:pointer; color:#555; transition:all .1s;
-}
-.mr-photo-quad b { font-size:15px; color:#3a2e1e; }
-.mr-photo-quad span { font-size:10px; color:#7a86bb; }
-.mr-photo-quad:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; }
-.mr-photo-quad.selected { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); box-shadow:2px 2px 0 #3a4aaa; }
-.mr-photo-quad.selected b, .mr-photo-quad.selected span { color:#fff; }
-.mr-photo-status, .mr-jr-status { font-size:13px; min-height:18px; margin-bottom:8px; color:#7a86bb; }
-.mr-photo-add {
-  width:100%; padding:12px 18px; background:var(--blue,#6e83d3);
-  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#fff; cursor:pointer; transition:all .05s;
-}
-.mr-photo-add:hover  { background:#4a5bc4; }
-.mr-photo-add:active { box-shadow:none; transform:translate(2px,2px); }
-.mr-photo-add:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
-
-/* ── shared journal editor ── */
-.mr-jr-text {
-  width:100%; min-height:200px; resize:vertical;
-  background:rgba(255,255,255,.7); border:1.5px solid var(--blue);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#3a2e1e;
-  line-height:1.6; padding:12px 14px; margin-bottom:8px; outline:none;
-}
-.mr-jr-text:focus { border-color:var(--blue,#6e83d3); }
-.mr-jr-actions { display:flex; justify-content:flex-end; gap:10px; }
-.mr-jr-cancel {
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#888;
-  background:none; border:1.5px solid #ccc; padding:8px 16px; cursor:pointer;
-}
-.mr-jr-cancel:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
-.mr-jr-save {
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#fff;
-  background:var(--blue,#6e83d3); border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  padding:8px 18px; cursor:pointer; transition:all .05s;
-}
-.mr-jr-save:hover  { background:#4a5bc4; }
-.mr-jr-save:active { box-shadow:none; transform:translate(2px,2px); }
-.mr-jr-save:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
-
-/* ── MATRIX EDITOR MODALS (add photo w/ frame+crop, add sticker, add text
-   w/ stationery) — namespaced mr-matrix- and mrm- so they never collide with
-   a host page's own .photo-overlay-family CSS during the transition before
-   dream.html/daily.html are migrated to call createMatrixEditor directly. ── */
-.mr-matrix-modal .mr-matrix-card {
-  width:min(440px,94vw); max-height:92vh; overflow-y:auto;
-  background:var(--back-wall,#f1ebe4);
-  border:2px solid var(--blue,#6e83d3);
-  box-shadow:0 0 0 4px var(--blue,#6e83d3), 6px 10px 40px rgba(0,0,0,.4);
-  padding:18px 20px; font-family:var(--font-hand,"ZoesHandwriting",cursive);
-}
-.mr-matrix-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.mr-matrix-title { font-size:clamp(28px,3vw,30px); color:var(--blue,#6e83d3); }
-.mr-matrix-close { font-size:25px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
-.mr-matrix-close:hover { color:#E8478B; }
-.mr-matrix-sub { font-size:15px; color:#7a86bb; margin:2px 0 14px; }
-.mr-matrix-label { font-size:14px; color:#7a86bb; letter-spacing:.4px; margin-bottom:6px; }
-.mr-matrix-status { font-size:15px; min-height:18px; margin-bottom:8px; color:#7a86bb; }
-.mr-matrix-add {
-  width:100%; padding:12px 18px; background:var(--blue,#6e83d3);
-  border:2px solid #4a5bc4; box-shadow:2px 2px 0 #3a4aaa;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#fff; cursor:pointer; transition:all .05s;
-}
-.mr-matrix-add:hover  { background:#4a5bc4; }
-.mr-matrix-add:active { box-shadow:none; transform:translate(2px,2px); }
-.mr-matrix-add:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
-
-/* add-photo: drop zone + crop/pan/zoom/rotate preview */
-.mrm-photo-drop { display:block; cursor:pointer; }
-.mrm-photo-cutout {
-  display:block; width:100%; margin-bottom:14px; padding:8px 14px;
-  background:#fff; border:2px solid var(--blue,#6e83d3);
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:var(--blue,#6e83d3);
-  cursor:pointer; transition:all .05s;
-}
-.mrm-photo-cutout:hover  { background:#eef0f9; }
-.mrm-photo-cutout:active { transform:translate(1px,1px); }
-.mrm-photo-cutout:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
-.mrm-photo-preview {
-  position:relative; width:100%; max-width:260px; margin-left:auto; margin-right:auto;
-  aspect-ratio:602/691; background:#fff;
-  border:2px dashed var(--blue,#6e83d3); display:flex; align-items:center; justify-content:center;
-  overflow:hidden; margin-bottom:14px; transition:border-color .12s;
-}
-.mrm-photo-drop:hover .mrm-photo-preview { border-color:var(--blue,#6e83d3); }
-/* Framed case: positioned via inline style (photoMatteStyle) to sit inside
-   the frame's window so the matte background shows as a border around it. */
-.mrm-photo-preview-img {
-  position:absolute; object-fit:cover; object-position:50% 50%; display:block;
-  cursor:grab; touch-action:none;
-}
-.mrm-photo-preview-img.plain { position:static; }
-.mrm-photo-preview-img:active { cursor:grabbing; }
-.mrm-photo-preview-frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-.mrm-photo-rotate, .mrm-photo-stretch, .mrm-photo-clear {
-  position:absolute; z-index:5;
-  width:26px; height:26px; padding:0; line-height:1;
-  background:#fff; border:1.5px solid #ccc; border-radius:50%;
-  color:#888; font-size:14px; touch-action:none;
-  display:flex; align-items:center; justify-content:center; cursor:pointer;
-  transition:color .12s, border-color .12s;
-}
-.mrm-photo-rotate:hover, .mrm-photo-stretch:hover { color:var(--blue,#6e83d3); border-color:var(--blue,#6e83d3); }
-.mrm-photo-clear:hover { color:#E8478B; border-color:#E8478B; }
-.mrm-photo-rotate  { top:8px; left:8px; cursor:grab; }
-.mrm-photo-stretch { bottom:8px; right:8px; cursor:nwse-resize; }
-.mrm-photo-clear   { top:8px; right:8px; }
-.mrm-photo-preview.no-frame {
-  aspect-ratio:auto; min-height:120px; padding:12px;
-  background-image:
-    linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
-    linear-gradient(45deg, #ddd 25%, #fff 25%, #fff 75%, #ddd 75%, #ddd);
-  background-size:16px 16px; background-position:0 0, 8px 8px;
-}
-.mrm-photo-preview-img.plain {
-  width:auto; height:auto; max-width:100%; max-height:280px; object-fit:contain; cursor:default;
-}
-.mrm-photo-hint { color:rgba(122,134,187,.7); font-style:italic; font-size:16px; }
-
-/* frame / stationery picker grid — shared by add-photo and add-text */
-.mrm-photo-frame-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-.mrm-frame-thumb {
-  position:relative; aspect-ratio:1; background:#cdd3ec; border:1.5px solid #ccc;
-  padding:6px; cursor:pointer; transition:all .1s;
-  display:flex; align-items:center; justify-content:center;
-}
-.mrm-frame-thumb img { max-width:100%; max-height:100%; }
-.mrm-frame-thumb:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; }
-.mrm-frame-thumb.selected { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); box-shadow:2px 2px 0 #3a4aaa; }
-.mrm-frame-thumb span {
-  position:absolute; bottom:2px; left:0; right:0; text-align:center;
-  font-size:10px; color:#7a86bb; background:rgba(253,246,227,.85);
-}
-.mrm-frame-thumb.selected span { color:#fff; background:rgba(74,91,196,.85); }
-.mrm-frame-none {
-  grid-column:3; aspect-ratio:auto; padding:10px 6px;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:13px; color:#555;
-}
-
-/* add-sticker: fixed-size card so it doesn't reflow when switching tabs */
-.mrm-sticker-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
-.mrm-sticker-card .mr-matrix-head, .mrm-sticker-card .mr-matrix-sub { flex-shrink:0; }
-.mrm-sticker-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; flex-shrink:0; }
-.mrm-sticker-tab {
-  padding:8px 16px; background:#cdd3ec; border:1.5px solid #ccc;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:22px; color:#7a86bb; cursor:pointer; transition:all .1s;
-}
-.mrm-sticker-tab:hover { border-color:var(--blue,#6e83d3); color:var(--blue,#6e83d3); }
-.mrm-sticker-tab.active { border-color:var(--blue,#6e83d3); background:var(--blue,#6e83d3); color:#fff; }
-.mrm-sticker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:4px; overflow-y:auto; flex:1 1 auto; align-content:start; }
-.mrm-sticker-thumb {
-  background:#cdd3ec; border:1.5px solid #ccc; padding:6px; cursor:pointer; transition:all .1s;
-}
-.mrm-sticker-thumb:hover { border-color:var(--blue,#6e83d3); background:#f0edfa; transform:scale(1.04); }
-.mrm-sticker-thumb img { width:100%; display:block; }
-
-/* add-text: fixed-size card with its own scroll region for the stationery
-   grid, same fix as the sticker modal */
-.mrm-text-card { height:min(640px,92vh); display:flex; flex-direction:column; overflow:hidden; }
-.mrm-text-card .mr-matrix-head, .mrm-text-card .mr-matrix-sub,
-.mrm-text-card .mrm-text-preview, .mrm-text-card .mrm-text-input,
-.mrm-text-card .mr-matrix-label, .mrm-text-card .mr-matrix-status,
-.mrm-text-card .mr-matrix-add { flex-shrink:0; }
-.mrm-text-card .mrm-stationery-grid { overflow-y:auto; flex:1 1 auto; align-content:start; margin-bottom:0; padding-bottom:4px; }
-.mrm-text-input {
-  width:100%; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#222;
-  background:#fff; border:1.5px solid var(--blue,#6e83d3); padding:10px 12px;
-  outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
-}
-.mrm-text-input:focus { border-color:var(--blue,#6e83d3); }
-.mrm-text-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
-.mrm-text-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
-.mrm-text-preview-body {
-  position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
-}
-.mrm-stationery-plain-glyph { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:28px; color:#3a2e1e; }
 `;
     const style = document.createElement('style');
     style.id = 'matrix-render-styles';
@@ -2009,7 +1297,6 @@
     assemble,
     buildHTML,
     attachMatrix,
-    createJournalEditor,
     createMatrixEditor,
     buildMapSVG,
     buildCharStack,
@@ -2026,5 +1313,9 @@
     PHOTO_FRAME_WINDOW,
     photoMatteStyle,
     NO_FRAME_KEY,
+    STATIONERY_BASE,
+    STATIONERY_ITEMS,
+    STATIONERY_FILE,
+    STATIONERY_BOX,
   };
 })();

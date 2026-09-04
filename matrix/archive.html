@@ -1037,6 +1037,8 @@ html, body { min-height:100dvh; background:#cdd3ec; font-family:var(--font-hand)
 <script src="../assets/js/sentry-init.js"></script>
 <script src="../assets/js/treasure-map.js"></script>
 <script src="./matrix-render.js"></script>
+<script src="../assets/js/matrix-customize.js"></script>
+<script src="./matrix-journal-editor.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script src="../assets/js/room-nav.js" defer></script>
 <script src="../assets/js/membership.js" defer></script>
@@ -2791,11 +2793,11 @@ async function init() {
     sb, table:'daily_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
   });
-  journalEditor = MatrixRender.createJournalEditor({
+  journalEditor = MatrixJournalEditor.createEditor({
     sb, table:'dream_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
   });
-  dailyJournalEditor = MatrixRender.createJournalEditor({
+  dailyJournalEditor = MatrixJournalEditor.createEditor({
     sb, table:'daily_matrix', getEntryId: () => activeSaveId,
     onChange: refreshMatrixView, status: statusRoute,
   });

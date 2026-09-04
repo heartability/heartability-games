@@ -14,7 +14,7 @@ const USER_ID_TABLES = [
   'cosmic_bingo',
   'dreams',
   'character_archetypes',
-  'bed_wall_photos',
+  'bed_wall_items',
   'media_saves',
   'tool_saves',
 ]

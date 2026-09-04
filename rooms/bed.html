@@ -100,21 +100,27 @@ html, body {
   z-index: 11;
   overflow: hidden;
 }
-.wall-add-photo-btn {
+.wall-customize-btn {
   position: absolute; top: 10px; right: 12px; z-index: 6;
   background: none; border: none; padding: 0; cursor: pointer;
   transition: transform 0.1s;
 }
-.wall-add-photo-btn img { display: block; width: clamp(30px, 3.4vw, 46px); height: auto; }
-.wall-add-photo-btn:hover  { transform: scale(1.08); }
-.wall-add-photo-btn:active { transform: scale(0.96); }
-.wall-board .adv-photo { cursor: grab; touch-action: none; }
-.wall-board .adv-photo.dragging { cursor: grabbing; z-index: 60; }
+.wall-customize-btn img { display: block; width: clamp(30px, 3.4vw, 46px); height: auto; }
+.wall-customize-btn:hover  { transform: scale(1.08); }
+.wall-customize-btn:active { transform: scale(0.96); }
+.wall-board .adv-photo, .wall-board .adv-sticker, .wall-board .mx-note { cursor: grab; touch-action: none; }
+.wall-board .adv-photo.dragging, .wall-board .adv-sticker.dragging, .wall-board .mx-note.dragging { cursor: grabbing; z-index: 60; }
 .wall-board .adv-photo:hover .adv-resize-handle,
-.wall-board .adv-photo:hover .adv-photo-remove { opacity: 1; }
+.wall-board .adv-photo:hover .adv-photo-remove,
+.wall-board .adv-sticker:hover .adv-resize-handle,
+.wall-board .adv-sticker:hover .adv-sticker-remove,
+.wall-board .mx-note:hover .adv-resize-handle,
+.wall-board .mx-note:hover .mx-note-remove { opacity: 1; }
 @media (hover: none) {
   .wall-board .adv-resize-handle,
-  .wall-board .adv-photo-remove { opacity: 1; }
+  .wall-board .adv-photo-remove,
+  .wall-board .adv-sticker-remove,
+  .wall-board .mx-note-remove { opacity: 1; }
 }
 
 /* ── TOP NAV ── */
@@ -271,37 +277,6 @@ html, body {
   animation: idle-pulse 3.6s ease-in-out 1s infinite;
 }
 
-/* ── MATRIX PICKER POPUP ── */
-.matrix-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-.matrix-picker-overlay.open { display: flex; animation: fadeIn 0.2s ease both; }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.matrix-picker-popup { background: var(--cream); box-shadow: 0 0 0 4px var(--purple), 6px 10px 40px rgba(0,0,0,0.35); width: min(92vw, 400px); overflow: hidden; animation: windowIn 0.25s ease both; }
-@keyframes windowIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.matrix-picker-titlebar { height: 38px; background: var(--cream-dark); border-bottom: 2px solid #bbb; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-family: var(--font-hand); font-size: clamp(21px, 1.4vw, 24px); color: #555; }
-.popup-close { cursor: pointer; font-size: 23px; color: #bbb; line-height: 1; padding: 2px 4px; transition: color 0.15s; }
-.popup-close:hover { color: #444; }
-/* ── WALL PHOTO PICKER POPUP ── */
-.wall-picker-popup { width: min(92vw, 560px); max-height: 80vh; display: flex; flex-direction: column; }
-.wall-picker-body { padding: 16px 18px; overflow-y: auto; }
-.wall-picker-empty { font-family: var(--font-hand); font-size: 18px; color: #888; text-align: center; padding: 30px 10px; }
-.wall-picker-gate-link { display: inline-block; margin-top: 10px; font-family: var(--font-hand); font-size: 15px; color: var(--purple); text-decoration: none; }
-.wall-picker-gate-link:hover { color: var(--purple-dark); text-decoration: underline; }
-.wall-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px; }
-.wall-picker-item { cursor: pointer; border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.wall-picker-thumb { position: relative; width: 100%; aspect-ratio: 1; }
-.wall-picker-thumb img.wpt-plain { width: 100%; height: 100%; object-fit: contain; }
-.wall-picker-thumb .wpt-inner { position: relative; width: 100%; height: 100%; background: #fff; overflow: hidden; box-shadow: 1px 2px 4px rgba(0,0,0,0.18); }
-.wall-picker-thumb .wpt-inner img.wpt-img { position: absolute; object-fit: cover; }
-.wall-picker-thumb .wpt-frame { position: absolute; inset: 0; width: 100%; height: 100%; }
-.wall-picker-item:hover .wall-picker-thumb { outline: 2px solid var(--purple); }
-.wall-picker-label { font-family: var(--font-hand); font-size: 12px; color: #777; text-align: center; }
-
 /* ── WALL PHOTO DETAIL MODAL ── */
 .wall-detail-body { padding: 0 !important; overflow: hidden; flex: 1; min-height: 0; }
 .wall-detail-iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -350,10 +325,10 @@ html, body {
   </div>
   <div class="room-back-wall" aria-hidden="true"></div>
 
-  <!-- WALL BOARD — bulletin board of matrix photos -->
+  <!-- WALL BOARD — bulletin board of matrix photos/stickers/text -->
   <div class="wall-board" id="wall-board">
-    <button class="wall-add-photo-btn" type="button" onclick="openWallPicker()" title="add photo" aria-label="add photo">
-      <img src="../assets/elements/add.png" alt="">
+    <button class="wall-customize-btn" type="button" onclick="openCustomizePanel()" title="customize" aria-label="customize">
+      <img src="../assets/elements/customize.png" alt="">
     </button>
     <div id="wall-photos"></div>
   </div>
@@ -379,19 +354,6 @@ html, body {
 
 </div></div>
 
-<!-- WALL PHOTO PICKER POPUP -->
-<div class="matrix-picker-overlay" id="wall-picker-overlay" onclick="if(event.target===this)closeWallPicker()">
-  <div class="matrix-picker-popup wall-picker-popup">
-    <div class="matrix-picker-titlebar">
-      <span>pin a photo</span>
-      <span class="popup-close" onclick="closeWallPicker()">&#x2715;</span>
-    </div>
-    <div class="wall-picker-body" id="wall-picker-body">
-      <div class="wall-picker-empty">loading your photos…</div>
-    </div>
-  </div>
-</div>
-
 <!-- WALL PHOTO DETAIL MODAL -->
 <div class="hg-modal-overlay" id="wall-detail-overlay">
   <div class="hg-modal" style="width:min(94vw,480px); height:min(88vh,800px); display:flex; flex-direction:column;">
@@ -411,50 +373,77 @@ html, body {
 <script src="../assets/js/room-nav.js" defer></script>
 <script src="../assets/js/membership.js" defer></script>
 <script src="../matrix/matrix-render.js" defer></script>
+<script src="../assets/js/matrix-customize.js" defer></script>
 <script>
 (function () {
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeWallPicker(); closeWallDetail(); }
+    if (e.key === 'Escape') { if (customizePanel) customizePanel.close(); closeWallDetail(); }
   });
 
-  // ── Wall board — bulletin board of matrix photos ──────────
+  // ── Wall board — bulletin board of matrix photos/stickers/text ──
   let currentUserId = null;
   let isPaid = false;
-  let wallPhotos = [];
+  let wallItems = [];
 
   function escAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+  function escHtml(s) { return (s || '').toString().replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
-  function buildWallPhotoEl(p) {
+  function buildWallItemEl(item) {
     const el = document.createElement('div');
-    el.className = 'adv-photo';
-    el.dataset.id = p.id;
-    el.style.left = p.x + '%';
-    el.style.top = p.y + '%';
-    el.style.transform = `translate(-50%,-50%) scale(${p.scale})`;
+    el.dataset.id = item.id;
+    el.dataset.kind = item.kind;
+    el.style.left = item.x + '%';
+    el.style.top = item.y + '%';
+    el.style.transform = `translate(-50%,-50%) rotate(${item.rot || 0}deg) scale(${item.scale})`;
 
-    const removeBtn = `<button class="adv-photo-remove" type="button" title="remove photo" aria-label="remove photo">&times;</button>`;
     const resizeHandle = `<button class="adv-resize-handle" type="button" title="resize" aria-label="resize"></button>`;
 
-    if (p.frame === MatrixRender.NO_FRAME_KEY) {
-      el.innerHTML = `<img class="adv-photo-img-plain" src="${escAttr(p.photo_url)}" alt="" onerror="this.parentElement.style.display='none'">${resizeHandle}${removeBtn}`;
+    if (item.kind === 'sticker') {
+      el.className = 'adv-sticker';
+      const removeBtn = `<button class="adv-sticker-remove" type="button" title="remove sticker" aria-label="remove sticker">✕</button>`;
+      el.innerHTML = `<img src="${escAttr(item.sticker_url)}" alt="" onerror="this.parentElement.style.display='none'">${resizeHandle}${removeBtn}`;
+      return el;
+    }
+
+    if (item.kind === 'text') {
+      const removeBtn = `<button class="mx-note-remove" type="button" title="remove text" aria-label="remove text">✕</button>`;
+      if (item.stationery && MatrixRender.STATIONERY_FILE[item.stationery]) {
+        el.className = 'mx-note stationery';
+        const box = MatrixRender.STATIONERY_BOX[item.stationery];
+        el.innerHTML = `<img class="mx-note-stationery-img" src="${MatrixRender.STATIONERY_BASE}${MatrixRender.STATIONERY_FILE[item.stationery]}" alt="">
+            <div class="mx-note-stationery-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${escHtml(item.text_content)}</div>
+            ${resizeHandle}${removeBtn}`;
+      } else {
+        el.className = 'mx-note';
+        el.innerHTML = `${escHtml(item.text_content)}${resizeHandle}${removeBtn}`;
+      }
+      return el;
+    }
+
+    // photo
+    el.className = 'adv-photo';
+    const removeBtn = `<button class="adv-photo-remove" type="button" title="remove photo" aria-label="remove photo">&times;</button>`;
+    if (item.frame === MatrixRender.NO_FRAME_KEY) {
+      el.innerHTML = `<img class="adv-photo-img-plain" src="${escAttr(item.photo_url)}" alt="" onerror="this.parentElement.style.display='none'">${resizeHandle}${removeBtn}`;
     } else {
-      const frameFile = MatrixRender.PHOTO_FRAME_FILE[p.frame] || MatrixRender.PHOTO_FRAME_FILE.polaroid;
-      el.innerHTML = `<div class="adv-photo-inner" style="${MatrixRender.photoFrameMaskStyle(p.frame)}">
-          <img class="adv-photo-img" src="${escAttr(p.photo_url)}" alt="" style="${MatrixRender.photoMatteStyle(p.frame)}object-position:${p.img_pos_x}% ${p.img_pos_y}%;transform:rotate(${p.img_rot}deg) scale(${p.img_scale});" onerror="this.parentElement.parentElement.style.display='none'">
+      const frameFile = MatrixRender.PHOTO_FRAME_FILE[item.frame] || MatrixRender.PHOTO_FRAME_FILE.polaroid;
+      el.innerHTML = `<div class="adv-photo-inner" style="${MatrixRender.photoFrameMaskStyle(item.frame)}">
+          <img class="adv-photo-img" src="${escAttr(item.photo_url)}" alt="" style="${MatrixRender.photoMatteStyle(item.frame)}object-position:${item.img_pos_x}% ${item.img_pos_y}%;transform:rotate(${item.img_rot}deg) scale(${item.img_scale});" onerror="this.parentElement.parentElement.style.display='none'">
           <img class="adv-photo-frame" src="${MatrixRender.PHOTO_FRAME_BASE}${frameFile}" alt="">
         </div>${resizeHandle}${removeBtn}`;
     }
     return el;
   }
 
-  function openArchiveEntry(photo) {
+  function openArchiveEntry(item) {
+    if (item.kind !== 'photo') return;
     let url;
-    if (photo.source_table === 'dream_matrix' && photo.source_id && photo.source_map_id) {
-      url = `../matrix/archive.html?openEntry=dream:${photo.source_id}:${photo.source_map_id}`;
-    } else if (photo.source_table === 'daily_matrix' && photo.source_id) {
-      url = `../matrix/archive.html?openEntry=daily:${photo.source_id}`;
-    } else if (photo.source_table === 'cosmic_matrix' && photo.source_map_phase) {
-      url = `../matrix/archive.html?openEntry=cosmic:${photo.source_map_phase}`;
+    if (item.source_table === 'dream_matrix' && item.source_id && item.source_map_id) {
+      url = `../matrix/archive.html?openEntry=dream:${item.source_id}:${item.source_map_id}`;
+    } else if (item.source_table === 'daily_matrix' && item.source_id) {
+      url = `../matrix/archive.html?openEntry=daily:${item.source_id}`;
+    } else if (item.source_table === 'cosmic_matrix' && item.source_map_phase) {
+      url = `../matrix/archive.html?openEntry=cosmic:${item.source_map_phase}`;
     } else {
       return;
     }
@@ -472,16 +461,17 @@ html, body {
     if (e.target === document.getElementById('wall-detail-overlay')) closeWallDetail();
   });
 
-  function attachWallInteractions(el, photo) {
+  function attachWallInteractions(el, item) {
     let dragging = false, moved = false, startX, startY, startLeftPx, startTopPx, boardRect;
+    const rot = item.rot || 0;
 
     el.addEventListener('pointerdown', e => {
-      if (e.target.closest('.adv-resize-handle') || e.target.closest('.adv-photo-remove')) return;
+      if (e.target.closest('.adv-resize-handle') || e.target.closest('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove')) return;
       dragging = true; moved = false;
       boardRect = document.getElementById('wall-board').getBoundingClientRect();
       startX = e.clientX; startY = e.clientY;
-      startLeftPx = (photo.x / 100) * boardRect.width;
-      startTopPx  = (photo.y / 100) * boardRect.height;
+      startLeftPx = (item.x / 100) * boardRect.width;
+      startTopPx  = (item.y / 100) * boardRect.height;
       el.setPointerCapture(e.pointerId);
       el.classList.add('dragging');
     });
@@ -489,19 +479,19 @@ html, body {
       if (!dragging) return;
       const dx = e.clientX - startX, dy = e.clientY - startY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      photo.x = Math.min(96, Math.max(4, ((startLeftPx + dx) / boardRect.width) * 100));
-      photo.y = Math.min(96, Math.max(4, ((startTopPx + dy) / boardRect.height) * 100));
-      el.style.left = photo.x + '%';
-      el.style.top = photo.y + '%';
+      item.x = Math.min(96, Math.max(4, ((startLeftPx + dx) / boardRect.width) * 100));
+      item.y = Math.min(96, Math.max(4, ((startTopPx + dy) / boardRect.height) * 100));
+      el.style.left = item.x + '%';
+      el.style.top = item.y + '%';
     });
     el.addEventListener('pointerup', async e => {
       if (!dragging) return;
       dragging = false;
       el.classList.remove('dragging');
       if (moved) {
-        await sb.from('bed_wall_photos').update({ x: photo.x, y: photo.y }).eq('id', photo.id);
+        await sb.from('bed_wall_items').update({ x: item.x, y: item.y }).eq('id', item.id);
       } else {
-        openArchiveEntry(photo);
+        openArchiveEntry(item);
       }
     });
 
@@ -512,120 +502,58 @@ html, body {
       resizing = true;
       const rect = el.getBoundingClientRect();
       startDist = Math.hypot(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2)) || 1;
-      startScale = photo.scale;
+      startScale = item.scale;
       resizeHandle.setPointerCapture(e.pointerId);
     });
     resizeHandle.addEventListener('pointermove', e => {
       if (!resizing) return;
       const rect = el.getBoundingClientRect();
       const dist = Math.hypot(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
-      photo.scale = Math.min(2.5, Math.max(0.4, startScale * (dist / startDist)));
-      el.style.transform = `translate(-50%,-50%) scale(${photo.scale})`;
+      item.scale = Math.min(2.5, Math.max(0.4, startScale * (dist / startDist)));
+      el.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(${item.scale})`;
     });
     resizeHandle.addEventListener('pointerup', async e => {
       if (!resizing) return;
       resizing = false;
-      await sb.from('bed_wall_photos').update({ scale: photo.scale }).eq('id', photo.id);
+      await sb.from('bed_wall_items').update({ scale: item.scale }).eq('id', item.id);
     });
 
-    el.querySelector('.adv-photo-remove').addEventListener('click', async e => {
+    const removeBtn = el.querySelector('.adv-photo-remove, .adv-sticker-remove, .mx-note-remove');
+    removeBtn.addEventListener('click', async e => {
       e.stopPropagation();
-      await sb.from('bed_wall_photos').delete().eq('id', photo.id);
-      wallPhotos = wallPhotos.filter(p => p.id !== photo.id);
+      await sb.from('bed_wall_items').delete().eq('id', item.id);
+      wallItems = wallItems.filter(w => w.id !== item.id);
       el.remove();
     });
   }
 
-  function renderWallPhotos() {
+  function renderWallItems() {
     const wrap = document.getElementById('wall-photos');
     wrap.innerHTML = '';
-    wallPhotos.forEach(p => {
-      const el = buildWallPhotoEl(p);
+    wallItems.forEach(item => {
+      const el = buildWallItemEl(item);
       wrap.appendChild(el);
-      attachWallInteractions(el, p);
+      attachWallInteractions(el, item);
     });
   }
 
-  async function loadWallPhotos() {
-    const { data, error } = await sb.from('bed_wall_photos')
+  async function loadWallItems() {
+    const { data, error } = await sb.from('bed_wall_items')
       .select('*').eq('user_id', currentUserId).order('created_at', { ascending: true });
     if (error) { console.error('[wall board] load failed:', error); return; }
-    wallPhotos = data || [];
-    renderWallPhotos();
+    wallItems = data || [];
+    renderWallItems();
   }
 
-  function buildPickerThumb(item) {
-    const img = item.img;
-    const btn = document.createElement('button');
-    btn.className = 'wall-picker-item';
-    btn.type = 'button';
+  function wallJitter() { return Math.min(85, Math.max(15, 50 + (Math.random() * 30 - 15))); }
 
-    const thumb = document.createElement('div');
-    thumb.className = 'wall-picker-thumb';
-    if (img.frame === MatrixRender.NO_FRAME_KEY) {
-      thumb.innerHTML = `<img class="wpt-plain" src="${escAttr(img.url)}" alt="">`;
-    } else {
-      const frameFile = MatrixRender.PHOTO_FRAME_FILE[img.frame] || MatrixRender.PHOTO_FRAME_FILE.polaroid;
-      thumb.innerHTML = `<div class="wpt-inner" style="${MatrixRender.photoFrameMaskStyle(img.frame)}">
-          <img class="wpt-img" src="${escAttr(img.url)}" alt="" style="${MatrixRender.photoMatteStyle(img.frame)}object-position:${img.imgPosX != null ? img.imgPosX : 50}% ${img.imgPosY != null ? img.imgPosY : 50}%;">
-          <img class="wpt-frame" src="${MatrixRender.PHOTO_FRAME_BASE}${frameFile}" alt="">
-        </div>`;
-    }
-    btn.appendChild(thumb);
-
-    const label = document.createElement('div');
-    label.className = 'wall-picker-label';
-    label.textContent = { dream_matrix: 'dream', daily_matrix: 'daily', cosmic_matrix: 'cosmic' }[item.sourceTable] || '';
-    btn.appendChild(label);
-
-    btn.addEventListener('click', () => addPhotoToWall(item));
-    return btn;
-  }
-
-  async function addPhotoToWall(item) {
-    const img = item.img;
-    const jitter = () => Math.min(85, Math.max(15, 50 + (Math.random() * 30 - 15)));
-    const row = {
-      user_id: currentUserId,
-      photo_url: img.url,
-      frame: img.frame || 'polaroid',
-      img_scale: img.imgScale || 1,
-      img_pos_x: img.imgPosX != null ? img.imgPosX : 50,
-      img_pos_y: img.imgPosY != null ? img.imgPosY : 50,
-      img_rot: img.imgRot || 0,
-      x: jitter(),
-      y: jitter(),
-      scale: 1,
-      source_table: item.sourceTable,
-      source_id: item.sourceId,
-      source_map_id: item.sourceMapId,
-      source_map_phase: item.sourceMapPhase,
-    };
-    const { data, error } = await sb.from('bed_wall_photos').insert(row).select().single();
-    if (error) { console.error('[wall board] add photo failed:', error); return; }
-    wallPhotos.push(data);
-    renderWallPhotos();
-    closeWallPicker();
-  }
-
-  window.openWallPicker = async function () {
-    document.getElementById('wall-picker-overlay').classList.add('open');
-    const body = document.getElementById('wall-picker-body');
-
-    if (!isPaid) {
-      body.innerHTML = `<div class="wall-picker-empty">become a member to decorate your room<br>
-        <a class="wall-picker-gate-link" href="../users/membership.html">see membership options →</a></div>`;
-      return;
-    }
-
-    body.innerHTML = '<div class="wall-picker-empty">loading your photos…</div>';
-
+  // ── customize modal wiring (assets/js/matrix-customize.js) ──
+  async function loadAlbum() {
     const [dreamRes, dailyRes, cosmicRes] = await Promise.all([
       sb.from('dream_matrix').select('id, map_id, matrix_images').eq('user_id', currentUserId),
       sb.from('daily_matrix').select('id, matrix_images').eq('user_id', currentUserId),
       sb.from('cosmic_matrix').select('transit_id, matrix_images').eq('user_id', currentUserId),
     ]);
-
     const items = [];
     (dreamRes.data || []).forEach(row => (row.matrix_images || []).forEach(img => {
       if (img && img.url) items.push({ img, sourceTable: 'dream_matrix', sourceId: row.id, sourceMapId: row.map_id, sourceMapPhase: null });
@@ -636,21 +564,100 @@ html, body {
     (cosmicRes.data || []).forEach(row => (row.matrix_images || []).forEach(img => {
       if (img && img.url) items.push({ img, sourceTable: 'cosmic_matrix', sourceId: null, sourceMapId: null, sourceMapPhase: row.transit_id });
     }));
+    return items;
+  }
 
-    if (!items.length) {
-      body.innerHTML = '<div class="wall-picker-empty">save some photos in the matrix to decorate your room</div>';
+  function albumThumb(raw) {
+    const img = raw.img;
+    return {
+      url: img.url, frame: img.frame,
+      imgPosX: img.imgPosX != null ? img.imgPosX : 50, imgPosY: img.imgPosY != null ? img.imgPosY : 50,
+      label: { dream_matrix: 'dream', daily_matrix: 'daily', cosmic_matrix: 'cosmic' }[raw.sourceTable] || '',
+    };
+  }
+
+  async function onPickAlbumPhoto(raw) {
+    const img = raw.img;
+    const row = {
+      user_id: currentUserId, kind: 'photo',
+      photo_url: img.url,
+      frame: img.frame || 'polaroid',
+      img_scale: img.imgScale || 1,
+      img_pos_x: img.imgPosX != null ? img.imgPosX : 50,
+      img_pos_y: img.imgPosY != null ? img.imgPosY : 50,
+      img_rot: img.imgRot || 0,
+      x: wallJitter(), y: wallJitter(), scale: 1,
+      source_table: raw.sourceTable, source_id: raw.sourceId,
+      source_map_id: raw.sourceMapId, source_map_phase: raw.sourceMapPhase,
+    };
+    const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
+    if (error) throw error;
+    wallItems.push(data);
+    renderWallItems();
+  }
+
+  async function onUploadPhoto({ file, frame, imgScale, imgPosX, imgPosY, imgRot }) {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${currentUserId}/bedroom/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('matrix-photos').upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    const { data: pub } = sb.storage.from('matrix-photos').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl;
+    if (!publicUrl) throw new Error('could not resolve image url');
+    const row = {
+      user_id: currentUserId, kind: 'photo',
+      photo_url: publicUrl, frame, img_scale: imgScale, img_pos_x: imgPosX, img_pos_y: imgPosY, img_rot: imgRot,
+      x: wallJitter(), y: wallJitter(), scale: 1,
+    };
+    const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
+    if (error) throw error;
+    wallItems.push(data);
+    renderWallItems();
+  }
+
+  async function onAddSticker(url) {
+    const row = {
+      user_id: currentUserId, kind: 'sticker', sticker_url: url,
+      x: wallJitter(), y: wallJitter(), scale: 1, rot: +((Math.random() * 2 - 1) * 15).toFixed(1),
+    };
+    const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
+    if (error) throw error;
+    wallItems.push(data);
+    renderWallItems();
+  }
+
+  async function onAddText({ text, stationery }) {
+    const row = {
+      user_id: currentUserId, kind: 'text', text_content: text, stationery: stationery || null,
+      x: wallJitter(), y: wallJitter(), scale: 1, rot: +((Math.random() * 2 - 1) * 8).toFixed(1),
+    };
+    const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
+    if (error) throw error;
+    wallItems.push(data);
+    renderWallItems();
+  }
+
+  // Created lazily (not at module load) — this inline script runs before the
+  // deferred matrix-render.js/matrix-customize.js scripts execute, so
+  // window.MatrixCustomize isn't defined yet at top level.
+  let customizePanel = null;
+  function getCustomizePanel() {
+    if (!customizePanel) {
+      customizePanel = MatrixCustomize.createPanel({
+        title: 'customize', addLabel: 'pin to wall', showAlbum: true,
+        loadAlbum, albumThumb, onPickAlbumPhoto, onUploadPhoto, onAddSticker, onAddText,
+      });
+    }
+    return customizePanel;
+  }
+
+  window.openCustomizePanel = async function () {
+    if (!isPaid) {
+      const go = await HGModal.action('become a member', 'become a member to decorate your room.', { label: 'see membership options' });
+      if (go) window.location.href = '../users/membership.html';
       return;
     }
-
-    const grid = document.createElement('div');
-    grid.className = 'wall-picker-grid';
-    items.forEach(item => grid.appendChild(buildPickerThumb(item)));
-    body.innerHTML = '';
-    body.appendChild(grid);
-  };
-  window.closeWallPicker = function () {
-    const overlay = document.getElementById('wall-picker-overlay');
-    if (overlay) overlay.classList.remove('open');
+    getCustomizePanel().open();
   };
 
   // ── Auth check ───────────────────────────────────────────
@@ -683,7 +690,7 @@ html, body {
     });
     HeartabilityRoomNav.init({ mount: '#map-slot', currentRoom: 'bed' });
 
-    await loadWallPhotos();
+    await loadWallItems();
 
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('main-content').classList.add('active');
