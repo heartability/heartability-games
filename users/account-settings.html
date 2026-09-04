@@ -136,6 +136,27 @@ html, body {
 
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 
+/* ── STORAGE METER ── */
+.storage-row { flex-direction: column; align-items: stretch; gap: 8px; }
+.storage-head { display: flex; justify-content: space-between; align-items: baseline; font-size: clamp(15px, 4vw, 22px); }
+.storage-amount { color: #888; font-size: clamp(13px, 3vw, 15px); }
+.storage-track {
+  height: 14px;
+  background: var(--cream-dark);
+  border: 1.5px solid var(--purple);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.storage-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--purple);
+  transition: width 0.4s ease;
+}
+.storage-fill.storage-full { background: #d3536e; }
+.storage-note { align-self: flex-start; font-size: clamp(13px, 3vw, 15px); color: var(--purple); text-decoration: underline; }
+.storage-note:hover { color: var(--purple-dark); }
+
 .btn-action {
   padding: 8px 15px;
   background: none;
@@ -283,6 +304,14 @@ html, body {
         <span class="setting-label">manage payments</span>
         <button class="btn-action" id="btn-manage-payments" onclick="goToPortal()">stripe subscriptions</button>
       </div>
+      <div class="setting-row storage-row" id="row-storage" style="display:none;">
+        <div class="storage-head">
+          <span class="setting-label">storage used</span>
+          <span class="storage-amount" id="storage-amount">—</span>
+        </div>
+        <div class="storage-track"><div class="storage-fill" id="storage-fill"></div></div>
+        <a href="#" class="storage-note" id="storage-note" style="display:none;" onclick="requestMoreStorage(); return false;">need more space?</a>
+      </div>
     </div>
   </div>
 
@@ -351,6 +380,7 @@ html, body {
     document.getElementById('settings-email').textContent    = user.email;
 
     applyMembershipUI(profile?.membership_status || 'free');
+    loadStorageUsage();
 
     HeartabilityNav.init({
       mount: '#gear-slot',
@@ -394,6 +424,64 @@ html, body {
       paymentsRow.style.display = 'none';
     }
   }
+
+  // ── Storage meter ─────────────────────────────────────────
+  let storageUsage = null; // { bytesUsed, limitBytes } — read by requestMoreStorage()
+
+  async function loadStorageUsage() {
+    const { data, error } = await sb.rpc('get_storage_usage');
+    if (error || !data || !data[0]) return;
+    const { bytes_used, limit_bytes } = data[0];
+    storageUsage = { bytesUsed: bytes_used, limitBytes: limit_bytes };
+
+    const gb = n => (n / 1073741824).toFixed(2);
+    const pct = Math.min(100, Math.round((bytes_used / limit_bytes) * 100));
+
+    document.getElementById('storage-amount').textContent = `${gb(bytes_used)} GB of ${gb(limit_bytes)} GB`;
+    const fillEl = document.getElementById('storage-fill');
+    fillEl.style.width = `${pct}%`;
+    fillEl.classList.toggle('storage-full', pct >= 100);
+    document.getElementById('row-storage').style.display = 'flex';
+    document.getElementById('storage-note').style.display = pct >= 80 ? 'inline' : 'none';
+  }
+
+  window.requestMoreStorage = async function () {
+    if (!storageUsage || !currentSession) return;
+    const ok = await HGModal.confirm(
+      'need more space?',
+      "we'll send a note to support letting them know you're running low on storage.",
+      { confirmLabel: 'send' }
+    );
+    if (!ok) return;
+
+    const noteEl = document.getElementById('storage-note');
+    noteEl.textContent = 'sending…';
+
+    const gb = n => (n / 1073741824).toFixed(2);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-support-ticket`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({
+          email: currentSession.user.email,
+          category: 'account',
+          subject: 'Storage limit — requesting more space',
+          message: `I'm at ${gb(storageUsage.bytesUsed)} GB of my ${gb(storageUsage.limitBytes)} GB storage limit and would like more space.`,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      noteEl.textContent = 'sent — we’ll be in touch';
+      noteEl.style.pointerEvents = 'none';
+      noteEl.style.textDecoration = 'none';
+    } catch (err) {
+      noteEl.textContent = 'need more space?';
+      await HGModal.alert('error', "couldn't send that — please try again.");
+    }
+  };
 
   window.goToUpgrade = function () { window.location.href = 'membership.html'; };
 

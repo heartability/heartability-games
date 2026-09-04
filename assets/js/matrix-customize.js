@@ -251,6 +251,20 @@
   font-family:var(--font-hand,"ZoesHandwriting",cursive); color:#3a2e1e; line-height:1.25; font-size:clamp(11px,1.3vw,15px);
 }
 .cst-stationery-plain-glyph { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:28px; color:#3a2e1e; }
+
+/* wallpaper tab (bedroom only) */
+.cst-swatch-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.cst-swatch {
+  aspect-ratio:1; border:2px solid #ccc; padding:0; cursor:pointer; position:relative;
+  background-color:#e8e4dc; background-repeat:repeat; transition:border-color .1s;
+}
+.cst-swatch:hover { border-color:var(--blue,#6e83d3); }
+.cst-swatch.selected { border-color:var(--blue,#6e83d3); box-shadow:0 0 0 2px var(--blue,#6e83d3); }
+.cst-swatch span {
+  position:absolute; left:0; right:0; bottom:0; text-align:center; padding:2px 0;
+  font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:11px; color:#fff;
+  background:rgba(0,0,0,.45);
+}
 `;
     document.head.appendChild(style);
   }
@@ -274,6 +288,7 @@
           <button type="button" class="cst-tab-btn active" data-tab="photo">photo</button>
           <button type="button" class="cst-tab-btn" data-tab="sticker">sticker</button>
           <button type="button" class="cst-tab-btn" data-tab="text">text</button>
+          ${deps.showWallpaper ? `<button type="button" class="cst-tab-btn" data-tab="wallpaper">wallpaper</button>` : ''}
         </div>
         <div class="cst-body">
           <div class="cst-pane active" data-pane="photo">
@@ -310,6 +325,15 @@
             <div class="cst-status cst-text-status"></div>
             <button class="cst-add-btn cst-text-add" type="button">${esc(addLabel)}</button>
           </div>
+          ${deps.showWallpaper ? `
+          <div class="cst-pane" data-pane="wallpaper">
+            <div class="cst-sub">pick a wall and floor pattern for your room.</div>
+            <div class="cst-label">wall</div>
+            <div class="cst-swatch-grid cst-wall-swatch-grid"></div>
+            <div class="cst-label">floor</div>
+            <div class="cst-swatch-grid cst-floor-swatch-grid"></div>
+            <div class="cst-status cst-wallpaper-status"></div>
+          </div>` : ''}
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -702,6 +726,42 @@
       }
     });
 
+    // ═══ WALLPAPER TAB (bedroom only) ═══
+    let wallSwatchGridEl, floorSwatchGridEl, wallpaperStatusEl;
+    if (deps.showWallpaper) {
+      wallSwatchGridEl = overlay.querySelector('.cst-wall-swatch-grid');
+      floorSwatchGridEl = overlay.querySelector('.cst-floor-swatch-grid');
+      wallpaperStatusEl = overlay.querySelector('.cst-wallpaper-status');
+
+      function renderSwatchGrid(gridEl, options, currentKey, onPick) {
+        gridEl.innerHTML = options.map(o => {
+          const selected = o.key === currentKey ? ' selected' : '';
+          return `<button class="cst-swatch${selected}" type="button" data-key="${o.key}"
+              style="background-image:url('${o.file}');background-size:${o.swatchSize || '40px 40px'};"><span>${esc(o.label)}</span></button>`;
+        }).join('');
+        gridEl.querySelectorAll('.cst-swatch').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (btn.classList.contains('selected')) return;
+            gridEl.querySelectorAll('.cst-swatch').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            wallpaperStatusEl.style.color = '#7a86bb'; wallpaperStatusEl.textContent = 'saving…';
+            try {
+              await onPick(btn.dataset.key);
+              wallpaperStatusEl.style.color = '#6ab86a'; wallpaperStatusEl.textContent = 'saved ✓';
+            } catch (err) {
+              console.error('[matrix-customize] wallpaper save failed:', err);
+              wallpaperStatusEl.style.color = '#E8478B'; wallpaperStatusEl.textContent = 'couldn’t save — try again';
+            }
+          });
+        });
+      }
+      function refreshWallpaperTab() {
+        wallpaperStatusEl.textContent = ''; wallpaperStatusEl.style.color = '';
+        renderSwatchGrid(wallSwatchGridEl, deps.wallOptions || [], deps.getCurrentWall ? deps.getCurrentWall() : null, deps.onSetWall);
+        renderSwatchGrid(floorSwatchGridEl, deps.floorOptions || [], deps.getCurrentFloor ? deps.getCurrentFloor() : null, deps.onSetFloor);
+      }
+    }
+
     function open(tab) {
       ensureStyles();
       switchTab(tab || 'photo');
@@ -710,6 +770,7 @@
       resetTextAdd();
       if (deps.showAlbum) { showAlbumView(); refreshAlbum(); }
       else showUploadView();
+      if (deps.showWallpaper) refreshWallpaperTab();
       overlay.classList.add('open');
     }
     function close() { overlay.classList.remove('open'); }
