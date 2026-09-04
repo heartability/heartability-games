@@ -1269,7 +1269,14 @@
 .matrix-tool-btn:active { transform:scale(0.93); }
 .matrix-tool-btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
 .matrix-tool-btn:disabled:hover { background:#fff; color:var(--blue,#6e83d3); }
-.matrix-customize-btn img { width:22px; height:22px; object-fit:contain; }
+/* customize.png is already a complete self-contained icon graphic — no extra
+   button chrome around it (matches rooms/bed.html's wall-customize-btn). */
+.matrix-customize-btn {
+  width:auto; height:auto; border-radius:0; background:none; box-shadow:none; transition:transform .1s;
+}
+.matrix-customize-btn:hover { background:none; box-shadow:none; transform:scale(1.08); }
+.matrix-customize-btn:active { transform:scale(0.96); }
+.matrix-customize-btn img { width:40px; height:40px; object-fit:contain; }
 
 /* Explicit save — top-right of the matrix header, above the date.
    Drag/rotate/resize already autosave per-gesture, but this batches every

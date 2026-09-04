@@ -1195,7 +1195,6 @@ html, body { width:100vw; height:100dvh; overflow-x:hidden; overflow-y:auto; use
 <script src="./matrix-render.js"></script>
 <script src="../assets/js/matrix-customize.js"></script>
 <script src="./matrix-inventory.js"></script>
-<script src="./matrix-journal.js"></script>
 <script src="../assets/js/nav.js" defer></script>
 <script src="../assets/js/membership.js" defer></script>
 <script>
@@ -1238,7 +1237,7 @@ async function deleteMatrixPhotoFiles(urls){
 let activeGameId   = null;
 let activeGameData = null;
 let activePhase    = null;
-let currentStep    = null; // 'map' | 'character' | 'bingo' | 'library' | 'journal' — whichever popup is open
+let currentStep    = null; // 'map' | 'character' | 'bingo' | 'library' — whichever popup is open
 let activeEntryId  = null; // one uuid per playthrough = one dream_matrix row (or one daily_matrix row in daily mode)
 let activeSidequest    = null; // {name,terrain,feeling,tint,cat} when the secret phase is taken
 let activeDreamCameTrue = null; // {name,terrain,feeling,tint,cat} when dream-came-true phase is taken
@@ -2058,54 +2057,6 @@ async function saveLibrarySelection(){
   }
 }
 
-// ── JOURNAL (native chat, opened from the on-canvas notes button) ───
-// Messages persist on every send — there's no separate "done" step;
-// closing the popup (×) is all that's needed. Panel logic lives in the
-// shared matrix-journal.js module (also used by daily.html/cosmic.html).
-const journalPanel = MatrixJournal.createPanel({
-  sb,
-  getCurrentUser: () => currentUser,
-  get table() { return currentTable(); },
-  charAssets: MatrixRender.CHAR_FULL_ASSETS,
-  placeholder: 'what do you want to remember?',
-  emptyText: 'What do you want to remember?<br> archive selfies and screenshots or summarize your discoveries',
-  isReady: () => !!activeEntryId,
-  identityColumns: ['id'],
-  buildUpsertBase: () => currentUpsertBase(),
-  rowMatchesActive: row => row.id === activeEntryId,
-  sideForRow: (row, i) => i % 2 === 0 ? 'left' : 'right',
-  charDataForRow: row => row.character_data || null,
-  locationLabelForRow: row => {
-    const ld = row.location_data || {};
-    return (ld.terrain && ld.feeling) ? `${ld.terrain} of ${ld.feeling}` : (ld.terrain || ld.feeling || '');
-  },
-  // Dream mode: journal history scoped to the current dream (map_id). Daily
-  // mode: the whole day-by-day journal across every daily_matrix entry —
-  // matches daily.html's original (unscoped) history query.
-  loadHistoryRows: async () => {
-    if (matrixMode === 'daily') {
-      const { data } = await sb.from('daily_matrix')
-        .select('id, journal_messages, created_at, character_data, location_data')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: true }).limit(60);
-      return data || [];
-    }
-    const { data } = await sb.from('dream_matrix')
-      .select('id, journal_messages, matrix_images, created_at, character_data, location_data')
-      .eq('map_id', activeGameId).eq('user_id', currentUser.id)
-      .order('created_at', { ascending: true }).limit(60);
-    return data || [];
-  },
-});
-
-function stepJournal() {
-  currentStep = 'journal';
-  clearTimeout(window._saveFallback);
-  setBubble('any discoveries in this phase?', []);
-  showPanel(journalPanel.panelHtml());
-  journalPanel.enter();
-}
-
 // ── STEP 7: DONE ──────────────────────────────────────────
 // ── DREAM MATRIX ─────────────────────────────────────
 // Rendering + interactive editing (drag/rotate/resize, add photo/sticker/
@@ -2130,7 +2081,6 @@ function getMatrixEditor(){
     status: (msg, color) => showRoomStatus(msg, color),
     onChange: renderMatrix,
     onQuadrantOpen: openQuadrant,
-    onOpenJournal: openJournalPopup,
     onPhotoBlocked: () => {
       if (isPaidUser) return false;
       showMemberGate();
@@ -2162,7 +2112,7 @@ async function renderMatrix() {
   _matrixSeed = matrixMode === 'daily' ? (activeEntryId || 'daily-matrix') : `${activeGameId}|${activeEntryId}`;
   showMatrixPanel(MatrixRender.buildHTML(data, _matrixSeed, {
     showEditNotes: false, showFrame: true,
-    editable: !!activeEntryId, showJournalTool: !!activeEntryId,
+    editable: !!activeEntryId,
     quadrantPrompts: QUADRANT_PROMPTS,
     lockedQuadrants: activeEntryId ? [] : ['bingo', 'library', 'char'],
   }));
@@ -2225,12 +2175,6 @@ function openLibraryPopup() {
   openQuadrantPopup(QUADRANT_PROMPTS.library);
   stepLibrary();
 }
-function openJournalPopup() {
-  if (!activeEntryId) return;
-  openQuadrantPopup('journal');
-  stepJournal();
-}
-
 // ── POSTMESSAGE FROM IFRAMES ──────────────────────────────
 window.addEventListener('message', async e => {
   const msg = e.data || {};

@@ -330,7 +330,7 @@
             <div class="cst-text-preview" style="display:none;"></div>
             <textarea class="cst-text-input" maxlength="80" placeholder="write something..."></textarea>
             <div class="cst-label">text size</div>
-            <input type="range" class="cst-text-size-slider" min="0.6" max="2" step="0.1" value="1">
+            <input type="range" class="cst-text-size-slider" min="2" max="4" step="0.1" value="2">
             <div class="cst-label">which stationery?</div>
             <div class="cst-frame-grid cst-stationery-grid"></div>
             <div class="cst-status cst-text-status"></div>
@@ -679,7 +679,7 @@
 
     // ═══ TEXT TAB ═══
     const TEXT_BASE_SIZE = 18, STATIONERY_BASE_SIZE = 14;
-    let textDraft = { stationery: null, scale: 1 };
+    let textDraft = { stationery: null, scale: 2 };
     const textPreviewEl = overlay.querySelector('.cst-text-preview');
     const textInputEl = overlay.querySelector('.cst-text-input');
     const textSizeSliderEl = overlay.querySelector('.cst-text-size-slider');
@@ -709,8 +709,8 @@
     }
     function resetTextAdd(){
       textInputEl.value = ''; textInputEl.maxLength = 80;
-      textDraft = { stationery: null, scale: 1 };
-      textSizeSliderEl.value = 1;
+      textDraft = { stationery: null, scale: 2 };
+      textSizeSliderEl.value = 2;
       renderStationeryGrid(); updateTextAddPreview();
       textStatusEl.textContent = ''; textStatusEl.style.color = '';
       textAddBtn.disabled = false; textAddBtn.textContent = 'add';
