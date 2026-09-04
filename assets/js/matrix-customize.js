@@ -102,17 +102,19 @@
 .cst-overlay.open { display:flex; }
 .cst-shell {
   width:min(480px,94vw); height:min(88vh,720px); display:flex; flex-direction:column; overflow:hidden;
-  background:var(--back-wall,#f1ebe4);
-  border:2px solid var(--blue,#6e83d3);
-  box-shadow:0 0 0 4px var(--blue,#6e83d3), 6px 10px 40px rgba(0,0,0,.4);
+  background:#dfe2ef;
+  box-shadow:0 0 0 4px var(--blue,#6e83d3), 4px 8px 28px rgba(0,0,0,.35);
   font-family:var(--font-hand,"ZoesHandwriting",cursive);
 }
-.cst-head { flex-shrink:0; display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:16px 20px 0; }
-.cst-title { font-size:clamp(26px,3vw,30px); color:var(--blue,#6e83d3); }
-.cst-close { font-size:25px; color:#aaa; cursor:pointer; line-height:1; border:none; background:none; padding:2px 6px; }
-.cst-close:hover { color:#E8478B; }
-.cst-tabs { flex-shrink:0; display:flex; border-bottom:2px solid #bbb; margin-top:12px; }
-.cst-tab-btn { flex:1; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:16px; color:#555; background:#cdd3ec; border:none; border-right:1px solid #bbb; padding:9px 4px; cursor:pointer; }
+.cst-head {
+  flex-shrink:0; min-height:44px; background:#cdd3ec; border-bottom:2px solid var(--blue,#6e83d3);
+  display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 16px;
+}
+.cst-title { font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:clamp(20px,2.2vw,23px); color:#333; }
+.cst-close { font-size:22px; color:#999; cursor:pointer; line-height:1; border:none; background:none; padding:4px; }
+.cst-close:hover { color:var(--blue,#6e83d3); }
+.cst-tabs { flex-shrink:0; display:flex; border-bottom:2px solid #bbb; }
+.cst-tab-btn { flex:1; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:15px; color:#555; background:#cdd3ec; border:none; border-right:1px solid #bbb; padding:8px 4px; cursor:pointer; }
 .cst-tab-btn:last-child { border-right:none; }
 .cst-tab-btn.active { background:var(--blue,#6e83d3); color:#fff; }
 .cst-body { flex:1; overflow-y:auto; padding:18px 20px; min-height:0; }

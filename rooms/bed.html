@@ -183,13 +183,6 @@ html, body {
 
 /* ── PER-ICON POSITION & SIZE — adjust these ── */
 
-/* settings — lower-left, sits on floor */
-#icon-settings {
-  top: 11cqh;
-  left: 17cqw;
-}
-#icon-settings img { width: clamp(90px, 6cqw, 120px); }
-
 /* BED — lower-center/right, sits on floor */
 #icon-bed {
   bottom: 8cqh;
@@ -335,9 +328,6 @@ html, body {
 
   <!-- ROOM ICONS -->
   <div class="room-icons" id="main-content">
-    <div class="room-icon" id="icon-settings" onclick="window.location.href='../users/account-settings.html'">
-      <img src="../assets/elements/settings.png" alt="account settings" />
-    </div>
     <div class="room-icon" id="icon-bed" onclick="window.location.href='../matrix/archive.html'">
       <img src="../assets/elements/bed.png" alt="adventure archive" />
     </div>
@@ -699,7 +689,6 @@ html, body {
   // ── Thought bubble ────────────────────────────────────────
   const bubble = document.getElementById('thought-bubble');
   const bubbleMessages = {
-    'icon-settings': 'access your account settings',
     'icon-bed':     'view the dream archive',
     'icon-matrix': 'enter the matrix',
   };
