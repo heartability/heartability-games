@@ -21,8 +21,8 @@
      onPickAlbumPhoto(item): Promise, // called with the raw item from loadAlbum()
      onUploadPhoto({file,dataUrl,frame,imgScale,imgPosX,imgPosY,imgRot}): Promise,
      onAddSticker(url): Promise,
-     onAddText({text,stationery}): Promise,
-     addLabel: string,                // button text on the upload/sticker/text "add" actions, default 'add to matrix'
+     onAddText({text,stationery,scale}): Promise,
+     addLabel: string,                // button text on the photo tab's "add" action, default 'add to matrix' (text tab's button is always 'add')
      status(msg, color): void,        // optional external status line
    }
    Returns { open(tab), close(), destroy() }.
@@ -120,7 +120,6 @@
 .cst-body { flex:1; overflow-y:auto; padding:18px 20px; min-height:0; }
 .cst-pane { display:none; }
 .cst-pane.active { display:block; }
-.cst-sub { font-size:14px; color:#7a86bb; margin:0 0 14px; }
 .cst-label { font-size:14px; color:#7a86bb; letter-spacing:.4px; margin-bottom:6px; }
 .cst-status { font-size:14px; min-height:18px; margin-bottom:8px; color:#7a86bb; }
 .cst-add-btn {
@@ -237,13 +236,16 @@
 .cst-sticker-thumb img { width:100%; display:block; }
 
 /* text tab */
+.cst-text-top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.cst-add-btn-compact { width:auto; flex-shrink:0; padding:9px 18px; }
 .cst-text-input {
   width:100%; font-family:var(--font-hand,"ZoesHandwriting",cursive); font-size:18px; color:#222;
   background:#fff; border:1.5px solid var(--blue,#6e83d3); padding:10px 12px;
   outline:none; resize:none; height:90px; line-height:1.5; margin-bottom:12px;
 }
 .cst-text-input:focus { border-color:var(--blue,#6e83d3); }
-.cst-text-preview { position:relative; width:100%; max-width:260px; margin:0 auto 14px; }
+.cst-text-size-slider { width:100%; margin:0 0 16px; accent-color:var(--blue,#6e83d3); }
+.cst-text-preview { position:relative; width:100%; max-width:220px; margin:0; }
 .cst-text-preview-img { width:100%; height:auto; display:block; box-shadow:2px 3px 7px rgba(0,0,0,.18); }
 .cst-text-preview-body {
   position:absolute; overflow:hidden; text-align:center; word-break:break-word; white-space:pre-wrap;
@@ -299,7 +301,6 @@
         </div>
         <div class="cst-body">
           <div class="cst-pane active" data-pane="photo">
-            <div class="cst-sub">pick a photo, or upload a new one, then drag it into place.</div>
             <div class="cst-photo-album" style="display:none;">
               <div class="cst-album-grid"></div>
               <div class="cst-album-empty" style="display:none;">loading your photos…</div>
@@ -319,22 +320,23 @@
             </div>
           </div>
           <div class="cst-pane" data-pane="sticker">
-            <div class="cst-sub">tap a sticker to drop it in, then drag it into place.</div>
             <div class="cst-sticker-tabs"></div>
             <div class="cst-sticker-grid"></div>
           </div>
           <div class="cst-pane" data-pane="text">
-            <div class="cst-sub">write a few words in your own handwriting.</div>
-            <div class="cst-text-preview" style="display:none;"></div>
+            <div class="cst-text-top-row">
+              <div class="cst-text-preview" style="display:none;"></div>
+              <button class="cst-add-btn cst-text-add cst-add-btn-compact" type="button">add</button>
+            </div>
             <textarea class="cst-text-input" maxlength="80" placeholder="write something..."></textarea>
+            <div class="cst-label">text size</div>
+            <input type="range" class="cst-text-size-slider" min="0.6" max="2" step="0.1" value="1">
             <div class="cst-label">which stationery?</div>
             <div class="cst-frame-grid cst-stationery-grid"></div>
             <div class="cst-status cst-text-status"></div>
-            <button class="cst-add-btn cst-text-add" type="button">${esc(addLabel)}</button>
           </div>
           ${deps.showWallpaper ? `
           <div class="cst-pane" data-pane="wallpaper">
-            <div class="cst-sub">pick a pattern for your wall or floor — any pattern works on either.</div>
             <div class="cst-target-toggle">
               <button type="button" class="cst-target-btn active" data-target="wall">wall</button>
               <button type="button" class="cst-target-btn" data-target="floor">floor</button>
@@ -676,9 +678,11 @@
     });
 
     // ═══ TEXT TAB ═══
-    let textDraft = { stationery: null };
+    const TEXT_BASE_SIZE = 18, STATIONERY_BASE_SIZE = 14;
+    let textDraft = { stationery: null, scale: 1 };
     const textPreviewEl = overlay.querySelector('.cst-text-preview');
     const textInputEl = overlay.querySelector('.cst-text-input');
+    const textSizeSliderEl = overlay.querySelector('.cst-text-size-slider');
     const stationeryGridEl = overlay.querySelector('.cst-stationery-grid');
     const textStatusEl = overlay.querySelector('.cst-text-status');
     const textAddBtn = overlay.querySelector('.cst-text-add');
@@ -695,21 +699,27 @@
       stationeryGridEl.innerHTML = plainThumb + cardThumbs;
     }
     function updateTextAddPreview(){
+      textInputEl.style.fontSize = (TEXT_BASE_SIZE * textDraft.scale) + 'px';
       if (!textDraft.stationery) { textPreviewEl.style.display = 'none'; return; }
       textPreviewEl.style.display = 'block';
       const file = MR.STATIONERY_FILE[textDraft.stationery];
       const box = MR.STATIONERY_BOX[textDraft.stationery];
       textPreviewEl.innerHTML = `<img class="cst-text-preview-img" src="${MR.STATIONERY_BASE}${file}" alt="">
-          <div class="cst-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;">${esc(textInputEl.value)}</div>`;
+          <div class="cst-text-preview-body" style="left:${box.l}%;top:${box.t}%;width:${box.w}%;height:${box.h}%;font-size:${STATIONERY_BASE_SIZE * textDraft.scale}px;">${esc(textInputEl.value)}</div>`;
     }
     function resetTextAdd(){
       textInputEl.value = ''; textInputEl.maxLength = 80;
-      textDraft = { stationery: null };
+      textDraft = { stationery: null, scale: 1 };
+      textSizeSliderEl.value = 1;
       renderStationeryGrid(); updateTextAddPreview();
       textStatusEl.textContent = ''; textStatusEl.style.color = '';
-      textAddBtn.disabled = false; textAddBtn.textContent = addLabel;
+      textAddBtn.disabled = false; textAddBtn.textContent = 'add';
     }
     textInputEl.addEventListener('input', updateTextAddPreview);
+    textSizeSliderEl.addEventListener('input', () => {
+      textDraft.scale = +textSizeSliderEl.value;
+      updateTextAddPreview();
+    });
     stationeryGridEl.addEventListener('click', e => {
       const btn = e.target.closest('.cst-frame-thumb');
       if (!btn) return;
@@ -724,13 +734,13 @@
       if (!text) { textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'write something first'; return; }
       textAddBtn.disabled = true; textAddBtn.textContent = 'adding…';
       try {
-        await deps.onAddText({ text, stationery: textDraft.stationery || null });
+        await deps.onAddText({ text, stationery: textDraft.stationery || null, scale: textDraft.scale });
         status('text added ✓', '#6ab86a');
         close();
       } catch (err) {
         console.error('[matrix-customize] text add failed:', err);
         textStatusEl.style.color = '#E8478B'; textStatusEl.textContent = 'couldn’t add text — try again';
-        textAddBtn.disabled = false; textAddBtn.textContent = addLabel;
+        textAddBtn.disabled = false; textAddBtn.textContent = 'add';
       }
     });
 

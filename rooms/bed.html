@@ -653,10 +653,10 @@ html, body {
     renderWallItems();
   }
 
-  async function onAddText({ text, stationery }) {
+  async function onAddText({ text, stationery, scale }) {
     const row = {
       user_id: currentUserId, kind: 'text', text_content: text, stationery: stationery || null,
-      x: wallJitter(), y: wallJitter(), scale: 1, rot: +((Math.random() * 2 - 1) * 8).toFixed(1),
+      x: wallJitter(), y: wallJitter(), scale: scale || 1, rot: +((Math.random() * 2 - 1) * 8).toFixed(1),
     };
     const { data, error } = await sb.from('bed_wall_items').insert(row).select().single();
     if (error) throw error;

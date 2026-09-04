@@ -1007,10 +1007,10 @@
       onChange();
     }
 
-    async function addMatrixText({ text, stationery }){
+    async function addMatrixText({ text, stationery, scale }){
       const sb = deps.sb, entryId = deps.getEntryId && deps.getEntryId();
       if (!sb || !entryId) throw new Error('sign in to save text');
-      const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1) };
+      const entry = { id: crypto.randomUUID(), text, x: +(20 + Math.random()*60).toFixed(1), y: +(20 + Math.random()*60).toFixed(1), rot: +((Math.random()*2-1)*8).toFixed(1), scale: scale || 1 };
       if (stationery) entry.stationery = stationery;
       const { data: row, error: readErr } = await sb.from(table).select('matrix_texts').eq('id', entryId).maybeSingle();
       if (readErr) throw readErr;
