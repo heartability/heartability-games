@@ -339,7 +339,7 @@ body {
         <img class="reveal-img" id="dreams-img" src="assets/elements/map.png" alt="Treasure Map">
         <div class="reveal-text">
           <p id="dreams-caption">track your progress chasing your dreams</p>
-          <a class="play-now-link" id="dreams-link" href="games/treasure-map.html">play now →</a>
+          <a class="play-now-link" id="dreams-link" href="rooms/game-room.html?game=treasure-map">play now →</a>
         </div>
       </div>
       <button class="carousel-arrow" id="dreams-next" type="button" aria-label="Next game">&#8250;</button>
@@ -443,9 +443,9 @@ body {
 
   // ── Explore your dreams: image carousel ──
   const dreamsGames = [
-    { img: 'assets/elements/map.png',    alt: 'Treasure Map',   caption: 'track your progress chasing your dreams', href: 'games/treasure-map.html' },
-    { img: 'assets/elements/mirror.png', alt: 'Infinity Mirror', caption: 'explore your inner archetypes across different landscapes', href: 'games/infinity-mirror.html' },
-    { img: 'assets/elements/bingo.png',  alt: 'Self Care Bingo', caption: 'celebrate the care you give yourself every day', href: 'games/bingo.html' }
+    { img: 'assets/elements/map.png',    alt: 'Treasure Map',   caption: 'track your progress chasing your dreams', href: 'rooms/game-room.html?game=treasure-map' },
+    { img: 'assets/elements/mirror.png', alt: 'Infinity Mirror', caption: 'explore your inner archetypes across different landscapes', href: 'rooms/game-room.html?game=infinity-mirror' },
+    { img: 'assets/elements/bingo.png',  alt: 'Self Care Bingo', caption: 'celebrate the care you give yourself every day', href: 'rooms/game-room.html?game=bingo' }
   ];
   let dreamsIndex = 0;
   const dreamsItem    = document.getElementById('dreams-reveal');

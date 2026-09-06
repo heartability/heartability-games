@@ -560,6 +560,11 @@ function handleGamePopupOverlayClick(e) {
   if (e.target === document.getElementById('game-popup-overlay')) closeGame();
 }
 
+(() => {
+  const requestedGame = new URLSearchParams(window.location.search).get('game');
+  if (requestedGame && HOWTO_CONTENT[requestedGame]) openGame(requestedGame);
+})();
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
